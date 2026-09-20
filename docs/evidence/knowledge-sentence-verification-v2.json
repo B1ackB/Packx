@@ -1,0 +1,42 @@
+{
+	"verifiedAt": "2026-09-17T12:49:09.043Z",
+	"protocolHash": "405c6690f7dea4682cbdedfb52b0ec8911dd38ce22e0d773006f2c89d4967d8b",
+	"reportHash": "6a77f7a33cdfa3a88c42b5087fb56c6919662ab1016a08e5da25c74d5ec6a2bc",
+	"checks": [
+		{
+			"command": "npm run check",
+			"passed": true,
+			"files": 63,
+			"testsPassed": 359,
+			"testsSkipped": 20
+		},
+		{
+			"command": "npx tsc -p tsconfig.server.json",
+			"passed": true
+		},
+		{
+			"command": "npx vitest run server/knowledge/sentenceEval.test.ts",
+			"passed": true,
+			"testsPassed": 7
+		},
+		{
+			"command": "npm run eval:knowledge-sentence (second invocation)",
+			"passed": true,
+			"resumedIndexes": 4,
+			"resultsUnchanged": true,
+			"newIndexingEvents": 0
+		},
+		{
+			"name": "Frozen V1 labels unchanged and both experiment source hashes match",
+			"passed": true
+		}
+	],
+	"actualSearchExecutions": 768,
+	"outputPolicyEvaluations": 1344,
+	"diagnosticBoundaryReplays": 133,
+	"diagnosticLongSentenceReplays": 7,
+	"generationCalls": 0,
+	"paidApiCalls": 0,
+	"newDependencies": 0,
+	"productionPromotion": null
+}

@@ -1,0 +1,69 @@
+{
+	"schemaVersion": "coffee-acquisition.v1",
+	"service": "PMC Article Datasets via anonymous HTTPS",
+	"policy": "https://pmc.ncbi.nlm.nih.gov/tools/pmcaws/",
+	"robots": {
+		"url": "https://pmc-oa-opendata.s3.amazonaws.com/robots.txt",
+		"checkedAt": "2026-09-17T00:00:00.000Z",
+		"status": 404,
+		"interpretation": "No robots object at initial check; explicit dataset API authorization applies, no website crawling"
+	},
+	"records": [
+		{
+			"id": "PMC12607991",
+			"revision": "PMC12607991.1",
+			"status": "downloaded",
+			"title": "Polyphenol Degradation Kinetics of Specialty Coffee in Different Presentations",
+			"doi": "10.3390/foods14213600",
+			"citation": "Foods. 2025 Oct 23;14(21):3600. doi: 10.3390/foods14213600",
+			"license": "CC BY",
+			"checkedAt": "2026-09-18T02:29:57.000Z",
+			"retrievedAt": "2026-09-18T02:30:03.435Z",
+			"metadataSha256": "929b6058c9c4660df96928520dc3a23a9e233d2cd34f7a0a5f5d44c93a28dc55",
+			"files": [
+				{
+					"file": "PMC12607991.1/PMC12607991.1.xml",
+					"url": "https://pmc-oa-opendata.s3.amazonaws.com/PMC12607991.1/PMC12607991.1.xml",
+					"bytes": 241659,
+					"sha256": "bb2dd6ebd7e2cfb299c3a08a0ef92669c39df14443538d3fabfb301db33705dd",
+					"publisherMd5": "540c617bf80432310a7300ce0cce5078"
+				},
+				{
+					"file": "PMC12607991.1/PMC12607991.1.pdf",
+					"url": "https://pmc-oa-opendata.s3.amazonaws.com/PMC12607991.1/PMC12607991.1.pdf",
+					"bytes": 1427753,
+					"sha256": "783774dc262b9b4a4c667b294bea8d7eaef4fd7fd11ee957894f2e0261be8af2",
+					"publisherMd5": "72e7879044cb8e11a1ea8faf07a1a14c"
+				}
+			]
+		},
+		{
+			"id": "PMC12111376",
+			"revision": "PMC12111376.1",
+			"status": "downloaded",
+			"title": "Impact of Environmental Humidity on Instant Coffee Stability: Defining Moisture Thresholds for Quality Degradation and Shelf Life Prediction",
+			"doi": "10.3390/foods14101826",
+			"citation": "Foods. 2025 May 21;14(10):1826. doi: 10.3390/foods14101826",
+			"license": "CC BY",
+			"checkedAt": "2026-09-18T02:29:57.000Z",
+			"retrievedAt": "2026-09-18T02:30:09.123Z",
+			"metadataSha256": "2932aa88175d39f2bc4e50d27098ab6bb50090c31127f7cd4fdeaea0ea7c4c63",
+			"files": [
+				{
+					"file": "PMC12111376.1/PMC12111376.1.xml",
+					"url": "https://pmc-oa-opendata.s3.amazonaws.com/PMC12111376.1/PMC12111376.1.xml",
+					"bytes": 118512,
+					"sha256": "14c8bfaf69271e5c86a6882610e17c005024eb70afbdbfc742953eb2e364d0dc",
+					"publisherMd5": "12ae4074f1d2bbd10a86b109ff798b72"
+				},
+				{
+					"file": "PMC12111376.1/PMC12111376.1.pdf",
+					"url": "https://pmc-oa-opendata.s3.amazonaws.com/PMC12111376.1/PMC12111376.1.pdf",
+					"bytes": 1253722,
+					"sha256": "ad46cd9690e30e973c16846061b801d440acde1348d949051e218bf671a57598",
+					"publisherMd5": "70489bd25d7a0fc0b790087bf6eebb3f"
+				}
+			]
+		}
+	]
+}

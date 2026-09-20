@@ -181,6 +181,8 @@ Start with [architecture principles](docs/architecture/principles.md), then foll
 
 Local product work is tracked in the [completion work sheet](docs/local-product-completion.md) (Chinese). See [local operations](docs/local-operations.md) for startup diagnostics, backup and restore; try the clearly labelled [synthetic coffee-pouch task](examples/coffee-pouch-intake.md). Real-user validation remains pending.
 
+The [packaging evidence retrieval slice](docs/knowledge/README.md) adds governed imports, keyword/vector/RRF baselines, and evidence lineage into Plan and requirement briefs. Run `npm run demo:knowledge` without model credentials. The [real experiment](docs/knowledge/real-experiment.md) uses 5 CC BY research papers and a pinned local E5 model; supplier specifications, expert gold labels and PostgreSQL deployment remain unvalidated.
+
 ## Verification commands
 
 | Command | Purpose | External model needed? |
@@ -230,3 +232,7 @@ For online evaluation, inject provider variables into the terminal environment a
 ### Local release and settings
 
 Run `npm run release` to produce a macOS directory, archive and checksum under `releases/`. Open `Packx.command` inside the directory; Node 24.14+ (24.x) is required, and the first launch installs pinned dependencies. Use **Configure model** in the sidebar, save the connection, then restart. Task names and Plan objectives are searchable in the sidebar. See the [release guide](docs/release-start.md) and [local operations](docs/local-operations.md). This local release is unsigned; clean-device and enterprise deployment validation remain open.
+
+The [retrieval optimization report](docs/knowledge/optimization.md) adds development ablations, an observed 64-question regression, structured evidence-gap checks, and reproducible `npm run eval:knowledge-optimize` comparisons. Reported recall measures provisional source anchors, not answer correctness or independent generalization.
+
+The [source-bound comparison report](docs/knowledge/comparison.md) covers explicit parameter pairs in the UI and controlled Tool, condition-specific follow-up questions, 40 fixed rule cases and unchanged 64-question retrieval rankings. Run `npm run eval:knowledge-compare`; industrial correctness and expert review remain unverified.

@@ -1,0 +1,100 @@
+{
+	"schemaVersion": "knowledge-chunking-protocol.v1",
+	"variants": [
+		{
+			"id": "paragraph-1000-row-1",
+			"characters": 1000,
+			"tableRows": 1
+		},
+		{
+			"id": "paragraph-500-row-1",
+			"characters": 500,
+			"tableRows": 1
+		},
+		{
+			"id": "paragraph-1500-row-1",
+			"characters": 1500,
+			"tableRows": 1
+		},
+		{
+			"id": "section-256-overlap-0-row-1",
+			"tokens": 256,
+			"overlap": 0,
+			"tableRows": 1
+		},
+		{
+			"id": "section-256-overlap-64-row-1",
+			"tokens": 256,
+			"overlap": 64,
+			"tableRows": 1
+		},
+		{
+			"id": "section-384-overlap-64-row-1",
+			"tokens": 384,
+			"overlap": 64,
+			"tableRows": 1
+		},
+		{
+			"id": "paragraph-1000-row-3",
+			"characters": 1000,
+			"tableRows": 3
+		}
+	],
+	"corpusHash": "46e09f7d57fc818bb6f69576d1d8050e86cb2fa7a25fbb0cd841e0bc2c7d0b89",
+	"originalCaseHash": "0966781aba9451bea4299bd2ffaccc0046a2023e29f37dd471bfcd7d58ba147c",
+	"caseHash": "1a860bcc9b94b22e03339a523c3caad905de39573cff1227851de97fdfc5e890",
+	"sourceHashes": {
+		"server/knowledge/jats.ts": "964e448e6ff17a2a45faacca627d990e2e156f243e361ac918e1cbdc6d7349e4",
+		"server/knowledge/store.ts": "5f9802eb086bb9f89ae7cdc7328817840ca45c5b7ca0e9ebcc1f4305d7998c27",
+		"server/knowledge/ranking.ts": "a902f2419639e0ab4c4f7fd979b9965be83118b0aab320c7adc34da2192390c0",
+		"server/knowledge/onnxEmbedding.ts": "bf8e9c2a84f8b4557a5d50e0b4710f054314ea27704b9d359345427503fc1728",
+		"src/manufacturing/knowledgeRetrieval.ts": "331d8745a6cdd524cab80899930f180774b004aeb4bfb43466bc6ee063d10242",
+		"eval/knowledgeChunkingSupport.ts": "72a2dbec8429f1d3a2ad0f7366c6083bf4d2ab905431fe3950df1274517d009f",
+		"eval/knowledgeChunking.ts": "92650331a768813a5d1cf06c4ec129767fdc858d4330ec72c33eea8a13e063eb"
+	},
+	"model": {
+		"id": "Xenova/multilingual-e5-small",
+		"revision": "761b726dd34fb83930e26aab4e9ac3899aa1fa78",
+		"dtype": "q8",
+		"dimensions": 384,
+		"runtime": "transformers-4.3.0/cpu",
+		"tokenCounting": "pinned E5 tokenizer; add_special_tokens=false"
+	},
+	"control": {
+		"modes": [
+			"keyword",
+			"vector",
+			"hybrid"
+		],
+		"primaryMode": "hybrid",
+		"policy": "packaging-fields.v1",
+		"candidateK": 8,
+		"diagnosticK": 5,
+		"budgetTokens": 1024,
+		"concurrency": 1,
+		"parameters": "removed uniformly; no structured extraction/assessment score",
+		"productionIndexChanged": false
+	},
+	"budgetRule": "Count JSON array of evidencePayload (ID, documentId, title, publisher, model, revision, sourceUrl, location, text, table). Greedy whole chunks in rank order, skip chunks that do not fit; no truncation. Query/prompt/generation excluded. E5 tokens are a context-size proxy, not generation-model tokens.",
+	"primaryMetric": "Macro fraction of provisional source bundles completely covered within 1024 tokens. Prose bundle=containing sentence by fixed punctuation rule; table bundle=sample cell+target header+target cell (unit question: sample+header). This is source-location coverage, not semantic entailment or expert correctness.",
+	"secondaryMetrics": [
+		"anchor Recall@5 and MRR@5",
+		"anchor recall and bundle character coverage at budget",
+		"actual context tokens",
+		"source-span duplication",
+		"index chunks/tokens/forward passes/time/bytes",
+		"retrieval latency P50/P95",
+		"raw empty results on absent/filter cases"
+	],
+	"spanRule": "Normalized JATS prose paragraphs reconstructed from existing parts; UTF-16 character offsets. Table rows have canonical caption/header/cell/footer text. Labels translated once from legacy references and scored only by source spans; repeated prose quotes use their first occurrence in the original labeled block. Cross-chunk union allowed for recall/coverage; MRR requires one chunk containing anchor. Source-coverage integrity ignores whitespace gaps.",
+	"windowRule": "256/384 token caps apply to prose only, within same section/anchor; word-boundary windows, overlap at most 64 tokens. Metadata is added identically by store embedding. Tables retain headers/units/footnotes/conditions. Three-row groups remain within one table; location.row denotes first row, full row lineage in chunk map.",
+	"limitations": [
+		"5 CC BY research papers; no supplier TDS",
+		"64 previously observed provisional cases, 56 answerable/8 absent or filters; 28 bilingual pairs",
+		"0 human-reviewed gold labels",
+		"development 30, previously observed frozen 34; no table queries in development",
+		"single local run, fixed order, no statistical generalization or production promotion",
+		"table diversification and E5 long-text pooling kept fixed; results measure interaction with current retrieval stack",
+		"no answer generation, industrial parameter extraction accuracy, cost or business impact measured"
+	]
+}

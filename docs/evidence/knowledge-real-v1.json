@@ -1,0 +1,6327 @@
+{
+	"schemaVersion": "knowledge-real-eval.v1",
+	"executedAt": "2026-09-17T07:56:38.596Z",
+	"corpusHash": "8f1e18121150982971850d13c8cebeab95a85fd518d9d7b5c7ce5ba0d0c7b6ed",
+	"caseHash": "0966781aba9451bea4299bd2ffaccc0046a2023e29f37dd471bfcd7d58ba147c",
+	"documents": 5,
+	"chunks": 568,
+	"parameters": 40,
+	"caseCount": 64,
+	"labelStatus": "agent_source_checked_pending_human_review",
+	"humanReviewedCases": 0,
+	"frozenBeforeFirstExperiment": true,
+	"familySplits": {
+		"calabrese-coffee-films": [
+			"development"
+		],
+		"PMC9563479": [
+			"frozen"
+		],
+		"PMC10670670": [
+			"development"
+		],
+		"PMC11944891": [
+			"frozen"
+		],
+		"absent-production-claims": [
+			"frozen"
+		],
+		"unknown-model": [
+			"frozen"
+		],
+		"before-publication": [
+			"frozen"
+		]
+	},
+	"hardware": {
+		"platform": "darwin",
+		"release": "25.6.0",
+		"cpu": "Apple M5",
+		"cores": 10,
+		"memoryBytes": 25769803776,
+		"node": "v24.14.0"
+	},
+	"concurrency": 1,
+	"embedding": {
+		"signature": "onnx:Xenova/multilingual-e5-small@761b726dd34fb83930e26aab4e9ac3899aa1fa78:q8:384:mean:l2:512:prefix-e5:windows-480-v1:transformers-4.3.0",
+		"dimensions": 384,
+		"kind": "local_model",
+		"cpuThreads": 2,
+		"network": "disabled during index and search"
+	},
+	"startupMs": 309.9706249999999,
+	"indexingMs": 15812.162292,
+	"scope": "Exploratory retrieval relevance on 5 licensed research papers; no vendor product coverage or human expert gold. The 0.12 cosine floor is an unchanged baseline, not calibrated answerability.",
+	"generation": {
+		"modelCalls": 0,
+		"paidCalls": 0,
+		"durationMs": null,
+		"costUsd": null,
+		"unsupportedConclusionRate": null,
+		"entailmentAccuracy": null
+	},
+	"extraction": {
+		"method": "JATS structure + 40 source-bound parameter transcriptions",
+		"automatedGeneralParameterAccuracy": null,
+		"humanReviewedParameters": 0,
+		"sourceSpanChecks": true
+	},
+	"reliability": {
+		"realPrivateContentDeniedAllThreePaths": true,
+		"interruptionObserved": true,
+		"recovered": true,
+		"withdrawalRemoved": true,
+		"reviews": {
+			"status": "unverified",
+			"comparisons": [
+				{
+					"leftEvidence": "kb-9d268bbe4dc851df4c1a23a25ca42b48c01627974d5eb3e3d36d47da141693d3:2",
+					"rightEvidence": "kb-9d268bbe4dc851df4c1a23a25ca42b48c01627974d5eb3e3d36d47da141693d3:1",
+					"parameter": "OTR",
+					"comparable": false,
+					"reasons": [
+						"test_method_mismatch_or_missing",
+						"test_conditions_mismatch_or_missing",
+						"unit_or_value_not_comparable"
+					],
+					"left": {
+						"authority": "research_report",
+						"conditions": "",
+						"method": "",
+						"name": "OTR",
+						"originalUnit": "",
+						"originalValue": "<0.5",
+						"scope": "Research sample only; not a supplier specification or current-order approval",
+						"subject": "REC",
+						"verification": "unverified"
+					},
+					"right": {
+						"authority": "research_report",
+						"conditions": "",
+						"method": "",
+						"name": "OTR",
+						"originalUnit": "",
+						"originalValue": "<1.0",
+						"scope": "Research sample only; not a supplier specification or current-order approval",
+						"subject": "STD",
+						"verification": "unverified"
+					}
+				},
+				{
+					"leftEvidence": "kb-9d268bbe4dc851df4c1a23a25ca42b48c01627974d5eb3e3d36d47da141693d3:2",
+					"rightEvidence": "kb-9d268bbe4dc851df4c1a23a25ca42b48c01627974d5eb3e3d36d47da141693d3:1",
+					"parameter": "grammage",
+					"comparable": false,
+					"reasons": [
+						"test_method_mismatch_or_missing",
+						"test_conditions_mismatch_or_missing"
+					],
+					"left": {
+						"authority": "research_report",
+						"conditions": "",
+						"method": "",
+						"name": "grammage",
+						"originalUnit": "g/m2",
+						"originalValue": "81",
+						"scope": "Research sample only; not a supplier specification or current-order approval",
+						"subject": "REC",
+						"verification": "unverified"
+					},
+					"right": {
+						"authority": "research_report",
+						"conditions": "",
+						"method": "",
+						"name": "grammage",
+						"originalUnit": "g/m2",
+						"originalValue": "99",
+						"scope": "Research sample only; not a supplier specification or current-order approval",
+						"subject": "STD",
+						"verification": "unverified"
+					}
+				},
+				{
+					"leftEvidence": "kb-9d268bbe4dc851df4c1a23a25ca42b48c01627974d5eb3e3d36d47da141693d3:2",
+					"rightEvidence": "kb-9d268bbe4dc851df4c1a23a25ca42b48c01627974d5eb3e3d36d47da141693d3:1",
+					"parameter": "thickness",
+					"comparable": false,
+					"reasons": [
+						"test_method_mismatch_or_missing",
+						"test_conditions_mismatch_or_missing"
+					],
+					"left": {
+						"authority": "research_report",
+						"conditions": "",
+						"method": "",
+						"name": "thickness",
+						"originalUnit": "microns",
+						"originalValue": "15",
+						"scope": "Research sample only; not a supplier specification or current-order approval",
+						"subject": "REC/OPPHP",
+						"verification": "unverified",
+						"normalized": {
+							"value": 15,
+							"unit": "µm"
+						}
+					},
+					"right": {
+						"authority": "research_report",
+						"conditions": "",
+						"method": "",
+						"name": "thickness",
+						"originalUnit": "microns",
+						"originalValue": "12",
+						"scope": "Research sample only; not a supplier specification or current-order approval",
+						"subject": "STD/PET",
+						"verification": "unverified",
+						"normalized": {
+							"value": 12,
+							"unit": "µm"
+						}
+					}
+				},
+				{
+					"leftEvidence": "kb-9d268bbe4dc851df4c1a23a25ca42b48c01627974d5eb3e3d36d47da141693d3:2",
+					"rightEvidence": "kb-9d268bbe4dc851df4c1a23a25ca42b48c01627974d5eb3e3d36d47da141693d3:1",
+					"parameter": "thickness",
+					"comparable": false,
+					"reasons": [
+						"test_method_mismatch_or_missing",
+						"test_conditions_mismatch_or_missing"
+					],
+					"left": {
+						"authority": "research_report",
+						"conditions": "",
+						"method": "",
+						"name": "thickness",
+						"originalUnit": "microns",
+						"originalValue": "15",
+						"scope": "Research sample only; not a supplier specification or current-order approval",
+						"subject": "REC/OPPHP",
+						"verification": "unverified",
+						"normalized": {
+							"value": 15,
+							"unit": "µm"
+						}
+					},
+					"right": {
+						"authority": "research_report",
+						"conditions": "",
+						"method": "",
+						"name": "thickness",
+						"originalUnit": "microns",
+						"originalValue": "8",
+						"scope": "Research sample only; not a supplier specification or current-order approval",
+						"subject": "STD/aluminium",
+						"verification": "unverified",
+						"normalized": {
+							"value": 8,
+							"unit": "µm"
+						}
+					}
+				},
+				{
+					"leftEvidence": "kb-9d268bbe4dc851df4c1a23a25ca42b48c01627974d5eb3e3d36d47da141693d3:2",
+					"rightEvidence": "kb-9d268bbe4dc851df4c1a23a25ca42b48c01627974d5eb3e3d36d47da141693d3:1",
+					"parameter": "thickness",
+					"comparable": false,
+					"reasons": [
+						"test_method_mismatch_or_missing",
+						"test_conditions_mismatch_or_missing"
+					],
+					"left": {
+						"authority": "research_report",
+						"conditions": "",
+						"method": "",
+						"name": "thickness",
+						"originalUnit": "microns",
+						"originalValue": "15",
+						"scope": "Research sample only; not a supplier specification or current-order approval",
+						"subject": "REC/OPPHP",
+						"verification": "unverified",
+						"normalized": {
+							"value": 15,
+							"unit": "µm"
+						}
+					},
+					"right": {
+						"authority": "research_report",
+						"conditions": "",
+						"method": "",
+						"name": "thickness",
+						"originalUnit": "microns",
+						"originalValue": "60",
+						"scope": "Research sample only; not a supplier specification or current-order approval",
+						"subject": "STD/PE",
+						"verification": "unverified",
+						"normalized": {
+							"value": 60,
+							"unit": "µm"
+						}
+					}
+				},
+				{
+					"leftEvidence": "kb-9d268bbe4dc851df4c1a23a25ca42b48c01627974d5eb3e3d36d47da141693d3:2",
+					"rightEvidence": "kb-9d268bbe4dc851df4c1a23a25ca42b48c01627974d5eb3e3d36d47da141693d3:1",
+					"parameter": "thickness",
+					"comparable": false,
+					"reasons": [
+						"test_method_mismatch_or_missing",
+						"test_conditions_mismatch_or_missing"
+					],
+					"left": {
+						"authority": "research_report",
+						"conditions": "",
+						"method": "",
+						"name": "thickness",
+						"originalUnit": "microns",
+						"originalValue": "16",
+						"scope": "Research sample only; not a supplier specification or current-order approval",
+						"subject": "REC/OPPHB",
+						"verification": "unverified",
+						"normalized": {
+							"value": 16,
+							"unit": "µm"
+						}
+					},
+					"right": {
+						"authority": "research_report",
+						"conditions": "",
+						"method": "",
+						"name": "thickness",
+						"originalUnit": "microns",
+						"originalValue": "12",
+						"scope": "Research sample only; not a supplier specification or current-order approval",
+						"subject": "STD/PET",
+						"verification": "unverified",
+						"normalized": {
+							"value": 12,
+							"unit": "µm"
+						}
+					}
+				},
+				{
+					"leftEvidence": "kb-9d268bbe4dc851df4c1a23a25ca42b48c01627974d5eb3e3d36d47da141693d3:2",
+					"rightEvidence": "kb-9d268bbe4dc851df4c1a23a25ca42b48c01627974d5eb3e3d36d47da141693d3:1",
+					"parameter": "thickness",
+					"comparable": false,
+					"reasons": [
+						"test_method_mismatch_or_missing",
+						"test_conditions_mismatch_or_missing"
+					],
+					"left": {
+						"authority": "research_report",
+						"conditions": "",
+						"method": "",
+						"name": "thickness",
+						"originalUnit": "microns",
+						"originalValue": "16",
+						"scope": "Research sample only; not a supplier specification or current-order approval",
+						"subject": "REC/OPPHB",
+						"verification": "unverified",
+						"normalized": {
+							"value": 16,
+							"unit": "µm"
+						}
+					},
+					"right": {
+						"authority": "research_report",
+						"conditions": "",
+						"method": "",
+						"name": "thickness",
+						"originalUnit": "microns",
+						"originalValue": "8",
+						"scope": "Research sample only; not a supplier specification or current-order approval",
+						"subject": "STD/aluminium",
+						"verification": "unverified",
+						"normalized": {
+							"value": 8,
+							"unit": "µm"
+						}
+					}
+				},
+				{
+					"leftEvidence": "kb-9d268bbe4dc851df4c1a23a25ca42b48c01627974d5eb3e3d36d47da141693d3:2",
+					"rightEvidence": "kb-9d268bbe4dc851df4c1a23a25ca42b48c01627974d5eb3e3d36d47da141693d3:1",
+					"parameter": "thickness",
+					"comparable": false,
+					"reasons": [
+						"test_method_mismatch_or_missing",
+						"test_conditions_mismatch_or_missing"
+					],
+					"left": {
+						"authority": "research_report",
+						"conditions": "",
+						"method": "",
+						"name": "thickness",
+						"originalUnit": "microns",
+						"originalValue": "16",
+						"scope": "Research sample only; not a supplier specification or current-order approval",
+						"subject": "REC/OPPHB",
+						"verification": "unverified",
+						"normalized": {
+							"value": 16,
+							"unit": "µm"
+						}
+					},
+					"right": {
+						"authority": "research_report",
+						"conditions": "",
+						"method": "",
+						"name": "thickness",
+						"originalUnit": "microns",
+						"originalValue": "60",
+						"scope": "Research sample only; not a supplier specification or current-order approval",
+						"subject": "STD/PE",
+						"verification": "unverified",
+						"normalized": {
+							"value": 60,
+							"unit": "µm"
+						}
+					}
+				},
+				{
+					"leftEvidence": "kb-9d268bbe4dc851df4c1a23a25ca42b48c01627974d5eb3e3d36d47da141693d3:2",
+					"rightEvidence": "kb-9d268bbe4dc851df4c1a23a25ca42b48c01627974d5eb3e3d36d47da141693d3:1",
+					"parameter": "thickness",
+					"comparable": false,
+					"reasons": [
+						"test_method_mismatch_or_missing",
+						"test_conditions_mismatch_or_missing"
+					],
+					"left": {
+						"authority": "research_report",
+						"conditions": "",
+						"method": "",
+						"name": "thickness",
+						"originalUnit": "microns",
+						"originalValue": "50",
+						"scope": "Research sample only; not a supplier specification or current-order approval",
+						"subject": "REC/CPP/B",
+						"verification": "unverified",
+						"normalized": {
+							"value": 50,
+							"unit": "µm"
+						}
+					},
+					"right": {
+						"authority": "research_report",
+						"conditions": "",
+						"method": "",
+						"name": "thickness",
+						"originalUnit": "microns",
+						"originalValue": "12",
+						"scope": "Research sample only; not a supplier specification or current-order approval",
+						"subject": "STD/PET",
+						"verification": "unverified",
+						"normalized": {
+							"value": 12,
+							"unit": "µm"
+						}
+					}
+				},
+				{
+					"leftEvidence": "kb-9d268bbe4dc851df4c1a23a25ca42b48c01627974d5eb3e3d36d47da141693d3:2",
+					"rightEvidence": "kb-9d268bbe4dc851df4c1a23a25ca42b48c01627974d5eb3e3d36d47da141693d3:1",
+					"parameter": "thickness",
+					"comparable": false,
+					"reasons": [
+						"test_method_mismatch_or_missing",
+						"test_conditions_mismatch_or_missing"
+					],
+					"left": {
+						"authority": "research_report",
+						"conditions": "",
+						"method": "",
+						"name": "thickness",
+						"originalUnit": "microns",
+						"originalValue": "50",
+						"scope": "Research sample only; not a supplier specification or current-order approval",
+						"subject": "REC/CPP/B",
+						"verification": "unverified",
+						"normalized": {
+							"value": 50,
+							"unit": "µm"
+						}
+					},
+					"right": {
+						"authority": "research_report",
+						"conditions": "",
+						"method": "",
+						"name": "thickness",
+						"originalUnit": "microns",
+						"originalValue": "8",
+						"scope": "Research sample only; not a supplier specification or current-order approval",
+						"subject": "STD/aluminium",
+						"verification": "unverified",
+						"normalized": {
+							"value": 8,
+							"unit": "µm"
+						}
+					}
+				},
+				{
+					"leftEvidence": "kb-9d268bbe4dc851df4c1a23a25ca42b48c01627974d5eb3e3d36d47da141693d3:2",
+					"rightEvidence": "kb-9d268bbe4dc851df4c1a23a25ca42b48c01627974d5eb3e3d36d47da141693d3:1",
+					"parameter": "thickness",
+					"comparable": false,
+					"reasons": [
+						"test_method_mismatch_or_missing",
+						"test_conditions_mismatch_or_missing"
+					],
+					"left": {
+						"authority": "research_report",
+						"conditions": "",
+						"method": "",
+						"name": "thickness",
+						"originalUnit": "microns",
+						"originalValue": "50",
+						"scope": "Research sample only; not a supplier specification or current-order approval",
+						"subject": "REC/CPP/B",
+						"verification": "unverified",
+						"normalized": {
+							"value": 50,
+							"unit": "µm"
+						}
+					},
+					"right": {
+						"authority": "research_report",
+						"conditions": "",
+						"method": "",
+						"name": "thickness",
+						"originalUnit": "microns",
+						"originalValue": "60",
+						"scope": "Research sample only; not a supplier specification or current-order approval",
+						"subject": "STD/PE",
+						"verification": "unverified",
+						"normalized": {
+							"value": 60,
+							"unit": "µm"
+						}
+					}
+				}
+			],
+			"questions": [
+				"请供应商提供具体型号的 structure 原始资料、版本和测试条件。",
+				"请供应商提供具体型号的 WVTR 原始资料、版本和测试条件。"
+			],
+			"conflicts": [],
+			"limitations": [
+				"500 克只描述装量，不能推出尺寸、厚度、保质期或报价。",
+				"供应商宣传、测试和证书记录须分别核对；证书查询不证明当前订单认证。",
+				"选入任务不等于确认事实；必须明确当前订单的地区、日期和型号适用性。"
+			]
+		}
+	},
+	"indexEvents": [
+		{
+			"type": "knowledge.indexed",
+			"correlation": "kb-9d268bbe4dc851df4c1a23a25ca42b48c01627974d5eb3e3d36d47da141693d3",
+			"at": "2026-09-17T07:56:38.548Z",
+			"data": "{\"versionId\":\"kb-9d268bbe4dc851df4c1a23a25ca42b48c01627974d5eb3e3d36d47da141693d3\",\"chunks\":2,\"index\":\"knowledge-blocks.v1\",\"embedding\":\"onnx:Xenova/multilingual-e5-small@761b726dd34fb83930e26aab4e9ac3899aa1fa78:q8:384:mean:l2:512:prefix-e5:windows-480-v1:transformers-4.3.0\",\"usage\":{\"inputTokens\":278,\"modelDurationMs\":25.64116699999795,\"forwardPasses\":2}}"
+		}
+	],
+	"runs": [
+		{
+			"mode": "keyword",
+			"all": {
+				"cases": 64,
+				"answerable": 56,
+				"recallAt5": 0.3392857142857143,
+				"mrr": 0.27529761904761907,
+				"rawNoAnswerAccuracy": 0.25,
+				"p50Ms": 10.404665999998542,
+				"p95Ms": 11.402624999998807
+			},
+			"development": {
+				"cases": 30,
+				"answerable": 30,
+				"recallAt5": 0.26666666666666666,
+				"mrr": 0.24166666666666667,
+				"rawNoAnswerAccuracy": null,
+				"p50Ms": 10.462375000002794,
+				"p95Ms": 11.337499999997817
+			},
+			"frozen": {
+				"cases": 34,
+				"answerable": 26,
+				"recallAt5": 0.4230769230769231,
+				"mrr": 0.3141025641025641,
+				"rawNoAnswerAccuracy": 0.25,
+				"p50Ms": 10.403041999998095,
+				"p95Ms": 11.427625000000262
+			},
+			"zh": {
+				"cases": 31,
+				"answerable": 28,
+				"recallAt5": 0.32142857142857145,
+				"mrr": 0.2202380952380952,
+				"rawNoAnswerAccuracy": 0,
+				"p50Ms": 10.34179199999926,
+				"p95Ms": 11.446499999998196
+			},
+			"en": {
+				"cases": 33,
+				"answerable": 28,
+				"recallAt5": 0.35714285714285715,
+				"mrr": 0.33035714285714285,
+				"rawNoAnswerAccuracy": 0.4,
+				"p50Ms": 10.462375000002794,
+				"p95Ms": 11.29095899999811
+			},
+			"rows": [
+				{
+					"id": "rec-pet-zh",
+					"category": "layer_thickness",
+					"language": "zh",
+					"split": "development",
+					"found": [
+						"PMC11243642:36",
+						"PMC11944891:31",
+						"PMC10931445:100",
+						"PMC10931445:101",
+						"PMC10931445:102"
+					],
+					"expected": [
+						"PMC11243642:36"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 16.683499999999185,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-pet-en",
+					"category": "layer_thickness",
+					"language": "en",
+					"split": "development",
+					"found": [
+						"PMC11243642:5",
+						"PMC11243642:16",
+						"PMC11243642:17",
+						"PMC11243642:10",
+						"PMC11243642:21"
+					],
+					"expected": [
+						"PMC11243642:36"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 10.901750000000902,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-pe-zh",
+					"category": "layer_thickness",
+					"language": "zh",
+					"split": "development",
+					"found": [
+						"PMC11243642:100",
+						"PMC11243642:101",
+						"PMC11243642:102",
+						"PMC11243642:103",
+						"PMC11243642:104"
+					],
+					"expected": [
+						"PMC11243642:36"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 11.263708000002225,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-pe-en",
+					"category": "layer_thickness",
+					"language": "en",
+					"split": "development",
+					"found": [
+						"PMC10931445:5",
+						"PMC11243642:16",
+						"PMC11243642:17",
+						"PMC11243642:21",
+						"PMC11243642:22"
+					],
+					"expected": [
+						"PMC11243642:36"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 10.47083300000304,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-structure-zh",
+					"category": "structure",
+					"language": "zh",
+					"split": "development",
+					"found": [
+						"PMC11243642:100",
+						"PMC11243642:101",
+						"PMC11243642:102",
+						"PMC11243642:103",
+						"PMC11243642:104"
+					],
+					"expected": [
+						"PMC11243642:37"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 10.069749999998749,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-structure-en",
+					"category": "structure",
+					"language": "en",
+					"split": "development",
+					"found": [
+						"PMC11243642:100",
+						"PMC11243642:101",
+						"PMC11243642:102",
+						"PMC11243642:103",
+						"PMC11243642:104"
+					],
+					"expected": [
+						"PMC11243642:37"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 10.19237499999872,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-opp-zh",
+					"category": "layer_thickness",
+					"language": "zh",
+					"split": "development",
+					"found": [
+						"PMC11243642:37",
+						"PMC11243642:100",
+						"PMC11243642:101",
+						"PMC11243642:102",
+						"PMC11243642:103"
+					],
+					"expected": [
+						"PMC11243642:37"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 10.08758399999715,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-opp-en",
+					"category": "layer_thickness",
+					"language": "en",
+					"split": "development",
+					"found": [
+						"PMC11243642:5",
+						"PMC10670670:36",
+						"PMC10931445:1",
+						"PMC10931445:4",
+						"PMC10931445:5"
+					],
+					"expected": [
+						"PMC11243642:37"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 11.225750000001426,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-barrier-zh",
+					"category": "raw_inequality",
+					"language": "zh",
+					"split": "development",
+					"found": [
+						"PMC11243642:37",
+						"PMC11944891:29",
+						"PMC11944891:30",
+						"PMC11944891:73",
+						"PMC11944891:74"
+					],
+					"expected": [
+						"PMC11243642:37"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 10.47979199999827,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-barrier-en",
+					"category": "raw_inequality",
+					"language": "en",
+					"split": "development",
+					"found": [
+						"PMC11944891:30",
+						"PMC10931445:25",
+						"PMC10931445:37",
+						"PMC11243642:16",
+						"PMC11243642:23"
+					],
+					"expected": [
+						"PMC11243642:37"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 10.246334000003117,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-grammage-zh",
+					"category": "unit",
+					"language": "zh",
+					"split": "development",
+					"found": [
+						"PMC11243642:100",
+						"PMC11243642:101",
+						"PMC11243642:102",
+						"PMC11243642:103",
+						"PMC11243642:104"
+					],
+					"expected": [
+						"PMC11243642:37"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 10.20329099999799,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-grammage-en",
+					"category": "unit",
+					"language": "en",
+					"split": "development",
+					"found": [
+						"PMC10931445:9",
+						"PMC11243642:23",
+						"PMC11243642:29",
+						"PMC11944891:28",
+						"PMC11944891:29"
+					],
+					"expected": [
+						"PMC11243642:37"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 10.235458000002836,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-fill-zh",
+					"category": "applicability",
+					"language": "zh",
+					"split": "development",
+					"found": [],
+					"expected": [
+						"PMC11243642:35"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 11.189750000001368,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-fill-en",
+					"category": "applicability",
+					"language": "en",
+					"split": "development",
+					"found": [
+						"PMC11243642:33",
+						"PMC11243642:11",
+						"PMC11243642:16",
+						"PMC11243642:17",
+						"PMC11243642:23"
+					],
+					"expected": [
+						"PMC11243642:35"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 10.562957999998616,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-gas-zh",
+					"category": "storage_condition",
+					"language": "zh",
+					"split": "development",
+					"found": [
+						"PMC11243642:100",
+						"PMC11243642:101",
+						"PMC11243642:102",
+						"PMC11243642:103",
+						"PMC11243642:104"
+					],
+					"expected": [
+						"PMC11243642:35"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 10.272917000002053,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-gas-en",
+					"category": "storage_condition",
+					"language": "en",
+					"split": "development",
+					"found": [
+						"PMC10931445:26",
+						"PMC11243642:15",
+						"PMC11243642:18",
+						"PMC11243642:35",
+						"PMC10670670:41"
+					],
+					"expected": [
+						"PMC11243642:35"
+					],
+					"recallAt5": 1,
+					"mrr": 0.25,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 10.206709000001865,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-store-zh",
+					"category": "storage_condition",
+					"language": "zh",
+					"split": "development",
+					"found": [
+						"PMC11243642:100",
+						"PMC11243642:101",
+						"PMC11243642:102",
+						"PMC11243642:103",
+						"PMC11243642:104"
+					],
+					"expected": [
+						"PMC11243642:39"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 11.337499999997817,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-store-en",
+					"category": "storage_condition",
+					"language": "en",
+					"split": "development",
+					"found": [
+						"PMC11243642:49",
+						"PMC11243642:50",
+						"PMC11243642:51",
+						"PMC11243642:52",
+						"PMC11243642:53"
+					],
+					"expected": [
+						"PMC11243642:39"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 10.585624999999709,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "alt-pe-zh",
+					"category": "layer_thickness",
+					"language": "zh",
+					"split": "development",
+					"found": [
+						"PMC10931445:100",
+						"PMC10931445:101",
+						"PMC10931445:102",
+						"PMC10931445:103",
+						"PMC10931445:104"
+					],
+					"expected": [
+						"PMC10931445:18"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 10.621250000000146,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "alt-pe-en",
+					"category": "layer_thickness",
+					"language": "en",
+					"split": "development",
+					"found": [
+						"PMC10931445:18",
+						"PMC10931445:4",
+						"PMC10931445:5",
+						"PMC10931445:1",
+						"PMC10931445:59"
+					],
+					"expected": [
+						"PMC10931445:18"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 10.473957999998674,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "alt-metallization-zh",
+					"category": "structure",
+					"language": "zh",
+					"split": "development",
+					"found": [
+						"PMC10931445:18",
+						"PMC10931445:100",
+						"PMC10931445:101",
+						"PMC10931445:102",
+						"PMC10931445:103"
+					],
+					"expected": [
+						"PMC10931445:18"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 10.376791999999114,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "alt-metallization-en",
+					"category": "structure",
+					"language": "en",
+					"split": "development",
+					"found": [
+						"PMC10931445:18",
+						"PMC10931445:5",
+						"PMC10670670:36",
+						"PMC10931445:1",
+						"PMC10931445:4"
+					],
+					"expected": [
+						"PMC10931445:18"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 11.199375000000146,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "alt-pack-zh",
+					"category": "applicability",
+					"language": "zh",
+					"split": "development",
+					"found": [
+						"PMC10931445:100",
+						"PMC10931445:101",
+						"PMC10931445:102",
+						"PMC10931445:103",
+						"PMC10931445:104"
+					],
+					"expected": [
+						"PMC10931445:16"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 10.014582999996492,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "alt-pack-en",
+					"category": "applicability",
+					"language": "en",
+					"split": "development",
+					"found": [
+						"PMC10931445:16",
+						"PMC10931445:160",
+						"PMC10931445:161",
+						"PMC10931445:47",
+						"PMC10931445:62"
+					],
+					"expected": [
+						"PMC10931445:16"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 10.282374999998865,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "alt-store-zh",
+					"category": "storage_condition",
+					"language": "zh",
+					"split": "development",
+					"found": [
+						"PMC10931445:100",
+						"PMC10931445:101",
+						"PMC10931445:102",
+						"PMC10931445:103",
+						"PMC10931445:104"
+					],
+					"expected": [
+						"PMC10931445:21"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 10.010583999999653,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "alt-store-en",
+					"category": "storage_condition",
+					"language": "en",
+					"split": "development",
+					"found": [
+						"PMC10931445:37",
+						"PMC10931445:58",
+						"PMC10931445:60",
+						"PMC10931445:100",
+						"PMC10931445:101"
+					],
+					"expected": [
+						"PMC10931445:21"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 10.208457999997336,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "green-method-zh",
+					"category": "test_method",
+					"language": "zh",
+					"split": "frozen",
+					"found": [],
+					"expected": [
+						"PMC9563479:12"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 11.446499999998196,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "green-method-en",
+					"category": "test_method",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC9563479:12",
+						"PMC9563479:33",
+						"PMC11944891:25",
+						"PMC11944891:30",
+						"PMC11944891:48"
+					],
+					"expected": [
+						"PMC9563479:12"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 10.586374999998952,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "green-instrument-zh",
+					"category": "test_method",
+					"language": "zh",
+					"split": "frozen",
+					"found": [],
+					"expected": [
+						"PMC9563479:12"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 10.18945900000108,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "green-instrument-en",
+					"category": "test_method",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC9563479:12",
+						"PMC11944891:28",
+						"PMC10670670:64",
+						"PMC9563479:19",
+						"PMC9563479:20"
+					],
+					"expected": [
+						"PMC9563479:12"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 10.94866600000023,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "green-rh-zh",
+					"category": "storage_condition",
+					"language": "zh",
+					"split": "frozen",
+					"found": [],
+					"expected": [
+						"PMC9563479:12"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 10.467666000000463,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "green-rh-en",
+					"category": "storage_condition",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC9563479:12",
+						"PMC9563479:38",
+						"PMC9563479:40",
+						"PMC9563479:53",
+						"PMC9563479:54"
+					],
+					"expected": [
+						"PMC9563479:12"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 10.349999999998545,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "green-fill-zh",
+					"category": "applicability",
+					"language": "zh",
+					"split": "frozen",
+					"found": [],
+					"expected": [
+						"PMC9563479:12"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 10.23924999999872,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "green-fill-en",
+					"category": "applicability",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC9563479:12",
+						"PMC9563479:21",
+						"PMC9563479:30",
+						"PMC9563479:32",
+						"PMC9563479:33"
+					],
+					"expected": [
+						"PMC9563479:12"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 11.073749999999563,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "green-gp-air-zh",
+					"category": "table_value",
+					"language": "zh",
+					"split": "frozen",
+					"found": [
+						"PMC9563479:10",
+						"PMC9563479:12",
+						"PMC9563479:52",
+						"PMC9563479:53",
+						"PMC9563479:54"
+					],
+					"expected": [
+						"PMC9563479:52"
+					],
+					"recallAt5": 1,
+					"mrr": 0.3333333333333333,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 10.479083000001992,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "green-gp-air-en",
+					"category": "table_value",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC9563479:12",
+						"PMC9563479:29",
+						"PMC9563479:1",
+						"PMC9563479:32",
+						"PMC11944891:29"
+					],
+					"expected": [
+						"PMC9563479:52"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 10.577124999999796,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "green-ldpe-thick-zh",
+					"category": "table_value",
+					"language": "zh",
+					"split": "frozen",
+					"found": [
+						"PMC9563479:10",
+						"PMC9563479:12",
+						"PMC9563479:51",
+						"PMC9563479:53",
+						"PMC9563479:54"
+					],
+					"expected": [
+						"PMC9563479:51"
+					],
+					"recallAt5": 1,
+					"mrr": 0.3333333333333333,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 10.331707999997889,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "green-ldpe-thick-en",
+					"category": "table_value",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC9563479:12",
+						"PMC9563479:32",
+						"PMC10931445:37",
+						"PMC9563479:10",
+						"PMC9563479:35"
+					],
+					"expected": [
+						"PMC9563479:51"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 10.446250000000873,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "scg-thick-zh",
+					"category": "range",
+					"language": "zh",
+					"split": "development",
+					"found": [
+						"PMC11944891:1",
+						"PMC11944891:12",
+						"PMC11944891:13",
+						"PMC11944891:14",
+						"PMC11944891:15"
+					],
+					"expected": [
+						"PMC10670670:64"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 11.123666999999841,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "scg-thick-en",
+					"category": "range",
+					"language": "en",
+					"split": "development",
+					"found": [
+						"PMC10670670:62",
+						"PMC10670670:63",
+						"PMC10670670:74",
+						"PMC11944891:44",
+						"PMC11944891:7"
+					],
+					"expected": [
+						"PMC10670670:64"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 10.50787499999933,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "scg-microscope-zh",
+					"category": "test_method",
+					"language": "zh",
+					"split": "development",
+					"found": [
+						"PMC11944891:1",
+						"PMC11944891:12",
+						"PMC11944891:13",
+						"PMC11944891:14",
+						"PMC11944891:15"
+					],
+					"expected": [
+						"PMC10670670:31"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 10.244792000001326,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "scg-microscope-en",
+					"category": "test_method",
+					"language": "en",
+					"split": "development",
+					"found": [
+						"PMC10670670:62",
+						"PMC10670670:48",
+						"PMC10670670:58",
+						"PMC10670670:71",
+						"PMC10670670:73"
+					],
+					"expected": [
+						"PMC10670670:31"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 10.462375000002794,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "pla-otr-unit-zh",
+					"category": "compound_unit",
+					"language": "zh",
+					"split": "frozen",
+					"found": [
+						"PMC11944891:29",
+						"PMC11944891:76",
+						"PMC11944891:26",
+						"PMC11944891:30",
+						"PMC11944891:44"
+					],
+					"expected": [
+						"PMC11944891:76"
+					],
+					"recallAt5": 1,
+					"mrr": 0.5,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 10.49120799999946,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "pla-otr-unit-en",
+					"category": "compound_unit",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC11944891:29",
+						"PMC11944891:30",
+						"PMC11944891:44",
+						"PMC11944891:14",
+						"PMC11944891:16"
+					],
+					"expected": [
+						"PMC11944891:76"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 11.29095899999811,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "pla-otr-value-zh",
+					"category": "table_value",
+					"language": "zh",
+					"split": "frozen",
+					"found": [
+						"PMC11944891:29",
+						"PMC11944891:76",
+						"PMC11944891:26",
+						"PMC11944891:30",
+						"PMC11944891:44"
+					],
+					"expected": [
+						"PMC11944891:76"
+					],
+					"recallAt5": 1,
+					"mrr": 0.5,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 10.204458000000159,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "pla-otr-value-en",
+					"category": "table_value",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC11944891:29",
+						"PMC11944891:30",
+						"PMC11944891:22",
+						"PMC11944891:44",
+						"PMC10931445:37"
+					],
+					"expected": [
+						"PMC11944891:76"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 10.40991700000086,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "pla-wvtr-zh",
+					"category": "table_value",
+					"language": "zh",
+					"split": "frozen",
+					"found": [
+						"PMC11944891:29",
+						"PMC11944891:76",
+						"PMC11944891:12",
+						"PMC11944891:14",
+						"PMC11944891:19"
+					],
+					"expected": [
+						"PMC11944891:76"
+					],
+					"recallAt5": 1,
+					"mrr": 0.5,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 10.236042000000452,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "pla-wvtr-en",
+					"category": "table_value",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC11944891:29",
+						"PMC11944891:34",
+						"PMC11944891:44",
+						"PMC11944891:53",
+						"PMC11944891:14"
+					],
+					"expected": [
+						"PMC11944891:76"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 10.394334000000526,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "pla-oxygen-conditions-zh",
+					"category": "test_condition",
+					"language": "zh",
+					"split": "frozen",
+					"found": [
+						"PMC11944891:1",
+						"PMC11944891:12",
+						"PMC11944891:13",
+						"PMC11944891:14",
+						"PMC11944891:15"
+					],
+					"expected": [
+						"PMC11944891:51"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 11.427625000000262,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "pla-oxygen-conditions-en",
+					"category": "test_condition",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC11944891:44",
+						"PMC11944891:45",
+						"PMC11944891:21",
+						"PMC11944891:23",
+						"PMC11944891:24"
+					],
+					"expected": [
+						"PMC11944891:51"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 10.404665999998542,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "pla-flow-zh",
+					"category": "test_condition",
+					"language": "zh",
+					"split": "frozen",
+					"found": [
+						"PMC11944891:1",
+						"PMC11944891:12",
+						"PMC11944891:13",
+						"PMC11944891:14",
+						"PMC11944891:15"
+					],
+					"expected": [
+						"PMC11944891:51"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 10.301625000000058,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "pla-flow-en",
+					"category": "test_condition",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC11944891:30",
+						"PMC11944891:21",
+						"PMC11944891:29",
+						"PMC11944891:36",
+						"PMC11944891:42"
+					],
+					"expected": [
+						"PMC11944891:51"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 10.304082999999082,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "pla-water-method-zh",
+					"category": "test_method",
+					"language": "zh",
+					"split": "frozen",
+					"found": [
+						"PMC11944891:1",
+						"PMC11944891:12",
+						"PMC11944891:13",
+						"PMC11944891:14",
+						"PMC11944891:15"
+					],
+					"expected": [
+						"PMC11944891:52"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 10.249707999999373,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "pla-water-method-en",
+					"category": "test_method",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC11944891:52",
+						"PMC11944891:2",
+						"PMC11944891:29",
+						"PMC11944891:30",
+						"PMC11944891:10"
+					],
+					"expected": [
+						"PMC11944891:52"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 11.402624999998807,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "pla-water-delta-zh",
+					"category": "test_condition",
+					"language": "zh",
+					"split": "frozen",
+					"found": [
+						"PMC11944891:73",
+						"PMC11944891:1",
+						"PMC11944891:12",
+						"PMC11944891:13",
+						"PMC11944891:14"
+					],
+					"expected": [
+						"PMC11944891:53"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 10.388166999997338,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "pla-water-delta-en",
+					"category": "test_condition",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC11944891:53",
+						"PMC11944891:52",
+						"PMC11944891:14",
+						"PMC11944891:16",
+						"PMC11944891:2"
+					],
+					"expected": [
+						"PMC11944891:53"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 10.611875000002328,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "absent-size",
+					"category": "no_answer",
+					"language": "zh",
+					"split": "frozen",
+					"found": [
+						"PMC10670670:15",
+						"PMC10670670:28",
+						"PMC9563479:24"
+					],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"rawNoAnswerCorrect": false,
+					"locatorIntegrity": true,
+					"latencyMs": 10.160625000000437,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "absent-quote",
+					"category": "no_answer",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC9563479:30",
+						"PMC9563479:32",
+						"PMC9563479:33",
+						"PMC9563479:6",
+						"PMC11243642:16"
+					],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"rawNoAnswerCorrect": false,
+					"locatorIntegrity": true,
+					"latencyMs": 10.403041999998095,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "absent-certificate",
+					"category": "no_answer",
+					"language": "zh",
+					"split": "frozen",
+					"found": [
+						"PMC10931445:100",
+						"PMC10931445:101",
+						"PMC10931445:102",
+						"PMC10931445:103",
+						"PMC10931445:104"
+					],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"rawNoAnswerCorrect": false,
+					"locatorIntegrity": true,
+					"latencyMs": 10.34179199999926,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "absent-shelf",
+					"category": "no_answer",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC10931445:3",
+						"PMC11243642:100",
+						"PMC11243642:101",
+						"PMC11243642:102",
+						"PMC11243642:103"
+					],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"rawNoAnswerCorrect": false,
+					"locatorIntegrity": true,
+					"latencyMs": 10.515999999999622,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "absent-seal",
+					"category": "no_answer",
+					"language": "zh",
+					"split": "frozen",
+					"found": [
+						"PMC11243642:100",
+						"PMC11243642:101",
+						"PMC11243642:102",
+						"PMC11243642:103",
+						"PMC11243642:104"
+					],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"rawNoAnswerCorrect": false,
+					"locatorIntegrity": true,
+					"latencyMs": 11.381749999996828,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "absent-valve",
+					"category": "no_answer",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC11243642:15",
+						"PMC11944891:29",
+						"PMC11944891:53",
+						"PMC11944891:58",
+						"PMC11944891:61"
+					],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"rawNoAnswerCorrect": false,
+					"locatorIntegrity": true,
+					"latencyMs": 10.18920799999978,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "unknown-model",
+					"category": "filter",
+					"language": "en",
+					"split": "frozen",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"rawNoAnswerCorrect": true,
+					"locatorIntegrity": true,
+					"latencyMs": 5.9464589999988675,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "before-publication",
+					"category": "filter",
+					"language": "en",
+					"split": "frozen",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"rawNoAnswerCorrect": true,
+					"locatorIntegrity": true,
+					"latencyMs": 5.998625000000175,
+					"usage": {
+						"inputTokens": 0,
+						"modelDurationMs": 0,
+						"embeddingCalls": 0,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				}
+			]
+		},
+		{
+			"mode": "vector",
+			"all": {
+				"cases": 64,
+				"answerable": 56,
+				"recallAt5": 0.5892857142857143,
+				"mrr": 0.4669642857142856,
+				"rawNoAnswerAccuracy": 0.25,
+				"p50Ms": 22.501374999999825,
+				"p95Ms": 24.257125000000087
+			},
+			"development": {
+				"cases": 30,
+				"answerable": 30,
+				"recallAt5": 0.6333333333333333,
+				"mrr": 0.5483333333333333,
+				"rawNoAnswerAccuracy": null,
+				"p50Ms": 23.096042000001034,
+				"p95Ms": 24.715416999999434
+			},
+			"frozen": {
+				"cases": 34,
+				"answerable": 26,
+				"recallAt5": 0.5384615384615384,
+				"mrr": 0.37307692307692303,
+				"rawNoAnswerAccuracy": 0.25,
+				"p50Ms": 21.656459000001632,
+				"p95Ms": 23.466207999998005
+			},
+			"zh": {
+				"cases": 31,
+				"answerable": 28,
+				"recallAt5": 0.32142857142857145,
+				"mrr": 0.30357142857142855,
+				"rawNoAnswerAccuracy": 0,
+				"p50Ms": 22.501374999999825,
+				"p95Ms": 24.257125000000087
+			},
+			"en": {
+				"cases": 33,
+				"answerable": 28,
+				"recallAt5": 0.8571428571428571,
+				"mrr": 0.630357142857143,
+				"rawNoAnswerAccuracy": 0.4,
+				"p50Ms": 22.72937499999898,
+				"p95Ms": 24.428541999997833
+			},
+			"rows": [
+				{
+					"id": "rec-pet-zh",
+					"category": "layer_thickness",
+					"language": "zh",
+					"split": "development",
+					"found": [
+						"PMC11243642:36",
+						"PMC11243642:158",
+						"PMC11243642:155",
+						"PMC11243642:131",
+						"PMC11243642:148"
+					],
+					"expected": [
+						"PMC11243642:36"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 25.477249999999913,
+					"usage": {
+						"inputTokens": 32,
+						"modelDurationMs": 4.337584000000788,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-pet-en",
+					"category": "layer_thickness",
+					"language": "en",
+					"split": "development",
+					"found": [
+						"PMC11243642:36",
+						"PMC10931445:17",
+						"PMC11243642:52",
+						"PMC11243642:51",
+						"PMC11243642:50"
+					],
+					"expected": [
+						"PMC11243642:36"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 24.715416999999434,
+					"usage": {
+						"inputTokens": 31,
+						"modelDurationMs": 3.6646249999976135,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-pe-zh",
+					"category": "layer_thickness",
+					"language": "zh",
+					"split": "development",
+					"found": [
+						"PMC11243642:36",
+						"PMC11243642:148",
+						"PMC11243642:144",
+						"PMC11243642:155",
+						"PMC11243642:146"
+					],
+					"expected": [
+						"PMC11243642:36"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 24.257125000000087,
+					"usage": {
+						"inputTokens": 23,
+						"modelDurationMs": 2.9441250000018044,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-pe-en",
+					"category": "layer_thickness",
+					"language": "en",
+					"split": "development",
+					"found": [
+						"PMC11243642:36",
+						"PMC11243642:51",
+						"PMC11243642:52",
+						"PMC11243642:50",
+						"PMC11243642:53"
+					],
+					"expected": [
+						"PMC11243642:36"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 23.064416999997775,
+					"usage": {
+						"inputTokens": 23,
+						"modelDurationMs": 2.9301249999989523,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-structure-zh",
+					"category": "structure",
+					"language": "zh",
+					"split": "development",
+					"found": [
+						"PMC11243642:37",
+						"PMC11243642:137",
+						"PMC11243642:92",
+						"PMC11243642:136",
+						"PMC11243642:118"
+					],
+					"expected": [
+						"PMC11243642:37"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 22.77179199999955,
+					"usage": {
+						"inputTokens": 16,
+						"modelDurationMs": 2.6947089999994205,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-structure-en",
+					"category": "structure",
+					"language": "en",
+					"split": "development",
+					"found": [
+						"PMC11243642:37",
+						"PMC11243642:38",
+						"PMC11243642:15",
+						"PMC11243642:116",
+						"PMC11243642:115"
+					],
+					"expected": [
+						"PMC11243642:37"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 22.72937499999898,
+					"usage": {
+						"inputTokens": 16,
+						"modelDurationMs": 2.1457919999993464,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-opp-zh",
+					"category": "layer_thickness",
+					"language": "zh",
+					"split": "development",
+					"found": [
+						"PMC11243642:37",
+						"PMC11243642:148",
+						"PMC11243642:150",
+						"PMC11243642:146",
+						"PMC11243642:144"
+					],
+					"expected": [
+						"PMC11243642:37"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 23.471999999997934,
+					"usage": {
+						"inputTokens": 19,
+						"modelDurationMs": 2.5633750000015425,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-opp-en",
+					"category": "layer_thickness",
+					"language": "en",
+					"split": "development",
+					"found": [
+						"PMC11243642:37",
+						"PMC11243642:151",
+						"PMC11243642:150",
+						"PMC11243642:149",
+						"PMC11243642:148"
+					],
+					"expected": [
+						"PMC11243642:37"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 22.983083999999508,
+					"usage": {
+						"inputTokens": 21,
+						"modelDurationMs": 2.7272499999999127,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-barrier-zh",
+					"category": "raw_inequality",
+					"language": "zh",
+					"split": "development",
+					"found": [
+						"PMC11944891:75",
+						"PMC11944891:73",
+						"PMC11944891:78",
+						"PMC11944891:74",
+						"PMC11944891:77"
+					],
+					"expected": [
+						"PMC11243642:37"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 23.135957999998936,
+					"usage": {
+						"inputTokens": 20,
+						"modelDurationMs": 3.238667000001442,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-barrier-en",
+					"category": "raw_inequality",
+					"language": "en",
+					"split": "development",
+					"found": [
+						"PMC11243642:37",
+						"PMC11944891:73",
+						"PMC11944891:75",
+						"PMC11944891:78",
+						"PMC11944891:74"
+					],
+					"expected": [
+						"PMC11243642:37"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 23.096042000001034,
+					"usage": {
+						"inputTokens": 16,
+						"modelDurationMs": 2.1292909999974654,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-grammage-zh",
+					"category": "unit",
+					"language": "zh",
+					"split": "development",
+					"found": [
+						"PMC11243642:79",
+						"PMC11243642:94",
+						"PMC11243642:124",
+						"PMC11243642:88",
+						"PMC11243642:58"
+					],
+					"expected": [
+						"PMC11243642:37"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 23.016207999997278,
+					"usage": {
+						"inputTokens": 15,
+						"modelDurationMs": 2.123749999998836,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-grammage-en",
+					"category": "unit",
+					"language": "en",
+					"split": "development",
+					"found": [
+						"PMC11243642:37",
+						"PMC11243642:38",
+						"PMC11243642:116",
+						"PMC11243642:71",
+						"PMC11243642:101"
+					],
+					"expected": [
+						"PMC11243642:37"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 22.270375000000058,
+					"usage": {
+						"inputTokens": 16,
+						"modelDurationMs": 2.2146670000001905,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-fill-zh",
+					"category": "applicability",
+					"language": "zh",
+					"split": "development",
+					"found": [
+						"PMC11243642:102",
+						"PMC11243642:60",
+						"PMC11243642:131",
+						"PMC11243642:94",
+						"PMC11243642:59"
+					],
+					"expected": [
+						"PMC11243642:35"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 23.688915999999153,
+					"usage": {
+						"inputTokens": 23,
+						"modelDurationMs": 3.46112500000163,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-fill-en",
+					"category": "applicability",
+					"language": "en",
+					"split": "development",
+					"found": [
+						"PMC11243642:15",
+						"PMC11243642:50",
+						"PMC11243642:51",
+						"PMC11243642:49",
+						"PMC11243642:35"
+					],
+					"expected": [
+						"PMC11243642:35"
+					],
+					"recallAt5": 1,
+					"mrr": 0.2,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 23.559042000000773,
+					"usage": {
+						"inputTokens": 24,
+						"modelDurationMs": 2.9269580000000133,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-gas-zh",
+					"category": "storage_condition",
+					"language": "zh",
+					"split": "development",
+					"found": [
+						"PMC11243642:58",
+						"PMC11243642:94",
+						"PMC11243642:103",
+						"PMC11243642:107",
+						"PMC11243642:81"
+					],
+					"expected": [
+						"PMC11243642:35"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 22.407374999998865,
+					"usage": {
+						"inputTokens": 18,
+						"modelDurationMs": 2.3995409999988624,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-gas-en",
+					"category": "storage_condition",
+					"language": "en",
+					"split": "development",
+					"found": [
+						"PMC11243642:21",
+						"PMC11243642:16",
+						"PMC11243642:17",
+						"PMC11243642:35",
+						"PMC11243642:4"
+					],
+					"expected": [
+						"PMC11243642:35"
+					],
+					"recallAt5": 1,
+					"mrr": 0.25,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 23.251124999998865,
+					"usage": {
+						"inputTokens": 21,
+						"modelDurationMs": 3.4944999999970605,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-store-zh",
+					"category": "storage_condition",
+					"language": "zh",
+					"split": "development",
+					"found": [
+						"PMC11243642:146",
+						"PMC11243642:148",
+						"PMC11243642:145",
+						"PMC11243642:144",
+						"PMC11243642:156"
+					],
+					"expected": [
+						"PMC11243642:39"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 23.524666999997862,
+					"usage": {
+						"inputTokens": 20,
+						"modelDurationMs": 2.4539159999985714,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-store-en",
+					"category": "storage_condition",
+					"language": "en",
+					"split": "development",
+					"found": [
+						"PMC11243642:146",
+						"PMC11243642:149",
+						"PMC11243642:145",
+						"PMC11243642:156",
+						"PMC11243642:152"
+					],
+					"expected": [
+						"PMC11243642:39"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 23.559416000000056,
+					"usage": {
+						"inputTokens": 21,
+						"modelDurationMs": 2.7969579999989946,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "alt-pe-zh",
+					"category": "layer_thickness",
+					"language": "zh",
+					"split": "development",
+					"found": [
+						"PMC10931445:18",
+						"PMC11243642:158",
+						"PMC10931445:19",
+						"PMC11243642:157",
+						"PMC10931445:6"
+					],
+					"expected": [
+						"PMC10931445:18"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 23.150332999997772,
+					"usage": {
+						"inputTokens": 22,
+						"modelDurationMs": 2.7050409999974363,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "alt-pe-en",
+					"category": "layer_thickness",
+					"language": "en",
+					"split": "development",
+					"found": [
+						"PMC10931445:18",
+						"PMC10931445:59",
+						"PMC10931445:6",
+						"PMC11243642:5",
+						"PMC10931445:4"
+					],
+					"expected": [
+						"PMC10931445:18"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 23.76404199999888,
+					"usage": {
+						"inputTokens": 25,
+						"modelDurationMs": 3.7614160000011907,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "alt-metallization-zh",
+					"category": "structure",
+					"language": "zh",
+					"split": "development",
+					"found": [
+						"PMC10931445:18",
+						"PMC11944891:77",
+						"PMC11944891:75",
+						"PMC11944891:78",
+						"PMC11944891:76"
+					],
+					"expected": [
+						"PMC10931445:18"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 23.424667000002955,
+					"usage": {
+						"inputTokens": 21,
+						"modelDurationMs": 2.7003750000003492,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "alt-metallization-en",
+					"category": "structure",
+					"language": "en",
+					"split": "development",
+					"found": [
+						"PMC10931445:18",
+						"PMC10931445:5",
+						"PMC10931445:6",
+						"PMC10931445:35",
+						"PMC10931445:59"
+					],
+					"expected": [
+						"PMC10931445:18"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 24.428541999997833,
+					"usage": {
+						"inputTokens": 24,
+						"modelDurationMs": 2.9154579999994894,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "alt-pack-zh",
+					"category": "applicability",
+					"language": "zh",
+					"split": "development",
+					"found": [
+						"PMC10931445:161",
+						"PMC10931445:160",
+						"PMC10931445:152",
+						"PMC10931445:63",
+						"PMC10931445:116"
+					],
+					"expected": [
+						"PMC10931445:16"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 22.657249999996566,
+					"usage": {
+						"inputTokens": 17,
+						"modelDurationMs": 2.3927500000027067,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "alt-pack-en",
+					"category": "applicability",
+					"language": "en",
+					"split": "development",
+					"found": [
+						"PMC10931445:35",
+						"PMC10931445:16",
+						"PMC10931445:18",
+						"PMC10931445:161",
+						"PMC10931445:2"
+					],
+					"expected": [
+						"PMC10931445:16"
+					],
+					"recallAt5": 1,
+					"mrr": 0.5,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 23.091208999998344,
+					"usage": {
+						"inputTokens": 18,
+						"modelDurationMs": 3.109166999998706,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "alt-store-zh",
+					"category": "storage_condition",
+					"language": "zh",
+					"split": "development",
+					"found": [
+						"PMC10931445:111",
+						"PMC10931445:152",
+						"PMC10931445:161",
+						"PMC10931445:93",
+						"PMC10931445:104"
+					],
+					"expected": [
+						"PMC10931445:21"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 22.784166000001278,
+					"usage": {
+						"inputTokens": 16,
+						"modelDurationMs": 2.076958999998169,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "alt-store-en",
+					"category": "storage_condition",
+					"language": "en",
+					"split": "development",
+					"found": [
+						"PMC10670670:59",
+						"PMC10931445:111",
+						"PMC10931445:160",
+						"PMC10931445:161",
+						"PMC10931445:35"
+					],
+					"expected": [
+						"PMC10931445:21"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 23.30724999999802,
+					"usage": {
+						"inputTokens": 16,
+						"modelDurationMs": 2.187708000001294,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "green-method-zh",
+					"category": "test_method",
+					"language": "zh",
+					"split": "frozen",
+					"found": [
+						"PMC9563479:61",
+						"PMC9563479:60",
+						"PMC9563479:59",
+						"PMC9563479:76",
+						"PMC9563479:62"
+					],
+					"expected": [
+						"PMC9563479:12"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 22.436250000002474,
+					"usage": {
+						"inputTokens": 19,
+						"modelDurationMs": 2.5159999999996217,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "green-method-en",
+					"category": "test_method",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC9563479:12",
+						"PMC9563479:52",
+						"PMC9563479:50",
+						"PMC9563479:51",
+						"PMC9563479:28"
+					],
+					"expected": [
+						"PMC9563479:12"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 23.466207999998005,
+					"usage": {
+						"inputTokens": 22,
+						"modelDurationMs": 3.4224170000015874,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "green-instrument-zh",
+					"category": "test_method",
+					"language": "zh",
+					"split": "frozen",
+					"found": [
+						"PMC9563479:61",
+						"PMC9563479:59",
+						"PMC9563479:60",
+						"PMC9563479:76",
+						"PMC9563479:62"
+					],
+					"expected": [
+						"PMC9563479:12"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 23.346832999999606,
+					"usage": {
+						"inputTokens": 18,
+						"modelDurationMs": 2.326915999998164,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "green-instrument-en",
+					"category": "test_method",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC9563479:12",
+						"PMC10931445:28",
+						"PMC9563479:52",
+						"PMC9563479:5",
+						"PMC11243642:8"
+					],
+					"expected": [
+						"PMC9563479:12"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 23.040875000002416,
+					"usage": {
+						"inputTokens": 18,
+						"modelDurationMs": 2.5889579999966372,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "green-rh-zh",
+					"category": "storage_condition",
+					"language": "zh",
+					"split": "frozen",
+					"found": [
+						"PMC9563479:61",
+						"PMC9563479:60",
+						"PMC9563479:59",
+						"PMC9563479:76",
+						"PMC9563479:65"
+					],
+					"expected": [
+						"PMC9563479:12"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 23.009084000001167,
+					"usage": {
+						"inputTokens": 20,
+						"modelDurationMs": 2.4747500000012224,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "green-rh-en",
+					"category": "storage_condition",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC9563479:8",
+						"PMC9563479:12",
+						"PMC9563479:6",
+						"PMC9563479:31",
+						"PMC9563479:27"
+					],
+					"expected": [
+						"PMC9563479:12"
+					],
+					"recallAt5": 1,
+					"mrr": 0.5,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 23.508749999997235,
+					"usage": {
+						"inputTokens": 21,
+						"modelDurationMs": 3.444333999999799,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "green-fill-zh",
+					"category": "applicability",
+					"language": "zh",
+					"split": "frozen",
+					"found": [
+						"PMC9563479:61",
+						"PMC9563479:60",
+						"PMC9563479:73",
+						"PMC9563479:71",
+						"PMC9563479:59"
+					],
+					"expected": [
+						"PMC9563479:12"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 23.107707999999548,
+					"usage": {
+						"inputTokens": 20,
+						"modelDurationMs": 2.5586249999978463,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "green-fill-en",
+					"category": "applicability",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC9563479:29",
+						"PMC9563479:13",
+						"PMC9563479:12",
+						"PMC9563479:27",
+						"PMC9563479:33"
+					],
+					"expected": [
+						"PMC9563479:12"
+					],
+					"recallAt5": 1,
+					"mrr": 0.3333333333333333,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 22.482082999998966,
+					"usage": {
+						"inputTokens": 21,
+						"modelDurationMs": 2.6387500000018917,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "green-gp-air-zh",
+					"category": "table_value",
+					"language": "zh",
+					"split": "frozen",
+					"found": [
+						"PMC9563479:61",
+						"PMC9563479:60",
+						"PMC9563479:76",
+						"PMC9563479:64",
+						"PMC9563479:59"
+					],
+					"expected": [
+						"PMC9563479:52"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 22.501374999999825,
+					"usage": {
+						"inputTokens": 27,
+						"modelDurationMs": 3.851249999999709,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "green-gp-air-en",
+					"category": "table_value",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC9563479:27",
+						"PMC9563479:12",
+						"PMC9563479:28",
+						"PMC9563479:29",
+						"PMC9563479:2"
+					],
+					"expected": [
+						"PMC9563479:52"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 22.915334000001167,
+					"usage": {
+						"inputTokens": 27,
+						"modelDurationMs": 3.1892920000027516,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "green-ldpe-thick-zh",
+					"category": "table_value",
+					"language": "zh",
+					"split": "frozen",
+					"found": [
+						"PMC9563479:75",
+						"PMC9563479:60",
+						"PMC9563479:72",
+						"PMC9563479:54",
+						"PMC9563479:69"
+					],
+					"expected": [
+						"PMC9563479:51"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 21.656459000001632,
+					"usage": {
+						"inputTokens": 27,
+						"modelDurationMs": 3.0722920000007434,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "green-ldpe-thick-en",
+					"category": "table_value",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC9563479:12",
+						"PMC9563479:51",
+						"PMC9563479:52",
+						"PMC9563479:50",
+						"PMC9563479:45"
+					],
+					"expected": [
+						"PMC9563479:51"
+					],
+					"recallAt5": 1,
+					"mrr": 0.5,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 21.985375000000204,
+					"usage": {
+						"inputTokens": 25,
+						"modelDurationMs": 2.975125000000844,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "scg-thick-zh",
+					"category": "range",
+					"language": "zh",
+					"split": "development",
+					"found": [
+						"PMC9563479:65",
+						"PMC9563479:53",
+						"PMC9563479:55",
+						"PMC9563479:76",
+						"PMC9563479:67"
+					],
+					"expected": [
+						"PMC10670670:64"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 21.15887499999735,
+					"usage": {
+						"inputTokens": 23,
+						"modelDurationMs": 2.7722500000018044,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "scg-thick-en",
+					"category": "range",
+					"language": "en",
+					"split": "development",
+					"found": [
+						"PMC10670670:64",
+						"PMC10670670:62",
+						"PMC10670670:9",
+						"PMC10670670:76",
+						"PMC10670670:31"
+					],
+					"expected": [
+						"PMC10670670:64"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 22.183750000000146,
+					"usage": {
+						"inputTokens": 26,
+						"modelDurationMs": 3.2410000000018044,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "scg-microscope-zh",
+					"category": "test_method",
+					"language": "zh",
+					"split": "development",
+					"found": [
+						"PMC9563479:55",
+						"PMC9563479:61",
+						"PMC9563479:76",
+						"PMC9563479:60",
+						"PMC9563479:59"
+					],
+					"expected": [
+						"PMC10670670:31"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 20.954874999999447,
+					"usage": {
+						"inputTokens": 21,
+						"modelDurationMs": 2.5337499999986903,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "scg-microscope-en",
+					"category": "test_method",
+					"language": "en",
+					"split": "development",
+					"found": [
+						"PMC10670670:64",
+						"PMC10670670:31",
+						"PMC10670670:32",
+						"PMC10670670:62",
+						"PMC10670670:65"
+					],
+					"expected": [
+						"PMC10670670:31"
+					],
+					"recallAt5": 1,
+					"mrr": 0.5,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 22.35529200000019,
+					"usage": {
+						"inputTokens": 27,
+						"modelDurationMs": 3.269416999999521,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "pla-otr-unit-zh",
+					"category": "compound_unit",
+					"language": "zh",
+					"split": "frozen",
+					"found": [
+						"PMC11944891:76",
+						"PMC11944891:77",
+						"PMC11944891:75",
+						"PMC11944891:73",
+						"PMC11944891:74"
+					],
+					"expected": [
+						"PMC11944891:76"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 21.86133399999744,
+					"usage": {
+						"inputTokens": 30,
+						"modelDurationMs": 3.352167000000918,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "pla-otr-unit-en",
+					"category": "compound_unit",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC11944891:12",
+						"PMC11944891:77",
+						"PMC11944891:76",
+						"PMC11944891:75",
+						"PMC11944891:78"
+					],
+					"expected": [
+						"PMC11944891:76"
+					],
+					"recallAt5": 1,
+					"mrr": 0.3333333333333333,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 22.764791000001424,
+					"usage": {
+						"inputTokens": 30,
+						"modelDurationMs": 3.421416000001045,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "pla-otr-value-zh",
+					"category": "table_value",
+					"language": "zh",
+					"split": "frozen",
+					"found": [
+						"PMC11944891:77",
+						"PMC11944891:76",
+						"PMC11944891:75",
+						"PMC11944891:78",
+						"PMC11944891:74"
+					],
+					"expected": [
+						"PMC11944891:76"
+					],
+					"recallAt5": 1,
+					"mrr": 0.5,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 21.522750000000087,
+					"usage": {
+						"inputTokens": 28,
+						"modelDurationMs": 3.1241249999984575,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "pla-otr-value-en",
+					"category": "table_value",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC11944891:12",
+						"PMC11944891:77",
+						"PMC11944891:76",
+						"PMC11944891:75",
+						"PMC11944891:74"
+					],
+					"expected": [
+						"PMC11944891:76"
+					],
+					"recallAt5": 1,
+					"mrr": 0.3333333333333333,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 22.1281659999986,
+					"usage": {
+						"inputTokens": 27,
+						"modelDurationMs": 3.1778750000012224,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "pla-wvtr-zh",
+					"category": "table_value",
+					"language": "zh",
+					"split": "frozen",
+					"found": [
+						"PMC11944891:76",
+						"PMC11944891:77",
+						"PMC11944891:75",
+						"PMC11944891:74",
+						"PMC11944891:73"
+					],
+					"expected": [
+						"PMC11944891:76"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 21.17949999999837,
+					"usage": {
+						"inputTokens": 24,
+						"modelDurationMs": 2.7330840000031458,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "pla-wvtr-en",
+					"category": "table_value",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC11944891:76",
+						"PMC11944891:74",
+						"PMC11944891:77",
+						"PMC11944891:75",
+						"PMC11944891:78"
+					],
+					"expected": [
+						"PMC11944891:76"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 21.970792000000074,
+					"usage": {
+						"inputTokens": 26,
+						"modelDurationMs": 3.0537920000024315,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "pla-oxygen-conditions-zh",
+					"category": "test_condition",
+					"language": "zh",
+					"split": "frozen",
+					"found": [
+						"PMC11944891:21",
+						"PMC9563479:54",
+						"PMC9563479:55",
+						"PMC9563479:53",
+						"PMC9563479:61"
+					],
+					"expected": [
+						"PMC11944891:51"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 21.331749999997555,
+					"usage": {
+						"inputTokens": 24,
+						"modelDurationMs": 2.796457999997074,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "pla-oxygen-conditions-en",
+					"category": "test_condition",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC11944891:51",
+						"PMC11944891:44",
+						"PMC11944891:45",
+						"PMC10670670:65",
+						"PMC11944891:21"
+					],
+					"expected": [
+						"PMC11944891:51"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 22.416832999999315,
+					"usage": {
+						"inputTokens": 26,
+						"modelDurationMs": 3.087666999999783,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "pla-flow-zh",
+					"category": "test_condition",
+					"language": "zh",
+					"split": "frozen",
+					"found": [
+						"PMC10670670:65",
+						"PMC11944891:21",
+						"PMC11944891:76",
+						"PMC11944891:77",
+						"PMC11944891:78"
+					],
+					"expected": [
+						"PMC11944891:51"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 21.159333999999944,
+					"usage": {
+						"inputTokens": 23,
+						"modelDurationMs": 2.820208000001003,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "pla-flow-en",
+					"category": "test_condition",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC10670670:65",
+						"PMC10670670:35",
+						"PMC11944891:44",
+						"PMC11944891:30",
+						"PMC11944891:12"
+					],
+					"expected": [
+						"PMC11944891:51"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 22.001083000002836,
+					"usage": {
+						"inputTokens": 22,
+						"modelDurationMs": 2.8359999999993306,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "pla-water-method-zh",
+					"category": "test_method",
+					"language": "zh",
+					"split": "frozen",
+					"found": [
+						"PMC9563479:76",
+						"PMC9563479:65",
+						"PMC9563479:75",
+						"PMC9563479:60",
+						"PMC9563479:54"
+					],
+					"expected": [
+						"PMC11944891:52"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 20.851208000000042,
+					"usage": {
+						"inputTokens": 22,
+						"modelDurationMs": 2.6540840000016033,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "pla-water-method-en",
+					"category": "test_method",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC10670670:35",
+						"PMC10670670:41",
+						"PMC10670670:65",
+						"PMC11944891:29",
+						"PMC11944891:52"
+					],
+					"expected": [
+						"PMC11944891:52"
+					],
+					"recallAt5": 1,
+					"mrr": 0.2,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 21.3314169999976,
+					"usage": {
+						"inputTokens": 25,
+						"modelDurationMs": 3.038833999999042,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "pla-water-delta-zh",
+					"category": "test_condition",
+					"language": "zh",
+					"split": "frozen",
+					"found": [
+						"PMC11944891:76",
+						"PMC9563479:62",
+						"PMC11944891:75",
+						"PMC11944891:74",
+						"PMC9563479:65"
+					],
+					"expected": [
+						"PMC11944891:53"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 20.72966599999927,
+					"usage": {
+						"inputTokens": 26,
+						"modelDurationMs": 2.9767090000023018,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "pla-water-delta-en",
+					"category": "test_condition",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC11944891:53",
+						"PMC11944891:74",
+						"PMC11944891:76",
+						"PMC11944891:75",
+						"PMC11944891:77"
+					],
+					"expected": [
+						"PMC11944891:53"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 20.699917000001733,
+					"usage": {
+						"inputTokens": 28,
+						"modelDurationMs": 3.229124999998021,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "absent-size",
+					"category": "no_answer",
+					"language": "zh",
+					"split": "frozen",
+					"found": [
+						"PMC9563479:61",
+						"PMC9563479:62",
+						"PMC9563479:60",
+						"PMC9563479:59",
+						"PMC9563479:65"
+					],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"rawNoAnswerCorrect": false,
+					"locatorIntegrity": true,
+					"latencyMs": 20.151708000001236,
+					"usage": {
+						"inputTokens": 18,
+						"modelDurationMs": 3.0464169999977457,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "absent-quote",
+					"category": "no_answer",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC11243642:139",
+						"PMC11243642:141",
+						"PMC11243642:88",
+						"PMC11243642:125",
+						"PMC11243642:133"
+					],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"rawNoAnswerCorrect": false,
+					"locatorIntegrity": true,
+					"latencyMs": 20.437041999997746,
+					"usage": {
+						"inputTokens": 22,
+						"modelDurationMs": 2.894749999999476,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "absent-certificate",
+					"category": "no_answer",
+					"language": "zh",
+					"split": "frozen",
+					"found": [
+						"PMC9563479:63",
+						"PMC9563479:61",
+						"PMC9563479:62",
+						"PMC9563479:64",
+						"PMC9563479:60"
+					],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"rawNoAnswerCorrect": false,
+					"locatorIntegrity": true,
+					"latencyMs": 20.66308299999946,
+					"usage": {
+						"inputTokens": 20,
+						"modelDurationMs": 2.4696660000008706,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "absent-shelf",
+					"category": "no_answer",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC9563479:56",
+						"PMC9563479:58",
+						"PMC9563479:67",
+						"PMC9563479:61",
+						"PMC9563479:65"
+					],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"rawNoAnswerCorrect": false,
+					"locatorIntegrity": true,
+					"latencyMs": 20.828041000000667,
+					"usage": {
+						"inputTokens": 25,
+						"modelDurationMs": 2.9385419999998703,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "absent-seal",
+					"category": "no_answer",
+					"language": "zh",
+					"split": "frozen",
+					"found": [
+						"PMC11243642:156",
+						"PMC11243642:148",
+						"PMC11243642:146",
+						"PMC11243642:150",
+						"PMC11243642:152"
+					],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"rawNoAnswerCorrect": false,
+					"locatorIntegrity": true,
+					"latencyMs": 19.879625000001397,
+					"usage": {
+						"inputTokens": 20,
+						"modelDurationMs": 2.444208000000799,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "absent-valve",
+					"category": "no_answer",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC11243642:21",
+						"PMC11243642:117",
+						"PMC11243642:119",
+						"PMC11243642:111",
+						"PMC11243642:116"
+					],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"rawNoAnswerCorrect": false,
+					"locatorIntegrity": true,
+					"latencyMs": 20.890082999998413,
+					"usage": {
+						"inputTokens": 23,
+						"modelDurationMs": 3.5614169999971637,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "unknown-model",
+					"category": "filter",
+					"language": "en",
+					"split": "frozen",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"rawNoAnswerCorrect": true,
+					"locatorIntegrity": true,
+					"latencyMs": 7.7193329999972775,
+					"usage": {
+						"inputTokens": 8,
+						"modelDurationMs": 1.600750000001426,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "before-publication",
+					"category": "filter",
+					"language": "en",
+					"split": "frozen",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"rawNoAnswerCorrect": true,
+					"locatorIntegrity": true,
+					"latencyMs": 7.463041999999405,
+					"usage": {
+						"inputTokens": 8,
+						"modelDurationMs": 1.4405829999996058,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				}
+			]
+		},
+		{
+			"mode": "hybrid",
+			"all": {
+				"cases": 64,
+				"answerable": 56,
+				"recallAt5": 0.48214285714285715,
+				"mrr": 0.400297619047619,
+				"rawNoAnswerAccuracy": 0.25,
+				"p50Ms": 21.312832999999955,
+				"p95Ms": 22.80462500000067
+			},
+			"development": {
+				"cases": 30,
+				"answerable": 30,
+				"recallAt5": 0.4666666666666667,
+				"mrr": 0.39444444444444443,
+				"rawNoAnswerAccuracy": null,
+				"p50Ms": 21.313749999997526,
+				"p95Ms": 22.34845800000039
+			},
+			"frozen": {
+				"cases": 34,
+				"answerable": 26,
+				"recallAt5": 0.5,
+				"mrr": 0.407051282051282,
+				"rawNoAnswerAccuracy": 0.25,
+				"p50Ms": 21.24412499999744,
+				"p95Ms": 23.259249999999156
+			},
+			"zh": {
+				"cases": 31,
+				"answerable": 28,
+				"recallAt5": 0.25,
+				"mrr": 0.25,
+				"rawNoAnswerAccuracy": 0,
+				"p50Ms": 21.313749999997526,
+				"p95Ms": 22.80462500000067
+			},
+			"en": {
+				"cases": 33,
+				"answerable": 28,
+				"recallAt5": 0.7142857142857143,
+				"mrr": 0.550595238095238,
+				"rawNoAnswerAccuracy": 0.4,
+				"p50Ms": 21.274999999997817,
+				"p95Ms": 22.972874999999476
+			},
+			"rows": [
+				{
+					"id": "rec-pet-zh",
+					"category": "layer_thickness",
+					"language": "zh",
+					"split": "development",
+					"found": [
+						"PMC11243642:36",
+						"PMC10931445:101",
+						"PMC11243642:131",
+						"PMC11243642:158",
+						"PMC11243642:155"
+					],
+					"expected": [
+						"PMC11243642:36"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 21.85399999999936,
+					"usage": {
+						"inputTokens": 32,
+						"modelDurationMs": 3.972749999997177,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-pet-en",
+					"category": "layer_thickness",
+					"language": "en",
+					"split": "development",
+					"found": [
+						"PMC11243642:5",
+						"PMC11243642:36",
+						"PMC11243642:21",
+						"PMC11243642:104",
+						"PMC11243642:103"
+					],
+					"expected": [
+						"PMC11243642:36"
+					],
+					"recallAt5": 1,
+					"mrr": 0.5,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 22.111291999997775,
+					"usage": {
+						"inputTokens": 31,
+						"modelDurationMs": 3.5594160000000556,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-pe-zh",
+					"category": "layer_thickness",
+					"language": "zh",
+					"split": "development",
+					"found": [
+						"PMC11243642:144",
+						"PMC11243642:148",
+						"PMC11243642:115",
+						"PMC11243642:146",
+						"PMC11243642:145"
+					],
+					"expected": [
+						"PMC11243642:36"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 21.835707999998704,
+					"usage": {
+						"inputTokens": 23,
+						"modelDurationMs": 3.4289590000007593,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-pe-en",
+					"category": "layer_thickness",
+					"language": "en",
+					"split": "development",
+					"found": [
+						"PMC11243642:110",
+						"PMC11243642:116",
+						"PMC11243642:36",
+						"PMC11243642:112",
+						"PMC11243642:111"
+					],
+					"expected": [
+						"PMC11243642:36"
+					],
+					"recallAt5": 1,
+					"mrr": 0.3333333333333333,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 22.34845800000039,
+					"usage": {
+						"inputTokens": 23,
+						"modelDurationMs": 2.8193329999994603,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-structure-zh",
+					"category": "structure",
+					"language": "zh",
+					"split": "development",
+					"found": [
+						"PMC11243642:103",
+						"PMC11243642:118",
+						"PMC11243642:113",
+						"PMC11243642:107",
+						"PMC11243642:116"
+					],
+					"expected": [
+						"PMC11243642:37"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 20.357458000002225,
+					"usage": {
+						"inputTokens": 16,
+						"modelDurationMs": 2.0720409999994445,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-structure-en",
+					"category": "structure",
+					"language": "en",
+					"split": "development",
+					"found": [
+						"PMC11243642:116",
+						"PMC11243642:115",
+						"PMC11243642:110",
+						"PMC11243642:101",
+						"PMC11243642:113"
+					],
+					"expected": [
+						"PMC11243642:37"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 21.259874999999738,
+					"usage": {
+						"inputTokens": 16,
+						"modelDurationMs": 2.9517089999972086,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-opp-zh",
+					"category": "layer_thickness",
+					"language": "zh",
+					"split": "development",
+					"found": [
+						"PMC11243642:37",
+						"PMC11243642:110",
+						"PMC11243642:100",
+						"PMC11243642:117",
+						"PMC11243642:116"
+					],
+					"expected": [
+						"PMC11243642:37"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 21.30962499999805,
+					"usage": {
+						"inputTokens": 19,
+						"modelDurationMs": 2.4951659999969706,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-opp-en",
+					"category": "layer_thickness",
+					"language": "en",
+					"split": "development",
+					"found": [
+						"PMC11243642:37",
+						"PMC11243642:21",
+						"PMC11243642:151",
+						"PMC11243642:150",
+						"PMC11243642:149"
+					],
+					"expected": [
+						"PMC11243642:37"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 20.915000000000873,
+					"usage": {
+						"inputTokens": 21,
+						"modelDurationMs": 2.6947500000023865,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-barrier-zh",
+					"category": "raw_inequality",
+					"language": "zh",
+					"split": "development",
+					"found": [
+						"PMC11944891:73",
+						"PMC11944891:75",
+						"PMC11944891:74",
+						"PMC11944891:78",
+						"PMC11944891:77"
+					],
+					"expected": [
+						"PMC11243642:37"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 21.787583000001177,
+					"usage": {
+						"inputTokens": 20,
+						"modelDurationMs": 3.315707999998267,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-barrier-en",
+					"category": "raw_inequality",
+					"language": "en",
+					"split": "development",
+					"found": [
+						"PMC11944891:29",
+						"PMC11243642:37",
+						"PMC11243642:107",
+						"PMC11243642:116",
+						"PMC11243642:16"
+					],
+					"expected": [
+						"PMC11243642:37"
+					],
+					"recallAt5": 1,
+					"mrr": 0.5,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 21.274999999997817,
+					"usage": {
+						"inputTokens": 16,
+						"modelDurationMs": 2.1172500000029686,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-grammage-zh",
+					"category": "unit",
+					"language": "zh",
+					"split": "development",
+					"found": [
+						"PMC11243642:103",
+						"PMC11243642:107",
+						"PMC11243642:113",
+						"PMC11243642:124",
+						"PMC11243642:118"
+					],
+					"expected": [
+						"PMC11243642:37"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 20.356791999998677,
+					"usage": {
+						"inputTokens": 15,
+						"modelDurationMs": 2.0632080000032147,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-grammage-en",
+					"category": "unit",
+					"language": "en",
+					"split": "development",
+					"found": [
+						"PMC11243642:101",
+						"PMC11243642:100",
+						"PMC11243642:116",
+						"PMC11243642:107",
+						"PMC11243642:110"
+					],
+					"expected": [
+						"PMC11243642:37"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 21.39074999999866,
+					"usage": {
+						"inputTokens": 16,
+						"modelDurationMs": 3.0811670000002778,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-fill-zh",
+					"category": "applicability",
+					"language": "zh",
+					"split": "development",
+					"found": [
+						"PMC11243642:102",
+						"PMC11243642:60",
+						"PMC11243642:131",
+						"PMC11243642:94",
+						"PMC11243642:59"
+					],
+					"expected": [
+						"PMC11243642:35"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 22.310874999999214,
+					"usage": {
+						"inputTokens": 23,
+						"modelDurationMs": 2.7223329999978887,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-fill-en",
+					"category": "applicability",
+					"language": "en",
+					"split": "development",
+					"found": [
+						"PMC11243642:35",
+						"PMC11243642:1",
+						"PMC11243642:48",
+						"PMC11243642:21",
+						"PMC11243642:15"
+					],
+					"expected": [
+						"PMC11243642:35"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 21.335833000001003,
+					"usage": {
+						"inputTokens": 24,
+						"modelDurationMs": 2.865332999997918,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-gas-zh",
+					"category": "storage_condition",
+					"language": "zh",
+					"split": "development",
+					"found": [
+						"PMC11243642:103",
+						"PMC11243642:102",
+						"PMC11243642:107",
+						"PMC11243642:105",
+						"PMC11243642:104"
+					],
+					"expected": [
+						"PMC11243642:35"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 21.89429200000086,
+					"usage": {
+						"inputTokens": 18,
+						"modelDurationMs": 3.500125000002299,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-gas-en",
+					"category": "storage_condition",
+					"language": "en",
+					"split": "development",
+					"found": [
+						"PMC11243642:35",
+						"PMC11243642:18",
+						"PMC11243642:17",
+						"PMC11243642:15",
+						"PMC11243642:29"
+					],
+					"expected": [
+						"PMC11243642:35"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 21.736457999999402,
+					"usage": {
+						"inputTokens": 21,
+						"modelDurationMs": 2.664667000000918,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-store-zh",
+					"category": "storage_condition",
+					"language": "zh",
+					"split": "development",
+					"found": [
+						"PMC11243642:102",
+						"PMC11243642:103",
+						"PMC11243642:100",
+						"PMC11243642:107",
+						"PMC11243642:104"
+					],
+					"expected": [
+						"PMC11243642:39"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 21.312832999999955,
+					"usage": {
+						"inputTokens": 20,
+						"modelDurationMs": 2.4224579999972775,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "rec-store-en",
+					"category": "storage_condition",
+					"language": "en",
+					"split": "development",
+					"found": [
+						"PMC11243642:50",
+						"PMC11243642:49",
+						"PMC11243642:51",
+						"PMC11243642:52",
+						"PMC11243642:53"
+					],
+					"expected": [
+						"PMC11243642:39"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 22.07025000000067,
+					"usage": {
+						"inputTokens": 21,
+						"modelDurationMs": 3.765625,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "alt-pe-zh",
+					"category": "layer_thickness",
+					"language": "zh",
+					"split": "development",
+					"found": [
+						"PMC10931445:18",
+						"PMC10931445:161",
+						"PMC10931445:101",
+						"PMC10931445:104",
+						"PMC10931445:100"
+					],
+					"expected": [
+						"PMC10931445:18"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 22.094042000000627,
+					"usage": {
+						"inputTokens": 22,
+						"modelDurationMs": 2.6787079999994603,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "alt-pe-en",
+					"category": "layer_thickness",
+					"language": "en",
+					"split": "development",
+					"found": [
+						"PMC10931445:18",
+						"PMC10931445:4",
+						"PMC10931445:59",
+						"PMC10931445:5",
+						"PMC11243642:5"
+					],
+					"expected": [
+						"PMC10931445:18"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 20.8159169999999,
+					"usage": {
+						"inputTokens": 25,
+						"modelDurationMs": 2.9616249999999127,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "alt-metallization-zh",
+					"category": "structure",
+					"language": "zh",
+					"split": "development",
+					"found": [
+						"PMC10931445:18",
+						"PMC10931445:101",
+						"PMC10931445:102",
+						"PMC10931445:104",
+						"PMC10931445:5"
+					],
+					"expected": [
+						"PMC10931445:18"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 21.10320800000045,
+					"usage": {
+						"inputTokens": 21,
+						"modelDurationMs": 2.5438329999997222,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "alt-metallization-en",
+					"category": "structure",
+					"language": "en",
+					"split": "development",
+					"found": [
+						"PMC10931445:18",
+						"PMC10931445:5",
+						"PMC10931445:6",
+						"PMC10931445:1",
+						"PMC10931445:59"
+					],
+					"expected": [
+						"PMC10931445:18"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 20.62408399999913,
+					"usage": {
+						"inputTokens": 24,
+						"modelDurationMs": 2.821917000001122,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "alt-pack-zh",
+					"category": "applicability",
+					"language": "zh",
+					"split": "development",
+					"found": [
+						"PMC10931445:111",
+						"PMC10931445:104",
+						"PMC10931445:116",
+						"PMC10931445:120",
+						"PMC10931445:112"
+					],
+					"expected": [
+						"PMC10931445:16"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 20.949749999999767,
+					"usage": {
+						"inputTokens": 17,
+						"modelDurationMs": 2.3474590000005264,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "alt-pack-en",
+					"category": "applicability",
+					"language": "en",
+					"split": "development",
+					"found": [
+						"PMC10931445:16",
+						"PMC10931445:161",
+						"PMC10931445:160",
+						"PMC10931445:1",
+						"PMC10931445:47"
+					],
+					"expected": [
+						"PMC10931445:16"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 19.82458300000144,
+					"usage": {
+						"inputTokens": 18,
+						"modelDurationMs": 2.4333329999972193,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "alt-store-zh",
+					"category": "storage_condition",
+					"language": "zh",
+					"split": "development",
+					"found": [
+						"PMC10931445:104",
+						"PMC10931445:111",
+						"PMC10931445:109",
+						"PMC10931445:106",
+						"PMC10931445:101"
+					],
+					"expected": [
+						"PMC10931445:21"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 21.282499999997526,
+					"usage": {
+						"inputTokens": 16,
+						"modelDurationMs": 2.0969999999979336,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "alt-store-en",
+					"category": "storage_condition",
+					"language": "en",
+					"split": "development",
+					"found": [
+						"PMC10931445:111",
+						"PMC10931445:104",
+						"PMC10931445:58",
+						"PMC10931445:106",
+						"PMC10931445:109"
+					],
+					"expected": [
+						"PMC10931445:21"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 19.730540999997174,
+					"usage": {
+						"inputTokens": 16,
+						"modelDurationMs": 2.1775000000016007,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "green-method-zh",
+					"category": "test_method",
+					"language": "zh",
+					"split": "frozen",
+					"found": [
+						"PMC9563479:61",
+						"PMC9563479:60",
+						"PMC9563479:59",
+						"PMC9563479:76",
+						"PMC9563479:62"
+					],
+					"expected": [
+						"PMC9563479:12"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 21.06854100000055,
+					"usage": {
+						"inputTokens": 19,
+						"modelDurationMs": 2.4467079999994894,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "green-method-en",
+					"category": "test_method",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC9563479:12",
+						"PMC9563479:28",
+						"PMC9563479:6",
+						"PMC9563479:30",
+						"PMC9563479:33"
+					],
+					"expected": [
+						"PMC9563479:12"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 20.38916700000118,
+					"usage": {
+						"inputTokens": 22,
+						"modelDurationMs": 2.7934580000001006,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "green-instrument-zh",
+					"category": "test_method",
+					"language": "zh",
+					"split": "frozen",
+					"found": [
+						"PMC9563479:61",
+						"PMC9563479:59",
+						"PMC9563479:60",
+						"PMC9563479:76",
+						"PMC9563479:62"
+					],
+					"expected": [
+						"PMC9563479:12"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 21.238541000002442,
+					"usage": {
+						"inputTokens": 18,
+						"modelDurationMs": 2.33037499999773,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "green-instrument-en",
+					"category": "test_method",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC9563479:12",
+						"PMC9563479:6",
+						"PMC9563479:33",
+						"PMC10670670:64",
+						"PMC9563479:52"
+					],
+					"expected": [
+						"PMC9563479:12"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 26.07079199999862,
+					"usage": {
+						"inputTokens": 18,
+						"modelDurationMs": 3.339209000001574,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "green-rh-zh",
+					"category": "storage_condition",
+					"language": "zh",
+					"split": "frozen",
+					"found": [
+						"PMC9563479:61",
+						"PMC9563479:60",
+						"PMC9563479:59",
+						"PMC9563479:76",
+						"PMC9563479:65"
+					],
+					"expected": [
+						"PMC9563479:12"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 22.1284169999999,
+					"usage": {
+						"inputTokens": 20,
+						"modelDurationMs": 2.4612080000006245,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "green-rh-en",
+					"category": "storage_condition",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC9563479:12",
+						"PMC9563479:38",
+						"PMC9563479:8",
+						"PMC9563479:40",
+						"PMC9563479:13"
+					],
+					"expected": [
+						"PMC9563479:12"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 22.972874999999476,
+					"usage": {
+						"inputTokens": 21,
+						"modelDurationMs": 2.7554589999999735,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "green-fill-zh",
+					"category": "applicability",
+					"language": "zh",
+					"split": "frozen",
+					"found": [
+						"PMC9563479:61",
+						"PMC9563479:60",
+						"PMC9563479:73",
+						"PMC9563479:71",
+						"PMC9563479:59"
+					],
+					"expected": [
+						"PMC9563479:12"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 21.052209000001312,
+					"usage": {
+						"inputTokens": 20,
+						"modelDurationMs": 2.4752499999995052,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "green-fill-en",
+					"category": "applicability",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC9563479:12",
+						"PMC9563479:32",
+						"PMC9563479:33",
+						"PMC9563479:30",
+						"PMC9563479:47"
+					],
+					"expected": [
+						"PMC9563479:12"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 22.535083000002487,
+					"usage": {
+						"inputTokens": 21,
+						"modelDurationMs": 3.714457999998558,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "green-gp-air-zh",
+					"category": "table_value",
+					"language": "zh",
+					"split": "frozen",
+					"found": [
+						"PMC9563479:61",
+						"PMC9563479:60",
+						"PMC9563479:59",
+						"PMC9563479:55",
+						"PMC9563479:64"
+					],
+					"expected": [
+						"PMC9563479:52"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 23.259249999999156,
+					"usage": {
+						"inputTokens": 27,
+						"modelDurationMs": 3.0649999999986903,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "green-gp-air-en",
+					"category": "table_value",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC9563479:12",
+						"PMC9563479:29",
+						"PMC9563479:27",
+						"PMC9563479:1",
+						"PMC9563479:10"
+					],
+					"expected": [
+						"PMC9563479:52"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 22.58508299999812,
+					"usage": {
+						"inputTokens": 27,
+						"modelDurationMs": 3.2097079999985,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "green-ldpe-thick-zh",
+					"category": "table_value",
+					"language": "zh",
+					"split": "frozen",
+					"found": [
+						"PMC9563479:54",
+						"PMC9563479:60",
+						"PMC9563479:57",
+						"PMC9563479:53",
+						"PMC9563479:55"
+					],
+					"expected": [
+						"PMC9563479:51"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 22.543792000000394,
+					"usage": {
+						"inputTokens": 27,
+						"modelDurationMs": 4.053332999999839,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "green-ldpe-thick-en",
+					"category": "table_value",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC9563479:12",
+						"PMC9563479:54",
+						"PMC9563479:10",
+						"PMC9563479:57",
+						"PMC9563479:60"
+					],
+					"expected": [
+						"PMC9563479:51"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 22.400250000002416,
+					"usage": {
+						"inputTokens": 25,
+						"modelDurationMs": 3.0022920000010345,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "scg-thick-zh",
+					"category": "range",
+					"language": "zh",
+					"split": "development",
+					"found": [
+						"PMC11944891:14",
+						"PMC11944891:15",
+						"PMC11944891:17",
+						"PMC11944891:21",
+						"PMC10670670:86"
+					],
+					"expected": [
+						"PMC10670670:64"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 21.313749999997526,
+					"usage": {
+						"inputTokens": 23,
+						"modelDurationMs": 2.7720830000034766,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "scg-thick-en",
+					"category": "range",
+					"language": "en",
+					"split": "development",
+					"found": [
+						"PMC10670670:62",
+						"PMC10670670:64",
+						"PMC10670670:63",
+						"PMC10670670:58",
+						"PMC10670670:65"
+					],
+					"expected": [
+						"PMC10670670:64"
+					],
+					"recallAt5": 1,
+					"mrr": 0.5,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 22.54216699999961,
+					"usage": {
+						"inputTokens": 26,
+						"modelDurationMs": 3.970459000000119,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "scg-microscope-zh",
+					"category": "test_method",
+					"language": "zh",
+					"split": "development",
+					"found": [
+						"PMC11944891:15",
+						"PMC11944891:12",
+						"PMC11944891:21",
+						"PMC11944891:14",
+						"PMC11944891:13"
+					],
+					"expected": [
+						"PMC10670670:31"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 22.0380839999998,
+					"usage": {
+						"inputTokens": 21,
+						"modelDurationMs": 2.592416999999841,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "scg-microscope-en",
+					"category": "test_method",
+					"language": "en",
+					"split": "development",
+					"found": [
+						"PMC10670670:62",
+						"PMC10670670:58",
+						"PMC10670670:32",
+						"PMC10670670:71",
+						"PMC10670670:64"
+					],
+					"expected": [
+						"PMC10670670:31"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 21.93358399999852,
+					"usage": {
+						"inputTokens": 27,
+						"modelDurationMs": 3.2446659999986878,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "pla-otr-unit-zh",
+					"category": "compound_unit",
+					"language": "zh",
+					"split": "frozen",
+					"found": [
+						"PMC11944891:76",
+						"PMC11944891:73",
+						"PMC11944891:77",
+						"PMC11944891:75",
+						"PMC11944891:74"
+					],
+					"expected": [
+						"PMC11944891:76"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 22.80462500000067,
+					"usage": {
+						"inputTokens": 30,
+						"modelDurationMs": 4.101875000000291,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "pla-otr-unit-en",
+					"category": "compound_unit",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC11944891:44",
+						"PMC11944891:76",
+						"PMC11944891:14",
+						"PMC11944891:29",
+						"PMC11944891:30"
+					],
+					"expected": [
+						"PMC11944891:76"
+					],
+					"recallAt5": 1,
+					"mrr": 0.5,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 22.724374999997963,
+					"usage": {
+						"inputTokens": 30,
+						"modelDurationMs": 3.4024160000008123,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "pla-otr-value-zh",
+					"category": "table_value",
+					"language": "zh",
+					"split": "frozen",
+					"found": [
+						"PMC11944891:76",
+						"PMC11944891:77",
+						"PMC11944891:75",
+						"PMC11944891:74",
+						"PMC11944891:73"
+					],
+					"expected": [
+						"PMC11944891:76"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 21.533665999999357,
+					"usage": {
+						"inputTokens": 28,
+						"modelDurationMs": 3.0808749999996508,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "pla-otr-value-en",
+					"category": "table_value",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC11944891:44",
+						"PMC11944891:14",
+						"PMC11944891:34",
+						"PMC11944891:19",
+						"PMC11944891:26"
+					],
+					"expected": [
+						"PMC11944891:76"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 22.557167000002664,
+					"usage": {
+						"inputTokens": 27,
+						"modelDurationMs": 4.016457999998238,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "pla-wvtr-zh",
+					"category": "table_value",
+					"language": "zh",
+					"split": "frozen",
+					"found": [
+						"PMC11944891:76",
+						"PMC11944891:77",
+						"PMC11944891:75",
+						"PMC11944891:74",
+						"PMC11944891:73"
+					],
+					"expected": [
+						"PMC11944891:76"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 21.98895899999843,
+					"usage": {
+						"inputTokens": 24,
+						"modelDurationMs": 2.7717090000005555,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "pla-wvtr-en",
+					"category": "table_value",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC11944891:29",
+						"PMC11944891:44",
+						"PMC11944891:76",
+						"PMC11944891:34",
+						"PMC11944891:19"
+					],
+					"expected": [
+						"PMC11944891:76"
+					],
+					"recallAt5": 1,
+					"mrr": 0.3333333333333333,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 21.90270800000144,
+					"usage": {
+						"inputTokens": 26,
+						"modelDurationMs": 3.052124999998341,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "pla-oxygen-conditions-zh",
+					"category": "test_condition",
+					"language": "zh",
+					"split": "frozen",
+					"found": [
+						"PMC11944891:21",
+						"PMC11944891:73",
+						"PMC11944891:65",
+						"PMC11944891:14",
+						"PMC11944891:23"
+					],
+					"expected": [
+						"PMC11944891:51"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 22.160665999999765,
+					"usage": {
+						"inputTokens": 24,
+						"modelDurationMs": 3.7355419999985315,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "pla-oxygen-conditions-en",
+					"category": "test_condition",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC11944891:44",
+						"PMC11944891:45",
+						"PMC11944891:21",
+						"PMC11944891:51",
+						"PMC11944891:30"
+					],
+					"expected": [
+						"PMC11944891:51"
+					],
+					"recallAt5": 1,
+					"mrr": 0.25,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 21.24412499999744,
+					"usage": {
+						"inputTokens": 26,
+						"modelDurationMs": 3.0638340000004973,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "pla-flow-zh",
+					"category": "test_condition",
+					"language": "zh",
+					"split": "frozen",
+					"found": [
+						"PMC11944891:21",
+						"PMC10670670:65",
+						"PMC11944891:30",
+						"PMC11944891:73",
+						"PMC10670670:85"
+					],
+					"expected": [
+						"PMC11944891:51"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 21.143207999997685,
+					"usage": {
+						"inputTokens": 23,
+						"modelDurationMs": 2.8583749999997963,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "pla-flow-en",
+					"category": "test_condition",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC11944891:30",
+						"PMC11944891:51",
+						"PMC11944891:44",
+						"PMC11944891:45",
+						"PMC11944891:21"
+					],
+					"expected": [
+						"PMC11944891:51"
+					],
+					"recallAt5": 1,
+					"mrr": 0.5,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 20.07654199999888,
+					"usage": {
+						"inputTokens": 22,
+						"modelDurationMs": 2.730999999999767,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "pla-water-method-zh",
+					"category": "test_method",
+					"language": "zh",
+					"split": "frozen",
+					"found": [
+						"PMC11944891:21",
+						"PMC11944891:12",
+						"PMC11944891:15",
+						"PMC11944891:73",
+						"PMC11944891:30"
+					],
+					"expected": [
+						"PMC11944891:52"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 21.280041999998502,
+					"usage": {
+						"inputTokens": 22,
+						"modelDurationMs": 3.5884169999990263,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "pla-water-method-en",
+					"category": "test_method",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC11944891:52",
+						"PMC11944891:29",
+						"PMC11944891:2",
+						"PMC11944891:30",
+						"PMC10670670:41"
+					],
+					"expected": [
+						"PMC11944891:52"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 20.59125000000131,
+					"usage": {
+						"inputTokens": 25,
+						"modelDurationMs": 3.0552500000012515,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "pla-water-delta-zh",
+					"category": "test_condition",
+					"language": "zh",
+					"split": "frozen",
+					"found": [
+						"PMC11944891:73",
+						"PMC11944891:76",
+						"PMC11944891:75",
+						"PMC11944891:74",
+						"PMC11944891:77"
+					],
+					"expected": [
+						"PMC11944891:53"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 21.615583999999217,
+					"usage": {
+						"inputTokens": 26,
+						"modelDurationMs": 3.8908750000009604,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "pla-water-delta-en",
+					"category": "test_condition",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC11944891:53",
+						"PMC11944891:52",
+						"PMC11944891:34",
+						"PMC11944891:29",
+						"PMC11944891:2"
+					],
+					"expected": [
+						"PMC11944891:53"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"rawNoAnswerCorrect": null,
+					"locatorIntegrity": true,
+					"latencyMs": 21.045249999999214,
+					"usage": {
+						"inputTokens": 28,
+						"modelDurationMs": 3.1598750000011933,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "absent-size",
+					"category": "no_answer",
+					"language": "zh",
+					"split": "frozen",
+					"found": [
+						"PMC10670670:28",
+						"PMC10670670:15",
+						"PMC9563479:24",
+						"PMC9563479:61",
+						"PMC9563479:62"
+					],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"rawNoAnswerCorrect": false,
+					"locatorIntegrity": true,
+					"latencyMs": 21.061667000001762,
+					"usage": {
+						"inputTokens": 18,
+						"modelDurationMs": 3.4304169999995793,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "absent-quote",
+					"category": "no_answer",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC11243642:16",
+						"PMC11243642:17",
+						"PMC11243642:18",
+						"PMC9563479:32",
+						"PMC11243642:139"
+					],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"rawNoAnswerCorrect": false,
+					"locatorIntegrity": true,
+					"latencyMs": 20.49354200000016,
+					"usage": {
+						"inputTokens": 22,
+						"modelDurationMs": 2.793792000000394,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "absent-certificate",
+					"category": "no_answer",
+					"language": "zh",
+					"split": "frozen",
+					"found": [
+						"PMC10931445:100",
+						"PMC10931445:104",
+						"PMC10931445:111",
+						"PMC10931445:116",
+						"PMC10931445:103"
+					],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"rawNoAnswerCorrect": false,
+					"locatorIntegrity": true,
+					"latencyMs": 20.802583000000595,
+					"usage": {
+						"inputTokens": 20,
+						"modelDurationMs": 3.427124999998341,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "absent-shelf",
+					"category": "no_answer",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC11243642:100",
+						"PMC11243642:102",
+						"PMC11243642:146",
+						"PMC11243642:144",
+						"PMC11243642:105"
+					],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"rawNoAnswerCorrect": false,
+					"locatorIntegrity": true,
+					"latencyMs": 20.70337500000096,
+					"usage": {
+						"inputTokens": 25,
+						"modelDurationMs": 3.0466659999983676,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "absent-seal",
+					"category": "no_answer",
+					"language": "zh",
+					"split": "frozen",
+					"found": [
+						"PMC11243642:102",
+						"PMC11243642:107",
+						"PMC11243642:103",
+						"PMC11243642:101",
+						"PMC11243642:100"
+					],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"rawNoAnswerCorrect": false,
+					"locatorIntegrity": true,
+					"latencyMs": 21.0068339999998,
+					"usage": {
+						"inputTokens": 20,
+						"modelDurationMs": 3.464790999998513,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "absent-valve",
+					"category": "no_answer",
+					"language": "en",
+					"split": "frozen",
+					"found": [
+						"PMC11243642:15",
+						"PMC11243642:111",
+						"PMC11243642:117",
+						"PMC11243642:119",
+						"PMC11243642:113"
+					],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"rawNoAnswerCorrect": false,
+					"locatorIntegrity": true,
+					"latencyMs": 20.440833000000566,
+					"usage": {
+						"inputTokens": 23,
+						"modelDurationMs": 2.9221660000002885,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "unknown-model",
+					"category": "filter",
+					"language": "en",
+					"split": "frozen",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"rawNoAnswerCorrect": true,
+					"locatorIntegrity": true,
+					"latencyMs": 8.301457999998092,
+					"usage": {
+						"inputTokens": 8,
+						"modelDurationMs": 2.1211250000014843,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				},
+				{
+					"id": "before-publication",
+					"category": "filter",
+					"language": "en",
+					"split": "frozen",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"rawNoAnswerCorrect": true,
+					"locatorIntegrity": true,
+					"latencyMs": 7.671707999998034,
+					"usage": {
+						"inputTokens": 8,
+						"modelDurationMs": 1.4672080000018468,
+						"forwardPasses": 1,
+						"embeddingCalls": 1,
+						"generationCalls": 0,
+						"costUsd": null
+					}
+				}
+			]
+		}
+	],
+	"granular": [
+		{
+			"id": "rec-study",
+			"mode": "keyword",
+			"expected": [
+				"PMC11243642:37",
+				"PMC11243642:36",
+				"PMC11243642:35",
+				"PMC11243642:39"
+			],
+			"broad": {
+				"coverage": 0,
+				"queries": 1,
+				"maxReturnedPassages": 8,
+				"inputTokens": 0,
+				"durationMs": 10.779833000000508,
+				"hits": []
+			},
+			"atomic": {
+				"coverage": 0,
+				"queries": 4,
+				"maxReturnedPassages": 8,
+				"inputTokens": 0,
+				"durationMs": 40.944709000006696,
+				"hits": [
+					"PMC11243642:100",
+					"PMC11243642:101",
+					"PMC10931445:100",
+					"PMC10931445:101",
+					"PMC11243642:100",
+					"PMC11243642:101",
+					"PMC11243642:100",
+					"PMC11243642:101"
+				]
+			}
+		},
+		{
+			"id": "rec-study",
+			"mode": "vector",
+			"expected": [
+				"PMC11243642:37",
+				"PMC11243642:36",
+				"PMC11243642:35",
+				"PMC11243642:39"
+			],
+			"broad": {
+				"coverage": 0,
+				"queries": 1,
+				"maxReturnedPassages": 8,
+				"inputTokens": 16,
+				"durationMs": 19.836083999998664,
+				"hits": [
+					"PMC11243642:84",
+					"PMC11243642:129",
+					"PMC11243642:102",
+					"PMC11243642:127",
+					"PMC11243642:81",
+					"PMC11243642:60",
+					"PMC11243642:88",
+					"PMC11243642:96"
+				]
+			},
+			"atomic": {
+				"coverage": 0.5,
+				"queries": 4,
+				"maxReturnedPassages": 8,
+				"inputTokens": 70,
+				"durationMs": 79.60766600000352,
+				"hits": [
+					"PMC11243642:37",
+					"PMC11243642:137",
+					"PMC11243642:36",
+					"PMC10931445:17",
+					"PMC11243642:58",
+					"PMC11243642:94",
+					"PMC11243642:148",
+					"PMC11243642:146"
+				]
+			}
+		},
+		{
+			"id": "rec-study",
+			"mode": "hybrid",
+			"expected": [
+				"PMC11243642:37",
+				"PMC11243642:36",
+				"PMC11243642:35",
+				"PMC11243642:39"
+			],
+			"broad": {
+				"coverage": 0,
+				"queries": 1,
+				"maxReturnedPassages": 8,
+				"inputTokens": 16,
+				"durationMs": 19.61212499999965,
+				"hits": [
+					"PMC11243642:84",
+					"PMC11243642:129",
+					"PMC11243642:102",
+					"PMC11243642:127",
+					"PMC11243642:81",
+					"PMC11243642:60",
+					"PMC11243642:88",
+					"PMC11243642:96"
+				]
+			},
+			"atomic": {
+				"coverage": 0,
+				"queries": 4,
+				"maxReturnedPassages": 8,
+				"inputTokens": 70,
+				"durationMs": 82.98533400000088,
+				"hits": [
+					"PMC11243642:103",
+					"PMC11243642:118",
+					"PMC10931445:110",
+					"PMC10931445:17",
+					"PMC11243642:103",
+					"PMC11243642:102",
+					"PMC11243642:102",
+					"PMC11243642:100"
+				]
+			}
+		},
+		{
+			"id": "pla-study",
+			"mode": "keyword",
+			"expected": [
+				"PMC11944891:76",
+				"PMC11944891:51",
+				"PMC11944891:52",
+				"PMC11944891:53"
+			],
+			"broad": {
+				"coverage": 0,
+				"queries": 1,
+				"maxReturnedPassages": 8,
+				"inputTokens": 0,
+				"durationMs": 10.639250000000175,
+				"hits": [
+					"PMC11944891:1",
+					"PMC11944891:12",
+					"PMC11944891:13",
+					"PMC11944891:14",
+					"PMC11944891:15",
+					"PMC11944891:17",
+					"PMC11944891:18",
+					"PMC11944891:19"
+				]
+			},
+			"atomic": {
+				"coverage": 0.25,
+				"queries": 4,
+				"maxReturnedPassages": 8,
+				"inputTokens": 0,
+				"durationMs": 43.27829099999872,
+				"hits": [
+					"PMC11944891:29",
+					"PMC11944891:76",
+					"PMC11944891:1",
+					"PMC11944891:12",
+					"PMC11944891:1",
+					"PMC11944891:12",
+					"PMC11944891:73",
+					"PMC11944891:1"
+				]
+			}
+		},
+		{
+			"id": "pla-study",
+			"mode": "vector",
+			"expected": [
+				"PMC11944891:76",
+				"PMC11944891:51",
+				"PMC11944891:52",
+				"PMC11944891:53"
+			],
+			"broad": {
+				"coverage": 0,
+				"queries": 1,
+				"maxReturnedPassages": 8,
+				"inputTokens": 20,
+				"durationMs": 20.03191599999991,
+				"hits": [
+					"PMC11944891:37",
+					"PMC11944891:21",
+					"PMC10670670:85",
+					"PMC10670670:89",
+					"PMC11944891:12",
+					"PMC10670670:88",
+					"PMC11944891:15",
+					"PMC11944891:36"
+				]
+			},
+			"atomic": {
+				"coverage": 0.25,
+				"queries": 4,
+				"maxReturnedPassages": 8,
+				"inputTokens": 96,
+				"durationMs": 82.25583299999926,
+				"hits": [
+					"PMC11944891:76",
+					"PMC11944891:77",
+					"PMC11944891:21",
+					"PMC9563479:61",
+					"PMC9563479:76",
+					"PMC9563479:75",
+					"PMC11944891:76",
+					"PMC11944891:74"
+				]
+			}
+		},
+		{
+			"id": "pla-study",
+			"mode": "hybrid",
+			"expected": [
+				"PMC11944891:76",
+				"PMC11944891:51",
+				"PMC11944891:52",
+				"PMC11944891:53"
+			],
+			"broad": {
+				"coverage": 0,
+				"queries": 1,
+				"maxReturnedPassages": 8,
+				"inputTokens": 20,
+				"durationMs": 20.30016599999726,
+				"hits": [
+					"PMC11944891:12",
+					"PMC11944891:15",
+					"PMC11944891:21",
+					"PMC11944891:37",
+					"PMC11944891:36",
+					"PMC11944891:38",
+					"PMC11944891:14",
+					"PMC11944891:17"
+				]
+			},
+			"atomic": {
+				"coverage": 0.25,
+				"queries": 4,
+				"maxReturnedPassages": 8,
+				"inputTokens": 96,
+				"durationMs": 85.47349900000336,
+				"hits": [
+					"PMC11944891:76",
+					"PMC11944891:73",
+					"PMC11944891:21",
+					"PMC11944891:30",
+					"PMC11944891:21",
+					"PMC10670670:13",
+					"PMC11944891:73",
+					"PMC11944891:76"
+				]
+			}
+		}
+	],
+	"limitations": [
+		"Small corpus and provisional labels; do not claim generalization or production performance",
+		"PDF page QA limited to selected pages; all other locations use JATS section/table anchors",
+		"No learned reranker or query rewriting; no paid generation or LLM judge",
+		"Raw retrieval returning a passage is not a supported answer. No-answer false positives are reported, not hidden",
+		"Granular queries hold passage count at 8 but require 4 queries versus 1; costs are not equal"
+	]
+}

@@ -1,0 +1,124 @@
+{
+	"schemaVersion": "knowledge-connection-verification.v1",
+	"verifiedAt": "2026-09-17T11:22:55.439Z",
+	"provisioning": {
+		"schemaVersion": "knowledge-connection.v1",
+		"status": "ready",
+		"connectedAt": "2026-09-17T11:21:22.571Z",
+		"dataRoot": "/Users/black/Documents/VSCodeProject/SmallBlack/.blackx-data",
+		"database": "/Users/black/Documents/VSCodeProject/SmallBlack/.blackx-data/knowledge/knowledge.sqlite",
+		"conversationId": "conversation-1f3da7c3-729e-418b-a20c-39d1ebc04409",
+		"documents": 5,
+		"chunks": 568,
+		"versionIds": [
+			"kb-1ea91271d952938fd37d7f2f48a3bd562d2f264ad9b806d73a7a7a63ff9312fd",
+			"kb-2c068457eca4094e851d7744f348a6c37caf036eeafb3fbaad619629f931477f",
+			"kb-5031f8993e601fcab6a65b128a82391dcb4590364d55abd13bc6062a826b1429",
+			"kb-d2592fa54bd8f3e2ff6392b2cb400cedb99fe2e8e7b4507303a837d66c703f04",
+			"kb-fbb6fe9998e0bc85d76e281d9b09e8d004d179a93a213df66d8d7ad6a89f43ff"
+		],
+		"embedding": {
+			"signature": "onnx:Xenova/multilingual-e5-small@761b726dd34fb83930e26aab4e9ac3899aa1fa78:q8:384:mean:l2:512:prefix-e5:windows-480-v1:transformers-4.3.0",
+			"kind": "local_model"
+		},
+		"duplicateImportSameVersions": true,
+		"restartReadPassed": true,
+		"toolResultsReachedContext": [
+			{
+				"tool": "knowledge_search",
+				"evidenceIds": [
+					"kb-d2592fa54bd8f3e2ff6392b2cb400cedb99fe2e8e7b4507303a837d66c703f04:63",
+					"kb-d2592fa54bd8f3e2ff6392b2cb400cedb99fe2e8e7b4507303a837d66c703f04:124",
+					"kb-d2592fa54bd8f3e2ff6392b2cb400cedb99fe2e8e7b4507303a837d66c703f04:37",
+					"kb-d2592fa54bd8f3e2ff6392b2cb400cedb99fe2e8e7b4507303a837d66c703f04:38",
+					"kb-d2592fa54bd8f3e2ff6392b2cb400cedb99fe2e8e7b4507303a837d66c703f04:36"
+				]
+			},
+			{
+				"tool": "knowledge_selected",
+				"evidenceIds": [
+					"kb-d2592fa54bd8f3e2ff6392b2cb400cedb99fe2e8e7b4507303a837d66c703f04:37"
+				]
+			},
+			{
+				"tool": "knowledge_search",
+				"evidenceIds": [
+					"kb-d2592fa54bd8f3e2ff6392b2cb400cedb99fe2e8e7b4507303a837d66c703f04:63",
+					"kb-d2592fa54bd8f3e2ff6392b2cb400cedb99fe2e8e7b4507303a837d66c703f04:124",
+					"kb-d2592fa54bd8f3e2ff6392b2cb400cedb99fe2e8e7b4507303a837d66c703f04:37",
+					"kb-d2592fa54bd8f3e2ff6392b2cb400cedb99fe2e8e7b4507303a837d66c703f04:38",
+					"kb-d2592fa54bd8f3e2ff6392b2cb400cedb99fe2e8e7b4507303a837d66c703f04:36"
+				]
+			},
+			{
+				"tool": "knowledge_selected",
+				"evidenceIds": [
+					"kb-d2592fa54bd8f3e2ff6392b2cb400cedb99fe2e8e7b4507303a837d66c703f04:37"
+				]
+			}
+		],
+		"example": {
+			"evidenceId": "kb-d2592fa54bd8f3e2ff6392b2cb400cedb99fe2e8e7b4507303a837d66c703f04:37",
+			"revision": "PMC11243642.1",
+			"model": "study:PMC11243642",
+			"location": {
+				"anchor": "sec3dot2-molecules-29-03006",
+				"page": 13,
+				"paragraph": 3,
+				"part": 1,
+				"section": "3. Materials and Methods / 3.2. Samples"
+			},
+			"originalValue": "81",
+			"originalUnit": "g/m2",
+			"verification": "unverified"
+		},
+		"fixtureGenerationCalls": 8,
+		"paidModelCalls": 0,
+		"limitation": "Actual research retrieval and normal Host integration; scripted local generation is not real LLM quality. Existing generation settings are unchanged."
+	},
+	"normalHost": {
+		"baseUrl": "http://127.0.0.1:5173",
+		"adapter": "blackx-agent",
+		"generationMode": "anthropic",
+		"generationSettingsUnchanged": true,
+		"generationCredentialsTested": false,
+		"embedding": {
+			"signature": "onnx:Xenova/multilingual-e5-small@761b726dd34fb83930e26aab4e9ac3899aa1fa78:q8:384:mean:l2:512:prefix-e5:windows-480-v1:transformers-4.3.0",
+			"kind": "local_model"
+		},
+		"indexedDocuments": 5,
+		"selectedEvidenceReadable": true,
+		"liveHybridHit": "kb-d2592fa54bd8f3e2ff6392b2cb400cedb99fe2e8e7b4507303a837d66c703f04:37",
+		"retrievalCorrelationId": "7cfdfcbd-ba0f-4692-bb11-c668c8047e5d",
+		"paidGenerationRequests": 0
+	},
+	"tests": {
+		"command": "npm run check",
+		"testFiles": 61,
+		"passed": 347,
+		"skipped": 20,
+		"serverTypecheck": "passed",
+		"repeatedConnect": "passed_same_task_and_versions",
+		"restart": "passed_search_and_selected"
+	},
+	"sourceHashes": {
+		"eval/knowledgeConnect.ts": "a6a3a59b7a3368e167358d417ddd0761748bdc30a7fed36ba6aedc9f18eacf14",
+		"package.json": "6a63e21a65fa324c000e83527e77a23c7d2c00cec9550860175a82b5531034a4",
+		"server/index.ts": "b706fd46a007867929f6b01882754e1771b09cfea8a846b9a561183778cd37bd",
+		"server/knowledge/service.ts": "fa38bb3ac36042fc43fa35c661a9399b5f7288598511b81d400123674b6a5522",
+		"server/runtime/conversationApi.ts": "9503d278737e2fc215cdde1888fa5104c4159900c4eae00cdbcea25b97e35125",
+		"server/manufacturing/coffeeOpenCorpus.ts": "8b92a45656e196d9ecd2ad63fb4d37df0139996a42ba476079c9eea1081179d8"
+	},
+	"localEnv": {
+		"path": ".env",
+		"ignoredByGit": true,
+		"embeddingSetting": "PACKX_KNOWLEDGE_MODEL=local-e5",
+		"credentialsAdded": false
+	},
+	"limitations": [
+		"Real licensed research data and real local E5, with a scripted loopback generation Provider for integration verification",
+		"No claim of paid or real generative model answer quality",
+		"Normal Host configuration checked without a model request",
+		"Supplier TDS and expert gold remain absent"
+	]
+}

@@ -1,0 +1,52 @@
+{
+	"recordedAt": "2026-09-17T08:14:56.130Z",
+	"commands": {
+		"npm run check": {
+			"testFiles": 59,
+			"passed": 278,
+			"skipped": 20,
+			"typecheck": "passed",
+			"build": "passed"
+		},
+		"npx vitest run server/knowledge server/manufacturing/knowledgeApi.test.ts": {
+			"testFiles": 3,
+			"passed": 30
+		},
+		"npm run eval:knowledge": {
+			"cases": 66,
+			"provenance": "synthetic",
+			"regression": "unchanged scores"
+		},
+		"npm run demo:knowledge": {
+			"integration": "passed",
+			"fabricatedDimensionRejected": true
+		},
+		"npm audit --omit=dev": {
+			"vulnerabilities": 0
+		},
+		"git diff --check": "passed"
+	},
+	"browser": {
+		"opened": "http://127.0.0.1:5188/",
+		"provider": "fake",
+		"embedding": "local-e5",
+		"interaction": "blocked by locked desktop; no end-to-end browser claim",
+		"temporaryServer": "stopped"
+	},
+	"realReport": {
+		"file": "docs/evidence/knowledge-real-v2.json",
+		"executedAt": "2026-09-17T08:08:09.705Z",
+		"corpusHash": "46e09f7d57fc818bb6f69576d1d8050e86cb2fa7a25fbb0cd841e0bc2c7d0b89",
+		"caseHash": "0966781aba9451bea4299bd2ffaccc0046a2023e29f37dd471bfcd7d58ba147c"
+	},
+	"externalCalls": {
+		"paidModelCalls": 0,
+		"productionData": 0,
+		"realUsers": 0
+	},
+	"git": {
+		"branch": "codex/plan-subagents",
+		"committed": false,
+		"pushed": false
+	}
+}

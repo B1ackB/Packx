@@ -1,0 +1,287 @@
+[
+	{
+		"id": "boundary-1",
+		"documentId": "PMC10931445",
+		"target": {
+			"unitId": "PMC10931445:38de50db01002dd01d47",
+			"start": 485,
+			"end": 503
+		},
+		"leftAnchor": {
+			"unitId": "PMC10931445:38de50db01002dd01d47",
+			"start": 485,
+			"end": 487
+		},
+		"phrase": "of approximatively"
+	},
+	{
+		"id": "boundary-2",
+		"documentId": "PMC9563479",
+		"target": {
+			"unitId": "PMC9563479:2fb087f30230d26d04ac",
+			"start": 785,
+			"end": 804
+		},
+		"leftAnchor": {
+			"unitId": "PMC9563479:2fb087f30230d26d04ac",
+			"start": 785,
+			"end": 799
+		},
+		"phrase": "thiobarbituric acid"
+	},
+	{
+		"id": "boundary-3",
+		"documentId": "PMC9563479",
+		"target": {
+			"unitId": "PMC9563479:93a3d590f66c64e4e724",
+			"start": 480,
+			"end": 508
+		},
+		"leftAnchor": {
+			"unitId": "PMC9563479:93a3d590f66c64e4e724",
+			"start": 480,
+			"end": 493
+		},
+		"phrase": "comprehensive investigations"
+	},
+	{
+		"id": "boundary-4",
+		"documentId": "PMC9563479",
+		"target": {
+			"unitId": "PMC9563479:4f2f45207784d712f550",
+			"start": 895,
+			"end": 916
+		},
+		"leftAnchor": {
+			"unitId": "PMC9563479:4f2f45207784d712f550",
+			"start": 895,
+			"end": 902
+		},
+		"phrase": "Agilent Technologies,"
+	},
+	{
+		"id": "boundary-5",
+		"documentId": "PMC10670670",
+		"target": {
+			"unitId": "PMC10670670:2fb087f30230d26d04ac",
+			"start": 494,
+			"end": 504
+		},
+		"leftAnchor": {
+			"unitId": "PMC10670670:2fb087f30230d26d04ac",
+			"start": 494,
+			"end": 497
+		},
+		"phrase": "and active"
+	},
+	{
+		"id": "boundary-6",
+		"documentId": "PMC10670670",
+		"target": {
+			"unitId": "PMC10670670:2fb087f30230d26d04ac",
+			"start": 988,
+			"end": 1001
+		},
+		"leftAnchor": {
+			"unitId": "PMC10670670:2fb087f30230d26d04ac",
+			"start": 988,
+			"end": 994
+		},
+		"phrase": "confer better"
+	},
+	{
+		"id": "boundary-7",
+		"documentId": "PMC10670670",
+		"target": {
+			"unitId": "PMC10670670:c128bab58c016cd5a0ab",
+			"start": 493,
+			"end": 505
+		},
+		"leftAnchor": {
+			"unitId": "PMC10670670:c128bab58c016cd5a0ab",
+			"start": 493,
+			"end": 499
+		},
+		"phrase": "potato peels"
+	},
+	{
+		"id": "boundary-8",
+		"documentId": "PMC10670670",
+		"target": {
+			"unitId": "PMC10670670:64f6f706643612b056c6",
+			"start": 494,
+			"end": 507
+		},
+		"leftAnchor": {
+			"unitId": "PMC10670670:64f6f706643612b056c6",
+			"start": 494,
+			"end": 496
+		},
+		"phrase": "of analytical"
+	},
+	{
+		"id": "boundary-9",
+		"documentId": "PMC10670670",
+		"target": {
+			"unitId": "PMC10670670:3352d0a31e1739c2ea8a",
+			"start": 990,
+			"end": 1003
+		},
+		"leftAnchor": {
+			"unitId": "PMC10670670:3352d0a31e1739c2ea8a",
+			"start": 990,
+			"end": 995
+		},
+		"phrase": "(0.01 mol/L);"
+	},
+	{
+		"id": "boundary-10",
+		"documentId": "PMC10670670",
+		"target": {
+			"unitId": "PMC10670670:4e79634c1c36e0f023fa",
+			"start": 491,
+			"end": 503
+		},
+		"leftAnchor": {
+			"unitId": "PMC10670670:4e79634c1c36e0f023fa",
+			"start": 491,
+			"end": 494
+		},
+		"phrase": "was reached."
+	},
+	{
+		"id": "boundary-11",
+		"documentId": "PMC10670670",
+		"target": {
+			"unitId": "PMC10670670:0888b1d8dce0160d0b8a",
+			"start": 498,
+			"end": 504
+		},
+		"leftAnchor": {
+			"unitId": "PMC10670670:0888b1d8dce0160d0b8a",
+			"start": 498,
+			"end": 500
+		},
+		"phrase": "of the"
+	},
+	{
+		"id": "boundary-12",
+		"documentId": "PMC10670670",
+		"target": {
+			"unitId": "PMC10670670:07f8ee517b5f7d7fbfee",
+			"start": 960,
+			"end": 979
+		},
+		"leftAnchor": {
+			"unitId": "PMC10670670:07f8ee517b5f7d7fbfee",
+			"start": 960,
+			"end": 965
+		},
+		"phrase": "lipid peroxidation."
+	},
+	{
+		"id": "boundary-13",
+		"documentId": "PMC10670670",
+		"target": {
+			"unitId": "PMC10670670:07f8ee517b5f7d7fbfee",
+			"start": 1457,
+			"end": 1468
+		},
+		"leftAnchor": {
+			"unitId": "PMC10670670:07f8ee517b5f7d7fbfee",
+			"start": 1457,
+			"end": 1459
+		},
+		"phrase": "PV slightly"
+	},
+	{
+		"id": "boundary-14",
+		"documentId": "PMC10670670",
+		"target": {
+			"unitId": "PMC10670670:c4cacffb46977c4f8070",
+			"start": 488,
+			"end": 505
+		},
+		"leftAnchor": {
+			"unitId": "PMC10670670:c4cacffb46977c4f8070",
+			"start": 488,
+			"end": 499
+		},
+		"phrase": "chlorogenic acid,"
+	},
+	{
+		"id": "boundary-15",
+		"documentId": "PMC10670670",
+		"target": {
+			"unitId": "PMC10670670:db0dc9815f636a83ce0d",
+			"start": 950,
+			"end": 974
+		},
+		"leftAnchor": {
+			"unitId": "PMC10670670:db0dc9815f636a83ce0d",
+			"start": 950,
+			"end": 961
+		},
+		"phrase": "gas–polymer interactions"
+	},
+	{
+		"id": "boundary-16",
+		"documentId": "PMC10670670",
+		"target": {
+			"unitId": "PMC10670670:e655304d3d40905a8a09",
+			"start": 1711,
+			"end": 1718
+		},
+		"leftAnchor": {
+			"unitId": "PMC10670670:e655304d3d40905a8a09",
+			"start": 1711,
+			"end": 1714
+		},
+		"phrase": "but the"
+	},
+	{
+		"id": "boundary-17",
+		"documentId": "PMC11944891",
+		"target": {
+			"unitId": "PMC11944891:a0442d869ad0551ff036",
+			"start": 907,
+			"end": 918
+		},
+		"leftAnchor": {
+			"unitId": "PMC11944891:a0442d869ad0551ff036",
+			"start": 907,
+			"end": 910
+		},
+		"phrase": "and brewing"
+	},
+	{
+		"id": "boundary-18",
+		"documentId": "PMC11944891",
+		"target": {
+			"unitId": "PMC11944891:8ae9f16ac67bba7c1cde",
+			"start": 489,
+			"end": 506
+		},
+		"leftAnchor": {
+			"unitId": "PMC11944891:8ae9f16ac67bba7c1cde",
+			"start": 489,
+			"end": 494
+		},
+		"phrase": "fully successful."
+	},
+	{
+		"id": "boundary-19",
+		"documentId": "PMC11944891",
+		"target": {
+			"unitId": "PMC11944891:75e037d93fd732861344",
+			"start": 907,
+			"end": 929
+		},
+		"leftAnchor": {
+			"unitId": "PMC11944891:75e037d93fd732861344",
+			"start": 907,
+			"end": 916
+		},
+		"phrase": "packaging applications"
+	}
+]

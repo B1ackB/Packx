@@ -1,0 +1,291 @@
+import { createHash, randomUUID } from "node:crypto";
+import { chmodSync, mkdirSync } from "node:fs";
+import { join } from "node:path";
+import { DatabaseSync } from "node:sqlite";
+import type { ArtifactContentStore } from "../../src/enterprise/artifactStore";
+import type { EvidenceParameterRef, ParameterEvidence } from "../../src/enterprise/knowledge";
+import { KnowledgeError, type EvidenceBlock, type EvidenceHit, type EvidenceResult, type EvidenceSelection, type KnowledgeDocument, type KnowledgeImport, type KnowledgeQuery, type KnowledgeRetrievalPolicy, type KnowledgeScope, type KnowledgeStatus } from "../../src/enterprise/knowledge";
+import { FileArtifactContentStore } from "../artifacts/fileArtifactStore";
+import { terms, validateVector, type EmbeddingPort } from "./embedding";
+import { assertImport, assertQuery, knowledgeId } from "./validation";
+import { diverseTables, fieldRanking, sourceOrder } from "./ranking";
+import { rerankCandidates, type RerankPort } from "./reranking";
+
+export const knowledgeIndexVersion = "knowledge-blocks.v1";
+export const digest = (value: unknown) => createHash("sha256").update(JSON.stringify(value, (_key, item) => item && typeof item === "object" && !Array.isArray(item) ? Object.fromEntries(Object.keys(item).sort().map((key) => [key, item[key]])) : item)).digest("hex");
+type TaskScope = KnowledgeScope & { runId: string };
+const scopeArgs = (scope: KnowledgeScope) => {
+	if (!knowledgeId(scope.tenantId) || !knowledgeId(scope.workspaceId)) throw new KnowledgeError("knowledge_access_denied", 403);
+	return [scope.tenantId, scope.workspaceId];
+};
+// Applied in SQL BEFORE loading chunks, vectors, citation content, or computing scores.
+const access = "(tenant=? AND workspace=? OR visibility='public')";
+const transitions: Record<KnowledgeStatus, KnowledgeStatus[]> = {
+	imported: ["parsed", "needs_review", "cancelled", "withdrawn"], parsed: ["indexed", "needs_review", "cancelled", "withdrawn"],
+	indexed: ["parsed", "withdrawn"], needs_review: ["withdrawn"], cancelled: ["withdrawn"], withdrawn: [],
+};
+
+export class KnowledgeStore {
+	private readonly db: DatabaseSync;
+	private readonly raw: ArtifactContentStore;
+	constructor(root: string, readonly embedding: EmbeddingPort, private readonly normalizeBlock: (block: EvidenceBlock) => EvidenceBlock = (b) => b, private readonly now: () => string = () => new Date().toISOString(), private readonly retrieval?: KnowledgeRetrievalPolicy, private readonly reranker?: RerankPort) {
+		mkdirSync(root, { recursive: true, mode: 0o700 });
+		const path = join(root, "knowledge.sqlite");
+		this.db = new DatabaseSync(path);
+		this.db.exec("PRAGMA journal_mode=WAL; PRAGMA busy_timeout=5000; PRAGMA foreign_keys=ON;");
+		const version = Number(this.db.prepare("PRAGMA user_version").get()!.user_version);
+		if (version > 1) throw new KnowledgeError("knowledge_schema_too_new", 503);
+		this.db.exec(`
+			CREATE TABLE IF NOT EXISTS documents (
+				version_id TEXT PRIMARY KEY, tenant TEXT NOT NULL, workspace TEXT NOT NULL, visibility TEXT NOT NULL,
+				document_id TEXT NOT NULL, hash TEXT NOT NULL, state TEXT NOT NULL,
+				UNIQUE(tenant,workspace,document_id,hash)
+			);
+			CREATE TABLE IF NOT EXISTS chunks (
+				id TEXT PRIMARY KEY, version_id TEXT NOT NULL REFERENCES documents(version_id),
+				block TEXT NOT NULL, terms TEXT NOT NULL, vector TEXT NOT NULL, space TEXT NOT NULL, index_version TEXT NOT NULL
+			);
+			CREATE INDEX IF NOT EXISTS chunks_document ON chunks(version_id);
+			CREATE TABLE IF NOT EXISTS selections (
+				tenant TEXT NOT NULL, workspace TEXT NOT NULL, run TEXT NOT NULL, version INTEGER NOT NULL,
+				command TEXT NOT NULL, state TEXT NOT NULL, PRIMARY KEY(tenant,workspace,run,version), UNIQUE(tenant,workspace,run,command)
+			);
+			CREATE TABLE IF NOT EXISTS knowledge_events (
+				sequence INTEGER PRIMARY KEY, tenant TEXT NOT NULL, workspace TEXT NOT NULL,
+				type TEXT NOT NULL, correlation TEXT NOT NULL, at TEXT NOT NULL, data TEXT NOT NULL
+			);
+			PRAGMA user_version=1;
+		`);
+		chmodSync(path, 0o600);
+		this.raw = new FileArtifactContentStore(join(root, "raw"));
+	}
+	close() { this.db.close(); }
+	private transaction<T>(fn: () => T): T {
+		this.db.exec("BEGIN IMMEDIATE");
+		try { const result = fn(); this.db.exec("COMMIT"); return result; } catch (error) { this.db.exec("ROLLBACK"); throw error; }
+	}
+	private event(scope: KnowledgeScope, type: string, correlation: string, data: unknown) {
+		this.db.prepare("INSERT INTO knowledge_events(tenant,workspace,type,correlation,at,data) VALUES(?,?,?,?,?,?)").run(...scopeArgs(scope), type, correlation, this.now(), JSON.stringify(data));
+	}
+	private rawKey(doc: KnowledgeDocument) { return { ...doc, runId: "knowledge", artifactId: doc.versionId, artifactVersion: 1 }; }
+	import(scope: KnowledgeScope, input: unknown, actor: string): KnowledgeDocument {
+		scopeArgs(scope); if (!knowledgeId(actor)) throw new KnowledgeError("invalid_actor");
+		assertImport(input);
+		if (input.permission.expiresAt && input.permission.expiresAt <= this.now()) throw new KnowledgeError("permission_expired", 403);
+		// Canonical approved manifest is the imported snapshot, including table cells and source locators.
+		const snapshot = JSON.parse(JSON.stringify(input)) as KnowledgeImport;
+		const hash = digest(snapshot);
+		const versionId = `kb-${digest([scope.tenantId, scope.workspaceId, snapshot.documentId, hash])}`;
+		const existing = this.get(scope, versionId);
+		if (existing) return existing;
+		const family = this.db.prepare("SELECT state FROM documents WHERE tenant=? AND workspace=? AND document_id=? LIMIT 1").get(...scopeArgs(scope), input.documentId);
+		if (family) {
+			const previous = (JSON.parse(String(family.state)) as KnowledgeDocument).manifest;
+			if (previous.publisher !== input.publisher || previous.model !== input.model || previous.family !== input.family) throw new KnowledgeError("document_identity_conflict", 409);
+		}
+		const { blocks: _blocks, ...manifest } = snapshot;
+		const doc: KnowledgeDocument = { ...scope, versionId, contentHash: hash, importedAt: this.now(), status: "imported", indexRevision: 1, failure: null, manifest };
+		// Raw write precedes the transaction; a crash leaves only an unreferenced immutable snapshot.
+		this.raw.putJson(this.rawKey(doc), snapshot);
+		this.transaction(() => {
+			this.db.prepare("INSERT INTO documents VALUES(?,?,?,?,?,?,?)").run(versionId, ...scopeArgs(scope), manifest.visibility, manifest.documentId, hash, JSON.stringify(doc));
+			this.event(scope, "knowledge.imported", versionId, { versionId, hash, actor });
+		});
+		return doc;
+	}
+	get(scope: KnowledgeScope, versionId: string): KnowledgeDocument | undefined {
+		if (!knowledgeId(versionId)) throw new KnowledgeError("invalid_version_id");
+		const row = this.db.prepare(`SELECT state FROM documents WHERE ${access} AND version_id=?`).get(...scopeArgs(scope), versionId);
+		return row ? JSON.parse(String(row.state)) : undefined;
+	}
+	list(scope: KnowledgeScope): KnowledgeDocument[] {
+		return this.db.prepare(`SELECT state FROM documents WHERE ${access} ORDER BY version_id`).all(...scopeArgs(scope)).map((r) => JSON.parse(String(r.state)));
+	}
+	private available(doc: KnowledgeDocument, query: Pick<KnowledgeQuery, "model" | "region" | "asOf" | "provenance"> = {}) {
+		const m = doc.manifest, now = this.now(), at = query.asOf ?? now;
+		return doc.status === "indexed" && m.permission.storage && m.permission.indexing &&
+			(m.visibility !== "public" || m.permission.redistribution) && (!m.permission.expiresAt || m.permission.expiresAt > now) &&
+			(!m.expiresAt || m.expiresAt > now && m.expiresAt > at) && (!m.effectiveAt || m.effectiveAt <= at) &&
+			(!m.publishedAt || m.publishedAt <= at) && (!query.model || query.model === m.model) &&
+			(!query.region || m.regions.includes(query.region) || m.regions.includes("global")) && (!query.provenance || query.provenance === m.provenance);
+	}
+	transition(scope: KnowledgeScope, versionId: string, status: KnowledgeStatus, actor: string, failure: string | null = null) {
+		const doc = this.get(scope, versionId);
+		if (!doc || doc.tenantId !== scope.tenantId || doc.workspaceId !== scope.workspaceId) throw new KnowledgeError("knowledge_access_denied", 403);
+		if (!knowledgeId(actor) || failure !== null && !/^[a-z_]{1,80}$/.test(failure)) throw new KnowledgeError("invalid_status_reason");
+		if (doc.status === status) return doc;
+		if (!transitions[doc.status].includes(status)) throw new KnowledgeError("illegal_knowledge_transition", 409);
+		const next = { ...doc, status, failure, indexRevision: doc.indexRevision + (doc.status === "indexed" && status === "parsed" ? 1 : 0) };
+		this.transaction(() => {
+			this.db.prepare("UPDATE documents SET state=? WHERE version_id=?").run(JSON.stringify(next), versionId);
+			if (["withdrawn", "cancelled", "needs_review", "parsed"].includes(status)) this.db.prepare("DELETE FROM chunks WHERE version_id=?").run(versionId);
+			this.event(scope, `knowledge.${status}`, versionId, { versionId, actor, failure });
+		});
+		return next;
+	}
+	async process(scope: KnowledgeScope, versionId: string, signal?: AbortSignal, assertActive: () => void = () => signal?.throwIfAborted()) {
+		let doc = this.get(scope, versionId);
+		if (!doc || doc.tenantId !== scope.tenantId || doc.workspaceId !== scope.workspaceId) throw new KnowledgeError("knowledge_access_denied", 403);
+		if (!["imported", "parsed"].includes(doc.status)) return;
+		assertActive();
+		if (doc.manifest.permission.expiresAt && doc.manifest.permission.expiresAt <= this.now()) { this.transition(scope, versionId, "needs_review", "knowledge-worker", "permission_expired"); return; }
+		const snapshot = this.raw.readJson(this.rawKey(doc)); assertImport(snapshot);
+		if (digest(snapshot) !== doc.contentHash) throw new KnowledgeError("snapshot_hash_mismatch", 503);
+		if (snapshot.parser.status !== "reviewed" || snapshot.blocks.some((b) => !b.text.trim() && !b.table)) {
+			this.transition(scope, versionId, "needs_review", "knowledge-worker", snapshot.parser.status === "needs_ocr" ? "needs_ocr" : "structure_review_required"); return;
+		}
+		if (doc.status === "imported") doc = this.transition(scope, versionId, "parsed", "knowledge-worker");
+		const blocks = snapshot.blocks.map(this.normalizeBlock);
+		const bodies = blocks.map((b) => `${snapshot.title} ${snapshot.publisher} ${snapshot.model} ${b.location.section} ${b.text} ${JSON.stringify(b.table ?? {})}`);
+		const batch = await this.embedding.embed(bodies, signal, "passage");
+		const vectors = batch.vectors;
+		if (vectors.length !== blocks.length) throw new KnowledgeError("embedding_count_mismatch");
+		vectors.forEach((v) => validateVector(v, this.embedding.dimensions));
+		assertActive();
+		// Revocation/cancellation may have occurred while the local model was running.
+		if (this.get(scope, versionId)?.status !== "parsed") throw new KnowledgeError("knowledge_state_changed", 409);
+		if (doc.manifest.permission.expiresAt && doc.manifest.permission.expiresAt <= this.now()) { this.transition(scope, versionId, "needs_review", "knowledge-worker", "permission_expired"); return; }
+		this.transaction(() => {
+			this.db.prepare("DELETE FROM chunks WHERE version_id=?").run(versionId);
+			blocks.forEach((block, index) => this.db.prepare("INSERT INTO chunks VALUES(?,?,?,?,?,?,?)").run(`${versionId}:${index + 1}`, versionId, JSON.stringify(block), JSON.stringify(terms(bodies[index])), JSON.stringify(validateVector(vectors[index], this.embedding.dimensions)), this.embedding.signature, knowledgeIndexVersion));
+			this.db.prepare("UPDATE documents SET state=? WHERE version_id=?").run(JSON.stringify({ ...doc, status: "indexed", failure: null }), versionId);
+			this.event(scope, "knowledge.indexed", versionId, { versionId, chunks: blocks.length, index: knowledgeIndexVersion, embedding: this.embedding.signature, usage: batch.usage });
+		});
+	}
+	private rows(scope: KnowledgeScope, query: Partial<KnowledgeQuery>, evidenceId?: string) {
+		return this.db.prepare(`SELECT d.state,c.id,c.block,c.terms,c.vector,c.space,c.index_version FROM chunks c JOIN documents d ON d.version_id=c.version_id WHERE ${access}${evidenceId ? " AND c.id=?" : ""}`).all(...scopeArgs(scope), ...(evidenceId ? [evidenceId] : [])).flatMap((r) => {
+			const doc = JSON.parse(String(r.state)) as KnowledgeDocument;
+			return this.available(doc, query) ? [{ doc, id: String(r.id), block: JSON.parse(String(r.block)) as EvidenceBlock, terms: JSON.parse(String(r.terms)) as string[], vector: String(r.vector), space: String(r.space), index: String(r.index_version) }] : [];
+		});
+	}
+	private hit(row: ReturnType<KnowledgeStore["rows"]>[number], score = 0): EvidenceHit {
+		const { doc, block } = row, m = doc.manifest;
+		return { evidenceId: row.id, versionId: doc.versionId, contentHash: doc.contentHash, documentId: m.documentId, title: m.title, publisher: m.publisher, model: m.model, revision: m.revision, sourceUrl: m.sourceUrl, provenance: m.provenance, attribution: m.permission.basis, ...block, score,
+			warnings: ["candidate_not_verified", ...(m.provenance === "synthetic" ? ["synthetic_not_product_data"] : []), ...(!m.effectiveAt ? ["effective_date_unknown"] : []), ...(m.regions.includes("unknown") ? ["region_unknown"] : [])] };
+	}
+	readEvidence(scope: KnowledgeScope, id: string, query: Partial<KnowledgeQuery> = {}): EvidenceHit {
+		if (typeof id !== "string" || !/^kb-[a-f0-9]{64}:\d{1,3}$/.test(id)) throw new KnowledgeError("invalid_evidence_id");
+		const row = this.rows(scope, query, id)[0];
+		if (!row) throw new KnowledgeError("evidence_unavailable", 404);
+		return this.hit(row);
+	}
+	assess(query: string, hits: EvidenceHit[]) { return this.retrieval?.assess?.(query, hits); }
+	readParameters(scope: KnowledgeScope, references: EvidenceParameterRef[], filters: Pick<KnowledgeQuery, "region" | "asOf">, correlationId: string, consumerVersion: string): ParameterEvidence[] {
+		const started = performance.now();
+		if (!filters || Object.keys(filters).some((k) => !["region", "asOf"].includes(k))) throw new KnowledgeError("invalid_knowledge_query");
+		assertQuery({ query: "parameter-read", mode: "keyword", ...filters });
+		if (!Array.isArray(references) || references.length !== 2 || references.some((r) => !r || Object.keys(r).some((k) => !["evidenceId", "parameterIndex"].includes(k)) || !Number.isSafeInteger(r.parameterIndex) || r.parameterIndex < 0 || r.parameterIndex > 15)) throw new KnowledgeError("invalid_parameter_reference");
+		const evidence = references.map((reference) => {
+			const { text: _text, table: _table, parameters, score: _score, ...source } = this.readEvidence(scope, reference.evidenceId, filters);
+			const parameter = parameters[reference.parameterIndex];
+			if (!parameter) throw new KnowledgeError("parameter_unavailable", 404);
+			return { ...source, parameterIndex: reference.parameterIndex, parameter };
+		});
+		this.event(scope, "knowledge.parameters_read", correlationId, { references, filters, consumerVersion, indexVersion: knowledgeIndexVersion, durationMs: performance.now() - started });
+		return evidence;
+	}
+	async search(scope: KnowledgeScope, input: unknown, correlationId: string = randomUUID(), signal?: AbortSignal): Promise<EvidenceResult> {
+		return this.query(scope, input, correlationId, signal, false);
+	}
+	/** Host/evaluation candidate retrieval only; never exposed as a Tool or API result. */
+	async searchCandidates(scope: KnowledgeScope, input: unknown, correlationId: string = randomUUID(), signal?: AbortSignal): Promise<EvidenceResult> {
+		return this.query(scope, input, correlationId, signal, true);
+	}
+	private async query(scope: KnowledgeScope, input: unknown, correlationId: string, signal: AbortSignal | undefined, candidateOnly: boolean): Promise<EvidenceResult> {
+		assertQuery(input); const query = input; const started = performance.now();
+		const rows = this.rows(scope, query);
+		const corpusVersion = digest(rows.map((r) => [r.id, r.doc.contentHash, r.space, r.index]));
+		const prepared = this.retrieval?.prepare(query.query) ?? { lexicalQuery: query.query, vectorQuery: query.query };
+		const queryTerms = terms(prepared.lexicalQuery);
+		const lexical = query.mode === "vector" ? [] : this.retrieval?.lexical === "field_idf" ? fieldRanking(rows, prepared.lexicalQuery) : rows.map((r) => ({ row: r, score: queryTerms.reduce((sum, term) => sum + (r.terms.includes(term) ? 1 : 0), 0) + (r.doc.manifest.model.toLowerCase() === query.query.toLowerCase() ? 10 : 0) })).filter((r) => r.score > 0).sort((a, b) => b.score - a.score || a.row.id.localeCompare(b.row.id));
+		let ranking = lexical; let unavailable = false;
+		let usage: { inputTokens: number | null; modelDurationMs: number | null } = { inputTokens: 0, modelDurationMs: 0 };
+		if (query.mode !== "keyword") {
+			if (rows.some((r) => r.space !== this.embedding.signature || r.index !== knowledgeIndexVersion)) unavailable = true;
+			else {
+				const batch = await this.embedding.embed([prepared.vectorQuery], signal, "query");
+				usage = batch.usage;
+				const [rawVector] = batch.vectors;
+				const vector = validateVector(rawVector, this.embedding.dimensions);
+				const semantic = rows.map((r) => ({ row: r, score: validateVector(JSON.parse(r.vector), this.embedding.dimensions).reduce((sum, v, i) => sum + v * vector[i], 0) })).filter((r) => r.score >= 0.12).sort((a, b) => b.score - a.score || (this.retrieval ? sourceOrder(a.row, b.row) : a.row.id.localeCompare(b.row.id)));
+				if (query.mode === "vector") ranking = semantic;
+				else {
+					const scores = new Map<string, { row: typeof rows[number]; score: number }>();
+					for (const list of [lexical, semantic]) list.forEach((hit, rank) => { const value = scores.get(hit.row.id) ?? { row: hit.row, score: 0 }; value.score += 1 / (60 + rank + 1); scores.set(hit.row.id, value); });
+					ranking = [...scores.values()].sort((a, b) => b.score - a.score || (this.retrieval ? sourceOrder(a.row, b.row) : a.row.id.localeCompare(b.row.id)));
+				}
+			}
+		}
+		signal?.throwIfAborted();
+		// Repeat visibility/lifecycle checks after asynchronous embedding; never return a revoked hit.
+		const current = new Set(this.rows(scope, query).map((r) => r.id));
+		const visible = ranking.filter((r) => current.has(r.row.id));
+		let hits = unavailable ? [] : (candidateOnly || this.reranker && query.mode === "hybrid" ? visible.slice(0, 20) : this.retrieval?.diversifyTables ? diverseTables(visible, query.limit ?? 5, query.query) : visible.slice(0, query.limit ?? 5)).map((r) => this.hit(r.row, r.score));
+		let reranking: EvidenceResult["reranking"];
+		const candidateIds = hits.map((h) => h.evidenceId);
+		if (!candidateOnly && this.reranker && query.mode === "hybrid" && hits.length) {
+			const at = performance.now(), candidateCount = hits.length;
+			try {
+				const deadline = AbortSignal.timeout(25_000), combined = signal ? AbortSignal.any([signal, deadline]) : deadline;
+				const ranked = await rerankCandidates(this.reranker, query.query, hits, combined);
+				const current = new Set(this.rows(scope, query).map((r) => r.id));
+				hits = ranked.hits.filter((h) => current.has(h.evidenceId)).slice(0, query.limit ?? 5);
+				reranking = { status: "completed", model: this.reranker.signature, candidateCount, durationMs: performance.now() - at, inputTokens: ranked.usage.inputTokens, forwardPasses: ranked.usage.forwardPasses };
+			} catch {
+				signal?.throwIfAborted();
+				hits = [];
+				reranking = { status: "failed", model: this.reranker.signature, candidateCount, durationMs: performance.now() - at, inputTokens: null, forwardPasses: null, failure: "rerank_failed_or_timed_out" };
+			}
+		}
+		const result: EvidenceResult = { schemaVersion: "evidence-result.v1", status: unavailable || reranking?.status === "failed" ? "unavailable" : hits.length ? "candidates" : "no_evidence", correlationId, indexVersion: knowledgeIndexVersion, corpusVersion, embedding: this.embedding.signature, retrievalVersion: this.retrieval?.version ?? "legacy-overlap.v1", assessment: this.assess(query.query, hits), hits,
+			...(reranking ? { reranking } : {}),
+			gaps: [...(reranking?.status === "failed" ? ["rerank_unavailable"] : []), ...(unavailable ? ["index_rebuild_required"] : []), ...(!hits.length ? ["no_supported_answer"] : []), ...(!query.region || !query.asOf ? ["order_applicability_required"] : []), "retrieval_is_not_entailment"],
+			durationMs: performance.now() - started, usage: { ...usage, embeddingCalls: query.mode === "keyword" || unavailable ? 0 : 1, generationCalls: 0, costUsd: this.embedding.kind === "local_model" ? null : 0 } };
+		this.event(scope, "knowledge.queried", correlationId, { queryHash: digest(query), preparedQueryHash: digest(prepared), retrievalVersion: result.retrievalVersion, assessment: result.assessment, filters: { model: query.model ?? null, region: query.region ?? null, asOf: query.asOf ?? null, provenance: query.provenance ?? null }, mode: query.mode, candidateOnly, candidateIds, reranking, hits: hits.map((h) => h.evidenceId), corpusVersion, indexVersion: knowledgeIndexVersion, embedding: this.embedding.signature, durationMs: result.durationMs, usage: result.usage });
+		return result;
+	}
+	selection(scope: TaskScope): EvidenceSelection | undefined {
+		if (!knowledgeId(scope.runId)) throw new KnowledgeError("invalid_run_id");
+		const row = this.db.prepare("SELECT state FROM selections WHERE tenant=? AND workspace=? AND run=? ORDER BY version DESC LIMIT 1").get(...scopeArgs(scope), scope.runId);
+		return row ? JSON.parse(String(row.state)) : undefined;
+	}
+	select(scope: TaskScope, ids: string[], applicability: EvidenceSelection["applicability"], actor: string, command: string, expectedVersion: number) {
+		if (!knowledgeId(actor) || !knowledgeId(command) || !Array.isArray(ids) || ids.length > 8 || new Set(ids).size !== ids.length) throw new KnowledgeError("invalid_evidence_selection");
+		assertQuery({ query: "selection", mode: "keyword", ...applicability });
+		if (!applicability.region || !applicability.asOf) throw new KnowledgeError("order_applicability_required");
+		ids.forEach((id) => this.readEvidence(scope, id, applicability));
+		const hash = digest({ ids, applicability });
+		return this.transaction(() => {
+			const duplicate = this.db.prepare("SELECT state FROM selections WHERE tenant=? AND workspace=? AND run=? AND command=?").get(...scopeArgs(scope), scope.runId, command);
+			if (duplicate) { const old = JSON.parse(String(duplicate.state)) as EvidenceSelection; if (old.digest !== hash) throw new KnowledgeError("selection_command_conflict", 409); return old; }
+			const current = this.selection(scope);
+			if ((current?.version ?? 0) !== expectedVersion) throw new KnowledgeError("selection_version_conflict", 409);
+			const selection: EvidenceSelection = { schemaVersion: "evidence-selection.v1", version: expectedVersion + 1, selectedBy: actor, selectedAt: this.now(), ids, applicability, digest: hash };
+			this.db.prepare("INSERT INTO selections VALUES(?,?,?,?,?,?)").run(...scopeArgs(scope), scope.runId, selection.version, command, JSON.stringify(selection));
+			this.event(scope, "knowledge.selected", command, { runId: scope.runId, ids, version: selection.version, actor });
+			return selection;
+		});
+	}
+	selected(scope: TaskScope) {
+		const selection = this.selection(scope); const hits: EvidenceHit[] = [], unavailable: string[] = [];
+		for (const id of selection?.ids ?? []) {
+			try { hits.push(this.readEvidence(scope, id, selection!.applicability)); } catch (error) { if (!(error instanceof KnowledgeError)) throw error; unavailable.push(id); }
+		}
+		return { selection, hits, unavailable };
+	}
+	assertSelection(scope: KnowledgeScope, serialized: string): EvidenceHit[] {
+		let selection: EvidenceSelection;
+		try { selection = JSON.parse(serialized); if (selection.schemaVersion !== "evidence-selection.v1" || digest({ ids: selection.ids, applicability: selection.applicability }) !== selection.digest) throw new Error(); } catch { throw new KnowledgeError("evidence_snapshot_invalid", 409); }
+		return selection.ids.map((id) => this.readEvidence(scope, id, selection.applicability));
+	}
+	rebuild(scope: KnowledgeScope) {
+		for (const doc of this.list(scope)) if (doc.tenantId === scope.tenantId && doc.workspaceId === scope.workspaceId && doc.status === "indexed") this.transition(scope, doc.versionId, "parsed", "index-rebuild");
+	}
+	purgeExpired(scope: KnowledgeScope) {
+		const withdrawn: string[] = [];
+		for (const doc of this.list(scope)) if (doc.tenantId === scope.tenantId && doc.workspaceId === scope.workspaceId && doc.status === "indexed" && ((!doc.manifest.permission.indexing || !doc.manifest.permission.storage) || !!doc.manifest.expiresAt && doc.manifest.expiresAt <= this.now() || !!doc.manifest.permission.expiresAt && doc.manifest.permission.expiresAt <= this.now())) { this.transition(scope, doc.versionId, "withdrawn", "knowledge-worker", "expired_or_permission_changed"); withdrawn.push(doc.versionId); }
+		return withdrawn;
+	}
+	taskScopes(scope: KnowledgeScope) { return this.db.prepare("SELECT DISTINCT run FROM selections WHERE tenant=? AND workspace=?").all(...scopeArgs(scope)).map((row) => ({ ...scope, runId: String(row.run) })); }
+	audit(scope: KnowledgeScope) { return this.db.prepare("SELECT type,correlation,at,data FROM knowledge_events WHERE tenant=? AND workspace=? ORDER BY sequence DESC LIMIT 100").all(...scopeArgs(scope)); }
+}

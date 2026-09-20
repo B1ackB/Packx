@@ -1,0 +1,171 @@
+{
+	"protocolHash": "cfaeeb5ef9a59a7b243439e0acf58c75aa3645323763e74cc3ee4c2b30d5c335",
+	"summary": [
+		{
+			"overlap": 0,
+			"paths": [
+				{
+					"path": "keyword",
+					"complete": 0.6388888888888888,
+					"recall": 0.7638888888888888,
+					"mrr": 0.6300925925925925,
+					"p95": 57.00699999999779,
+					"new": 0.5625
+				},
+				{
+					"path": "vector",
+					"complete": 0.5555555555555556,
+					"recall": 0.7361111111111112,
+					"mrr": 0.5210648148148147,
+					"p95": 60.929457999998704,
+					"new": 0.4375
+				},
+				{
+					"path": "hybrid",
+					"complete": 0.8194444444444444,
+					"recall": 0.8888888888888888,
+					"mrr": 0.7314814814814814,
+					"p95": 76.09870899999805,
+					"new": 0.5625
+				},
+				{
+					"path": "hybrid-top20",
+					"complete": 0.7777777777777778,
+					"recall": 0.8472222222222222,
+					"mrr": 0.7118055555555556,
+					"p95": 96.96824999999808,
+					"new": 0.5625
+				},
+				{
+					"path": "hybrid-rerank20",
+					"complete": 0.8333333333333334,
+					"recall": 0.875,
+					"mrr": 0.7659722222222224,
+					"p95": 1002.4736679999914,
+					"new": 0.75
+				}
+			]
+		},
+		{
+			"overlap": 32,
+			"paths": [
+				{
+					"path": "keyword",
+					"complete": 0.6527777777777778,
+					"recall": 0.7638888888888888,
+					"mrr": 0.5884259259259259,
+					"p95": 52.54999900000985,
+					"new": 0.5625
+				},
+				{
+					"path": "vector",
+					"complete": 0.5416666666666666,
+					"recall": 0.6805555555555556,
+					"mrr": 0.504861111111111,
+					"p95": 59.98941599999671,
+					"new": 0.4375
+				},
+				{
+					"path": "hybrid",
+					"complete": 0.7916666666666666,
+					"recall": 0.8888888888888888,
+					"mrr": 0.7064814814814815,
+					"p95": 72.85416599999007,
+					"new": 0.5
+				},
+				{
+					"path": "hybrid-top20",
+					"complete": 0.75,
+					"recall": 0.8472222222222222,
+					"mrr": 0.6868055555555556,
+					"p95": 72.22041700000409,
+					"new": 0.5
+				},
+				{
+					"path": "hybrid-rerank20",
+					"complete": 0.8055555555555556,
+					"recall": 0.8472222222222222,
+					"mrr": 0.7719907407407408,
+					"p95": 865.965876000002,
+					"new": 0.75
+				}
+			]
+		},
+		{
+			"overlap": 64,
+			"paths": [
+				{
+					"path": "keyword",
+					"complete": 0.6111111111111112,
+					"recall": 0.7638888888888888,
+					"mrr": 0.5731481481481481,
+					"p95": 56.30250000001979,
+					"new": 0.5625
+				},
+				{
+					"path": "vector",
+					"complete": 0.5416666666666666,
+					"recall": 0.6944444444444444,
+					"mrr": 0.5180555555555555,
+					"p95": 80.58700000002864,
+					"new": 0.4375
+				},
+				{
+					"path": "hybrid",
+					"complete": 0.75,
+					"recall": 0.8888888888888888,
+					"mrr": 0.7076388888888889,
+					"p95": 75.39624999999069,
+					"new": 0.5
+				},
+				{
+					"path": "hybrid-top20",
+					"complete": 0.7083333333333334,
+					"recall": 0.8472222222222222,
+					"mrr": 0.6886574074074074,
+					"p95": 72.6384159999725,
+					"new": 0.5
+				},
+				{
+					"path": "hybrid-rerank20",
+					"complete": 0.8194444444444444,
+					"recall": 0.8472222222222222,
+					"mrr": 0.7759259259259259,
+					"p95": 988.2729169999948,
+					"new": 0.75
+				}
+			]
+		}
+	],
+	"rerankVsRaw": {
+		"wins": [
+			"rec-barrier-zh",
+			"rec-grammage-zh",
+			"alt-pack-zh",
+			"scg-thick-en",
+			"poly-table-zh",
+			"instant-table-en",
+			"instant-method-zh"
+		],
+		"losses": [
+			"pla-oxygen-conditions-zh",
+			"pla-flow-zh",
+			"pla-water-method-zh"
+		]
+	},
+	"rerankVsDiversified": {
+		"wins": [
+			"alt-pack-zh",
+			"scg-thick-en",
+			"poly-table-zh",
+			"instant-table-en",
+			"instant-method-zh"
+		],
+		"losses": [
+			"rec-store-zh",
+			"pla-oxygen-conditions-zh",
+			"pla-flow-zh",
+			"pla-water-method-zh"
+		]
+	}
+}

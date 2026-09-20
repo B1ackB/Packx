@@ -1,0 +1,178 @@
+{
+	"schemaVersion": "knowledge-overlap-rerank-verification.v1",
+	"verifiedAt": "2026-09-18T03:04:35.220Z",
+	"scope": "Actual local retrieval and product directory wiring, not industrial selection or real generation quality",
+	"inventory": {
+		"packx-jats": {
+			"documents": 5,
+			"chunks": 568
+		},
+		"packx-product-directory": {
+			"documents": 6,
+			"chunks": 6
+		}
+	},
+	"supplierTechnicalFulltexts": 0,
+	"newResearchBusinessImports": 0,
+	"checks": {
+		"fullSuite": {
+			"files": 65,
+			"passed": 366,
+			"skipped": 20,
+			"log": "/tmp/packx-final-check-v3.log"
+		},
+		"finalRegistryChange": {
+			"targetedFiles": 3,
+			"passed": 10,
+			"clientBuild": true,
+			"serverTypecheck": true
+		},
+		"replayChecks": [
+			{
+				"replay": "v1",
+				"sourceSnapshotVerified": true,
+				"currentSourcesUnchanged": true,
+				"originalReportsUnchanged": true
+			},
+			{
+				"replay": "v2",
+				"sourceSnapshotVerified": true,
+				"currentSourcesUnchanged": true,
+				"originalReportsUnchanged": true
+			},
+			{
+				"replay": "v3",
+				"sourceSnapshotVerified": true,
+				"currentSourcesUnchanged": true,
+				"originalReportsUnchanged": true
+			}
+		],
+		"normalHost": {
+			"port": 5173,
+			"directorySources": 6,
+			"productToolDataAccessible": true,
+			"parametersEmpty": true,
+			"conclusionAllowed": false,
+			"reranking": {
+				"status": "completed",
+				"model": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1@1427fd652930e4ba29e8149678df786c240d8825:qint8_arm64:pair-480:max-window:transformers-4.3.0",
+				"candidateCount": 20,
+				"durationMs": 582.3656669999982,
+				"inputTokens": 5716,
+				"forwardPasses": 24
+			}
+		},
+		"connection": {
+			"schemaVersion": "knowledge-connection.v1",
+			"status": "ready",
+			"connectedAt": "2026-09-18T02:53:21.221Z",
+			"dataRoot": "/Users/black/Documents/VSCodeProject/SmallBlack/.blackx-data",
+			"database": "/Users/black/Documents/VSCodeProject/SmallBlack/.blackx-data/knowledge/knowledge.sqlite",
+			"conversationId": "conversation-5b3707b4-0714-454d-9d66-456c039d81b0",
+			"documents": 6,
+			"chunks": 6,
+			"versionIds": [
+				"kb-63c2d54b382c51b07778c980e18ec8fdfa0d77ae663edd17a88add542c785545",
+				"kb-66fc7cfa788899c8f582a9d683de07fd3524b8e93252d2256a27ebdd5dc77b86",
+				"kb-c06ba6a3c04a4b5f61c312b80ecd8f89f88a8af10c8c95acf6bcaf387ff0c0be",
+				"kb-c5035f7e409910e4c7bf9528723634b7d4a57c7b563c2889bff937900ead2bd0",
+				"kb-ddae33ddea086e6d24f0028d1d1376765984d40afe737448851d90467816f750",
+				"kb-f2f3c1939db6fa2cecb79f13525573a4098d0ebf331b475f7e478e13bb0562ee"
+			],
+			"embedding": {
+				"signature": "onnx:Xenova/multilingual-e5-small@761b726dd34fb83930e26aab4e9ac3899aa1fa78:q8:384:mean:l2:512:prefix-e5:windows-480-v1:transformers-4.3.0",
+				"kind": "local_model"
+			},
+			"reranking": {
+				"status": "completed",
+				"model": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1@1427fd652930e4ba29e8149678df786c240d8825:qint8_arm64:pair-480:max-window:transformers-4.3.0",
+				"candidateCount": 20,
+				"durationMs": 616.6566250000001,
+				"inputTokens": 5720,
+				"forwardPasses": 24
+			},
+			"duplicateImportSameVersions": true,
+			"restartReadPassed": true,
+			"toolResultsReachedContext": [
+				{
+					"tool": "packaging_find_products",
+					"evidenceIds": [
+						"kb-f2f3c1939db6fa2cecb79f13525573a4098d0ebf331b475f7e478e13bb0562ee:1"
+					]
+				},
+				{
+					"tool": "knowledge_selected",
+					"evidenceIds": [
+						"kb-f2f3c1939db6fa2cecb79f13525573a4098d0ebf331b475f7e478e13bb0562ee:1"
+					]
+				},
+				{
+					"tool": "packaging_find_products",
+					"evidenceIds": [
+						"kb-f2f3c1939db6fa2cecb79f13525573a4098d0ebf331b475f7e478e13bb0562ee:1"
+					]
+				},
+				{
+					"tool": "knowledge_selected",
+					"evidenceIds": [
+						"kb-f2f3c1939db6fa2cecb79f13525573a4098d0ebf331b475f7e478e13bb0562ee:1"
+					]
+				}
+			],
+			"example": {
+				"evidenceId": "kb-f2f3c1939db6fa2cecb79f13525573a4098d0ebf331b475f7e478e13bb0562ee:1",
+				"revision": "coffee-products.2026-09-18.v1",
+				"model": "catalog:cflex-ecolamhighplus",
+				"location": {
+					"paragraph": 1,
+					"section": "Flexible films — EcoVerHighPlus & EcoLamHighPlus"
+				},
+				"recordType": "metadata_only",
+				"parameters": [],
+				"verification": "unverified"
+			},
+			"fixtureGenerationCalls": 8,
+			"paidModelCalls": 0,
+			"limitation": "Actual stored data and normal Host/ContextEngine integration; scripted local generation is not real LLM quality. Product metadata is not vendor full text. Existing generation settings are unchanged."
+		}
+	},
+	"decisions": {
+		"businessStore": "SQLite + exact cosine + existing tenant and version governance",
+		"productDirectory": "deterministic name and coffee-form filter through KnowledgeStore",
+		"overlapTokens": 0,
+		"hybridCandidates": 20,
+		"hybridFinalDefault": 5,
+		"hybridFinalMax": 8,
+		"experimentalChunkingPromoted": false,
+		"paidModelCalls": 0
+	},
+	"recoveredFailure": {
+		"category": "tool allowlist",
+		"observation": "Initial product connection failed because the new Tool was not in the server conversation and Plan allowlists.",
+		"resolution": "Registered packaging_find_products in conversation and Plan policies; repeated Tool, ContextEngine and restart checks passed. Failed history retained."
+	},
+	"limitations": [
+		"Six vendor series directory records are authored metadata, not vendor full text or confirmed specifications.",
+		"Eighty research evaluation cases include provisional Agent-authored labels and previously observed questions; not expert-reviewed industrial gold.",
+		"All local-model latency observations are single-workstation measurements; no production load validation.",
+		"Scripted generation proves wiring only. No supplier documents, enterprise data or staff acceptance have been obtained."
+	],
+	"files": [
+		{
+			"path": "data/knowledge/chunking-v3/protocol.json",
+			"byteSha256": "17034e4a34a6d6184b4013a283f1b336da29757c702c507e2975162211a435f5"
+		},
+		{
+			"path": "docs/evidence/knowledge-overlap-rerank-v3.json",
+			"byteSha256": "f9c0e728f710579463195bef70e333cb690f609a870220cb8f1d5c0097cd9390"
+		},
+		{
+			"path": "docs/evidence/knowledge-overlap-analysis-v3.json",
+			"byteSha256": "93907257bbe58601b70025020a6d02d45c4e142337ddba3950d4aa0e146f1ca3"
+		},
+		{
+			"path": "docs/evidence/knowledge-reranker-lock.json",
+			"byteSha256": "b3bd54740fdb6dc30fe755703a2faff3eb094574a66c21c90267f76ed638e878"
+		}
+	]
+}
