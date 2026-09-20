@@ -11,6 +11,8 @@ export type RuntimeFailureCode =
   | "invalid_output"
 	| "context_failure"
 	| "budget_exceeded"
+	| "repeated_actions"
+	| "consecutive_tool_failures"
 	| "permission_denied"
 	| "max_iterations"
 	| "session_conflict"
@@ -31,7 +33,8 @@ export type RuntimeExecutionEvent =
 	| { type: "model.started"; iteration: number; attempt: number }
 	| { type: "model.completed"; iteration: number; durationMs: number; usage: RuntimeUsage }
 	| { type: "context.snapshot.saved"; snapshotId: string; iteration: number }
-	| { type: "context.compacted"; removedMessages: number; summaries: number }
+	| { type: "context.summary"; callId: string; sourceRef?: string; sourceRange?: [number, number]; status: "started" | "completed" | "failed"; durationMs?: number; usage?: RuntimeUsage }
+	| { type: "context.compacted"; removedMessages: number; summaries: number; beforeChars?: number; afterChars?: number; estimatedTokens?: number; coverage?: { complete: boolean; sourceMessages: number; coveredMessages: number; calls: number } }
 	| { type: "input.attachments.resolved"; count: number }
 	| { type: "message.completed"; text: string }
 	| { type: "tool.started"; tool: string; toolCallId: string; risk: "read" | "write" | "publish"; idempotencyKey: string }
@@ -48,9 +51,11 @@ export type RuntimeExecutionEvent =
 	}
 	| { type: "turn.checkpointed"; reason: "iteration_slice_limit"; iterations: number }
 	| { type: "turn.completed"; usage: RuntimeUsage; iterations: number }
+	| { type: "loop.guard.stopped"; code: "repeated_actions" | "consecutive_tool_failures" }
   | { type: "turn.failed"; message: string };
 
 export interface RuntimeTurnRequest {
+	taskContext?: { content: string; binding: string };
   tenantId: string;
   workspaceId: string;
   runId: string;
@@ -103,11 +108,20 @@ export interface RuntimeTraceRecord {
 	contextSnapshotId?: string;
 	events: RuntimeExecutionEvent[];
 	usage?: RuntimeUsage;
+	loopGuard?: RuntimeLoopGuardState;
 	failure?: {
 		code: RuntimeFailureCode;
 		retryable: boolean;
 		message: string;
 	};
+}
+
+// Host-owned state; never reconstructed from model messages or summaries.
+export interface RuntimeLoopGuardState {
+	sequence: number;
+	actions: string[];
+	consecutiveFailures: number;
+	blocked?: "repeated_actions" | "consecutive_tool_failures";
 }
 
 export interface RuntimeTraceStore {

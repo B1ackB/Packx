@@ -1,3 +1,4 @@
+import { buildTaskContext } from "../enterprise/taskContext";
 import type { TaskNames } from "./taskNames";
 import { PlanError } from "../../src/enterprise/agentPlan";
 import type { AgentMessage } from "../../src/agent/contracts";
@@ -8,7 +9,7 @@ import type {
 	ConversationSummary,
 	ConversationView,
 } from "../../src/runtime/conversationContracts";
-import { AgentStateStoreError, type AgentSessionScope } from "../../src/agent/state";
+import { AgentStateStoreError, visibleDialogue, type AgentSessionScope } from "../../src/agent/state";
 import { FileAgentStateStore, type StoredAgentSession } from "./fileAgentStateStore";
 import { FileConversationAttachmentStore } from "./conversationAttachments";
 
@@ -38,7 +39,7 @@ function text(value: unknown): string {
 	if (typeof value !== "string" || value.length > 32_000) {
 		throw new ConversationValidationError("message content is invalid");
 	}
-	return value.trim();
+	return value;
 }
 
 function isEnglishMessage(value: string): boolean {
@@ -56,9 +57,9 @@ function record(value: unknown): value is Record<string, unknown> {
 }
 
 function visibleMessages(session: StoredAgentSession): ConversationMessage[] {
-	return session.messages.flatMap((message, index) => {
+	return (session.transcript ?? session.messages).flatMap((message, index) => {
 		if (message.role !== "user" && message.role !== "assistant") return [];
-		if (message.durable || message.toolCalls?.length || (!message.content.trim() && !message.attachments?.length && !message.sources?.length)) return [];
+		if (!visibleDialogue(message) || (!message.content.trim() && !message.attachments?.length && !message.sources?.length)) return [];
 		return [{
 			messageId: message.messageId ?? `${session.sessionId}-message-${index + 1}`,
 			role: message.role,
@@ -90,6 +91,7 @@ function view(session: StoredAgentSession, language: ConversationLanguage = "zh"
 		updatedAt: session.updatedAt,
 		revision: session.revision,
 		messages,
+		historyStatus: session.historyStatus,
 	};
 }
 
@@ -103,6 +105,7 @@ function scope(context: ConversationApiContext, conversationId: unknown): AgentS
 function failureStatus(code: RuntimeFailureCode): number {
 	if (code === "authentication") return 401;
 	if (code === "rate_limit") return 429;
+	if (code === "repeated_actions" || code === "consecutive_tool_failures") return 422;
 	if (code === "invalid_output" || code === "permission_denied") return 400;
 	return 502;
 }
@@ -227,7 +230,7 @@ export class ConversationApiController {
 		try {
 			const target = scope(context, conversationId);
 			const session = this.sessions.getSession(target);
-			const last = session?.messages.findLast((message) => message.role === "user" && !message.durable);
+			const last = (session?.transcript ?? session?.messages)?.findLast((message) => message.role === "user" && !message.durable);
 			if (!last?.messageId) return Promise.resolve({ status: 409, body: { code: "nothing_to_retry" } });
 			const attachmentIds = [...(last.attachments ?? []), ...(last.sources ?? [])].map((attachment) => attachment.sourceRef.split("/").at(-1));
 			return this.send(context, conversationId, { messageId: last.messageId, content: last.content, attachmentIds }, { retryIncomplete: true });
@@ -258,7 +261,7 @@ export class ConversationApiController {
 				throw new ConversationValidationError("attachmentIds are invalid");
 			}
 			const attachmentIds = [...new Set((payload.attachmentIds ?? []) as string[])];
-			if (!content && attachmentIds.length === 0) {
+			if (!content.trim() && attachmentIds.length === 0) {
 				throw new ConversationValidationError("message content or an image attachment is required");
 			}
 			if (attachmentIds.length && !this.attachments) {
@@ -275,17 +278,21 @@ export class ConversationApiController {
 			this.assertChatAllowed?.(target);
 			const existing = this.sessions.getSession(target);
 			if (!existing) return { status: 404, body: { code: "conversation_not_found" } };
-			const userIndex = existing.messages.findIndex((message) => message.messageId === messageId);
+			const dialogue = existing.transcript ?? existing.messages;
+			const userIndex = dialogue.findIndex((message) => message.messageId === messageId);
 			if (userIndex >= 0) {
 				if (
-					existing.messages[userIndex]?.content !== content ||
-					JSON.stringify(existing.messages[userIndex]?.attachments ?? []) !== JSON.stringify(imageAttachments) ||
-					JSON.stringify(existing.messages[userIndex]?.sources ?? []) !== JSON.stringify(sources)
+					dialogue[userIndex]?.content !== content ||
+					JSON.stringify(dialogue[userIndex]?.attachments ?? []) !== JSON.stringify(imageAttachments) ||
+					JSON.stringify(dialogue[userIndex]?.sources ?? []) !== JSON.stringify(sources)
 				) {
 					return { status: 409, body: { code: "message_conflict" } };
 				}
-				const completed = existing.messages.slice(userIndex + 1).some((message) => message.role === "assistant" && !message.durable && !message.toolCalls?.length && message.content.trim().length > 0);
+				const nextUser = dialogue.findIndex((message, index) => index > userIndex && message.role === "user");
+				const replies = dialogue.slice(userIndex + 1, nextUser < 0 ? undefined : nextUser);
+				const completed = replies.some((message) => message.role === "assistant" && (!message.inReplyTo || message.inReplyTo === messageId) && !message.durable && !message.toolCalls?.length && message.content.trim().length > 0);
 				if (completed) return { status: 200, body: { conversation: this.view(existing), duplicate: true } };
+				if (nextUser >= 0) return { status: 409, body: { code: "turn_incomplete" } };
 				if (!options.retryIncomplete) return { status: 409, body: { code: "turn_incomplete" } };
 			}
 			activeKey = `${target.tenantId}\u0000${target.workspaceId}\u0000${target.sessionId}`;
@@ -301,6 +308,7 @@ export class ConversationApiController {
 				const createdAt = this.now();
 				const userMessage: AgentMessage = {
 					role: "user",
+					kind: "dialogue",
 					content,
 					messageId,
 					createdAt,
@@ -319,6 +327,7 @@ export class ConversationApiController {
 				idempotencyKey: messageId,
 				sessionId: target.sessionId,
 				resume: true,
+				taskContext: buildTaskContext({ scope: target, objective: content, transcript: this.sessions.load(target).transcript }),
 				instructions: [
 					"你是 Packx 包装行业助手，帮助包装企业售前和跟单人员梳理客户需求、分析包装资料。范围包括包装袋、纸盒、礼盒、运输包装和包装标签；非包装业务说明当前范围并引导回包装需求。直接回答用户当前消息；信息不足时只问最必要的问题。",
 					replyLanguageInstruction(content),

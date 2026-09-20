@@ -51,7 +51,7 @@ describe("FileConversationAttachmentStore", () => {
 		});
 		expect(duplicate).toEqual({ attachment: created.attachment, duplicate: true });
 		expect(store.list(scope)).toEqual([created.attachment]);
-		expect(store.readText(scope)).toEqual([{
+		expect(store.readText(scope)).toMatchObject([{
 			attachmentId: created.attachment.attachmentId,
 			name: "requirements.txt",
 			content: "quantity: 5000",

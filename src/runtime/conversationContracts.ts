@@ -23,6 +23,7 @@ export interface ConversationMessage {
 }
 
 export interface ConversationView {
+	historyStatus?: "complete" | "legacy_partial";
 	nameRevision?: number;
 	searchText?: string;
 	conversationId: string;

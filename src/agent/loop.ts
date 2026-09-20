@@ -26,7 +26,8 @@ import type {
 	SandboxedToolExecutorPort,
 	ToolExecutionResult,
 } from "./sandbox";
-import { ModelContextSummarizer } from "./summarizer";
+import { defaultContextBudget, estimateRequestTokens } from "./tokenBudget";
+import { defaultSummaryBudget, ModelContextSummarizer } from "./summarizer";
 
 const emptyUsage = (): AgentUsage => ({
 	inputTokens: 0,
@@ -51,7 +52,7 @@ export async function abortable<Value>(promise: Promise<Value>, signal: AbortSig
 	});
 }
 
-function toolOutput(value: unknown, maxChars: number): { text: string; truncated: boolean } {
+async function toolOutput(value: unknown, maxChars: number, externalize?: (content: string) => Promise<string>): Promise<{ text: string; truncated: boolean; archivedContent?: string }> {
 	let output: string;
 	if (typeof value === "string") output = value;
 	else {
@@ -61,9 +62,10 @@ function toolOutput(value: unknown, maxChars: number): { text: string; truncated
 			output = "Tool returned a non-serializable result";
 		}
 	}
+	const archivedContent = externalize && output.length > Math.min(4000, maxChars) ? await externalize(output) : undefined;
 	return output.length <= maxChars
-		? { text: output, truncated: false }
-		: { text: `${output.slice(0, maxChars)}\n[tool result truncated]`, truncated: true };
+		? { text: output, truncated: false, archivedContent }
+		: { text: archivedContent ?? JSON.stringify({ ok: false, error: { code: "tool_result_too_large", message: "No partial value returned; use a paginated tool" }, truncated: true }), truncated: true };
 }
 
 function toolFailure(code: AgentToolFailureCode, message: string): string {
@@ -106,9 +108,11 @@ async function digest(value: string): Promise<string> {
 	return `sha256:${Array.from(new Uint8Array(bytes), (byte) => byte.toString(16).padStart(2, "0")).join("")}`;
 }
 
-function receipt(records: readonly AgentToolExecutionRecord[]): AgentMessage {
+export function executionReceipt(records: readonly AgentToolExecutionRecord[]): AgentMessage {
 	return {
 		role: "user",
+		kind: "receipt",
+	receiptStatus: records.every((record) => record.status === "succeeded") ? "succeeded" : "unresolved",
 		content: [
 			"[Deterministic tool execution receipts; authoritative values come from the execution ledger]",
 			JSON.stringify(records.map((record) => ({
@@ -131,6 +135,7 @@ function receipt(records: readonly AgentToolExecutionRecord[]): AgentMessage {
 
 export interface AgentLoopOptions {
 	provider: AgentModelProvider;
+	externalizeToolResult?: (content: string, sourceTool?: AgentMessage["sourceTool"]) => Promise<string>;
 	tools?: readonly AgentTool[];
 	hooks?: AgentHooks;
 	context?: ContextEngine;
@@ -142,6 +147,9 @@ export interface AgentLoopOptions {
 	maxIterations?: number;
 	maxToolExecutions?: number;
 	maxInputTokens?: number;
+	contextWindowTokens?: number;
+	reservedOutputTokens?: number;
+	safetyMarginTokens?: number;
 	compactTriggerTokens?: number;
 	compactTargetTokens?: number;
 	now?: () => string;
@@ -163,10 +171,16 @@ export class AgentLoop {
 		this.tools = new Map((options.tools ?? []).map((tool) => [tool.name, tool]));
 		this.hooks = options.hooks ?? new AgentHooks();
 		this.context = options.context ?? new ContextEngine();
-		this.summarizer = options.summarizer ?? new ModelContextSummarizer(options.provider);
 		this.maxIterations = options.maxIterations ?? 32;
 		this.maxToolExecutions = options.maxToolExecutions ?? 64;
-		this.maxInputTokens = options.maxInputTokens ?? 100_000;
+		this.maxInputTokens = Math.min(options.maxInputTokens ?? defaultContextBudget.applicationInputTokens,
+			(options.contextWindowTokens ?? defaultContextBudget.contextWindowTokens) - (options.reservedOutputTokens ?? defaultContextBudget.reservedOutputTokens) - (options.safetyMarginTokens ?? defaultContextBudget.safetyMarginTokens));
+		if (!Number.isSafeInteger(this.maxInputTokens) || this.maxInputTokens < 1) throw new AgentCoreError("budget_exceeded", "Invalid model input/output budget", false);
+		this.summarizer = options.summarizer ?? new ModelContextSummarizer(options.provider, {
+			...defaultSummaryBudget,
+			maxInputTokens: Math.min(defaultSummaryBudget.maxInputTokens, this.maxInputTokens),
+			maxOutputTokens: Math.min(defaultSummaryBudget.maxOutputTokens, options.reservedOutputTokens ?? defaultContextBudget.reservedOutputTokens),
+		});
 		this.compactTriggerTokens = options.compactTriggerTokens ?? Math.floor(this.maxInputTokens * 0.7);
 		this.compactTargetTokens = options.compactTargetTokens ?? Math.floor(this.maxInputTokens * 0.45);
 		this.now = options.now ?? (() => new Date().toISOString());
@@ -178,14 +192,17 @@ export class AgentLoop {
 			tools,
 			outputSchema: input.outputSchema,
 			fallbackOutput: input.fallbackOutput,
+			maxOutputTokens: this.options.reservedOutputTokens ?? defaultContextBudget.reservedOutputTokens,
 		};
 	}
 
 	private async countTokens(messages: readonly AgentMessage[], tools: readonly AgentTool[], input: AgentRunInput, signal?: AbortSignal) {
 		const request = this.modelRequest(messages, tools, input);
-		if (!this.options.provider.countTokens) return Math.ceil(this.context.size(messages) / 4);
+		if (!this.options.provider.countTokens) return estimateRequestTokens(request);
 		try {
-			return await this.options.provider.countTokens(request, signal);
+			const counted = await this.options.provider.countTokens(request, signal);
+			if (!Number.isSafeInteger(counted) || counted < 0) throw new Error("invalid_token_count");
+			return counted;
 		} catch (error) {
 			throw new AgentCoreError("model_failure", "Model token count failed", true, { cause: error });
 		}
@@ -198,21 +215,42 @@ export class AgentLoop {
 			return tool;
 		});
 		let messages = this.context.compile(input);
+		const boundReceipts = () => {
+			if (!this.options.executions?.list) return;
+			const completed = messages.filter((message) => message.receiptStatus === "succeeded");
+			if (completed.length <= 4) return;
+			const omitted = new Set(completed.slice(0, -4));
+			messages = messages.filter((message) => !omitted.has(message) && message.receiptStatus !== "index");
+			messages.push({ role: "user", kind: "receipt", receiptStatus: "index", durable: true, pinned: true,
+				content: "Earlier completed operations remain in the execution ledger. Use execution_ledger_read to inspect this task's records before repeating work. Unknown operations require reconciliation. Receipt eviction does not release idempotency keys." });
+		};
+		const turnMessageId = (await digest(input.idempotencyKey)).slice(7);
+		if (!input.resume && (input.input || input.attachments?.length) && messages.at(-1)?.role === "user") messages[messages.length - 1].messageId = `input-${turnMessageId}`;
+		boundReceipts();
 		let removedMessages = 0;
 		const usage = emptyUsage();
 		let compactSummaries = 0;
+		let compactions = 0;
 		const toolExecutions: AgentToolExecution[] = [];
 		const compact = async (maxChars?: number): Promise<{ estimatedTokens: number; removedMessages: number }> => {
+			const beforeChars = this.context.size(messages);
+			let coverage: Awaited<ReturnType<AgentContextSummarizer["summarize"]>>["coverage"];
 			await this.hooks.emit({ name: "compact.before", runId: input.runId, messageCount: messages.length });
+			messages = this.context.pruneToolBodies(messages);
 			const compacted = this.context.compact(messages, maxChars);
 			let summary = "";
 			if (compacted.removedMessages > 0 && compacted.summaryIndex !== undefined) {
 				try {
-					const result = await this.summarizer.summarize(compacted.removed, signal);
-					summary = result.text.slice(0, 1_200);
+					const sourceRef = `compact-${input.executionId}-${++compactions}`;
+					await this.hooks.emit({ name: "compact.source", runId: input.runId, sourceRef, messages: compacted.removed });
+					const result = await this.summarizer.summarize(compacted.removed, signal, sourceRef);
+					summary = result.text;
+					coverage = result.coverage;
 					addUsage(usage, result.usage);
 					compacted.messages[compacted.summaryIndex] = {
 						role: "user",
+						kind: "summary",
+						readDependencies: [sourceRef],
 						content: `${compactSummaryPrefix}\n${summary}`,
 					};
 					compactSummaries += 1;
@@ -227,6 +265,7 @@ export class AgentLoop {
 				name: "compact.after",
 				runId: input.runId,
 				removedMessages: compacted.removedMessages,
+				beforeChars, afterChars: this.context.size(messages), coverage,
 				summary,
 				estimatedTokens,
 			});
@@ -238,6 +277,7 @@ export class AgentLoop {
 				if (signal?.aborted) throw signal.reason;
 				let estimatedTokens = await this.countTokens(messages, allowedTools, input, signal);
 				const estimatedByChars = !this.options.provider.countTokens && this.context.needsCompact(messages);
+				if (estimatedTokens > this.maxInputTokens && await this.countTokens(this.context.requiredMessages(messages), allowedTools, input, signal) > this.maxInputTokens) throw new AgentCoreError("budget_exceeded", "Required policy/task/tool protocol content exceeds input budget", false);
 				if (estimatedByChars || estimatedTokens >= this.compactTriggerTokens) {
 					const targetChars = estimatedByChars
 						? undefined
@@ -273,6 +313,7 @@ export class AgentLoop {
 							const compacted = await compact(targetChars);
 							if (compacted.removedMessages > 0) {
 								estimatedTokens = compacted.estimatedTokens;
+								if (estimatedTokens > this.maxInputTokens) throw new AgentCoreError("budget_exceeded", "Compacted context exceeds input budget", false);
 								continue;
 							}
 						}
@@ -293,6 +334,9 @@ export class AgentLoop {
 				});
 				messages.push({
 					role: "assistant",
+					...(response.toolCalls.length ? {} : { kind: "dialogue" as const }),
+					messageId: response.toolCalls.length ? `step-${input.executionId}-${iteration}` : `reply-${turnMessageId}`,
+					inReplyTo: input.idempotencyKey,
 					content: response.text,
 					createdAt: this.now(),
 					toolCalls: response.toolCalls,
@@ -328,6 +372,7 @@ export class AgentLoop {
 					let approvalId: string | undefined;
 					let output = toolFailure("tool_execution_failed", "Tool execution did not produce a result");
 					let resultTruncated = false;
+					let archivedContent: string | undefined;
 					let replayed = false;
 					if (!tool || !allowedTools.includes(tool)) {
 						failureCode = "tool_not_allowed";
@@ -469,12 +514,13 @@ export class AgentLoop {
 									signal: toolSignal,
 								};
 								if (tool.execution === "host") {
-									const result = toolOutput(
+									const result = await toolOutput(
 										await abortable(tool.execute(call.input, executionContext), toolSignal),
-										tool.maxResultChars,
+										tool.maxResultChars, this.options.externalizeToolResult ? (content) => this.options.externalizeToolResult!(content, tool.validateContextResult ? { name: call.name, input: call.input } : undefined) : undefined,
 									);
 									output = result.text;
 									resultTruncated = result.truncated;
+									archivedContent = result.archivedContent;
 									status = "succeeded";
 								} else if (!this.options.sandboxedToolExecutor) {
 									failureCode = "tool_sandbox_unavailable";
@@ -528,9 +574,10 @@ export class AgentLoop {
 												status = tool.risk === "read" ? "failed" : "unknown";
 												output = toolFailure(failureCode, "Sandboxed Tool result failed Host validation");
 											} else if (sandboxResult.status === "succeeded") {
-												const result = toolOutput(sandboxResult, tool.maxResultChars);
+												const result = await toolOutput(sandboxResult, tool.maxResultChars, this.options.externalizeToolResult ? (content) => this.options.externalizeToolResult!(content, tool.validateContextResult ? { name: call.name, input: call.input } : undefined) : undefined);
 												output = result.text;
 												resultTruncated = result.truncated;
+									archivedContent = result.archivedContent;
 												status = "succeeded";
 											} else {
 												const failure = sandboxFailure(sandboxResult.status);
@@ -581,7 +628,7 @@ export class AgentLoop {
 						}
 						if (ledgerRecord) receiptRecords.push(ledgerRecord);
 					}
-					messages.push({ role: "tool", content: output, toolCallId: call.id });
+					messages.push({ role: "tool", content: output, toolCallId: call.id, ...(tool?.validateContextResult && status === "succeeded" ? { sourceTool: { name: call.name, input: call.input } } : {}), ...(archivedContent ? { archivedContent } : {}) });
 					const execution: AgentToolExecution = {
 						toolCallId: call.id,
 						tool: call.name,
@@ -621,7 +668,9 @@ export class AgentLoop {
 					}
 					await this.hooks.emit({ name: "tool.after", runId: input.runId, iteration, call: { ...call }, failed: status !== "succeeded" });
 				}
-				if (receiptRecords.length > 0) messages.push(receipt(receiptRecords));
+				if (receiptRecords.length > 0) messages.push(executionReceipt(receiptRecords));
+				boundReceipts();
+				await this.hooks.emit({ name: "loop.checkpoint", runId: input.runId, messages });
 			}
 			return {
 				stopReason: "slice_limit",

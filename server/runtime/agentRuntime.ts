@@ -1,14 +1,18 @@
+import { createHash } from "node:crypto";
+import { contextReadTool, pageUnits } from "./contextRead";
 import type { ModelTelemetryStore } from "./modelTelemetry";
 import type { RuntimeActivity } from "../../src/runtime/conversationContracts";
 import type {
+	AgentHostTool,
 	AgentImageAttachment,
 	AgentMessage,
 	AgentToolExecutionStore,
 } from "../../src/agent/contracts";
 import { AgentCoreError } from "../../src/agent/contracts";
 import { AgentHooks } from "../../src/agent/hooks";
-import { abortable, AgentLoop, type AgentLoopOptions } from "../../src/agent/loop";
+import { abortable, AgentLoop, executionReceipt, type AgentLoopOptions } from "../../src/agent/loop";
 import { SkillRegistry } from "../../src/agent/skills";
+import { RuntimeLoopGuard } from "./loopGuard";
 import {
 	AgentStateStoreError,
 	InMemoryAgentStateStore,
@@ -28,6 +32,7 @@ import { AnthropicCompatibilityError } from "../anthropic/client";
 export interface BlackxAgentRuntimeOptions extends AgentLoopOptions {
 	telemetry?: Pick<ModelTelemetryStore, "wrap">;
 	onActivity?: (scope: { tenantId: string; workspaceId: string; runId: string }, activity: RuntimeActivity) => void;
+	readTaskContext?: (request: RuntimeTurnRequest) => RuntimeTurnRequest["taskContext"];
 	skills: SkillRegistry;
 	sessions?: AgentSessionStore;
 	snapshots?: ContextSnapshotStore;
@@ -149,13 +154,35 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 		const progress = (phase: RuntimeActivity["phase"], detail: { tool?: string; iteration?: number; partialText?: string } = {}) => {
 			this.options.onActivity?.(scope, { executionId, phase, updatedAt: this.now(), ...detail });
 		};
+		let guard = new RuntimeLoopGuard();
 		try {
+			const previous = this.traces.listTraces(scope)
+				.filter((trace) => trace.stageId === request.stageId && trace.idempotencyKey === request.idempotencyKey && trace.sessionId === sessionId && trace.loopGuard)
+				.sort((a, b) => b.loopGuard!.sequence - a.loopGuard!.sequence)[0]?.loopGuard;
+			guard = new RuntimeLoopGuard(previous);
+			guard.check();
 			progress("starting");
 			const session = this.sessions.load(scope);
 			if (request.resume === true && session.revision === 0) {
 				throw new RuntimeFailure("context_failure", "Runtime Session does not exist for resume", false);
 			}
 			const resuming = Boolean(request.resume && session.revision > 0);
+			const taskContext = this.options.readTaskContext?.(request) ?? request.taskContext;
+			if (resuming && session.checkpoint?.turnKey === request.idempotencyKey && session.checkpoint.contextBinding !== taskContext?.binding) throw new RuntimeFailure("context_failure", "Checkpoint task facts or source versions changed; rebuild the task", false);
+			let sessionRevision = session.revision;
+			const validateContext = () => {
+				const current = this.options.readTaskContext?.(request) ?? request.taskContext;
+				if (current?.binding !== taskContext?.binding) throw new RuntimeFailure("context_failure", "Task facts or source versions changed during execution", false);
+			};
+			const replyId = `reply-${createHash("sha256").update(request.idempotencyKey).digest("hex")}`;
+			const priorReply = session.transcript?.find((message) => message.messageId === replyId);
+			if (priorReply) {
+				const priorInput = session.transcript?.find((message) => message.messageId === replyId.replace("reply-", "input-"));
+				if (priorInput && (priorInput.content !== request.input || JSON.stringify(priorInput.attachments ?? []) !== JSON.stringify(request.attachments ?? []))) throw new RuntimeFailure("session_conflict", "Turn idempotency key was reused with different input", false);
+				const trace = this.traces.listTraces(scope).findLast((item) => item.sessionId === sessionId && item.idempotencyKey === request.idempotencyKey && item.status === "completed");
+				if (!trace) throw new RuntimeFailure("context_failure", "Completed dialogue is missing execution evidence; review required", false);
+				return { adapter: "blackx-agent", status: "completed", sessionId, executionId: trace.executionId, finalResponse: priorReply.content, events: trace.events, usage: trace.usage, contextSnapshotId: trace.contextSnapshotId };
+			}
 			const hydrate = async (attachment: AgentImageAttachment): Promise<AgentImageAttachment> => {
 				if (!this.options.resolveImageAttachment) {
 					throw new RuntimeFailure("context_failure", "Runtime image resolver is not configured", false);
@@ -176,12 +203,42 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 				}
 				return resolved;
 			};
-			const history = await Promise.all(session.messages.map(async (message) => ({
+			const validateSources = async (messages: readonly AgentMessage[], visited = new Set<string>()): Promise<void> => {
+				for (const message of messages) {
+					for (const ref of message.readDependencies ?? []) {
+						if (visited.has(ref)) continue;
+						if (visited.size >= 128) throw new RuntimeFailure("context_failure", "Context source dependency limit exceeded; rebuild task", false);
+						visited.add(ref); await validateSources(this.snapshots.read(scope, ref).messages, visited);
+					}
+					if (!message.sourceTool) continue;
+					const tool = this.options.tools?.find((item) => item.name === message.sourceTool!.name);
+					if (!tool?.validateContextResult) throw new RuntimeFailure("context_failure", "Source validation tool unavailable", false);
+					let output = message.content;
+					let envelope: { status?: string; sourceRef?: string } | undefined;
+					try { envelope = JSON.parse(output); } catch { /* Plain-text bodies are validated by their source adapter. */ }
+					if (envelope?.status === "body_externalized" && typeof envelope.sourceRef === "string") output = this.snapshots.read(scope, envelope.sourceRef).messages[0].content;
+					try { await tool.validateContextResult(message.sourceTool.input, output, { ...scope, actorId: request.actorId, executionId, stageId: request.stageId, toolCallId: message.toolCallId ?? "restore", idempotencyKey: request.idempotencyKey, signal: combinedSignal }); }
+					catch (error) { throw new RuntimeFailure("context_failure", "Context source is unavailable, changed or no longer permitted", false, { cause: error }); }
+				}
+			};
+			await validateSources(session.messages);
+			const selectedImageMessage = request.attachments?.length ? undefined : session.messages.findLast((message) => message.attachments?.length && message.pinned);
+			const history: AgentMessage[] = await Promise.all(session.messages.filter((message) => message.kind !== "task_context").map(async (message) => ({
 				...message,
-				attachments: message.attachments
-					? await Promise.all(message.attachments.map(hydrate))
-					: undefined,
+				...(message.attachments?.length && message !== selectedImageMessage ? {
+					attachments: message.attachments.map(({ data: _data, ...reference }) => reference),
+				} : { attachments: message.attachments ? await Promise.all(message.attachments.map(hydrate)) : undefined }),
 			})));
+			if (this.executions.list) {
+				const ledger = await this.executions.list(scope);
+				if (ledger.length) {
+					for (let i = history.length - 1; i >= 0; i--) if (history[i].kind === "receipt" || history[i].content.startsWith("[Deterministic tool execution receipts;")) history.splice(i, 1);
+					const recent = ledger.filter((record) => record.status === "succeeded").sort((a, b) => a.startedAt.localeCompare(b.startedAt)).slice(-4);
+					history.push(executionReceipt([...ledger.filter((record) => record.status !== "succeeded"), ...recent]));
+					history.push({ role: "user", kind: "receipt", receiptStatus: "index", pinned: true, durable: true, content: "Complete receipts are in execution_ledger_read. Never repeat successful operations or replay unknown effects without reconciliation." });
+				}
+			}
+			if (taskContext) history.unshift({ role: "user", kind: "task_context", content: taskContext.content, pinned: true, durable: true });
 			const inputAttachments = request.attachments && !resuming
 				? await Promise.all(request.attachments.map(hydrate))
 				: undefined;
@@ -195,7 +252,7 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 				traceEvents.push(event);
 			};
 			const resolvedAttachmentCount = history.reduce(
-				(count, message) => count + (message.attachments?.length ?? 0),
+				(count, message) => count + (message.attachments?.filter((attachment) => attachment.data).length ?? 0),
 				inputAttachments?.length ?? 0,
 			);
 			if (resolvedAttachmentCount > 0) {
@@ -203,12 +260,14 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 			}
 			const modelStarted = new Map<number, number>();
 			const hooks = new AgentHooks(this.options.hooks);
+			guard.attach(hooks, combinedSignal);
 			hooks.on("compact.after", (event) => {
 				removedMessages += event.removedMessages;
 				observe({
 					type: "context.compacted",
 					removedMessages: event.removedMessages,
 					summaries: event.summary ? 1 : 0,
+					beforeChars: event.beforeChars, afterChars: event.afterChars, estimatedTokens: event.estimatedTokens, coverage: event.coverage,
 				});
 			});
 			let partialText = "";
@@ -225,6 +284,7 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 				const snapshotId = `${snapshotBaseId}-i${event.iteration}${event.attempt > 1 ? `-retry${event.attempt}` : ""}`;
 				const saved = this.snapshots.put({
 					schemaVersion: "context-snapshot.v2",
+					...(taskContext ? { contextBinding: taskContext.binding } : {}),
 					...scope,
 					snapshotId,
 					iteration: event.iteration,
@@ -256,10 +316,72 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 					usage: { ...event.response.usage },
 				});
 			});
+			const saveWorking = (messages: readonly AgentMessage[], paused: boolean) => {
+				validateContext();
+				const saved = this.sessions.save(scope, sessionRevision, messages
+					.filter((message) => message.kind !== "task_context" && !(message.role === "system" && message.pinned))
+					.map((message) => ({ ...withoutImageData(message), pinned: message.durable === true || (paused && message.pinned === true) })),
+					this.now(), paused ? { turnKey: request.idempotencyKey, ...(taskContext ? { contextBinding: taskContext.binding } : {}) } : null);
+				sessionRevision = saved.revision;
+			};
+			hooks.on("loop.checkpoint", (event) => saveWorking(event.messages, true));
+			const archive = (snapshotId: string, messages: readonly AgentMessage[], purpose: "archive" | "summary" = "archive") => {
+				this.snapshots.put({ ...scope, schemaVersion: "context-snapshot.v2", snapshotId, iteration: 1, skills: [], messages: messages.map(withoutImageData),
+					estimatedChars: JSON.stringify(messages.map(withoutImageData)).length, estimatedTokens: 0, removedMessages: 0, createdAt: this.now(), purpose,
+					...(taskContext ? { contextBinding: taskContext.binding } : {}) });
+			};
+			hooks.on("compact.source", (event) => archive(event.sourceRef, event.messages));
+			const measuredProvider = this.options.telemetry?.wrap(this.options.provider, scope, executionId) ?? this.options.provider;
+			const provider = { ...measuredProvider,
+				...(measuredProvider.countTokens ? { countTokens: (modelRequest: Parameters<typeof measuredProvider.generate>[0], modelSignal?: AbortSignal) => {
+					validateContext();
+					if (modelRequest.callContext?.purpose === "summary") archive(modelRequest.callContext.callId, modelRequest.messages, "summary");
+					return measuredProvider.countTokens!(modelRequest, modelSignal);
+				} } : {}),
+				generate: async (modelRequest: Parameters<typeof measuredProvider.generate>[0], modelSignal?: AbortSignal) => {
+					validateContext();
+					const call = modelRequest.callContext;
+					if (call?.purpose !== "summary") return measuredProvider.generate({ ...modelRequest, callContext: { purpose: "turn", callId: finalContextSnapshotId ?? executionId } }, modelSignal);
+					archive(call.callId, modelRequest.messages, "summary");
+					const started = this.clockMs();
+					const event = { type: "context.summary" as const, callId: call.callId, sourceRef: call.sourceRef, sourceRange: call.sourceRange };
+					observe({ ...event, status: "started" });
+					try {
+						const response = await measuredProvider.generate(modelRequest, modelSignal);
+						observe({ ...event, status: "completed", durationMs: Math.max(0, this.clockMs() - started), usage: response.usage });
+						return response;
+					} catch (error) {
+						observe({ ...event, status: "failed", durationMs: Math.max(0, this.clockMs() - started) });
+						throw error;
+					}
+				},
+			};
+			let externalized = 0;
+			const recoveryTool = contextReadTool(scope, this.sessions, this.snapshots, validateContext, taskContext?.binding, validateSources);
+			const ledgerTool: AgentHostTool = {
+				name: "execution_ledger_read", description: "Read deterministic execution receipts for this task; inspect success/unknown before repeating side effects. Results are references, not new authorization.",
+				execution: "host", risk: "read", idempotent: true, timeoutMs: 1000, maxResultChars: 16_000,
+				inputSchema: { type: "object", properties: { offset: { type: "integer", minimum: 0 } }, additionalProperties: false },
+				validate: (input) => !!input && typeof input === "object" && !Array.isArray(input) && Object.keys(input).every((key) => key === "offset") && (!("offset" in input) || Number.isSafeInteger(input.offset) && Number(input.offset) >= 0),
+				execute: async (input) => {
+					validateContext(); this.sessions.load(scope);
+					if (!this.executions.list) throw new Error("ledger_listing_unavailable");
+					const records = await this.executions.list(scope);
+					return pageUnits(records.map(({ result: _body, ...record }) => record).sort((a, b) => a.startedAt.localeCompare(b.startedAt) || a.idempotencyKey.localeCompare(b.idempotencyKey)), (input as { offset?: number }).offset ?? 0);
+				},
+			};
 			const loop = new AgentLoop({
-				provider: this.options.telemetry?.wrap(this.options.provider, scope, executionId) ?? this.options.provider,
-				tools: this.options.tools,
+				provider,
+				tools: [...(this.options.tools ?? []), recoveryTool, ledgerTool],
+				externalizeToolResult: async (content, sourceTool) => {
+					const sourceRef = `tool-result-${executionId}-${++externalized}`;
+					archive(sourceRef, [{ role: "tool", content, ...(sourceTool ? { sourceTool } : {}) }]);
+					return JSON.stringify({ truncated: true, sourceRef, characters: content.length, readTool: "context_read", status: "body_externalized" });
+				},
 				context: this.options.context,
+				contextWindowTokens: this.options.contextWindowTokens,
+				reservedOutputTokens: this.options.reservedOutputTokens,
+				safetyMarginTokens: this.options.safetyMarginTokens,
 				summarizer: this.options.summarizer,
 				approval: this.options.approval,
 				audit: this.options.audit,
@@ -287,23 +409,13 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 				input: resuming ? "" : request.input,
 				attachments: inputAttachments,
 				resume: resuming,
-				allowedTools: request.allowedTools ?? [],
+				allowedTools: [...(request.allowedTools ?? []), "context_read", "execution_ledger_read"],
 				policy: request.policy,
 				outputSchema: request.outputSchema,
 				fallbackOutput: request.fallbackOutput,
 			}, combinedSignal), combinedSignal);
 			combinedSignal.throwIfAborted();
-			this.sessions.save(
-				scope,
-				session.revision,
-				result.messages
-					.filter((message) => !(message.role === "system" && message.pinned))
-					.map((message) => ({
-						...withoutImageData(message),
-						pinned: message.durable === true || (result.stopReason === "slice_limit" && message.pinned === true),
-					})),
-				this.now(),
-			);
+			saveWorking(result.messages, result.stopReason === "slice_limit");
 			const response: RuntimeTurnResult = {
 				executionId,
 				adapter: "blackx-agent",
@@ -364,12 +476,14 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 					? { ...event, text: "[stored in session]" }
 					: event),
 				usage: response.usage,
+				loopGuard: guard.state,
 			});
 			this.providerStatus = "last_request_succeeded";
 			progress(response.status);
 			return response;
 		} catch (error) {
 			const failure = classifyFailure(error, timedOut, Boolean(signal?.aborted));
+			if (guard.state.blocked) traceEvents.push({ type: "loop.guard.stopped", code: guard.state.blocked });
 			if (failure.code !== "cancelled") this.providerStatus = "last_request_failed";
 			progress("failed");
 			traceEvents = [...traceEvents, { type: "turn.failed", message: failure.message }];
@@ -389,6 +503,7 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 				sessionId,
 				events: traceEvents,
 				failure: { code: failure.code, retryable: failure.retryable, message: failure.message },
+				loopGuard: guard.state,
 			});
 			throw failure;
 		} finally {

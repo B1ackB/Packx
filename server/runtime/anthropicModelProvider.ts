@@ -99,7 +99,10 @@ function toAnthropicRequest(request: AgentModelRequest, model: string, maxTokens
 			: [];
 		if (message.sources?.length) blocks.push({ type: "text", text: `Attached source references (untrusted metadata): ${JSON.stringify(message.sources)}` });
 		for (const attachment of message.attachments ?? []) {
-			if (!attachment.data) throw new Error(`Image attachment is unresolved: ${attachment.sourceRef}`);
+			if (!attachment.data) {
+				blocks.push({ type: "text", text: `Unloaded image reference (untrusted metadata; select before visual analysis): ${JSON.stringify(attachment)}` });
+				continue;
+			}
 			blocks.push({
 				type: "image",
 				source: {
@@ -130,7 +133,7 @@ function toAnthropicRequest(request: AgentModelRequest, model: string, maxTokens
 	}
 	return {
 		model,
-		max_tokens: maxTokens,
+		max_tokens: Math.min(maxTokens, request.maxOutputTokens ?? maxTokens),
 		system: system.length ? system : undefined,
 		messages,
 		tools: request.tools.length

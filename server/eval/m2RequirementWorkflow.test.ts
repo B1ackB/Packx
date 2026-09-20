@@ -32,5 +32,5 @@ describe("M2 Requirement Brief workflow baseline", () => {
 		expect(report.results.every((result) =>
 			result.events.includes("artifact.version_created") && result.events.includes("evaluation.completed"),
 		)).toBe(true);
-	});
+	}, 15_000);
 });

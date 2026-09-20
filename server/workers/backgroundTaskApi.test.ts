@@ -105,3 +105,24 @@ describe("BackgroundTaskApiController", () => {
 		})).toEqual({ status: 503, body: { code: "real_provider_required" } });
 	});
 });
+
+it("does not schedule another background attempt after a loop guard stop", async () => {
+	const sessions = state();
+	let calls = 0;
+	const runtime = new BlackxAgentRuntime({
+		skills: new SkillRegistry(), sessions, snapshots: sessions, traces: sessions,
+		tools: [{ name: "read", description: "read", inputSchema: { type: "object" }, execution: "host", risk: "read", idempotent: true, timeoutMs: 100, maxResultChars: 100, validate: () => true, execute: async () => "ok" }],
+		provider: { generate: async () => ({ text: "", toolCalls: [{ id: `id-${++calls}`, name: "read", input: {} }], usage: { inputTokens: 1, outputTokens: 1, cachedInputTokens: 0, reasoningOutputTokens: 0 } }) },
+	});
+	const conversations = new ConversationApiController(runtime, sessions, undefined, () => "guard-background", ["read"]);
+	const conversationId = body<ConversationView>(conversations.create(context), "conversation").conversationId;
+	const queue = new InMemoryStageJobQueue();
+	const api = new BackgroundTaskApiController(queue, conversations, runtime);
+	await api.create(context, conversationId, { messageId: "message-guard", content: "loop fixture" });
+	const worker = new BackgroundConversationWorker(conversations);
+	const { StageJobScheduler } = await import("./stageJobScheduler");
+	const scheduler = new StageJobScheduler(queue, { workerId: "worker", handlers: { "conversation-background": (lease, signal, check) => worker.execute(lease, signal, check) } });
+	expect(await scheduler.runNext()).toMatchObject({ status: "dead_letter", job: { failureCount: 1, lastFailure: { code: "repeated_actions", retryable: false } } });
+	expect(await scheduler.runNext()).toMatchObject({ status: "idle" });
+	expect(calls).toBe(3);
+});

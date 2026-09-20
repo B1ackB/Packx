@@ -68,7 +68,8 @@ function runtimeFor(
 ): BlackxAgentRuntime {
 	let call = 0;
 	const provider: AgentModelProvider = {
-		async generate() {
+		async generate(request) {
+			if (request.outputSchema?.properties && typeof request.outputSchema.properties === "object" && "issues" in request.outputSchema.properties) return { text: JSON.stringify({ issues: [] }), toolCalls: [], usage: { inputTokens: 100, cachedInputTokens: 0, outputTokens: 20, reasoningOutputTokens: 0 } };
 			call += 1;
 			return call === 1
 				? {

@@ -21,6 +21,8 @@ import type {
 } from "../../src/agent/contracts";
 import {
 	AgentStateStoreError,
+	appendTranscript,
+	visibleDialogue,
 	type AgentSessionScope,
 	type AgentSessionState,
 	type AgentSessionStore,
@@ -28,9 +30,13 @@ import {
 	type ContextSnapshotStore,
 } from "../../src/agent/state";
 import type { RuntimeTraceRecord, RuntimeTraceStore } from "../../src/runtime/contracts";
+import { validLoopGuard } from "./loopGuard";
 
 interface SessionFile extends AgentSessionScope {
-	schemaVersion: "agent-session.v1";
+	schemaVersion: "agent-session.v1" | "agent-session.v2";
+	transcript?: AgentMessage[];
+	checkpoint?: AgentSessionState["checkpoint"];
+	historyStatus?: "complete" | "legacy_partial";
 	revision: number;
 	messages: AgentMessage[];
 	updatedAt: string;
@@ -109,6 +115,7 @@ function toolExecutionRecord(value: unknown): value is AgentToolExecutionRecord 
 
 function runtimeTrace(value: unknown): value is RuntimeTraceRecord {
 	if (!record(value) || value.schemaVersion !== "runtime-trace.v1") return false;
+	if (value.loopGuard !== undefined && !validLoopGuard(value.loopGuard)) return false;
 	const usage = value.usage;
 	return ["tenantId", "workspaceId", "runId", "stageId", "actorId", "executionId", "idempotencyKey"]
 		.every((key) => typeof value[key] === "string" && /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(String(value[key]))) &&
@@ -166,7 +173,7 @@ export class FileAgentStateStore implements AgentSessionStore, ContextSnapshotSt
 		const session = this.readSession(scope);
 		if (session?.deletion) throw new AgentStateStoreError("not_found", "Agent Session was deleted");
 		return session
-			? { revision: session.revision, messages: structuredClone(session.messages) }
+			? { revision: session.revision, messages: structuredClone(session.messages), transcript: structuredClone(session.transcript), checkpoint: session.checkpoint, historyStatus: session.historyStatus }
 			: { revision: 0, messages: [] };
 	}
 
@@ -189,7 +196,7 @@ export class FileAgentStateStore implements AgentSessionStore, ContextSnapshotSt
 			if (!current || current.deletion) return current;
 			// The tombstone and audit attribution share the session's atomic write and lock.
 			// Retain source history for artifact provenance; ordinary reads and all later saves are denied.
-			const next: SessionFile = { ...current, schemaVersion: "agent-session.v1", revision: current.revision + 1, deletion: { actorId, deletedAt } };
+			const next: SessionFile = { ...current, schemaVersion: "agent-session.v2", revision: current.revision + 1, deletion: { actorId, deletedAt } };
 			this.write(path, next);
 			return this.parseSession(next);
 		});
@@ -222,6 +229,7 @@ export class FileAgentStateStore implements AgentSessionStore, ContextSnapshotSt
 		expectedRevision: number,
 		value: readonly AgentMessage[],
 		updatedAt: string,
+		checkpoint?: AgentSessionState["checkpoint"] | null,
 	): AgentSessionState {
 		if (!Number.isInteger(expectedRevision) || expectedRevision < 0 || !messages(value)) {
 			throw new AgentStateStoreError("unavailable", "Agent Session update is invalid");
@@ -233,14 +241,24 @@ export class FileAgentStateStore implements AgentSessionStore, ContextSnapshotSt
 				throw new AgentStateStoreError("conflict", "Agent Session revision changed");
 			}
 			const next: SessionFile = {
-				schemaVersion: "agent-session.v1",
+				schemaVersion: "agent-session.v2",
 				...scope,
 				revision: expectedRevision + 1,
-				messages: structuredClone(value),
+				messages: structuredClone(value).map((message, index) => visibleDialogue(message) && !message.messageId ? { ...message, messageId: `legacy-${expectedRevision}-${index}` } : message),
 				updatedAt,
 			};
+			next.transcript = appendTranscript(current.transcript ?? [], next.messages, scope.sessionId);
+			next.historyStatus = current.historyStatus ?? "complete";
+			if (checkpoint !== null && (checkpoint ?? current.checkpoint)) next.checkpoint = checkpoint ?? current.checkpoint;
+			if (existsSync(path)) {
+				const original = this.readFile(path);
+				if (record(original) && original.schemaVersion === "agent-session.v1") {
+					const backup = join(this.scopeDirectory(scope), "migrations", `${scope.sessionId}.v1.json`);
+					if (!existsSync(backup)) this.write(backup, original);
+				}
+			}
 			this.write(path, next);
-			return { revision: next.revision, messages: structuredClone(next.messages) };
+			return this.load(scope);
 		});
 	}
 
@@ -264,6 +282,16 @@ export class FileAgentStateStore implements AgentSessionStore, ContextSnapshotSt
 		const path = this.snapshotPath(scope, snapshotId);
 		if (!existsSync(path)) throw new AgentStateStoreError("not_found", "Context Snapshot does not exist");
 		return this.parseSnapshot(this.readFile(path), scope, snapshotId);
+	}
+
+	async list(scope: { tenantId: string; workspaceId: string; runId: string }) {
+		const directory = join(this.rootDirectory, segment(scope.tenantId, "tenantId"), segment(scope.workspaceId, "workspaceId"), "tool-executions");
+		if (!existsSync(directory)) return [];
+		return readdirSync(directory).filter((name) => /^[a-f0-9]{64}\.json$/.test(name)).map((name) => {
+			const value = this.readFile(join(directory, name));
+			if (!toolExecutionRecord(value) || value.tenantId !== scope.tenantId || value.workspaceId !== scope.workspaceId) throw new AgentStateStoreError("corrupt", "Invalid execution ledger scope");
+			return value;
+		}).filter((value) => value.runId === scope.runId);
 	}
 
 	async claim(record: AgentToolExecutionRecord): Promise<{ record: AgentToolExecutionRecord; duplicate: boolean }> {
@@ -392,13 +420,15 @@ export class FileAgentStateStore implements AgentSessionStore, ContextSnapshotSt
 	private parseSession(value: unknown): StoredAgentSession {
 		if (
 			!record(value) ||
-			value.schemaVersion !== "agent-session.v1" ||
+			!["agent-session.v1", "agent-session.v2"].includes(String(value.schemaVersion)) ||
+			(value.schemaVersion === "agent-session.v2" && (!messages(value.transcript) || !value.transcript.every((message) => visibleDialogue(message) && typeof message.messageId === "string") || new Set(value.transcript.map((message) => message.messageId)).size !== value.transcript.length || !["complete", "legacy_partial"].includes(String(value.historyStatus)))) ||
 			![value.tenantId, value.workspaceId, value.runId, value.sessionId].every((field) => (
 				typeof field === "string" && /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(field)
 			)) ||
 			!Number.isInteger(value.revision) ||
 			Number(value.revision) < 1 ||
 			!messages(value.messages) ||
+			(value.checkpoint !== undefined && (!record(value.checkpoint) || typeof value.checkpoint.turnKey !== "string" || (value.checkpoint.contextBinding !== undefined && typeof value.checkpoint.contextBinding !== "string"))) ||
 			typeof value.updatedAt !== "string" ||
 			!Number.isFinite(Date.parse(value.updatedAt)) ||
 			(value.deletion !== undefined && (!record(value.deletion) ||
@@ -413,7 +443,11 @@ export class FileAgentStateStore implements AgentSessionStore, ContextSnapshotSt
 			runId: value.runId as string,
 			sessionId: value.sessionId as string,
 			revision: Number(value.revision),
-			messages: structuredClone(value.messages),
+			...(value.checkpoint ? { checkpoint: structuredClone(value.checkpoint) as AgentSessionState["checkpoint"] } : {}),
+			messages: structuredClone(value.messages).map((message, index) => visibleDialogue(message) && !message.messageId ? { ...message, messageId: `legacy-${value.revision}-${index}` } : message)
+				.filter((message) => value.schemaVersion === "agent-session.v2" || visibleDialogue(message) || message.durable),
+			transcript: value.schemaVersion === "agent-session.v2" ? structuredClone(value.transcript as AgentMessage[]) : appendTranscript([], value.messages.map((message, index) => ({ ...message, messageId: message.messageId ?? `legacy-${value.revision}-${index}` })), String(value.sessionId)),
+			historyStatus: value.schemaVersion === "agent-session.v2" ? value.historyStatus as "complete" | "legacy_partial" : "legacy_partial",
 			updatedAt: value.updatedAt,
 			...(value.deletion ? { deletion: structuredClone(value.deletion) as StoredAgentSession["deletion"] } : {}),
 		};

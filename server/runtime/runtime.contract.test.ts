@@ -468,7 +468,7 @@ describe("Packx Agent Runtime contract", () => {
 			provider: {
 				generate: async () => ({
 					text: "",
-					toolCalls: [{ id: `call-${++calls}`, name: read.name, input: {} }],
+					toolCalls: [{ id: `call-${++calls}`, name: read.name, input: { page: calls } }],
 					usage,
 				}),
 			},
@@ -842,6 +842,7 @@ describe("Packx Agent Runtime contract", () => {
 			execute: async () => "ok",
 		};
 		const tools: AgentTool[] = [
+			base,
 			{ ...base, name: "invalid", validate: () => false },
 			{ ...base, name: "explode", execute: async () => { throw new Error("secret-provider-detail"); } },
 			{ ...base, name: "unsafe-write", risk: "write", idempotent: false },
@@ -861,14 +862,16 @@ describe("Packx Agent Runtime contract", () => {
 						toolCalls: [
 							{ id: "unknown-1", name: "unknown", input: {} },
 							{ id: "invalid-1", name: "invalid", input: {} },
+							{ id: "progress-1", name: "base", input: { step: 1 } },
 							{ id: "explode-1", name: "explode", input: {} },
 							{ id: "unsafe-1", name: "unsafe-write", input: {} },
+							{ id: "progress-2", name: "base", input: { step: 2 } },
 							{ id: "denied-1", name: "denied-write", input: {} },
 						],
 						usage,
 					};
 					const failures = modelRequest.messages
-						.filter((message) => message.role === "tool")
+						.filter((message) => message.role === "tool" && message.content !== "ok")
 						.map((message) => JSON.parse(message.content).error.code);
 					expect(modelRequest.messages.some((message) => message.content.includes("secret-provider-detail"))).toBe(false);
 					expect(failures).toEqual([
@@ -892,7 +895,7 @@ describe("Packx Agent Runtime contract", () => {
 			policy: { ...request.policy, sandboxMode: "workspace-write", approvalPolicy: "required" },
 		});
 
-		expect(result.events.filter((event) => event.type === "tool.completed").map((event) => event.failureCode)).toEqual([
+		expect(result.events.filter((event) => event.type === "tool.completed").filter((event) => event.status !== "succeeded").map((event) => event.failureCode)).toEqual([
 			"tool_not_allowed",
 			"tool_input_invalid",
 			"tool_execution_failed",

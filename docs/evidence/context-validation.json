@@ -1,0 +1,110 @@
+{
+	"schemaVersion": "context-validation.v1",
+	"date": "2026-09-20",
+	"mode": "offline-and-local-native",
+	"paidCalls": 0,
+	"baseline": {
+		"head": "362561197c1429269529d73a10765754fa5a22e3",
+		"files": 67,
+		"passed": 420,
+		"skipped": 20,
+		"workingTreeIncluded": true,
+		"manifest": "eval/baselines/context-v1/manifest.json"
+	},
+	"check": {
+		"command": "npm run check",
+		"exitCode": 0,
+		"testFiles": 69,
+		"passed": 441,
+		"skipped": 21,
+		"testDurationSeconds": 6.76,
+		"typescriptBuild": "passed",
+		"viteBuild": "passed"
+	},
+	"native": {
+		"command": "npm run build:native; npm run test:native",
+		"exitCode": 0,
+		"testFiles": 3,
+		"passed": 30,
+		"testDurationSeconds": 1.67,
+		"overlapsWithRegularTests": true
+	},
+	"evals": {
+		"eval:offline": "passed",
+		"eval:m1": "passed",
+		"eval:m2": {
+			"passed": true,
+			"fixtures": 10,
+			"approvalEligible": 4
+		},
+		"eval:plan": "passed",
+		"eval:loop-safety": "passed",
+		"eval:context": "passed",
+		"eval:product": {
+			"passed": true,
+			"provider": "local deterministic fixture",
+			"checks": [
+				"PASS: parameter comparison HTTP path, exact citations, equivalent thickness, blocked barrier conditions, injected values, tenant spoofing and source withdrawal; synthetic fixtures only.",
+				"PASS: Plan mode, explicit version confirmation, isolated subagents and persisted results through local HTTP fixture.",
+				"PASS: authenticated live SSE before completion, durable scoped model calls, cache usage, cancellation telemetry, Agent-triggered per-operation approval without directory grants, approved creation/modification/deletion at absolute paths, original-content backups, retired grant APIs, all-write approval, scoped history, same-message isolation, native PDF slice, workflow approval/exports, cancellation, conversation deletion and audit retention; provider = local deterministic fixture."
+			]
+		}
+	},
+	"contextReport": "docs/evidence/context-eval.json",
+	"realModelSemanticQuality": "NOT_EVALUATED",
+	"preservedWork": {
+		"preexistingFileCount": 37,
+		"missing": [],
+		"byteIdentical": [
+			"docs/adr/0023-loop-guards-and-task-plan-budgets.md",
+			"docs/requirement-evidence-review.md",
+			"eval/loopSafety.ts",
+			"server/enterprise/evidenceReviewWorkflow.test.ts",
+			"server/enterprise/evidenceReviewWorkflow.ts",
+			"server/manufacturing/requirementEvidencePolicy.ts",
+			"server/runtime/loopGuard.test.ts",
+			"server/runtime/loopGuard.ts",
+			"src/enterprise/evidenceReview.ts",
+			"docs/architecture/principles.md",
+			"eval/planSubagents.ts",
+			"server/enterprise/agentPlanWorkflow.test.ts",
+			"server/eval/knowledgeWorkflow.ts",
+			"server/eval/m2RequirementWorkflow.test.ts",
+			"server/eval/m2RequirementWorkflow.ts",
+			"server/manufacturing/requirementBriefApi.test.ts",
+			"server/runtime/runtime.contract.test.ts",
+			"server/workers/backgroundConversationWorker.ts",
+			"server/workers/backgroundTaskApi.test.ts",
+			"src/components/PlanPanel.tsx",
+			"src/enterprise/agentPlan.ts",
+			"src/enterprise/proposalRunEngine.ts",
+			"src/manufacturing/requirementBrief.ts"
+		],
+		"incrementallyModified": [
+			"docs/plan-mode.md",
+			"docs/runtime-integration.md",
+			"eval/productSmoke.ts",
+			"package.json",
+			"server/enterprise/agentPlanWorkflow.ts",
+			"server/manufacturing/requirementBriefApi.ts",
+			"server/manufacturing/requirementBriefWorker.ts",
+			"server/runtime/agentRuntime.ts",
+			"server/runtime/assetInspection.test.ts",
+			"server/runtime/conversationApi.ts",
+			"server/runtime/fakeAgentRuntime.ts",
+			"server/runtime/fileAgentStateStore.ts",
+			"src/App.tsx",
+			"src/runtime/contracts.ts"
+		],
+		"notes": "Original patch and file copies saved outside repository before implementation. Plan/self-assessment/replan and Loop Guard regression assets preserved."
+	},
+	"limits": [
+		"Local Fake latency and token estimates are not provider measurements.",
+		"Real-model semantic quality and prompt-injection robustness not evaluated.",
+		"UI data projection tested through API; no new visual screenshot acceptance.",
+		"No bulk migration of real business data was performed."
+	],
+	"validationNotes": [
+		"The final UI-only correction also shows the legacy history notice when no original messages survive; validated by a separate TypeScript/Vite build."
+	]
+}

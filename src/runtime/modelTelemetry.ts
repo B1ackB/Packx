@@ -1,5 +1,11 @@
 export interface ModelCallRecord {
 	id: string;
+	purpose?: "summary" | "turn";
+	sourceRef?: string;
+	sourceRange?: [number, number];
+	contextSnapshotId?: string;
+	countedInputTokens?: number;
+	usage?: { inputTokens: number; cachedInputTokens: number; outputTokens: number; reasoningOutputTokens: number };
 	executionId: string;
 	kind: "generate" | "count_tokens";
 	model: string;

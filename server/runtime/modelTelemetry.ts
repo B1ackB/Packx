@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import { constants, closeSync, existsSync, fsyncSync, lstatSync, mkdirSync, openSync, readFileSync, realpathSync, renameSync, unlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import type { AgentModelProvider, AgentModelResponse } from "../../src/agent/contracts";
+import type { AgentModelProvider, AgentModelResponse, AgentModelRequest } from "../../src/agent/contracts";
 import { abortable } from "../../src/agent/loop";
 import type { ModelCallRecord, ModelTelemetryView } from "../../src/runtime/modelTelemetry";
 
@@ -50,10 +50,10 @@ export class ModelTelemetryStore {
 			calls: index.calls.map((call) => call.status === "running" && !this.active.has(call.id) ? { ...call, status: "interrupted" } : call) };
 	}
 	wrap(provider: AgentModelProvider, scope: Scope, executionId: string): AgentModelProvider {
-		const track = async <T>(kind: ModelCallRecord["kind"], action: () => Promise<T>, signal?: AbortSignal): Promise<T> => {
+		const track = async <T>(kind: ModelCallRecord["kind"], action: () => Promise<T>, signal?: AbortSignal, context?: AgentModelRequest["callContext"]): Promise<T> => {
 			signal?.throwIfAborted();
 			const start = this.now();
-			const call: ModelCallRecord = { id: randomUUID(), executionId, kind, model: this.configuredModel, status: "running", startedAt: new Date(start).toISOString() };
+			const call: ModelCallRecord = { ...(context ? { purpose: context.purpose, sourceRef: context.sourceRef, sourceRange: context.sourceRange, contextSnapshotId: context.callId } : { purpose: "turn" as const }), id: randomUUID(), executionId, kind, model: this.configuredModel, status: "running", startedAt: new Date(start).toISOString() };
 			const index = this.load(scope);
 			index.calls.push(call);
 			if (index.calls.length > this.retentionLimit) { index.calls = index.calls.slice(-this.retentionLimit); index.truncated = true; }
@@ -61,7 +61,10 @@ export class ModelTelemetryStore {
 			try {
 				const result = await (signal ? abortable(action(), signal) : action());
 				call.status = "succeeded";
-				if (kind === "generate") call.response = (result as ObservedModelResponse).telemetry;
+				if (kind === "generate") {
+					call.response = (result as ObservedModelResponse).telemetry;
+					call.usage = { ...(result as ObservedModelResponse).usage };
+				} else if (typeof result === "number" && Number.isSafeInteger(result) && result >= 0) call.countedInputTokens = result;
 				return result;
 			} catch (error) {
 				call.status = signal?.aborted ? "cancelled" : "failed";
@@ -76,7 +79,7 @@ export class ModelTelemetryStore {
 				if (position >= 0) { latest.calls[position] = call; this.save(scope, latest); }
 			}
 		};
-		return { generate: (request, signal) => track("generate", () => provider.generate(request, signal), signal),
-			...(provider.countTokens ? { countTokens: (request: Parameters<AgentModelProvider["generate"]>[0], signal?: AbortSignal) => track("count_tokens", () => provider.countTokens!(request, signal), signal) } : {}) };
+		return { generate: (request, signal) => track("generate", () => provider.generate(request, signal), signal, request.callContext),
+			...(provider.countTokens ? { countTokens: (request: Parameters<AgentModelProvider["generate"]>[0], signal?: AbortSignal) => track("count_tokens", () => provider.countTokens!(request, signal), signal, request.callContext) } : {}) };
 	}
 }

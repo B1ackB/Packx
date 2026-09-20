@@ -2,6 +2,7 @@ import { ModelTelemetryStore } from "./modelTelemetry";
 import { RuntimeActivityStore } from "./runtimeActivity";
 import { resolve } from "node:path";
 import { SkillRegistry } from "../../src/agent/skills";
+import { defaultContextBudget } from "../../src/agent/tokenBudget";
 import { printSkills } from "../../src/print/skills";
 import { manufacturingSkills } from "../../src/manufacturing/skills";
 import type { AgentTool, AgentToolApprovalPort } from "../../src/agent/contracts";
@@ -22,6 +23,7 @@ export interface RuntimeServices {
 }
 
 export interface RuntimeServicesOptions {
+	readTaskContext?: BlackxAgentRuntimeOptions["readTaskContext"];
 	tools?: readonly AgentTool[];
 	approval?: AgentToolApprovalPort;
 	sandboxedToolExecutor?: SandboxedToolExecutorPort;
@@ -42,6 +44,12 @@ export function validateAnthropicBaseUrl(value: string): string {
     throw new Error("ANTHROPIC_BASE_URL must use http or https");
   }
   return value.replace(/\/$/, "");
+}
+
+function positiveSetting(environment: NodeJS.ProcessEnv, key: string, fallback: number): number {
+	const value = environment[key] === undefined ? fallback : Number(environment[key]);
+	if (!Number.isSafeInteger(value) || value < 1) throw new Error(`${key} must be a positive integer`);
+	return value;
 }
 
 export function createRuntime(
@@ -65,6 +73,7 @@ export function createRuntime(
 				tools: options.tools,
 				sandboxedToolExecutor,
 				resolveImageAttachment: options.resolveImageAttachment,
+				readTaskContext: options.readTaskContext,
 			}),
 			state,
 			activity,
@@ -86,14 +95,20 @@ export function createRuntime(
 			runtime: new BlackxAgentRuntime({
 				telemetry,
 				onActivity: (scope, event) => activity.observe(scope, event),
+				contextWindowTokens: positiveSetting(environment, "PACKX_MODEL_CONTEXT_TOKENS", defaultContextBudget.contextWindowTokens),
+				reservedOutputTokens: positiveSetting(environment, "PACKX_MODEL_MAX_OUTPUT_TOKENS", defaultContextBudget.reservedOutputTokens),
+				safetyMarginTokens: positiveSetting(environment, "PACKX_CONTEXT_SAFETY_TOKENS", defaultContextBudget.safetyMarginTokens),
+				maxInputTokens: positiveSetting(environment, "PACKX_MAX_INPUT_TOKENS", defaultContextBudget.applicationInputTokens),
 				provider: new AnthropicModelProvider(
 					new AnthropicMessagesClient({ baseUrl, apiKey }),
 					model,
+					positiveSetting(environment, "PACKX_MODEL_MAX_OUTPUT_TOKENS", defaultContextBudget.reservedOutputTokens),
 				),
 				skills: new SkillRegistry([...printSkills, ...manufacturingSkills]),
 				tools: options.tools,
 				sandboxedToolExecutor,
 				resolveImageAttachment: options.resolveImageAttachment,
+				readTaskContext: options.readTaskContext,
 				approval: {
 					authorize: async (request, signal) => options.autonomouslyApprovedTools?.has(request.tool)
 						? { approved: true, approvalId: `policy:${request.tool}:v1` }

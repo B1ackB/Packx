@@ -1,3 +1,4 @@
+import { pageUnits } from "./contextRead";
 import { processIsGone } from "../localData";
 import { createHash, randomUUID } from "node:crypto";
 import { readFileSync, existsSync, lstatSync, mkdirSync, readdirSync, realpathSync, rmSync, statSync, writeFileSync } from "node:fs";
@@ -13,7 +14,7 @@ import { FileArtifactContentStore } from "../artifacts/fileArtifactStore";
 
 /** Host adapter: only a copy of the selected input crosses into the native parser. */
 export class AssetInspectionService implements SandboxedToolExecutorPort {
-	private readonly inputs = new Map<string, { directory: string; run: { tenantId: string; workspaceId: string; runId: string }; record: Omit<AssetInspectionRecord, "inspection"> }>();
+	private readonly inputs = new Map<string, { directory: string; run: { tenantId: string; workspaceId: string; runId: string }; offset: number; record: Omit<AssetInspectionRecord, "inspection"> }>();
 	private readonly cache: FileArtifactContentStore;
 	constructor(
 		private readonly engine: ProposalRunEngine,
@@ -55,19 +56,28 @@ export class AssetInspectionService implements SandboxedToolExecutorPort {
 
 	tool(readLocal?: (context: AgentToolExecutionContext, path: string) => { content: Buffer; sha256: string }): AgentSandboxedTool {
 		return {
-			name: readLocal ? "document_read" : "asset_metadata_inspect", version: "1.1.0", execution: "sandboxed",
-			description: "Inspect one current customer attachment in an offline native sandbox. Extract actual PDF pages, Word DOCX paragraphs/tables, Excel XLSX sheet/cell raw stored values (number/date display formatting is not applied), UTF-8 text or image metadata. Use attachmentId for an uploaded file or path for an absolute local file. Legacy DOC/XLS, encrypted documents and image-only scans need conversion/OCR. Formulas use cached values only, never run macros. Output is bounded and explicitly reports truncation. Never establishes verified business facts.",
-			inputSchema: { type: "object", properties: { attachmentId: { type: "string", pattern: "^attachment-[a-f0-9]+$" }, ...(readLocal ? { path: { type: "string", description: "Absolute local document path" } } : {}) }, ...(readLocal ? {} : { required: ["attachmentId"] }), additionalProperties: false },
-			validate: (input) => Boolean(input && typeof input === "object" && Object.keys(input).length === 1 && (("attachmentId" in input && typeof input.attachmentId === "string" && /^attachment-[a-f0-9]+$/.test(input.attachmentId)) || (readLocal && "path" in input && typeof input.path === "string" && input.path.startsWith("/") && input.path.length <= 4096))),
-			risk: "read", idempotent: true, timeoutMs: 15_000, maxResultChars: 180_000,
+			validateContextResult: (input, output, context) => {
+				const result = JSON.parse(output) as { stdout: { text: string } };
+				const record = JSON.parse(result.stdout.text) as AssetInspectionRecord;
+				const value = input as { attachmentId?: string; path?: string };
+				const scope = readLocal && context.stageId !== "requirement-brief" ? { tenantId: context.tenantId, workspaceId: context.workspaceId, conversationId: context.runId } : this.scope(context);
+				const sha256 = value.path && readLocal ? readLocal(context, value.path).sha256 : this.attachments.read(scope, value.attachmentId!).attachment.sha256;
+				if (sha256 !== record.sha256) throw new RuntimeFailure("context_failure", "Document source changed", false);
+			},
+			name: readLocal ? "document_read" : "asset_metadata_inspect", version: "1.2.0", execution: "sandboxed",
+			description: "Inspect one current customer attachment in an offline native sandbox. Extract actual PDF pages, Word DOCX paragraphs/tables, Excel XLSX sheet/cell raw stored values (number/date display formatting is not applied), UTF-8 text or image metadata. Use attachmentId for an uploaded file or path for an absolute local file. Legacy DOC/XLS, encrypted documents and image-only scans need conversion/OCR. Formulas use cached values only, never run macros. Output is paginated by complete lines. Pass the returned continuation.cursor with the same source to continue; each call rechecks permission and source hash. sourceTruncated means the parser limit was reached; do not claim complete coverage. Never establishes verified business facts.",
+			inputSchema: { type: "object", properties: { attachmentId: { type: "string", pattern: "^attachment-[a-f0-9]+$" }, ...(readLocal ? { cursor: { type: "string", description: "sha256:offset from previous result; rechecks the current source hash" }, path: { type: "string", description: "Absolute local document path" } } : {}) }, ...(readLocal ? {} : { required: ["attachmentId"] }), additionalProperties: false },
+			validate: (input) => Boolean(input && typeof input === "object" && Object.keys(input).filter((key) => key !== "cursor").length === 1 && (!("cursor" in input) || (readLocal && typeof input.cursor === "string" && /^[a-f0-9]{64}:\d{1,7}$/.test(input.cursor))) && (("attachmentId" in input && typeof input.attachmentId === "string" && /^attachment-[a-f0-9]+$/.test(input.attachmentId)) || (readLocal && "path" in input && typeof input.path === "string" && input.path.startsWith("/") && input.path.length <= 4096))),
+			risk: "read", idempotent: true, timeoutMs: 15_000, maxResultChars: readLocal ? 24_000 : 180_000,
 			executable: this.executable,
-			sandbox: { environment: { LANG: "en_US.UTF-8" }, network: { mode: "deny-all", allowedDomains: [] }, limits: { maxStdoutBytes: 180_000, maxStderrBytes: 4096, maxOutputFiles: 0, maxOutputBytes: 0 } },
+			sandbox: { environment: { LANG: "en_US.UTF-8" }, network: { mode: "deny-all", allowedDomains: [] }, limits: { maxStdoutBytes: 8_000_000, maxStderrBytes: 4096, maxOutputFiles: 0, maxOutputBytes: 0 } },
 			createInvocation: (input, context) => {
 				context.signal.throwIfAborted();
-				const value = input as { attachmentId?: string; path?: string };
+				const value = input as { attachmentId?: string; path?: string; cursor?: string };
 				const local = value.path && readLocal ? readLocal(context, value.path) : undefined;
-				const scope = readLocal ? { tenantId: context.tenantId, workspaceId: context.workspaceId, conversationId: context.runId } : this.scope(context);
+				const scope = readLocal && context.stageId !== "requirement-brief" ? { tenantId: context.tenantId, workspaceId: context.workspaceId, conversationId: context.runId } : this.scope(context);
 				const { attachment, content } = local ? { content: local.content, attachment: { attachmentId: `local-${createHash("sha256").update(value.path!).digest("hex")}`, name: basename(value.path!), sha256: local.sha256, sourceRef: `local-file:${value.path!}` } } : this.attachments.read(scope, value.attachmentId!);
+				if (value.cursor && value.cursor.split(":")[0] !== attachment.sha256) throw new RuntimeFailure("context_failure", "Document source changed since previous page", false);
 				const inputRoot = join(this.workspaceRoot, ".blackx-tool-inputs");
 				mkdirSync(inputRoot, { recursive: true, mode: 0o700 });
 				if (lstatSync(inputRoot).isSymbolicLink() || realpathSync(inputRoot) !== join(realpathSync(this.workspaceRoot), ".blackx-tool-inputs")) throw new RuntimeFailure("permission_denied", "Staging directory must remain inside the Workspace", false);
@@ -78,9 +88,9 @@ export class AssetInspectionService implements SandboxedToolExecutorPort {
 					writeFileSync(join(directory, ".owner.json"), JSON.stringify({ pid: process.pid }), { flag: "wx", mode: 0o600 });
 					writeFileSync(path, content, { flag: "wx", mode: 0o400 });
 				} catch (error) { rmSync(directory, { recursive: true, force: true }); throw error; }
-				this.inputs.set(context.sandboxAttemptId, { directory, run: { tenantId: context.tenantId, workspaceId: context.workspaceId, runId: context.runId }, record: {
+				this.inputs.set(context.sandboxAttemptId, { directory, offset: Number(value.cursor?.split(":")[1] ?? 0), run: { tenantId: context.tenantId, workspaceId: context.workspaceId, runId: context.runId }, record: {
 					attachmentId: attachment.attachmentId, name: attachment.name, sha256: attachment.sha256,
-					sourceRef: attachment.sourceRef, parserVersion: "1.1.0",
+					sourceRef: attachment.sourceRef, parserVersion: "1.2.0",
 				} });
 				return { argv: [path], workingDirectory: directory, paths: { readOnly: [path], writable: [], temporaryDirectory: join(directory, "output") } };
 			},
@@ -104,6 +114,14 @@ export class AssetInspectionService implements SandboxedToolExecutorPort {
 			// A content-addressed parser observation survives context compaction and Worker restarts.
 			// The Worker still validates the frozen source digest and imports a versioned Artifact.
 			this.cache.putJson({ ...prepared.run, artifactId: this.cacheId(record.attachmentId, record.sha256), artifactVersion: 1 }, record);
+			if (manifest.tool.name === "document_read") {
+				const lines = inspection.pages.flatMap((page) => page.text.split("\n").map((text, line) => ({ page: page.page, line: line + 1, text })));
+				const page = pageUnits(lines, prepared.offset, 14_000);
+				const groups = new Map<number, string[]>();
+				for (const line of page.items) groups.set(line.page, [...(groups.get(line.page) ?? []), `[line ${line.line}] ${line.text}`]);
+				return { ...result, stdout: { text: JSON.stringify({ ...record, inspection: { ...inspection, pages: [...groups].map(([page, texts]) => ({ page, text: texts.join("\n") })), truncated: page.truncated || inspection.truncated },
+					continuation: { cursor: page.nextOffset === null || page.error ? null : `${record.sha256}:${page.nextOffset}`, offset: prepared.offset, total: page.total, sourceTruncated: inspection.truncated, ...(page.error ? { error: page.error } : {}) } }), truncated: false } };
+			}
 			return { ...result, stdout: { text: JSON.stringify(record), truncated: false } };
 		} finally {
 			this.inputs.delete(manifest.attemptId);
@@ -112,7 +130,7 @@ export class AssetInspectionService implements SandboxedToolExecutorPort {
 	}
 
 	private cacheId(attachmentId: string, sha256: string): string {
-		return `inspection-${createHash("sha256").update(`${attachmentId}:${sha256}:1.1.0`).digest("hex")}`;
+		return `inspection-${createHash("sha256").update(`${attachmentId}:${sha256}:1.2.0`).digest("hex")}`;
 	}
 
 	readRecords(run: { tenantId: string; workspaceId: string; runId: string }): AssetInspectionRecord[] {
@@ -122,7 +140,7 @@ export class AssetInspectionService implements SandboxedToolExecutorPort {
 			try { value = this.cache.readJson({ ...run, artifactId: this.cacheId(attachment.attachmentId, attachment.sha256), artifactVersion: 1 }) as AssetInspectionRecord; }
 			catch { throw new RuntimeFailure("invalid_output", "尚未成功检查所有资料，请重试。", false); }
 			const stored = this.attachments.read(scope, attachment.attachmentId);
-			if (!isAssetInspection(value.inspection) || value.sha256 !== attachment.sha256 || value.inspection.bytes !== stored.content.length || value.parserVersion !== "1.1.0") throw new RuntimeFailure("invalid_output", "解析记录与原始资料不匹配", false);
+			if (!isAssetInspection(value.inspection) || value.sha256 !== attachment.sha256 || value.inspection.bytes !== stored.content.length || value.parserVersion !== "1.2.0") throw new RuntimeFailure("invalid_output", "解析记录与原始资料不匹配", false);
 			return { attachmentId: attachment.attachmentId, name: attachment.name, sha256: attachment.sha256, sourceRef: attachment.sourceRef, parserVersion: value.parserVersion, inspection: value.inspection };
 		});
 	}

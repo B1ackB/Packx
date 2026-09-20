@@ -73,9 +73,11 @@ describe("FileAgentStateStore", () => {
 		const restarted = new FileAgentStateStore(root);
 
 		expect(saved.revision).toBe(1);
-		expect(restarted.load(scope)).toEqual({
+		expect(restarted.load(scope)).toMatchObject({
 			revision: 1,
-			messages: [{ role: "user", content: "secret" }],
+			historyStatus: "complete",
+			transcript: [{ role: "user", content: "secret", messageId: "legacy-0-0" }],
+			messages: [{ role: "user", content: "secret", messageId: "legacy-0-0" }],
 		});
 		expect(restarted.load({ ...scope, tenantId: "tenant-b" })).toEqual({ revision: 0, messages: [] });
 		expect(() => restarted.save(scope, 0, [], "2026-09-02T00:00:01.000Z")).toThrowError(

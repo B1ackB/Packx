@@ -39,6 +39,7 @@ export function knowledgeWorkflow(root: string, readPlan?: (scope: PlanScope) =>
 	const provider: AgentModelProvider = { generate: async (request) => {
 		const toolResult = request.messages.findLast((message) => message.role === "tool" && message.toolCallId === "selected-evidence");
 		const usage = { inputTokens: 0, outputTokens: 0, cachedInputTokens: 0, reasoningOutputTokens: 0 };
+		if (request.outputSchema?.properties && typeof request.outputSchema.properties === "object" && "issues" in request.outputSchema.properties) return { text: JSON.stringify({ issues: [] }), toolCalls: [], usage };
 		if (!toolResult) return { text: "", toolCalls: [{ id: "customer-source", name: "project_source_read", input: { sourceId: "customer-brief" } }, { id: "missing-dimensions", name: "knowledge_search", input: { query: "500 克咖啡袋的生产尺寸是什么？", mode: "hybrid", limit: 2 } }, { id: "selected-evidence", name: "knowledge_selected", input: {} }], usage };
 		const searchResult = request.messages.findLast((message) => message.role === "tool" && message.toolCallId === "missing-dimensions");
 		const evidence = searchResult ? JSON.parse(searchResult.content) as EvidenceResult : undefined;
