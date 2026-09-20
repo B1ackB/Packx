@@ -24,6 +24,12 @@ export interface AgentMessage {
 	attachments?: AgentImageAttachment[];
 	sources?: Array<{ name: string; mediaType: string; sourceRef: string; sha256: string }>;
 	messageId?: string;
+	kind?: "dialogue" | "summary" | "receipt" | "task_context";
+	inReplyTo?: string;
+	archivedContent?: string;
+	sourceTool?: { name: string; input: unknown };
+	readDependencies?: string[];
+	receiptStatus?: "succeeded" | "unresolved" | "index";
 	createdAt?: string;
 	toolCalls?: AgentToolCall[];
 	toolCallId?: string;
@@ -40,6 +46,8 @@ export interface AgentUsage {
 }
 
 export interface AgentModelRequest {
+	maxOutputTokens?: number;
+	callContext?: { purpose: "summary" | "turn"; callId: string; sourceRef?: string; sourceRange?: [number, number] };
 	/** Transient visible text only; never an authoritative completed response. */
 	onText?: (text: string) => void | Promise<void>;
 	messages: readonly AgentMessage[];
@@ -68,6 +76,8 @@ export interface AgentToolDefinition {
 }
 
 interface AgentToolBase extends AgentToolDefinition {
+	/** Host source-lifecycle check when restoring archived output; never executes the tool. */
+	validateContextResult?(input: unknown, output: string, context: AgentToolExecutionContext): void | Promise<void>;
 	risk: "read" | "write" | "publish";
 	idempotent: boolean;
 	timeoutMs: number;
@@ -167,6 +177,7 @@ export interface AgentToolExecutionRecord extends AgentToolExecutionKey {
 }
 
 export interface AgentToolExecutionStore {
+	list?(scope: { tenantId: string; workspaceId: string; runId: string }): Promise<AgentToolExecutionRecord[]>;
 	claim(record: AgentToolExecutionRecord): Promise<{ record: AgentToolExecutionRecord; duplicate: boolean }>;
 	complete(
 		key: AgentToolExecutionKey,
@@ -217,10 +228,11 @@ export interface AgentToolAuditPort {
 export interface AgentContextSummary {
 	text: string;
 	usage: AgentUsage;
+	coverage?: { complete: boolean; sourceMessages: number; coveredMessages: number; calls: number };
 }
 
 export interface AgentContextSummarizer {
-	summarize(messages: readonly AgentMessage[], signal?: AbortSignal): Promise<AgentContextSummary>;
+	summarize(messages: readonly AgentMessage[], signal?: AbortSignal, sourceRef?: string): Promise<AgentContextSummary>;
 }
 
 export type AgentCoreFailureCode =

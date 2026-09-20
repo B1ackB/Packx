@@ -11,7 +11,7 @@ import { tmpdir } from "node:os";
 import { resolve, join } from "node:path";
 import { once } from "node:events";
 import { documentFixture } from "../server/testing/documentFixture";
-import { createRequirementBrief, requiredRequirementFacts } from "../src/manufacturing/requirementBrief";
+import { createRequirementBrief, requiredRequirementFacts, type RequirementBriefEvaluation } from "../src/manufacturing/requirementBrief";
 import type { ConversationView, RequirementBriefWorkspaceView, RuntimeActivity } from "../src/runtime/conversationContracts";
 import type { RequirementDelivery } from "../src/manufacturing/requirementDelivery";
 import type { ConversationFilesView, LocalFileLocations } from "../src/runtime/conversationFiles";
@@ -39,7 +39,9 @@ const provider = createServer(async (request, response) => {
 	const requirement = body.tools?.some((tool) => tool.name === "project_source_read");
 	let content: unknown[];
 	const instructions = JSON.stringify(body.system);
-	if (instructions.includes("Plan only. Do not execute") && JSON.stringify(blocks).includes("plan-write-fixture")) {
+	if (instructions.includes("Independently review the candidate")) {
+		content = [{ type: "text", text: JSON.stringify({ issues: [] }) }];
+	} else if (instructions.includes("Plan only. Do not execute") && JSON.stringify(blocks).includes("plan-write-fixture")) {
 		content = [{ type: "text", text: JSON.stringify({ summary: "Create an explicitly approved draft file", tasks: [{ title: "Write draft", objective: "plan-write-fixture", tools: ["file_write"] }] }) }];
 	} else if (instructions.includes("Plan only. Do not execute")) {
 		content = [{ type: "text", text: JSON.stringify({ summary: "整理包装需求资料，分别核对来源与缺失信息（固定演示计划）。", tasks: [{ title: "来源核对", objective: "汇总包装资料来源并保留未验证状态。", tools: ["file_list"] }, { title: "缺失信息", objective: "列出需要用户确认的包装需求字段。", tools: [] }] }) }];
@@ -48,7 +50,7 @@ const provider = createServer(async (request, response) => {
 	} else if (instructions.includes("Execute ONLY this approved subtask") && body.tools?.some((tool) => tool.name === "file_list") && !last.some((block) => block.type === "tool_result")) {
 		content = [{ type: "tool_use", id: "plan-list", name: "file_list", input: {} }];
 	} else if (instructions.includes("Execute ONLY this approved subtask")) {
-		content = [{ type: "text", text: JSON.stringify({ summary: "已完成本子任务的固定演示输出。数量、尺寸与交期仍待用户确认。", evidence: ["local-fixture：此响应只验证编排链路，不代表真实模型核验。"], limitations: ["未验证生产参数；未写入文件。"] }) }];
+		content = [{ type: "text", text: JSON.stringify({ summary: "已完成本子任务的固定演示输出。数量、尺寸与交期仍待用户确认。", evidence: ["local-fixture：此响应只验证编排链路，不代表真实模型核验。"], limitations: ["未验证生产参数；未写入文件。"], assessment: { decision: "continue", reason: "已完成固定演示任务，业务事实仍待确认。" } }) }];
 	} else if (requirement && !last.some((block) => block.type === "tool_result")) {
 		const system = JSON.stringify(body.system);
 		const ids = [...new Set(system.match(/attachment-[a-f0-9]+/g) ?? [])];
@@ -340,6 +342,9 @@ try {
 		throw new Error("Workflow did not finish");
 	}
 	const draft = await settled(); assert.equal(draft.state.stageStatus, "needs_input");
+	const review = (draft.evaluation?.report as RequirementBriefEvaluation).evidenceReview;
+	assert.equal(review?.status, "completed"); assert.equal(review?.artifactVersion, 1);
+	assert(review.sourceVersions.some((source) => source.ref.includes("#page=1")));
 	const v1 = await api(`${path}/requirement-brief/versions/1`); assert.equal(v1.delivery.sources[0].inspection.status, "parsed"); assert.equal(v1.delivery.status, "draft");
 	assert.equal((await api<LocalFileLocations>(`${path}/files/directories`)).locations.workingDirectory, realpathSync(directory));
 	const metrics = await api<ModelTelemetryView>(`${path}/model-calls`);

@@ -1,7 +1,7 @@
 # Packx Agent Runtime 集成边界
 
 状态：M1 Durable Runtime Frozen
-更新日期：2026-09-03
+更新日期：2026-09-20
 
 ## 当前链路
 
@@ -15,11 +15,11 @@ React UI → Conversation API / Background Task API / Proposal Worker
    ├─ AgentModelProvider Token Count / Context Summarizer
 	   └─ validated Tool → Approval Port → Audit Port → Tool Execution Store
 → ContextSnapshotStore（每次 Model 调用前）
-→ AgentSessionStore（Turn 成功后）
+→ AgentSessionStore（用户输入、完整 Tool batch checkpoint、Turn 完成）
 → RuntimeTraceStore（成功、暂停或失败后）
 ```
 
-Web Conversation API 在模型调用前先把当前用户消息以 `pinned` 状态写入 Session，再以 `resume: true` 执行本轮；这样当前输入在 Compact 中不可丢失。Turn 成功后 Runtime 保存 Assistant 消息并解除临时 pin。UI 会话列表和历史只读取服务端 Session，不读取旧 `localStorage`。
+Web Conversation API 在模型调用前先把当前用户消息以稳定 ID 和 `pinned` 状态写入 Session，再以 `resume: true` 执行本轮。Session v2 的 `transcript` 追加保留原始用户消息和正式回复，`messages` 是允许压缩、重建的工作上下文；UI 只读取 transcript。内部摘要不会成为用户消息。Turn 成功后 Runtime 保存正式回复并解除临时 pin，完整 Tool batch 也保存恢复 checkpoint。迁移与不能补造的旧历史缺口见[上下文管理](context-management.md)。
 
 Background Task 不会创建另一套 Agent：受限的 `conversation.message.v1` payload 写入现有 `StageJobQueue`，Scheduler 通过 `conversation-background` handler 调用同一个 `ConversationApiController`。消息 ID 同时是 Turn 幂等键；Worker Crash 后重投会继续未完成 Turn，而模型回复已落盘但 Queue 尚未 ACK 时会直接复用完成结果。普通发送仍走同步 Conversation API，以保留低延迟交互。
 
@@ -33,12 +33,19 @@ Agent 现在也可在普通 Loop 内自主调用 `background_task_*` 和 `cron_*
 - Hook：`loop/model/tool/compact` 的 before/after 和 completed/failed 观察事件，按注册顺序执行，不允许覆盖权威状态。
 - Context：稳定指令、选中的 Skill、Session 历史和当前输入显式编译。
 - Skill：进程启动时注册名称、版本和指令，Turn 只传 Skill 名称；未知 Skill fail-closed，快照记录实际 Skill 版本。
-- Compact：真实 Token Count 优先；默认在输入硬预算 70% 触发并压缩到 45%，字符预算只在 Provider 没有 Token Count 时回退。开放 Tool Batch、pinned 内容和 durable execution receipt 不得删除；仅 transient 对话由 Model Context Summarizer 生成带非权威标记的摘要。`context_window_exceeded` 只允许一次压缩重试。
+- Compact：Provider Token Count 优先；默认在输入硬预算 70% 触发并以 45% 为压缩目标，字符预算只在 Provider 没有 Token Count 时回退。完整 Tool Batch、pinned 任务状态和未决执行状态必须保留；成功回执仅保留近期状态和执行账本查询入口。大正文先归档再清理，摘要按完整消息及显式预算处理，未覆盖部分保留来源引用。压缩后重新计数，超过硬预算拒绝；`context_window_exceeded` 只允许一次压缩重试。
 - Tool：必须声明 Schema、风险、幂等、超时、结果上限和输入校验。read Tool 可直接执行；write/publish Tool 默认拒绝，必须同时获得 Runtime Policy、Approval、Audit 和 Tool Execution Store。Store 在副作用前原子占用业务幂等键，重复成功请求复用旧结果，未决执行返回 `tool_execution_unknown`，不得自动重放。
 - Identity：`actorId` 标识用户、Worker 或 Service Actor，并贯穿 Approval、Tool Context、Audit 与 Execution Record；`toolCallId` 一对一配对 Tool Call/Result，`idempotencyKey` 一对多关联重试 attempt，但最多产生一次成功副作用。
 - Session：按 `tenantId/workspaceId/runId/sessionId` 隔离，成功 Turn 使用 revision compare-and-swap 保存；冲突显式返回 `session_conflict`。
 - ContextSnapshot：在每次 Model 调用前不可变保存最终消息、Skill 版本、字符估算和累计 Compact 删除量；即使 Provider 调用失败也保留该次模型输入证据。
+- Task Context：Enterprise 共享构建当前事实/阶段/来源，Plan 与子任务保留确认时冻结的上下文；恢复检查 task binding 与来源权限/哈希。摘要与归档同样使用 ContextSnapshot，摘要生成及计数记录调用身份、来源范围、Token、耗时和失败。预算公式、默认值来源、续读工具和验证边界见[上下文管理](context-management.md)及 [ADR-0024](adr/0024-separated-dialogue-and-versioned-task-context.md)。
 - RuntimeTrace：持久记录 `model.started/completed`、Tool、Compact、Usage、总耗时和结构化 Failure。Trace 不复制模型正文，`message.completed` 只保存 `[stored in session]`；正文仍由 Tenant/Workspace 隔离的 Session 管理。
+
+## Host 防循环策略
+
+`BlackxAgentRuntime` 通过现有 `tool.before/after` Hook 安装确定性 Guard：同工具/规范化参数的短动作序列第三轮重复前拦截，连续工具失败 3 次后停止；返回不可重试错误并记录 `loop.guard.stopped`。Guard 状态保存在 Runtime Trace，按同一租户、会话、阶段及 Turn 幂等键恢复，不受 Compact 影响。后台 Worker 不会把该停止转换为自动重试。
+
+Plan 另有限制：每任务最多 4 个版本、累计 32 个 Runtime 执行片、连续 3 次计划失败，单版本 16 片限制保留。次数是资源额度，不是货币费用。崩溃窗口、迁移和保守重复检测边界见 [ADR-0023](adr/0023-loop-guards-and-task-plan-budgets.md)。
 
 ## Enterprise 边界
 

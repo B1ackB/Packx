@@ -64,6 +64,7 @@ export interface CompleteProposalEvaluationCommand extends CommandEnvelope {
 	reportRef: string;
 	approvalId: string;
 	requestApproval?: boolean;
+	requestInput?: boolean;
 }
 
 export interface ResolveApprovalCommand extends CommandEnvelope {
@@ -269,8 +270,8 @@ function reduceEvent(
 				approval: { ...state.approval, status: "superseded" },
 			};
 		case "stage.input_required":
-			if (state.stageStatus !== "evaluating" || !state.evaluation?.passed) {
-				illegal("Input can only be requested after a successful Evaluation");
+			if (!["evaluating", "retryable_failed"].includes(state.stageStatus) || !state.evaluation) {
+				illegal("Input can only be requested after an Evaluation");
 			}
 			return { ...next, status: "running", stageStatus: "needs_input" };
 		case "stage.revision_required":
@@ -400,6 +401,7 @@ export class ProposalRunEngine {
 			passed: command.passed,
 			reportRef: command.reportRef,
 		}];
+		if (!command.passed && command.requestInput) events.push({ type: "stage.input_required", stage: this.stageId });
 		if (command.passed) {
 			if (command.requestApproval === false) {
 				events.push({ type: "stage.input_required", stage: this.stageId });

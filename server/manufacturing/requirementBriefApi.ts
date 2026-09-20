@@ -90,7 +90,7 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 				if (planVersion !== undefined) {
 					if (!readPlan) throw new ProposalWorkspaceValidationError("计划来源不可用。");
 					const imported = planRequirementSource(readPlan({ ...scope, runId: conversation.conversationId }), planVersion, conversation,
-						attachments?.list(attachmentScope).slice(-8).map(({ name, sourceRef, sha256 }) => ({ name, sourceRef, sha256 })) ?? []);
+						attachments?.list(attachmentScope).map(({ name, sourceRef, sha256 }) => ({ name, sourceRef, sha256 })) ?? []);
 					const planSelection = JSON.parse(imported.brief).originalContext?.knowledge;
 					if ((planSelection?.digest ?? null) !== (selected?.selection?.digest ?? null)) throw new ProposalWorkspaceValidationError("计划中的证据已变化，请重新规划。", "plan_evidence_stale");
 					brief = imported.brief;
@@ -148,7 +148,8 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 			if (!evaluateRequirementBrief(content).passed) return { status: 409, body: { code: "invalid_artifact", message: "该版本未通过结构校验，不能导出为需求单。" } };
 			const events = this.requirementEngine.readEvents(scope);
 			const created = events.find((event) => event.data.type === "artifact.version_created" && event.data.artifactId === artifact.artifactId && event.data.artifactVersion === version);
-			const checkpoint = this.readCheckpointMetrics(state, version);
+			const sourceVersion = state.proposalVersions.filter((item) => item.version <= version && item.inputFactVersions.customer_brief === artifact.inputFactVersions.customer_brief && item.inputFactVersions.customer_attachments === artifact.inputFactVersions.customer_attachments).reverse().find((item) => this.readCheckpointMetrics(state, item.version));
+			const checkpoint = sourceVersion ? this.readCheckpointMetrics(state, sourceVersion.version) : undefined;
 			const brief = content as RequirementBriefV1;
 			const sourcePlan = artifact.inputFactVersions.plan_source === undefined ? undefined : events.find((event) => event.data.type === "fact.version_recorded" && event.data.factKey === "plan_source" && event.data.factVersion === artifact.inputFactVersions.plan_source);
 			const citations: Record<string, string> = {};
@@ -252,7 +253,15 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 			(total, checkpoint) => total + (checkpoint.toolFailureCount ?? 0),
 			0,
 		);
-		const usages = checkpoints.flatMap((checkpoint) => checkpoint.usage ? [checkpoint.usage] : []);
+		const reviewCalls = state.proposalVersions.flatMap((artifact) => ["requirement-brief-review-call", "requirement-brief-revision-call"].flatMap((artifactId) => {
+			try {
+				return [this.requirementArtifacts.readJson({ ...state, artifactId, artifactVersion: artifact.version }) as { durationMs: number; result?: { usage?: RuntimeUsage } }];
+			} catch (error) {
+				if (error instanceof ArtifactStoreError && error.code === "artifact_not_found") return [];
+				throw error;
+			}
+		}));
+		const usages = [...checkpoints.flatMap((checkpoint) => checkpoint.usage ? [checkpoint.usage] : []), ...reviewCalls.flatMap((call) => call.result?.usage ? [call.result.usage] : [])];
 		const usage = usages.length > 0
 			? usages.reduce<RuntimeUsage>((total, current) => ({
 				inputTokens: total.inputTokens + current.inputTokens,
@@ -261,9 +270,9 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 				reasoningOutputTokens: total.reasoningOutputTokens + current.reasoningOutputTokens,
 			}), { inputTokens: 0, cachedInputTokens: 0, outputTokens: 0, reasoningOutputTokens: 0 })
 			: null;
-		const durations = checkpoints.flatMap((checkpoint) =>
+		const durations = [...checkpoints.flatMap((checkpoint) =>
 			checkpoint.runtimeDurationMs === undefined ? [] : [checkpoint.runtimeDurationMs],
-		);
+		), ...reviewCalls.map((call) => call.durationMs)];
 		const jobs = this.requirementScheduler.jobsForRun(state);
 		const deliveryCount = jobs.reduce((total, job) => total + job.deliveryCount, 0);
 		const totalFailureCount = jobs.reduce((total, job) => total + job.totalFailureCount, 0);

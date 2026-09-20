@@ -36,7 +36,7 @@ function units(messages: readonly AgentMessage[]): ContextUnit[] {
 	for (let index = 0; index < messages.length; index += 1) {
 		const message = messages[index];
 		if (message.role !== "assistant" || !message.toolCalls?.length) {
-			grouped.push({ messages: [message], mustKeep: false });
+			grouped.push({ messages: [message], mustKeep: message.pinned === true });
 			continue;
 		}
 		const ids = new Set(message.toolCalls.map((call) => call.id));
@@ -49,7 +49,7 @@ function units(messages: readonly AgentMessage[]): ContextUnit[] {
 			results.add(result.toolCallId);
 			index += 1;
 		}
-		grouped.push({ messages: batch, mustKeep: results.size !== ids.size });
+		grouped.push({ messages: batch, mustKeep: results.size !== ids.size || batch.some((item) => item.pinned) });
 	}
 	return grouped;
 }
@@ -80,12 +80,25 @@ export class ContextEngine {
 		if (input.input || input.attachments?.length) {
 			messages.push({
 				role: "user",
+				kind: "dialogue",
 				content: input.input,
 				attachments: input.attachments?.map((attachment) => ({ ...attachment })),
 				pinned: true,
 			});
 		}
 		return messages;
+	}
+
+	requiredMessages(messages: readonly AgentMessage[]): AgentMessage[] {
+		return units(messages).filter((unit) => unit.mustKeep).flatMap((unit) => unit.messages);
+	}
+
+	pruneToolBodies(messages: readonly AgentMessage[]): AgentMessage[] {
+		const groups = units(messages);
+		return groups.flatMap((group, index) => group.messages.map((message) =>
+			!group.mustKeep && index < groups.length - 2 && message.role === "tool" && message.archivedContent
+				? { ...message, content: message.archivedContent }
+				: message));
 	}
 
 	needsCompact(messages: readonly AgentMessage[]): boolean {
@@ -95,11 +108,10 @@ export class ContextEngine {
 	compact(messages: readonly AgentMessage[], maxChars = this.maxChars): CompactedContext {
 		if (this.size(messages) <= maxChars) return { messages: [...messages], removed: [], removedMessages: 0 };
 
-		const pinned = messages.filter((message) => message.pinned);
-		const transientMessages = messages.filter((message) => !message.pinned);
-		const transient = units(transientMessages);
+		const transientMessages = [...messages];
+		const transient = units(messages);
 		const keptMessages = new Set<AgentMessage>();
-		let size = pinned.reduce((total, message) => total + sizeOf(message), 0);
+		let size = 0;
 		for (const unit of transient.filter((candidate) => candidate.mustKeep)) {
 			for (const message of unit.messages) keptMessages.add(message);
 			size += unit.messages.reduce((total, message) => total + sizeOf(message), 0);
@@ -118,11 +130,11 @@ export class ContextEngine {
 		let summaryIndex: number | undefined;
 		const compacted: AgentMessage[] = [];
 		for (const message of messages) {
-			if (message.pinned || keptMessages.has(message)) {
+			if (keptMessages.has(message)) {
 				compacted.push(message);
 			} else if (!summaryInserted) {
 				summaryIndex = compacted.length;
-				compacted.push({ role: "user", content: `${compactSummaryPrefix}\nSummary pending.` });
+				compacted.push({ role: "user", kind: "summary", content: `${compactSummaryPrefix}\nSummary pending.` });
 				summaryInserted = true;
 			}
 		}

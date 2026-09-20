@@ -9,7 +9,8 @@ import { BlackxAgentRuntime, type BlackxAgentRuntimeOptions } from "./agentRunti
 const fakeProvider: AgentModelProvider = {
 	async generate(request) {
 		return {
-			text: request.fallbackOutput,
+			// Explicit offline review fixture; production fallback remains invalid and fail-closed.
+			text: request.outputSchema?.properties && typeof request.outputSchema.properties === "object" && "issues" in request.outputSchema.properties ? JSON.stringify({ issues: [] }) : request.fallbackOutput,
 			toolCalls: [],
 			usage: {
 				inputTokens: 0,
@@ -23,6 +24,7 @@ const fakeProvider: AgentModelProvider = {
 
 export class FakeAgentRuntime extends BlackxAgentRuntime {
 	constructor(options: {
+		readTaskContext?: BlackxAgentRuntimeOptions["readTaskContext"];
 		sessions?: AgentSessionStore;
 		snapshots?: ContextSnapshotStore;
 		tools?: readonly AgentTool[];

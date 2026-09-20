@@ -448,7 +448,7 @@ describe("RequirementBriefWorkspaceApiController", () => {
 		}));
 
 		expect(await scheduler.runNext()).toMatchObject({ status: "completed" });
-		const runtimeSession = sessions.listSessions(context).find((session) => session.runId === started.runId);
+		const runtimeSession = sessions.listSessions(context).find((session) => session.runId === started.runId && session.messages.some((message) => message.attachments?.length));
 		const storedAttachments = runtimeSession?.messages.flatMap((message) => message.attachments ?? []) ?? [];
 		expect(storedAttachments).toEqual([
 			expect.objectContaining({

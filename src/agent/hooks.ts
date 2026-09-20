@@ -1,14 +1,16 @@
 import type { AgentMessage, AgentModelResponse, AgentToolCall } from "./contracts";
 
 export type AgentHookEvent =
+	| { name: "loop.checkpoint"; runId: string; messages: readonly AgentMessage[] }
 	| { name: "loop.started"; runId: string }
 	| { name: "model.before"; runId: string; iteration: number; attempt: number; messages: readonly AgentMessage[]; estimatedTokens: number }
 	| { name: "model.delta"; runId: string; iteration: number; text: string }
 	| { name: "model.after"; runId: string; iteration: number; response: AgentModelResponse }
 	| { name: "tool.before"; runId: string; iteration: number; call: AgentToolCall }
 	| { name: "tool.after"; runId: string; iteration: number; call: AgentToolCall; failed: boolean }
+	| { name: "compact.source"; runId: string; sourceRef: string; messages: readonly AgentMessage[] }
 	| { name: "compact.before"; runId: string; messageCount: number }
-	| { name: "compact.after"; runId: string; removedMessages: number; summary: string; estimatedTokens: number }
+	| { name: "compact.after"; runId: string; removedMessages: number; summary: string; estimatedTokens: number; beforeChars: number; afterChars: number; coverage?: { complete: boolean; sourceMessages: number; coveredMessages: number; calls: number } }
 	| { name: "loop.completed"; runId: string; iterations: number }
 	| { name: "loop.failed"; runId: string; error: unknown };
 

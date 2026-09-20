@@ -55,12 +55,13 @@ function harness(native = false, omitInspection = false, input = documentFixture
 	const inspector = new AssetInspectionService(engine, attachments, executor, root);
 	let attachmentId = ""; let sourceRef = ""; let calls = 0; let modelSawInspection = false;
 	const provider: AgentModelProvider = { async generate(request) {
+		if (request.outputSchema?.properties && typeof request.outputSchema.properties === "object" && "issues" in request.outputSchema.properties) return { text: JSON.stringify({ issues: [] }), toolCalls: [], usage };
 		calls += 1;
 		if (calls === 1) return { text: "", toolCalls: [{ id: "source-1", name: "project_source_read", input: { sourceId: "customer-brief" } }, ...(!omitInspection ? [{ id: "inspection-1", name: "asset_metadata_inspect", input: { attachmentId } }] : [])], usage };
 		modelSawInspection ||= request.messages.some((message) => message.role === "tool" && message.content.includes("asset-inspection.v1"));
 		return { text: JSON.stringify(createRequirementBrief({ industry: "print", title: "咖啡包装需求", customerGoal: "整理客户 PDF", facts: [{ key: "quantity", version: 1, value: 5000, unit: "个", status: "unverified", sourceType: "model_output", sourceRef: `${sourceRef}#page=1` }] })), toolCalls: [], usage };
 	} };
-	const runtime = new BlackxAgentRuntime({ provider, tools: [inspector.tool(), createProjectSourceReadTool(engine, attachments)], sandboxedToolExecutor: inspector, skills: new SkillRegistry(manufacturingSkills), sessions, snapshots: sessions, traces: sessions });
+	const runtime = new BlackxAgentRuntime({ provider, tools: [inspector.tool(), inspector.documentTool(() => { throw new Error("Local paths are not granted by this fixture"); }), createProjectSourceReadTool(engine, attachments)], sandboxedToolExecutor: inspector, skills: new SkillRegistry(manufacturingSkills), sessions, snapshots: sessions, traces: sessions });
 	const conversations = new ConversationApiController(runtime, sessions);
 	const conversation = (conversations.create(context).body as { conversation: ConversationView }).conversation;
 	const scope = { ...context, conversationId: conversation.conversationId };
@@ -144,12 +145,12 @@ describe("asset inspection product slice", () => {
 });
 
 describe.skipIf(process.platform !== "darwin" || process.env.BLACKX_RUN_SEATBELT_TESTS !== "1")("native document product slice", () => {
-	it("bounds long text and reports truncation", async () => {
+	it("retains text beyond the legacy 8000-character parser limit", async () => {
 		const h = harness(true, false, Buffer.from("x".repeat(9000)));
 		expect(await h.scheduler.runNext()).toMatchObject({ status: "completed" });
 		const inspection = h.inspector.readRecords(h.run)[0]!.inspection;
-		expect(inspection).toMatchObject({ kind: "text", status: "parsed", truncated: true });
-		expect(inspection.pages[0]!.text).toHaveLength(8000);
+		expect(inspection).toMatchObject({ kind: "text", status: "parsed", truncated: false });
+		expect(inspection.pages[0]!.text).toHaveLength(9000);
 	}, 20_000);
 	it("extracts pixel metadata without claiming image text or production dimensions", async () => {
 		const pixel = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aZ1EAAAAASUVORK5CYII=", "base64");

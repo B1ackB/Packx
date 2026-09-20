@@ -15,10 +15,40 @@ export interface AgentSessionScope {
 
 export interface AgentSessionState {
 	revision: number;
+	checkpoint?: { turnKey: string; contextBinding?: string };
 	messages: AgentMessage[];
+	/** Append-only visible dialogue, independent of the replaceable working messages. */
+	transcript?: AgentMessage[];
+	historyStatus?: "complete" | "legacy_partial";
+}
+
+export function visibleDialogue(message: AgentMessage): boolean {
+	return (message.role === "user" || message.role === "assistant") &&
+		(!message.kind || message.kind === "dialogue") && !message.durable && !message.toolCalls?.length &&
+		(message.kind === "dialogue" || !message.content.startsWith("[Unverified compact summary;")) &&
+		Boolean(message.content.trim() || message.attachments?.length || message.sources?.length);
+}
+
+export function appendTranscript(current: readonly AgentMessage[], candidates: readonly AgentMessage[], sessionId: string): AgentMessage[] {
+	const result = structuredClone([...current]);
+	for (const candidate of candidates.filter(visibleDialogue)) {
+		const { pinned: _pinned, providerState: _providerState, ...message } = candidate;
+		const messageId = message.messageId ?? `${sessionId}-legacy-${result.length + 1}`;
+		const existing = result.find((item) => item.messageId === messageId);
+		if (existing) {
+			if (existing.content !== message.content || existing.role !== message.role ||
+				JSON.stringify(existing.sources ?? []) !== JSON.stringify(message.sources ?? []) ||
+				JSON.stringify(existing.attachments ?? []) !== JSON.stringify(message.attachments ?? [])) {
+				throw new AgentStateStoreError("conflict", "Transcript message identity conflict");
+			}
+		} else result.push({ ...structuredClone(message), messageId, kind: "dialogue" });
+	}
+	return result;
 }
 
 export interface ContextSnapshotRecord extends AgentSessionScope {
+	contextBinding?: string;
+	purpose?: "turn" | "summary" | "archive";
 	schemaVersion: "context-snapshot.v2";
 	snapshotId: string;
 	iteration: number;
@@ -37,6 +67,7 @@ export interface AgentSessionStore {
 		expectedRevision: number,
 		messages: readonly AgentMessage[],
 		updatedAt: string,
+		checkpoint?: AgentSessionState["checkpoint"] | null,
 	): AgentSessionState;
 }
 
@@ -112,7 +143,7 @@ export class InMemoryAgentStateStore implements AgentSessionStore, ContextSnapsh
 	load(scope: AgentSessionScope): AgentSessionState {
 		const state = this.sessions.get(key(scope));
 		return state
-			? { revision: state.revision, messages: cloneMessages(state.messages) }
+			? structuredClone(state)
 			: { revision: 0, messages: [] };
 	}
 
@@ -121,12 +152,15 @@ export class InMemoryAgentStateStore implements AgentSessionStore, ContextSnapsh
 		expectedRevision: number,
 		messages: readonly AgentMessage[],
 		_updatedAt: string,
+		checkpoint?: AgentSessionState["checkpoint"] | null,
 	): AgentSessionState {
 		const current = this.load(scope);
 		if (current.revision !== expectedRevision) {
 			throw new AgentStateStoreError("conflict", "Agent Session revision changed");
 		}
-		const next = { revision: expectedRevision + 1, messages: cloneMessages(messages) };
+		const identified = messages.map((message, index) => visibleDialogue(message) && !message.messageId ? { ...message, messageId: `legacy-${expectedRevision}-${index}` } : message);
+		const next = { checkpoint: checkpoint === null ? undefined : checkpoint ?? current.checkpoint, revision: expectedRevision + 1, messages: cloneMessages(identified),
+			transcript: appendTranscript(current.transcript ?? [], identified, scope.sessionId), historyStatus: current.historyStatus ?? "complete" as const };
 		this.sessions.set(key(scope), next);
 		return this.load(scope);
 	}
@@ -148,6 +182,10 @@ export class InMemoryAgentStateStore implements AgentSessionStore, ContextSnapsh
 		const snapshot = this.snapshots.get(snapshotKey(scope, snapshotId));
 		if (!snapshot) throw new AgentStateStoreError("not_found", "Context Snapshot does not exist");
 		return structuredClone(snapshot);
+	}
+
+	async list(scope: { tenantId: string; workspaceId: string; runId: string }) {
+		return [...this.toolExecutions.values()].filter((record) => record.tenantId === scope.tenantId && record.workspaceId === scope.workspaceId && record.runId === scope.runId).map((record) => structuredClone(record));
 	}
 
 	async claim(record: AgentToolExecutionRecord): Promise<{ record: AgentToolExecutionRecord; duplicate: boolean }> {

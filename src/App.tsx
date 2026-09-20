@@ -1,7 +1,7 @@
 import { KnowledgePanel } from "./components/KnowledgePanel";
 import { ModelSettings } from "./components/ModelSettings";
 import { PlanPanel } from "./components/PlanPanel";
-import type { PlanWorkspace } from "./enterprise/agentPlan";
+import { planBudgetBlock, type PlanWorkspace } from "./enterprise/agentPlan";
 import { errorText, validationText } from "./i18n";
 import { ModelMonitor } from "./components/ModelMonitor";
 import { FileExplorer } from "./components/FileExplorer";
@@ -492,7 +492,7 @@ function App() {
 	const send = async (raw: string) => {
 		const content = raw.trim();
 		if (planState?.mode === "plan") {
-			if (content && !planRunning && !planBusy) await planCommand({ action: "generate", objective: content });
+			if (content && !planRunning && !planBusy && !planBudgetBlock(planState, true)) await planCommand({ action: "generate", objective: content });
 			return;
 		}
 		if (planRunning) return;
@@ -841,8 +841,9 @@ function App() {
 				>
 					{loading ? (
 						<div className="empty-state"><p>{en ? "Loading conversations…" : "正在加载服务端会话…"}</p></div>
-					) : active?.messages.length ? (
+					) : active && (active.messages.length || active.historyStatus === "legacy_partial") ? (
 						<div className="message-list">
+							{active.historyStatus === "legacy_partial" && <p role="status">{en ? "This older task may have missing history from earlier compression. Only surviving original messages are shown." : "此旧任务在早期压缩中可能已丢失部分历史；这里只展示仍保存的原始消息。"}</p>}
 							{active.messages.map((message) => (
 								<article key={message.messageId} className={`message ${message.role}`}>
 									<div className="avatar">{message.role === "assistant" ? "Px" : en ? "You" : "你"}</div>
@@ -960,7 +961,7 @@ function App() {
 							<button
 								type="submit"
 								className="send-button"
-								disabled={(!draft.trim() && selectedAttachmentIds.length === 0) || !realProvider || sending || hasActiveBackgroundTask || planBusy || planRunning || (planState?.mode === "plan" && !draft.trim())}
+								disabled={(!draft.trim() && selectedAttachmentIds.length === 0) || !realProvider || sending || hasActiveBackgroundTask || planBusy || planRunning || (planState?.mode === "plan" && (!draft.trim() || !!planBudgetBlock(planState, true)))}
 							>
 								↑
 							</button>
@@ -1110,7 +1111,16 @@ function App() {
 									<div className="section-title"><strong>{en ? "Requirement validation" : "需求校验"}</strong><span>{evaluation.passed ? en ? "Passed" : "通过" : en ? "Failed" : "未通过"}</span></div>
 									{evaluation.issues.length === 0
 										? <p>{en ? `Structure and authoritative-state checks passed. ${evaluation.approvalEligible ? "Ready for approval." : "More information or confirmation is still needed."}` : `结构和权威状态检查通过。${evaluation.approvalEligible ? "可以审批。" : "仍需补充或确认 信息。"}`}</p>
-										: evaluation.issues.map((issue) => <p key={issue.code}>{validationText(issue, language)}</p>)}
+										: evaluation.issues.map((issue, index) => <p key={`${issue.code}-${index}`}>{validationText(issue, language)}</p>)}
+									{evaluation.evidenceReview && <>
+										<p>{en ? "Evidence review" : "证据复核"} · v{evaluation.evidenceReview.artifactVersion} · {evaluation.evidenceReview.status === "failed" ? (en ? "Incomplete — approval blocked" : "未完成，已阻止审批") : (en ? "Completed" : "已完成")}</p>
+										{evaluation.evidenceReview.issues.map((issue, index) => <div key={index}>
+											<strong>{issue.location}</strong><p>{issue.reason}</p>
+											<p>{en ? "Evidence" : "证据"}: {issue.evidenceRefs.join(" · ") || (en ? "Insufficient evidence" : "证据不足")}</p>
+											<p>{en ? "Suggested action" : "建议动作"}: {issue.suggestedAction === "revise" ? (en ? "Revise the brief" : "修订需求单") : issue.suggestedAction === "reconfirm_plan" ? (en ? "Reconfirm plan" : "重新确认计划") : (en ? "Provide or confirm evidence" : "补充或确认资料")}</p>
+										</div>)}
+										{evaluation.decision === "reconfirm_plan" && <p>{en ? "The scope needs to change. Replan and confirm the new version before importing it again." : "需求涉及范围变化。请重新规划并确认新计划版本，再导入需求单。"}</p>}
+									</>}
 								</section>
 							)}
 

@@ -33,7 +33,10 @@ function responseFailure(response: ConversationApiResponse): RuntimeFailure {
 	const providerCode = typeof body.code === "string" ? body.code : "conversation_turn_failed";
 	let code: RuntimeFailureCode = response.status >= 500 ? "infrastructure_failure" : "execution_failed";
 	let retryable = response.status >= 500 || response.status === 409;
-	if (providerCode === "authentication") {
+	if (providerCode === "repeated_actions" || providerCode === "consecutive_tool_failures") {
+		code = providerCode;
+		retryable = false;
+	} else if (providerCode === "authentication") {
 		code = "authentication";
 		retryable = false;
 	} else if (providerCode === "rate_limit") {

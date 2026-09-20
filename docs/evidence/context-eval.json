@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "context-eval.v1",
+  "mode": "offline-deterministic-fixture",
+  "paidCalls": 0,
+  "semanticQuality": "NOT_EVALUATED",
+  "tokenMetric": "Same byte-based estimator for both; no provider usage claims",
+  "latencyMetric": "Local Fake elapsed time, not network/model latency",
+  "results": [
+    {
+      "name": "frozen-baseline",
+      "constraintRetention": 0,
+      "currentFactVersionCorrect": false,
+      "referenceIntegrity": 0,
+      "protocolPaired": true,
+      "originalDialoguePreserved": false,
+      "beforeEstimatedTokens": 31470,
+      "afterEstimatedTokens": 4057,
+      "summaryInputEstimatedTokens": 24717,
+      "summaryOutputEstimatedTokens": 45,
+      "extraGenerationCalls": 3,
+      "extraTokenCountCalls": 0,
+      "removedMessages": 209,
+      "elapsedMs": 1.106,
+      "rounds": 3
+    },
+    {
+      "name": "improved",
+      "constraintRetention": 1,
+      "currentFactVersionCorrect": true,
+      "referenceIntegrity": 1,
+      "protocolPaired": true,
+      "originalDialoguePreserved": true,
+      "beforeEstimatedTokens": 34313,
+      "afterEstimatedTokens": 4355,
+      "summaryInputEstimatedTokens": 22878,
+      "summaryOutputEstimatedTokens": 77,
+      "extraGenerationCalls": 4,
+      "extraTokenCountCalls": 4,
+      "removedMessages": 219,
+      "elapsedMs": 3.038,
+      "rounds": 3
+    }
+  ]
+}

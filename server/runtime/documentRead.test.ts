@@ -1,3 +1,4 @@
+import { compileToolExecutionManifest } from "../../src/agent/sandbox";
 import { SkillRegistry } from "../../src/agent/skills";
 import { mkdtempSync, readFileSync, rmSync, realpathSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -66,6 +67,28 @@ describe.skipIf(process.platform !== "darwin" || process.env.BLACKX_RUN_SEATBELT
 			expect((result.body as { conversation: ConversationView }).conversation.messages[0].attachments?.[0].name).toBe(name);
 		}, 20_000);
 	}
+	it("reads beyond the old text limit across restart, preserving units and refusing changed-source cursors", async () => {
+		const h = setup(); let service = h.service; const source = join(h.root, "long-document.txt");
+		const lines = Array.from({ length: 500 }, (_, index) => `ROW-${index}: 100 µm; no PVC; 23 °C, 50% RH; supplier verification pending.`);
+		writeFileSync(source, lines.join("\n"));
+		const read = async (cursor?: string) => {
+			const tool = service.documentTool((scope, path) => h.files.readDocument(scope, path));
+			const id = crypto.randomUUID();
+			const scope = { ...identity, runId: h.conversation.conversationId, stageId: "conversation", executionId: id, toolCallId: id, idempotencyKey: id, sandboxAttemptId: id, signal: new AbortController().signal };
+			const invocation = tool.createInvocation({ path: source, ...(cursor ? { cursor } : {}) }, scope);
+			const manifest = compileToolExecutionManifest({ ...scope, attemptId: id, tool: { name: tool.name, version: tool.version }, command: { executable: tool.executable, argv: invocation.argv, workingDirectory: invocation.workingDirectory }, paths: invocation.paths, environment: tool.sandbox.environment, network: tool.sandbox.network, limits: { ...tool.sandbox.limits, timeoutMs: tool.timeoutMs } });
+			const result = await service.execute(manifest, scope.signal);
+			expect(result.status).toBe("succeeded");
+			return JSON.parse(result.stdout.text) as { inspection: { pages: Array<{ text: string }> }; continuation: { cursor: string | null; sourceTruncated: boolean } };
+		};
+		let page = await read(); const firstCursor = page.continuation.cursor!; let full = page.inspection.pages.map((p) => p.text).join("\n");
+		service = new AssetInspectionService(new ProposalRunEngine(new InMemoryEnterpriseEventStore()), h.attachments, new MacOsSeatbeltSandboxedToolExecutor({ workspaceRoot: h.root }), h.root);
+		expect(firstCursor).toBeTruthy(); expect(page.continuation.sourceTruncated).toBe(false);
+		while (page.continuation.cursor) { page = await read(page.continuation.cursor); full += "\n" + page.inspection.pages.map((p) => p.text).join("\n"); }
+		for (const line of lines) expect(full).toContain(line);
+		writeFileSync(source, "changed"); await expect(read(firstCursor)).rejects.toThrow("source changed");
+	}, 30_000);
+
 	it("previews local PDF content and does not execute external XML entities or oversized archives", async () => {
 		const h = setup(); const scope = { ...identity, runId: h.conversation.conversationId };
 		const inspect = (path: string) => h.service.preview(scope, path, (context, file) => h.files.readDocument(context, file), new AbortController().signal);

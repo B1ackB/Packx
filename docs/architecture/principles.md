@@ -345,6 +345,8 @@ Delivery
 
 一个 Stage 只有在输出存在、Schema 通过、必需评测通过且审批完成后才能进入 `passed`。
 
+包装需求单的最小证据复核与单次修订流程见 [需求单证据复核](../requirement-evidence-review.md)。
+
 ## 9. 评测原则
 
 评测优先级：

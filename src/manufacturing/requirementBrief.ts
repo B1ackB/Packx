@@ -1,3 +1,5 @@
+import type { EvidenceReviewReport } from "../enterprise/evidenceReview";
+
 export type ManufacturingIndustry = "print";
 
 export type RequirementFactStatus = "suggested" | "unverified" | "verified";
@@ -32,6 +34,8 @@ export interface RequirementBriefV1 {
 
 export interface RequirementBriefEvaluation {
 	schemaVersion: "requirement-brief-evaluation.v1";
+	evidenceReview?: EvidenceReviewReport;
+	decision?: "continue" | "revise" | "request_input" | "reconfirm_plan";
 	passed: boolean;
 	approvalEligible: boolean;
 	issues: Array<{ code: string; message: string }>;

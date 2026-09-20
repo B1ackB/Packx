@@ -197,6 +197,9 @@ export class FileConversationAttachmentStore {
 	}
 
 	readText(scope: ConversationAttachmentScope, maxChars = 24_000): Array<{
+		truncated: boolean;
+		sha256: string;
+		readTool: string;
 		attachmentId: string;
 		name: string;
 		content: string;
@@ -204,14 +207,24 @@ export class FileConversationAttachmentStore {
 	}> {
 		let remaining = maxChars;
 		return this.list(scope).flatMap((attachment) => {
-			if (attachment.kind !== "text" || remaining <= 0) return [];
-			const decoded = readFileSync(join(this.directory(scope), `${attachment.attachmentId}.bin`), "utf8");
-			const content = decoded.slice(0, remaining);
+			if (attachment.kind !== "text") return [];
+			const decoded = this.read(scope, attachment.attachmentId).content.toString("utf8");
+			const lines: string[] = [];
+			let size = 0;
+			for (const line of decoded.split("\n")) {
+				const length = line.length + (lines.length ? 1 : 0);
+				if (size + length > remaining) break;
+				lines.push(line); size += length;
+			}
+			const content = lines.join("\n");
 			remaining -= content.length;
 			return [{
 				attachmentId: attachment.attachmentId,
 				name: attachment.name,
 				content,
+				truncated: content !== decoded,
+				sha256: attachment.sha256,
+				readTool: "document_read",
 				sourceRef: attachment.sourceRef,
 			}];
 		});

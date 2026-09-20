@@ -63,13 +63,24 @@ final class OfficeXML: NSObject, XMLParserDelegate {
 func inspectOffice(url: URL, data: Data) -> [String: Any]? {
 	guard let archive = OfficeArchive(url: url, data: data) else { return nil }
 	if archive.names.contains("word/document.xml") {
-		var output = ""; var inText = false
+		var output = ""; var inText = false; var inCell = false
 		let xml = OfficeXML()
-		xml.start = { name, _ in if name == "t" { inText = true }; if name == "tab" { output += "\t" }; if name == "br" { output += "\n" } }
+		xml.start = { name, _ in if name == "tc" { inCell = true }; if name == "t" { inText = true }; if name == "tab" { output += "\t" }; if name == "br" { output += "\n" } }
 		xml.text = { if inText { output += $0 } }
-		xml.end = { if $0 == "t" { inText = false }; if $0 == "p" { output += "\n" }; if $0 == "tc" { output += "\t" } }
+		xml.end = { if $0 == "t" { inText = false }; if $0 == "p" { output += inCell ? " " : "\n" }; if $0 == "tc" { inCell = false; output += "\t" }; if $0 == "tr" { output += "\n" } }
 		guard xml.parse(archive.part("word/document.xml")) else { return nil }
-		return ["kind": "word", "status": "parsed", "pages": [["page": 1, "text": String(output.prefix(24_000))]], "truncated": output.count > 24_000]
+		for part in ["word/footnotes.xml", "word/endnotes.xml"] where archive.names.contains(part) {
+			output += "\nSource notes: \(part)\n"
+			let notes = OfficeXML()
+			notes.start = { name, attrs in
+				if name == "t" { inText = true }
+				if name == "footnote" || name == "endnote" { output += "[note \(attrs["w:id"] ?? attrs["id"] ?? "?")] " }
+			}
+			notes.text = { if inText { output += $0 } }
+			notes.end = { if $0 == "t" { inText = false }; if $0 == "p" { output += "\n" } }
+			guard notes.parse(archive.part(part)) else { return nil }
+		}
+		return ["kind": "word", "status": "parsed", "pages": [["page": 1, "text": wholeLines(output, limit: 1_000_000)]], "truncated": output.count > 1_000_000]
 	}
 	if archive.names.contains("xl/workbook.xml") {
 		var strings: [String] = []; var value = ""; var inText = false
@@ -86,13 +97,13 @@ func inspectOffice(url: URL, data: Data) -> [String: Any]? {
 		let book = OfficeXML()
 		book.start = { name, attrs in if name == "sheet", let title = attrs["name"], let id = attrs["r:id"], let target = relations[id] { sheets.append((title, target)) } }
 		guard book.parse(archive.part("xl/workbook.xml")), !sheets.isEmpty else { return nil }
-		var pages: [[String: Any]] = []; var remaining = 24_000; var truncated = sheets.count > 20
-		for (title, target) in sheets.prefix(20) {
+		var pages: [[String: Any]] = []; var remaining = 1_000_000; var truncated = sheets.count > 1000
+		for (title, target) in sheets.prefix(1000) {
 			if remaining <= 0 { truncated = true; break }
-			var output = "Sheet: \(title)\n"; var coordinate = ""; var type = ""; var cell = ""; var formula = false; var capture = false; var rows = 0
+			var output = "Sheet: \(title)\n"; var coordinate = ""; var type = ""; var cell = ""; var formula = false; var capture = false; var rowText = ""
 			let sheet = OfficeXML()
 			sheet.start = { name, attrs in
-				if name == "row" { rows += 1 }
+				if name == "row" { rowText = "" }
 				if name == "c" { coordinate = attrs["r"] ?? "?"; type = attrs["t"] ?? "n"; cell = ""; formula = false }
 				if name == "f" { formula = true }
 				if name == "v" || name == "t" { capture = true }
@@ -100,15 +111,16 @@ func inspectOffice(url: URL, data: Data) -> [String: Any]? {
 			sheet.text = { if capture { cell += $0 } }
 			sheet.end = { name in
 				if name == "v" || name == "t" { capture = false }
-				if name == "c", rows <= 500, output.count <= 24_000 {
+				if name == "c" {
 					let text: String
 					if type == "s", let index = Int(cell), strings.indices.contains(index) { text = strings[index] } else { text = cell }
-					output += "\(coordinate): \(text)\(formula ? " [cached formula result; not recalculated]" : "")\n"
+					rowText += "\(coordinate): \(text.replacingOccurrences(of: "\n", with: " "))\(formula ? " [cached formula result; not recalculated]" : "")\t"
 				}
+				if name == "row" { output += rowText + "\n" }
 			}
 			guard sheet.parse(archive.part(target)) else { return nil }
-			let bounded = String(output.prefix(remaining)); remaining -= bounded.count
-			truncated = truncated || rows > 500 || bounded.count < output.count
+			let bounded = wholeLines(output, limit: remaining); remaining -= bounded.count
+			truncated = truncated || bounded.count < output.count
 			pages.append(["page": pages.count + 1, "text": bounded])
 		}
 		return ["kind": "spreadsheet", "status": "parsed", "pages": pages, "truncated": truncated]
