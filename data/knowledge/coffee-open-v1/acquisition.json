@@ -1,0 +1,160 @@
+{
+	"schemaVersion": "coffee-acquisition.v1",
+	"service": "PMC Article Datasets via anonymous HTTPS",
+	"policy": "https://pmc.ncbi.nlm.nih.gov/tools/pmcaws/",
+	"robots": {
+		"url": "https://pmc-oa-opendata.s3.amazonaws.com/robots.txt",
+		"checkedAt": "2026-09-17T00:00:00.000Z",
+		"status": 404,
+		"interpretation": "No robots object; explicit dataset API authorization applies, no website crawling"
+	},
+	"records": [
+		{
+			"id": "PMC11243642",
+			"revision": "PMC11243642.1",
+			"status": "downloaded",
+			"title": "A Recyclable Polypropylene Multilayer Film Maintaining the Quality and the Aroma of Coffee Pods during Their Shelf Life",
+			"doi": "10.3390/molecules29133006",
+			"citation": "Molecules. 2024 Jun 25;29(13):3006. doi: 10.3390/molecules29133006",
+			"license": "CC BY",
+			"checkedAt": "2026-09-17T00:00:00.000Z",
+			"retrievedAt": "2026-09-17T07:40:27.163Z",
+			"metadataSha256": "5ed02090667d0149f1dbc6ebe2db6ddd3639a0f1f40e87eae5fe5e48a4135bf4",
+			"files": [
+				{
+					"file": "PMC11243642.1/PMC11243642.1.xml",
+					"url": "https://pmc-oa-opendata.s3.amazonaws.com/PMC11243642.1/PMC11243642.1.xml",
+					"bytes": 207117,
+					"sha256": "bf9cc1ad9b4536c2ce933421244c4c95da7f4314ba3fdb8069561125cbfa9466",
+					"publisherMd5": "3e2d2da78a5450e01cd32fe1816608c6"
+				},
+				{
+					"file": "PMC11243642.1/PMC11243642.1.pdf",
+					"url": "https://pmc-oa-opendata.s3.amazonaws.com/PMC11243642.1/PMC11243642.1.pdf",
+					"bytes": 1766819,
+					"sha256": "122466b13b984310abec44138f28689153c56c2b40d132c457273ef408fb0ff6",
+					"publisherMd5": "f85dd3f3bfefdfa80bfdce8415a71386"
+				}
+			]
+		},
+		{
+			"id": "PMC10931445",
+			"revision": "PMC10931445.1",
+			"status": "downloaded",
+			"title": "The Lipidic and Volatile Components of Coffee Pods and Capsules Packaged in an Alternative Multilayer Film",
+			"doi": "10.3390/foods13050759",
+			"citation": "Foods. 2024 Feb 29;13(5):759. doi: 10.3390/foods13050759",
+			"license": "CC BY",
+			"checkedAt": "2026-09-17T00:00:00.000Z",
+			"retrievedAt": "2026-09-17T07:40:35.515Z",
+			"metadataSha256": "0e90ce9e0ae4c95512ec33ec898f60db5856983336f7845289deff90bb661da0",
+			"files": [
+				{
+					"file": "PMC10931445.1/PMC10931445.1.xml",
+					"url": "https://pmc-oa-opendata.s3.amazonaws.com/PMC10931445.1/PMC10931445.1.xml",
+					"bytes": 230270,
+					"sha256": "e844b07928b962d94e98fae590eb0dbf6f3f81b3a5ae92746adfc0dfece0d57a",
+					"publisherMd5": "262f2a7474bd738281f468afe3951c9d"
+				},
+				{
+					"file": "PMC10931445.1/PMC10931445.1.pdf",
+					"url": "https://pmc-oa-opendata.s3.amazonaws.com/PMC10931445.1/PMC10931445.1.pdf",
+					"bytes": 1555974,
+					"sha256": "bba4f2e7dee81b22722df73613efaf0b051be5d4d83faebee55878a40b1a594a",
+					"publisherMd5": "080d69487499f4b9dd8ce482f62c1165"
+				}
+			]
+		},
+		{
+			"id": "PMC9563479",
+			"revision": "PMC9563479.1",
+			"status": "downloaded",
+			"title": "Lipid Oxidation Changes of Arabica Green Coffee Beans during Accelerated Storage with Different Packaging Types",
+			"doi": "10.3390/foods11193040",
+			"citation": "Foods. 2022 Sep 30;11(19):3040. doi: 10.3390/foods11193040",
+			"license": "CC BY",
+			"checkedAt": "2026-09-17T00:00:00.000Z",
+			"retrievedAt": "2026-09-17T07:40:43.818Z",
+			"metadataSha256": "dfe632b7f5331643b1ab8fd78597f16752e0ff4aedc98c2e9061137a7c53b9b3",
+			"files": [
+				{
+					"file": "PMC9563479.1/PMC9563479.1.xml",
+					"url": "https://pmc-oa-opendata.s3.amazonaws.com/PMC9563479.1/PMC9563479.1.xml",
+					"bytes": 185448,
+					"sha256": "e843f99795189fe125d4e8f63ea33d5bce3b8c5ec1b70360599bc5a42f9432de",
+					"publisherMd5": "4c6f99f0a624c7414f4b7a5e8f3dadcc"
+				},
+				{
+					"file": "PMC9563479.1/PMC9563479.1.pdf",
+					"url": "https://pmc-oa-opendata.s3.amazonaws.com/PMC9563479.1/PMC9563479.1.pdf",
+					"bytes": 5112590,
+					"sha256": "e843a337a0ee59384295118eaea80b27baaa2a0ff93fb934f024afed3da32a4f",
+					"publisherMd5": "14ef96c82b07a6f7aee02f5e448e8483"
+				}
+			]
+		},
+		{
+			"id": "PMC11031754",
+			"revision": "PMC11031754.1",
+			"status": "excluded",
+			"license": "CC BY-NC-ND",
+			"reason": "Requires CC BY, non-retracted final published version"
+		},
+		{
+			"id": "PMC10670670",
+			"revision": "PMC10670670.1",
+			"status": "downloaded",
+			"title": "Potential Use of PLA-Based Films Loaded with Antioxidant Agents from Spent Coffee Grounds for Preservation of Refrigerated Foods",
+			"doi": "10.3390/foods12224167",
+			"citation": "Foods. 2023 Nov 17;12(22):4167. doi: 10.3390/foods12224167",
+			"license": "CC BY",
+			"checkedAt": "2026-09-17T00:00:00.000Z",
+			"retrievedAt": "2026-09-17T07:41:05.508Z",
+			"metadataSha256": "55648382afb11ddd7d0b05121c459a63657d8ad68a88f2ee1b89d49bb8f2615d",
+			"files": [
+				{
+					"file": "PMC10670670.1/PMC10670670.1.xml",
+					"url": "https://pmc-oa-opendata.s3.amazonaws.com/PMC10670670.1/PMC10670670.1.xml",
+					"bytes": 145739,
+					"sha256": "3806a7a39a3c67bd5599fbf73a407acf1af2a0185117762a3fb07a165a0f42f1",
+					"publisherMd5": "52a7cb16b53923fc7b9760d81d35a5d5"
+				},
+				{
+					"file": "PMC10670670.1/PMC10670670.1.pdf",
+					"url": "https://pmc-oa-opendata.s3.amazonaws.com/PMC10670670.1/PMC10670670.1.pdf",
+					"bytes": 5296618,
+					"sha256": "99a757b56c018fbee4de7e2c8704530b116e6184f42d6e05392e67497d594a81",
+					"publisherMd5": "0d5ad2e0cdbe8aa890fb6f9730e61037"
+				}
+			]
+		},
+		{
+			"id": "PMC11944891",
+			"revision": "PMC11944891.1",
+			"status": "downloaded",
+			"title": "Preparation and Characterization of Biocomposite Films with Enhanced Oxygen Barrier and Antioxidant Properties Based on Polylactide and Extracts from Coffee Silverskin",
+			"doi": "10.3390/molecules30061383",
+			"citation": "Molecules. 2025 Mar 20;30(6):1383. doi: 10.3390/molecules30061383",
+			"license": "CC BY",
+			"checkedAt": "2026-09-17T00:00:00.000Z",
+			"retrievedAt": "2026-09-17T07:41:13.276Z",
+			"metadataSha256": "7340dab6aac2681209757c4925442660d6d6ff4209ae569ab69d491b9d18d674",
+			"files": [
+				{
+					"file": "PMC11944891.1/PMC11944891.1.xml",
+					"url": "https://pmc-oa-opendata.s3.amazonaws.com/PMC11944891.1/PMC11944891.1.xml",
+					"bytes": 139438,
+					"sha256": "a488798cd5b8867a907ba34fa11e067c2fe74fe8495938572ed7ffd967ecb937",
+					"publisherMd5": "dcfc5410fabb5603d24c7b9ef393cb93"
+				},
+				{
+					"file": "PMC11944891.1/PMC11944891.1.pdf",
+					"url": "https://pmc-oa-opendata.s3.amazonaws.com/PMC11944891.1/PMC11944891.1.pdf",
+					"bytes": 4705540,
+					"sha256": "e98c6e5b9f74a3ca4f61fb76a3882c4e64ce92e17bb840c08853aeff16ca9f7e",
+					"publisherMd5": "bdfab1a7c1f0cd8850d64342b35464db"
+				}
+			]
+		}
+	]
+}

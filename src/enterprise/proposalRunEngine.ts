@@ -447,6 +447,18 @@ export class ProposalRunEngine {
 		);
 	}
 
+	/** External evidence can lose validity even after delivery. Preserve the artifact, revoke its approval. */
+	invalidateSource(command: CommandEnvelope & { reason: string }): ProposalRunState {
+		const state = this.load(command);
+		const artifact = state.currentProposal;
+		if (!artifact || artifact.freshness === "stale") return state;
+		return this.execute(command, [
+			{ type: "artifact.marked_stale", artifactId: artifact.artifactId, artifactVersion: artifact.version, reason: command.reason },
+			...(state.approval && state.approval.status !== "superseded" ? [{ type: "approval.superseded" as const, approvalId: state.approval.approvalId, artifactId: state.approval.artifactId, artifactVersion: state.approval.artifactVersion }] : []),
+			{ type: "stage.revision_required", stage: this.stageId },
+		]);
+	}
+
 	confirmProposalGate(command: CommandEnvelope): ProposalRunState {
 		return this.execute(
 			command,

@@ -1,0 +1,984 @@
+[
+	{
+		"id": "rec-pet-zh",
+		"query": "可回收聚丙烯咖啡纸包研究中，对照 STD 膜的 PET 层厚度是多少？",
+		"language": "zh",
+		"category": "layer_thickness",
+		"split": "development",
+		"family": "calabrese-coffee-films",
+		"expected": [
+			{
+				"documentId": "PMC11243642",
+				"block": 36,
+				"quote": "12 microns"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "rec-pet-en",
+		"query": "In the recyclable polypropylene coffee pod study, what is the PET layer thickness of STD film?",
+		"language": "en",
+		"category": "layer_thickness",
+		"split": "development",
+		"family": "calabrese-coffee-films",
+		"expected": [
+			{
+				"documentId": "PMC11243642",
+				"block": 36,
+				"quote": "12 microns"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "rec-pe-zh",
+		"query": "REC 研究中标准 STD 膜的 PE 层厚度是多少？",
+		"language": "zh",
+		"category": "layer_thickness",
+		"split": "development",
+		"family": "calabrese-coffee-films",
+		"expected": [
+			{
+				"documentId": "PMC11243642",
+				"block": 36,
+				"quote": "60 microns"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "rec-pe-en",
+		"query": "In the REC study, what thickness is the PE layer in STD film?",
+		"language": "en",
+		"category": "layer_thickness",
+		"split": "development",
+		"family": "calabrese-coffee-films",
+		"expected": [
+			{
+				"documentId": "PMC11243642",
+				"block": 36,
+				"quote": "60 microns"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "rec-structure-zh",
+		"query": "REC 膜由哪些聚丙烯层组成？",
+		"language": "zh",
+		"category": "structure",
+		"split": "development",
+		"family": "calabrese-coffee-films",
+		"expected": [
+			{
+				"documentId": "PMC11243642",
+				"block": 37,
+				"quote": "oriented polypropylene high performance"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "rec-structure-en",
+		"query": "What polypropylene layers compose the REC film?",
+		"language": "en",
+		"category": "structure",
+		"split": "development",
+		"family": "calabrese-coffee-films",
+		"expected": [
+			{
+				"documentId": "PMC11243642",
+				"block": 37,
+				"quote": "oriented polypropylene high performance"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "rec-opp-zh",
+		"query": "REC 膜的 OPPHP 层厚度是多少？",
+		"language": "zh",
+		"category": "layer_thickness",
+		"split": "development",
+		"family": "calabrese-coffee-films",
+		"expected": [
+			{
+				"documentId": "PMC11243642",
+				"block": 37,
+				"quote": "15 microns"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "rec-opp-en",
+		"query": "What is the thickness of the OPPHP layer in REC film?",
+		"language": "en",
+		"category": "layer_thickness",
+		"split": "development",
+		"family": "calabrese-coffee-films",
+		"expected": [
+			{
+				"documentId": "PMC11243642",
+				"block": 37,
+				"quote": "15 microns"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "rec-barrier-zh",
+		"query": "论文为 REC 膜报告的 OTR 原始值是什么？",
+		"language": "zh",
+		"category": "raw_inequality",
+		"split": "development",
+		"family": "calabrese-coffee-films",
+		"expected": [
+			{
+				"documentId": "PMC11243642",
+				"block": 37,
+				"quote": "<0.5"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "rec-barrier-en",
+		"query": "What raw OTR value is reported for REC film?",
+		"language": "en",
+		"category": "raw_inequality",
+		"split": "development",
+		"family": "calabrese-coffee-films",
+		"expected": [
+			{
+				"documentId": "PMC11243642",
+				"block": 37,
+				"quote": "<0.5"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "rec-grammage-zh",
+		"query": "REC 膜的克重及单位是什么？",
+		"language": "zh",
+		"category": "unit",
+		"split": "development",
+		"family": "calabrese-coffee-films",
+		"expected": [
+			{
+				"documentId": "PMC11243642",
+				"block": 37,
+				"quote": "81 g/m2"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "rec-grammage-en",
+		"query": "What grammage and unit are given for REC film?",
+		"language": "en",
+		"category": "unit",
+		"split": "development",
+		"family": "calabrese-coffee-films",
+		"expected": [
+			{
+				"documentId": "PMC11243642",
+				"block": 37,
+				"quote": "81 g/m2"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "rec-fill-zh",
+		"query": "可回收聚丙烯膜研究里每个咖啡纸包实际装多少咖啡？",
+		"language": "zh",
+		"category": "applicability",
+		"split": "development",
+		"family": "calabrese-coffee-films",
+		"expected": [
+			{
+				"documentId": "PMC11243642",
+				"block": 35,
+				"quote": "8.5 g"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "rec-fill-en",
+		"query": "How much coffee is inside each pod in the recyclable polypropylene film study?",
+		"language": "en",
+		"category": "applicability",
+		"split": "development",
+		"family": "calabrese-coffee-films",
+		"expected": [
+			{
+				"documentId": "PMC11243642",
+				"block": 35,
+				"quote": "8.5 g"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "rec-gas-zh",
+		"query": "REC 研究的咖啡纸包使用什么保护气体？",
+		"language": "zh",
+		"category": "storage_condition",
+		"split": "development",
+		"family": "calabrese-coffee-films",
+		"expected": [
+			{
+				"documentId": "PMC11243642",
+				"block": 35,
+				"quote": "100% nitrogen"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "rec-gas-en",
+		"query": "What protective gas was used for the coffee pods in the REC study?",
+		"language": "en",
+		"category": "storage_condition",
+		"split": "development",
+		"family": "calabrese-coffee-films",
+		"expected": [
+			{
+				"documentId": "PMC11243642",
+				"block": 35,
+				"quote": "100% nitrogen"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "rec-store-zh",
+		"query": "REC 咖啡纸包研究的储存温度和时长是什么？",
+		"language": "zh",
+		"category": "storage_condition",
+		"split": "development",
+		"family": "calabrese-coffee-films",
+		"expected": [
+			{
+				"documentId": "PMC11243642",
+				"block": 39,
+				"quote": "12 months at 25 °C and at 40 °C"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "rec-store-en",
+		"query": "At what temperatures and for how long were REC coffee pods stored?",
+		"language": "en",
+		"category": "storage_condition",
+		"split": "development",
+		"family": "calabrese-coffee-films",
+		"expected": [
+			{
+				"documentId": "PMC11243642",
+				"block": 39,
+				"quote": "12 months at 25 °C and at 40 °C"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "alt-pe-zh",
+		"query": "ALT 替代多层咖啡包装膜的 PE 层厚度是多少？",
+		"language": "zh",
+		"category": "layer_thickness",
+		"split": "development",
+		"family": "calabrese-coffee-films",
+		"expected": [
+			{
+				"documentId": "PMC10931445",
+				"block": 18,
+				"quote": "55 microns"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "alt-pe-en",
+		"query": "How thick is the polyethylene layer of the ALT alternative multilayer coffee film?",
+		"language": "en",
+		"category": "layer_thickness",
+		"split": "development",
+		"family": "calabrese-coffee-films",
+		"expected": [
+			{
+				"documentId": "PMC10931445",
+				"block": 18,
+				"quote": "55 microns"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "alt-metallization-zh",
+		"query": "ALT 膜的 MPET 层中氧化铝厚度如何描述？",
+		"language": "zh",
+		"category": "structure",
+		"split": "development",
+		"family": "calabrese-coffee-films",
+		"expected": [
+			{
+				"documentId": "PMC10931445",
+				"block": 18,
+				"quote": "aluminum oxide < 1 micron"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "alt-metallization-en",
+		"query": "How is the aluminum oxide thickness in the MPET layer of ALT described?",
+		"language": "en",
+		"category": "structure",
+		"split": "development",
+		"family": "calabrese-coffee-films",
+		"expected": [
+			{
+				"documentId": "PMC10931445",
+				"block": 18,
+				"quote": "aluminum oxide < 1 micron"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "alt-pack-zh",
+		"query": "ALT 研究的咖啡胶囊每包装几粒？",
+		"language": "zh",
+		"category": "applicability",
+		"split": "development",
+		"family": "calabrese-coffee-films",
+		"expected": [
+			{
+				"documentId": "PMC10931445",
+				"block": 16,
+				"quote": "packs of 10"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "alt-pack-en",
+		"query": "How many capsules were packaged together in the ALT study?",
+		"language": "en",
+		"category": "applicability",
+		"split": "development",
+		"family": "calabrese-coffee-films",
+		"expected": [
+			{
+				"documentId": "PMC10931445",
+				"block": 16,
+				"quote": "packs of 10"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "alt-store-zh",
+		"query": "ALT 研究的储存试验持续多少天？",
+		"language": "zh",
+		"category": "storage_condition",
+		"split": "development",
+		"family": "calabrese-coffee-films",
+		"expected": [
+			{
+				"documentId": "PMC10931445",
+				"block": 21,
+				"quote": "180 days"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "alt-store-en",
+		"query": "How many days did the ALT film storage experiment last?",
+		"language": "en",
+		"category": "storage_condition",
+		"split": "development",
+		"family": "calabrese-coffee-films",
+		"expected": [
+			{
+				"documentId": "PMC10931445",
+				"block": 21,
+				"quote": "180 days"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "green-method-zh",
+		"query": "生咖啡豆包装研究用什么标准测量空气透过性？",
+		"language": "zh",
+		"category": "test_method",
+		"split": "frozen",
+		"family": "PMC9563479",
+		"expected": [
+			{
+				"documentId": "PMC9563479",
+				"block": 12,
+				"quote": "ASTM D737-04"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "green-method-en",
+		"query": "Which standard was used to measure air permeability of green coffee bean packaging?",
+		"language": "en",
+		"category": "test_method",
+		"split": "frozen",
+		"family": "PMC9563479",
+		"expected": [
+			{
+				"documentId": "PMC9563479",
+				"block": 12,
+				"quote": "ASTM D737-04"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "green-instrument-zh",
+		"query": "生咖啡豆包装的厚度用什么仪器测量？",
+		"language": "zh",
+		"category": "test_method",
+		"split": "frozen",
+		"family": "PMC9563479",
+		"expected": [
+			{
+				"documentId": "PMC9563479",
+				"block": 12,
+				"quote": "SMD-565J"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "green-instrument-en",
+		"query": "Which instrument measured thickness of the green coffee packaging?",
+		"language": "en",
+		"category": "test_method",
+		"split": "frozen",
+		"family": "PMC9563479",
+		"expected": [
+			{
+				"documentId": "PMC9563479",
+				"block": 12,
+				"quote": "SMD-565J"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "green-rh-zh",
+		"query": "生咖啡豆加速储存实验的相对湿度是多少？",
+		"language": "zh",
+		"category": "storage_condition",
+		"split": "frozen",
+		"family": "PMC9563479",
+		"expected": [
+			{
+				"documentId": "PMC9563479",
+				"block": 12,
+				"quote": "relative humidity (RH) 50%"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "green-rh-en",
+		"query": "What relative humidity was used in accelerated storage of green coffee beans?",
+		"language": "en",
+		"category": "storage_condition",
+		"split": "frozen",
+		"family": "PMC9563479",
+		"expected": [
+			{
+				"documentId": "PMC9563479",
+				"block": 12,
+				"quote": "relative humidity (RH) 50%"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "green-fill-zh",
+		"query": "生咖啡豆加速储存研究中每袋装样多少？",
+		"language": "zh",
+		"category": "applicability",
+		"split": "frozen",
+		"family": "PMC9563479",
+		"expected": [
+			{
+				"documentId": "PMC9563479",
+				"block": 12,
+				"quote": "250 g"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "green-fill-en",
+		"query": "How much green coffee was packed per bag in the accelerated storage study?",
+		"language": "en",
+		"category": "applicability",
+		"split": "frozen",
+		"family": "PMC9563479",
+		"expected": [
+			{
+				"documentId": "PMC9563479",
+				"block": 12,
+				"quote": "250 g"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "green-gp-air-zh",
+		"query": "生咖啡豆研究表 1 中 GP 袋的空气透过性原始值和单位是什么？",
+		"language": "zh",
+		"category": "table_value",
+		"split": "frozen",
+		"family": "PMC9563479",
+		"expected": [
+			{
+				"documentId": "PMC9563479",
+				"block": 52,
+				"quote": "0.538 ± 0.04"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "green-gp-air-en",
+		"query": "What air permeability value and unit are given for GP bags in Table 1 of the green coffee study?",
+		"language": "en",
+		"category": "table_value",
+		"split": "frozen",
+		"family": "PMC9563479",
+		"expected": [
+			{
+				"documentId": "PMC9563479",
+				"block": 52,
+				"quote": "0.538 ± 0.04"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "green-ldpe-thick-zh",
+		"query": "生咖啡豆研究表 1 中 LDPE 包装的厚度原文值是什么？",
+		"language": "zh",
+		"category": "table_value",
+		"split": "frozen",
+		"family": "PMC9563479",
+		"expected": [
+			{
+				"documentId": "PMC9563479",
+				"block": 51,
+				"quote": "0.075 ± 0.00"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "green-ldpe-thick-en",
+		"query": "What is the original LDPE thickness value in Table 1 of the green coffee study?",
+		"language": "en",
+		"category": "table_value",
+		"split": "frozen",
+		"family": "PMC9563479",
+		"expected": [
+			{
+				"documentId": "PMC9563479",
+				"block": 51,
+				"quote": "0.075 ± 0.00"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "scg-thick-zh",
+		"query": "添加咖啡渣提取物的 PLA 薄膜厚度范围是多少？",
+		"language": "zh",
+		"category": "range",
+		"split": "development",
+		"family": "PMC10670670",
+		"expected": [
+			{
+				"documentId": "PMC10670670",
+				"block": 64,
+				"quote": "40 and 50 μm"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "scg-thick-en",
+		"query": "What is the thickness range of PLA films enriched with spent coffee grounds extracts?",
+		"language": "en",
+		"category": "range",
+		"split": "development",
+		"family": "PMC10670670",
+		"expected": [
+			{
+				"documentId": "PMC10670670",
+				"block": 64,
+				"quote": "40 and 50 μm"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "scg-microscope-zh",
+		"query": "咖啡渣 PLA 薄膜用什么显微镜观察厚度？",
+		"language": "zh",
+		"category": "test_method",
+		"split": "development",
+		"family": "PMC10670670",
+		"expected": [
+			{
+				"documentId": "PMC10670670",
+				"block": 31,
+				"quote": "Olympus BX51"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "scg-microscope-en",
+		"query": "Which microscope was used for thickness observations of PLA films with spent coffee grounds extracts?",
+		"language": "en",
+		"category": "test_method",
+		"split": "development",
+		"family": "PMC10670670",
+		"expected": [
+			{
+				"documentId": "PMC10670670",
+				"block": 31,
+				"quote": "Olympus BX51"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "pla-otr-unit-zh",
+		"query": "咖啡银皮 PLA-C3 薄膜表 3 标为 OTR 的指标原始单位是什么？",
+		"language": "zh",
+		"category": "compound_unit",
+		"split": "frozen",
+		"family": "PMC11944891",
+		"expected": [
+			{
+				"documentId": "PMC11944891",
+				"block": 76,
+				"quote": "cm3 mm/(m2·d·0.1 MPa)"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "pla-otr-unit-en",
+		"query": "What original unit is printed for OTR of PLA-C3 in Table 3 of the coffee silverskin study?",
+		"language": "en",
+		"category": "compound_unit",
+		"split": "frozen",
+		"family": "PMC11944891",
+		"expected": [
+			{
+				"documentId": "PMC11944891",
+				"block": 76,
+				"quote": "cm3 mm/(m2·d·0.1 MPa)"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "pla-otr-value-zh",
+		"query": "咖啡银皮研究表 3 中 PLA-C3 的 OTR 数值是多少？",
+		"language": "zh",
+		"category": "table_value",
+		"split": "frozen",
+		"family": "PMC11944891",
+		"expected": [
+			{
+				"documentId": "PMC11944891",
+				"block": 76,
+				"quote": "\"7\""
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "pla-otr-value-en",
+		"query": "What OTR value is listed for PLA-C3 in Table 3 of the coffee silverskin study?",
+		"language": "en",
+		"category": "table_value",
+		"split": "frozen",
+		"family": "PMC11944891",
+		"expected": [
+			{
+				"documentId": "PMC11944891",
+				"block": 76,
+				"quote": "\"7\""
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "pla-wvtr-zh",
+		"query": "咖啡银皮 PLA-C3 的 WVTR 数值是多少？",
+		"language": "zh",
+		"category": "table_value",
+		"split": "frozen",
+		"family": "PMC11944891",
+		"expected": [
+			{
+				"documentId": "PMC11944891",
+				"block": 76,
+				"quote": "2.61"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "pla-wvtr-en",
+		"query": "What WVTR value is listed for PLA-C3 coffee silverskin composite film?",
+		"language": "en",
+		"category": "table_value",
+		"split": "frozen",
+		"family": "PMC11944891",
+		"expected": [
+			{
+				"documentId": "PMC11944891",
+				"block": 76,
+				"quote": "2.61"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "pla-oxygen-conditions-zh",
+		"query": "咖啡银皮 PLA 薄膜氧气渗透测试的温度和湿度是什么？",
+		"language": "zh",
+		"category": "test_condition",
+		"split": "frozen",
+		"family": "PMC11944891",
+		"expected": [
+			{
+				"documentId": "PMC11944891",
+				"block": 51,
+				"quote": "23 °C, 0% relative humidity"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "pla-oxygen-conditions-en",
+		"query": "At what temperature and humidity was oxygen permeability tested for coffee silverskin PLA films?",
+		"language": "en",
+		"category": "test_condition",
+		"split": "frozen",
+		"family": "PMC11944891",
+		"expected": [
+			{
+				"documentId": "PMC11944891",
+				"block": 51,
+				"quote": "23 °C, 0% relative humidity"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "pla-flow-zh",
+		"query": "咖啡银皮 PLA 薄膜氧气测试的气体流量是多少？",
+		"language": "zh",
+		"category": "test_condition",
+		"split": "frozen",
+		"family": "PMC11944891",
+		"expected": [
+			{
+				"documentId": "PMC11944891",
+				"block": 51,
+				"quote": "10 mL/min"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "pla-flow-en",
+		"query": "What gas flow rate was used for oxygen testing of coffee silverskin PLA films?",
+		"language": "en",
+		"category": "test_condition",
+		"split": "frozen",
+		"family": "PMC11944891",
+		"expected": [
+			{
+				"documentId": "PMC11944891",
+				"block": 51,
+				"quote": "10 mL/min"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "pla-water-method-zh",
+		"query": "咖啡银皮 PLA 薄膜水蒸气渗透实验采用哪个标准？",
+		"language": "zh",
+		"category": "test_method",
+		"split": "frozen",
+		"family": "PMC11944891",
+		"expected": [
+			{
+				"documentId": "PMC11944891",
+				"block": 52,
+				"quote": "ASTM E96"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "pla-water-method-en",
+		"query": "Which standard was used for the water vapor permeability test of coffee silverskin PLA films?",
+		"language": "en",
+		"category": "test_method",
+		"split": "frozen",
+		"family": "PMC11944891",
+		"expected": [
+			{
+				"documentId": "PMC11944891",
+				"block": 52,
+				"quote": "ASTM E96"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "pla-water-delta-zh",
+		"query": "咖啡银皮 PLA 薄膜 WVP 公式采用的水蒸气压差是多少？",
+		"language": "zh",
+		"category": "test_condition",
+		"split": "frozen",
+		"family": "PMC11944891",
+		"expected": [
+			{
+				"documentId": "PMC11944891",
+				"block": 53,
+				"quote": "2339 Pa"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "pla-water-delta-en",
+		"query": "Which water vapor pressure difference is specified in the WVP equation for coffee silverskin PLA films?",
+		"language": "en",
+		"category": "test_condition",
+		"split": "frozen",
+		"family": "PMC11944891",
+		"expected": [
+			{
+				"documentId": "PMC11944891",
+				"block": 53,
+				"quote": "2339 Pa"
+			}
+		],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "absent-size",
+		"query": "500 克烘焙咖啡豆袋应该用什么生产尺寸？",
+		"language": "zh",
+		"category": "no_answer",
+		"split": "frozen",
+		"family": "absent-production-claims",
+		"expected": [],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "absent-quote",
+		"query": "What is the executable price for 10000 REC coffee bags delivered to Hong Kong?",
+		"language": "en",
+		"category": "no_answer",
+		"split": "frozen",
+		"family": "absent-production-claims",
+		"expected": [],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "absent-certificate",
+		"query": "这批 ALT 咖啡袋的 FSC 证书编号是什么？",
+		"language": "zh",
+		"category": "no_answer",
+		"split": "frozen",
+		"family": "absent-production-claims",
+		"expected": [],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "absent-shelf",
+		"query": "Can the REC study guarantee 18 months shelf life for my 500 g roasted bean order?",
+		"language": "en",
+		"category": "no_answer",
+		"split": "frozen",
+		"family": "absent-production-claims",
+		"expected": [],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "absent-seal",
+		"query": "REC 材料在我方机器的封口温度应设为多少？",
+		"language": "zh",
+		"category": "no_answer",
+		"split": "frozen",
+		"family": "absent-production-claims",
+		"expected": [],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "absent-valve",
+		"query": "What pressure opens the one-way valve of the studied REC pouch?",
+		"language": "en",
+		"category": "no_answer",
+		"split": "frozen",
+		"family": "absent-production-claims",
+		"expected": [],
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "unknown-model",
+		"query": "coffee packaging oxygen",
+		"language": "en",
+		"category": "filter",
+		"split": "frozen",
+		"family": "unknown-model",
+		"expected": [],
+		"filters": {
+			"model": "NONEXISTENT-500G"
+		},
+		"labelStatus": "agent_source_checked_pending_human_review"
+	},
+	{
+		"id": "before-publication",
+		"query": "coffee packaging oxygen",
+		"language": "en",
+		"category": "filter",
+		"split": "frozen",
+		"family": "before-publication",
+		"expected": [],
+		"filters": {
+			"asOf": "2000-01-01T00:00:00.000Z"
+		},
+		"labelStatus": "agent_source_checked_pending_human_review"
+	}
+]

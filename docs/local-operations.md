@@ -27,7 +27,7 @@ npm run state -- backup /absolute/path/packx-backup-2026-09-13
 npm run state -- verify /absolute/path/packx-backup-2026-09-13
 ```
 
-备份包含标准数据目录中的会话、执行记录、Plan/子任务结果、事件、队列、附件、Artifact 和受管理文件备份。每个文件记录大小与 SHA-256，SQLite 连同 WAL/SHM 保存并在临时副本执行完整性检查。单文件上限 256 MiB；符号链接、硬链接和特殊文件拒绝备份。
+备份包含标准数据目录中的会话、执行记录、Plan/子任务结果、事件、队列、附件、Artifact、受管理文件备份及 `knowledge/`（资料快照、知识 SQLite、索引、证据选择和审计）。每个文件记录大小与 SHA-256，SQLite 连同 WAL/SHM 保存并在临时副本执行完整性检查。单文件上限 256 MiB；符号链接、硬链接和特殊文件拒绝备份。
 
 备份不包含 `.env`、`.packx-settings.json`、Provider Key、用户在数据目录之外的原始文件、Node 依赖或原生工具。外部原文件和私有配置应使用现有受信备份方式单独保管。备份内容包含业务资料；本命令不提供加密或远端上传。
 

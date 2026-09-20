@@ -1,0 +1,3086 @@
+{
+	"schemaVersion": "knowledge-eval.v1",
+	"executedAt": "2026-09-17T07:21:58.230Z",
+	"provenance": "synthetic_assertions_only",
+	"caseCount": 66,
+	"caseHash": "2ebac67a607d78d1a550fd9c82525680a8ca0d1634d92e1ad609bfd9fda46c3e",
+	"corpusHash": "14b9be10fb68bfed8e404110d994a8dce0b0f93817779a2df12b2171dc64e467",
+	"hardware": {
+		"platform": "darwin",
+		"release": "25.6.0",
+		"cpu": "Apple M5",
+		"cores": 10,
+		"memoryBytes": 25769803776,
+		"node": "v24.14.0"
+	},
+	"concurrency": 1,
+	"documents": 7,
+	"chunksPerDocument": 2,
+	"embedding": {
+		"signature": "lexical-hash-v1:256:b89469b50e4bf9cfe889bf1d9b5162e42b7ccd31bef01745ea2f82695d870a99",
+		"dimensions": 256,
+		"kind": "lexical_baseline"
+	},
+	"generation": {
+		"calls": 0,
+		"durationMs": null,
+		"costUsd": null,
+		"evidenceEntailment": null,
+		"unsupportedConclusionRate": null
+	},
+	"extraction": {
+		"automaticParameterAccuracy": null,
+		"reason": "Reviewed structured manifests, no automated industrial parameter extractor"
+	},
+	"disclaimer": "Tiny synthetic fixtures share templates. Family-disjoint labels test mechanics only, not held-out semantic generalization. No real supplier corpus, human-reviewed golden labels or learned-model quality claim.",
+	"runs": [
+		{
+			"mode": "keyword",
+			"recallAt5": 0.9090909090909091,
+			"mrr": 0.9090909090909091,
+			"noAnswerAccuracy": 0.9545454545454546,
+			"citationLocatorIntegrity": 1,
+			"p50Ms": 0.35558399999999324,
+			"p95Ms": 1.3604160000000007,
+			"rows": [
+				{
+					"id": "retrieval-0-0",
+					"category": "model",
+					"split": "development",
+					"found": [
+						"demo-pe-a:1",
+						"demo-pe-a:2"
+					],
+					"expected": [
+						"demo-pe-a:1",
+						"demo-pe-a:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 6.244374999999998
+				},
+				{
+					"id": "retrieval-0-1",
+					"category": "structure",
+					"split": "development",
+					"found": [
+						"demo-pe-a:1"
+					],
+					"expected": [
+						"demo-pe-a:1"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.3378329999999963
+				},
+				{
+					"id": "retrieval-0-2",
+					"category": "table",
+					"split": "development",
+					"found": [
+						"demo-pe-a:2"
+					],
+					"expected": [
+						"demo-pe-a:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.2725419999999943
+				},
+				{
+					"id": "retrieval-0-3",
+					"category": "bilingual",
+					"split": "development",
+					"found": [
+						"demo-pe-a:2"
+					],
+					"expected": [
+						"demo-pe-a:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.2591249999999974
+				},
+				{
+					"id": "retrieval-0-4",
+					"category": "semantic",
+					"split": "development",
+					"found": [],
+					"expected": [
+						"demo-pe-a:2"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.24420800000000042
+				},
+				{
+					"id": "retrieval-0-5",
+					"category": "acronym",
+					"split": "development",
+					"found": [
+						"demo-pe-a:2"
+					],
+					"expected": [
+						"demo-pe-a:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.37699999999999534
+				},
+				{
+					"id": "retrieval-0-6",
+					"category": "conditions",
+					"split": "development",
+					"found": [
+						"demo-pe-a:2",
+						"demo-pe-a:1"
+					],
+					"expected": [
+						"demo-pe-a:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.421875
+				},
+				{
+					"id": "retrieval-0-7",
+					"category": "units",
+					"split": "development",
+					"found": [
+						"demo-pe-a:2"
+					],
+					"expected": [
+						"demo-pe-a:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.5999589999999984
+				},
+				{
+					"id": "retrieval-0-8",
+					"category": "application",
+					"split": "development",
+					"found": [
+						"demo-pe-a:1"
+					],
+					"expected": [
+						"demo-pe-a:1"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.26200000000000045
+				},
+				{
+					"id": "retrieval-0-9",
+					"category": "bilingual",
+					"split": "development",
+					"found": [
+						"demo-pe-a:1"
+					],
+					"expected": [
+						"demo-pe-a:1"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.23841699999999832
+				},
+				{
+					"id": "retrieval-1-0",
+					"category": "model",
+					"split": "development",
+					"found": [
+						"demo-pet-b:1",
+						"demo-pet-b:2"
+					],
+					"expected": [
+						"demo-pet-b:1",
+						"demo-pet-b:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.24854200000000048
+				},
+				{
+					"id": "retrieval-1-1",
+					"category": "structure",
+					"split": "development",
+					"found": [
+						"demo-pet-b:1"
+					],
+					"expected": [
+						"demo-pet-b:1"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.23175000000000523
+				},
+				{
+					"id": "retrieval-1-2",
+					"category": "table",
+					"split": "development",
+					"found": [
+						"demo-pet-b:2"
+					],
+					"expected": [
+						"demo-pet-b:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.21941700000000708
+				},
+				{
+					"id": "retrieval-1-3",
+					"category": "bilingual",
+					"split": "development",
+					"found": [
+						"demo-pet-b:2"
+					],
+					"expected": [
+						"demo-pet-b:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 3.6299999999999955
+				},
+				{
+					"id": "retrieval-1-4",
+					"category": "semantic",
+					"split": "development",
+					"found": [],
+					"expected": [
+						"demo-pet-b:2"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.6349170000000015
+				},
+				{
+					"id": "retrieval-1-5",
+					"category": "acronym",
+					"split": "development",
+					"found": [
+						"demo-pet-b:2"
+					],
+					"expected": [
+						"demo-pet-b:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 1.3604160000000007
+				},
+				{
+					"id": "retrieval-1-6",
+					"category": "conditions",
+					"split": "development",
+					"found": [
+						"demo-pet-b:2",
+						"demo-pet-b:1"
+					],
+					"expected": [
+						"demo-pet-b:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.310457999999997
+				},
+				{
+					"id": "retrieval-1-7",
+					"category": "units",
+					"split": "development",
+					"found": [
+						"demo-pet-b:2"
+					],
+					"expected": [
+						"demo-pet-b:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 2.3580829999999935
+				},
+				{
+					"id": "retrieval-1-8",
+					"category": "application",
+					"split": "development",
+					"found": [
+						"demo-pet-b:1"
+					],
+					"expected": [
+						"demo-pet-b:1"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.7973750000000024
+				},
+				{
+					"id": "retrieval-1-9",
+					"category": "bilingual",
+					"split": "development",
+					"found": [
+						"demo-pet-b:1"
+					],
+					"expected": [
+						"demo-pet-b:1"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.6445830000000115
+				},
+				{
+					"id": "retrieval-2-0",
+					"category": "model",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-paper-c:1",
+						"holdout-paper-c:2"
+					],
+					"expected": [
+						"holdout-paper-c:1",
+						"holdout-paper-c:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.6969999999999885
+				},
+				{
+					"id": "retrieval-2-1",
+					"category": "structure",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-paper-c:1"
+					],
+					"expected": [
+						"holdout-paper-c:1"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.9250419999999906
+				},
+				{
+					"id": "retrieval-2-2",
+					"category": "table",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-paper-c:2"
+					],
+					"expected": [
+						"holdout-paper-c:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.32133299999999565
+				},
+				{
+					"id": "retrieval-2-3",
+					"category": "bilingual",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-paper-c:2"
+					],
+					"expected": [
+						"holdout-paper-c:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.2714169999999996
+				},
+				{
+					"id": "retrieval-2-4",
+					"category": "semantic",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [
+						"holdout-paper-c:2"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.5422499999999957
+				},
+				{
+					"id": "retrieval-2-5",
+					"category": "acronym",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-paper-c:2"
+					],
+					"expected": [
+						"holdout-paper-c:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.5621250000000089
+				},
+				{
+					"id": "retrieval-2-6",
+					"category": "conditions",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-paper-c:2",
+						"holdout-paper-c:1"
+					],
+					"expected": [
+						"holdout-paper-c:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.35558399999999324
+				},
+				{
+					"id": "retrieval-2-7",
+					"category": "units",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-paper-c:2"
+					],
+					"expected": [
+						"holdout-paper-c:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.7952080000000024
+				},
+				{
+					"id": "retrieval-2-8",
+					"category": "application",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-paper-c:1"
+					],
+					"expected": [
+						"holdout-paper-c:1"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.49774999999999636
+				},
+				{
+					"id": "retrieval-2-9",
+					"category": "bilingual",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-paper-c:1"
+					],
+					"expected": [
+						"holdout-paper-c:1"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.258624999999995
+				},
+				{
+					"id": "retrieval-3-0",
+					"category": "model",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-pe-d:1",
+						"holdout-pe-d:2"
+					],
+					"expected": [
+						"holdout-pe-d:1",
+						"holdout-pe-d:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.2112499999999926
+				},
+				{
+					"id": "retrieval-3-1",
+					"category": "structure",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-pe-d:1"
+					],
+					"expected": [
+						"holdout-pe-d:1"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.25079100000000665
+				},
+				{
+					"id": "retrieval-3-2",
+					"category": "table",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-pe-d:2"
+					],
+					"expected": [
+						"holdout-pe-d:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.285499999999999
+				},
+				{
+					"id": "retrieval-3-3",
+					"category": "bilingual",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-pe-d:2"
+					],
+					"expected": [
+						"holdout-pe-d:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.7072500000000019
+				},
+				{
+					"id": "retrieval-3-4",
+					"category": "semantic",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [
+						"holdout-pe-d:2"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.4373330000000095
+				},
+				{
+					"id": "retrieval-3-5",
+					"category": "acronym",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-pe-d:2"
+					],
+					"expected": [
+						"holdout-pe-d:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.22520799999999497
+				},
+				{
+					"id": "retrieval-3-6",
+					"category": "conditions",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-pe-d:2",
+						"holdout-pe-d:1"
+					],
+					"expected": [
+						"holdout-pe-d:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 1.0447910000000036
+				},
+				{
+					"id": "retrieval-3-7",
+					"category": "units",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-pe-d:2"
+					],
+					"expected": [
+						"holdout-pe-d:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.260666999999998
+				},
+				{
+					"id": "retrieval-3-8",
+					"category": "application",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-pe-d:1"
+					],
+					"expected": [
+						"holdout-pe-d:1"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.2660410000000013
+				},
+				{
+					"id": "retrieval-3-9",
+					"category": "bilingual",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-pe-d:1"
+					],
+					"expected": [
+						"holdout-pe-d:1"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.21820900000000165
+				},
+				{
+					"id": "absent-0",
+					"category": "no_answer",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.6201659999999976
+				},
+				{
+					"id": "absent-1",
+					"category": "no_answer",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.2622920000000022
+				},
+				{
+					"id": "absent-2",
+					"category": "no_answer",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.7033749999999941
+				},
+				{
+					"id": "absent-3",
+					"category": "no_answer",
+					"split": "frozen_synthetic",
+					"found": [
+						"demo-pe-a:1",
+						"demo-pet-b:1",
+						"conflict-z:1",
+						"holdout-paper-c:1",
+						"conflict-z:1"
+					],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": false,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.8114169999999916
+				},
+				{
+					"id": "absent-4",
+					"category": "no_answer",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.5052910000000139
+				},
+				{
+					"id": "absent-5",
+					"category": "no_answer",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.4689589999999981
+				},
+				{
+					"id": "absent-6",
+					"category": "no_answer",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.8301250000000095
+				},
+				{
+					"id": "absent-7",
+					"category": "no_answer",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.2972090000000094
+				},
+				{
+					"id": "absent-8",
+					"category": "no_answer",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.38537499999999625
+				},
+				{
+					"id": "absent-9",
+					"category": "no_answer",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.5238329999999962
+				},
+				{
+					"id": "permission-0",
+					"category": "permission",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.11516699999999958
+				},
+				{
+					"id": "permission-1",
+					"category": "permission",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.0855410000000063
+				},
+				{
+					"id": "permission-2",
+					"category": "permission",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.11050000000000182
+				},
+				{
+					"id": "permission-3",
+					"category": "permission",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.23475000000000534
+				},
+				{
+					"id": "permission-4",
+					"category": "permission",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.11654099999999801
+				},
+				{
+					"id": "expired-0",
+					"category": "expired",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.19829200000000924
+				},
+				{
+					"id": "expired-1",
+					"category": "expired",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.1851660000000095
+				},
+				{
+					"id": "expired-2",
+					"category": "expired",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.1871670000000023
+				},
+				{
+					"id": "expired-3",
+					"category": "expired",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.9014999999999986
+				},
+				{
+					"id": "expired-4",
+					"category": "expired",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.604582999999991
+				},
+				{
+					"id": "conflicting-revisions",
+					"category": "conflict",
+					"split": "frozen_synthetic",
+					"found": [
+						"conflict-z@fixture-v2:2",
+						"conflict-z@fixture-v1:2"
+					],
+					"expected": [
+						"conflict-z@fixture-v1:2",
+						"conflict-z@fixture-v2:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.3223330000000004
+				},
+				{
+					"id": "conflict-source",
+					"category": "citation",
+					"split": "frozen_synthetic",
+					"found": [
+						"conflict-z@fixture-v2:2",
+						"conflict-z@fixture-v1:2"
+					],
+					"expected": [
+						"conflict-z@fixture-v1:2",
+						"conflict-z@fixture-v2:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.22058300000000486
+				},
+				{
+					"id": "region-cn",
+					"category": "region",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.6368329999999958
+				},
+				{
+					"id": "before-publication",
+					"category": "date",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.3852499999999992
+				},
+				{
+					"id": "compare-thickness",
+					"category": "comparison",
+					"split": "development",
+					"found": [
+						"demo-pe-a:2",
+						"demo-pet-b:2",
+						"conflict-z:2",
+						"holdout-paper-c:2",
+						"conflict-z:2"
+					],
+					"expected": [
+						"demo-pe-a:2",
+						"demo-pet-b:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.2858749999999901
+				},
+				{
+					"id": "compare-conditions",
+					"category": "conditions",
+					"split": "development",
+					"found": [
+						"demo-pe-a:2",
+						"demo-pet-b:2",
+						"conflict-z:2",
+						"holdout-paper-c:2",
+						"conflict-z:2"
+					],
+					"expected": [
+						"demo-pe-a:2",
+						"demo-pet-b:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.9957920000000087
+				}
+			]
+		},
+		{
+			"mode": "vector",
+			"recallAt5": 0.6363636363636364,
+			"mrr": 0.6666666666666666,
+			"noAnswerAccuracy": 0.9545454545454546,
+			"citationLocatorIntegrity": 1,
+			"p50Ms": 0.3850000000000193,
+			"p95Ms": 0.9312500000000057,
+			"rows": [
+				{
+					"id": "retrieval-0-0",
+					"category": "model",
+					"split": "development",
+					"found": [
+						"demo-pe-a:1"
+					],
+					"expected": [
+						"demo-pe-a:1",
+						"demo-pe-a:2"
+					],
+					"recallAt5": 0.5,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.7572090000000031
+				},
+				{
+					"id": "retrieval-0-1",
+					"category": "structure",
+					"split": "development",
+					"found": [
+						"demo-pe-a:1"
+					],
+					"expected": [
+						"demo-pe-a:1"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.5688329999999979
+				},
+				{
+					"id": "retrieval-0-2",
+					"category": "table",
+					"split": "development",
+					"found": [],
+					"expected": [
+						"demo-pe-a:2"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.4890829999999937
+				},
+				{
+					"id": "retrieval-0-3",
+					"category": "bilingual",
+					"split": "development",
+					"found": [
+						"demo-pe-a:2"
+					],
+					"expected": [
+						"demo-pe-a:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 1.1065419999999904
+				},
+				{
+					"id": "retrieval-0-4",
+					"category": "semantic",
+					"split": "development",
+					"found": [],
+					"expected": [
+						"demo-pe-a:2"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.7596249999999998
+				},
+				{
+					"id": "retrieval-0-5",
+					"category": "acronym",
+					"split": "development",
+					"found": [
+						"demo-pe-a:2"
+					],
+					"expected": [
+						"demo-pe-a:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.285499999999999
+				},
+				{
+					"id": "retrieval-0-6",
+					"category": "conditions",
+					"split": "development",
+					"found": [
+						"demo-pe-a:2"
+					],
+					"expected": [
+						"demo-pe-a:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.9010420000000039
+				},
+				{
+					"id": "retrieval-0-7",
+					"category": "units",
+					"split": "development",
+					"found": [],
+					"expected": [
+						"demo-pe-a:2"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 1.0664999999999907
+				},
+				{
+					"id": "retrieval-0-8",
+					"category": "application",
+					"split": "development",
+					"found": [
+						"demo-pe-a:1",
+						"demo-pe-a:2"
+					],
+					"expected": [
+						"demo-pe-a:1"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.9312500000000057
+				},
+				{
+					"id": "retrieval-0-9",
+					"category": "bilingual",
+					"split": "development",
+					"found": [
+						"demo-pe-a:1"
+					],
+					"expected": [
+						"demo-pe-a:1"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.8409580000000005
+				},
+				{
+					"id": "retrieval-1-0",
+					"category": "model",
+					"split": "development",
+					"found": [
+						"demo-pet-b:1"
+					],
+					"expected": [
+						"demo-pet-b:1",
+						"demo-pet-b:2"
+					],
+					"recallAt5": 0.5,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.2752089999999896
+				},
+				{
+					"id": "retrieval-1-1",
+					"category": "structure",
+					"split": "development",
+					"found": [
+						"demo-pet-b:1"
+					],
+					"expected": [
+						"demo-pet-b:1"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.26550000000000296
+				},
+				{
+					"id": "retrieval-1-2",
+					"category": "table",
+					"split": "development",
+					"found": [],
+					"expected": [
+						"demo-pet-b:2"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.9312500000000057
+				},
+				{
+					"id": "retrieval-1-3",
+					"category": "bilingual",
+					"split": "development",
+					"found": [
+						"demo-pet-b:2"
+					],
+					"expected": [
+						"demo-pet-b:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.34208300000000236
+				},
+				{
+					"id": "retrieval-1-4",
+					"category": "semantic",
+					"split": "development",
+					"found": [],
+					"expected": [
+						"demo-pet-b:2"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.23433299999999235
+				},
+				{
+					"id": "retrieval-1-5",
+					"category": "acronym",
+					"split": "development",
+					"found": [
+						"demo-pet-b:2"
+					],
+					"expected": [
+						"demo-pet-b:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.2928330000000017
+				},
+				{
+					"id": "retrieval-1-6",
+					"category": "conditions",
+					"split": "development",
+					"found": [
+						"demo-pet-b:2"
+					],
+					"expected": [
+						"demo-pet-b:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.22579100000000096
+				},
+				{
+					"id": "retrieval-1-7",
+					"category": "units",
+					"split": "development",
+					"found": [],
+					"expected": [
+						"demo-pet-b:2"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.5755419999999987
+				},
+				{
+					"id": "retrieval-1-8",
+					"category": "application",
+					"split": "development",
+					"found": [
+						"demo-pet-b:1",
+						"demo-pet-b:2"
+					],
+					"expected": [
+						"demo-pet-b:1"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.28112500000000296
+				},
+				{
+					"id": "retrieval-1-9",
+					"category": "bilingual",
+					"split": "development",
+					"found": [
+						"demo-pet-b:1"
+					],
+					"expected": [
+						"demo-pet-b:1"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.47716599999999687
+				},
+				{
+					"id": "retrieval-2-0",
+					"category": "model",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-paper-c:1"
+					],
+					"expected": [
+						"holdout-paper-c:1",
+						"holdout-paper-c:2"
+					],
+					"recallAt5": 0.5,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.7744160000000022
+				},
+				{
+					"id": "retrieval-2-1",
+					"category": "structure",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-paper-c:1"
+					],
+					"expected": [
+						"holdout-paper-c:1"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.6141249999999872
+				},
+				{
+					"id": "retrieval-2-2",
+					"category": "table",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [
+						"holdout-paper-c:2"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.3167919999999924
+				},
+				{
+					"id": "retrieval-2-3",
+					"category": "bilingual",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-paper-c:2"
+					],
+					"expected": [
+						"holdout-paper-c:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.888582999999997
+				},
+				{
+					"id": "retrieval-2-4",
+					"category": "semantic",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [
+						"holdout-paper-c:2"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.2787919999999957
+				},
+				{
+					"id": "retrieval-2-5",
+					"category": "acronym",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-paper-c:2"
+					],
+					"expected": [
+						"holdout-paper-c:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.294083999999998
+				},
+				{
+					"id": "retrieval-2-6",
+					"category": "conditions",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-paper-c:2"
+					],
+					"expected": [
+						"holdout-paper-c:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.24049999999999727
+				},
+				{
+					"id": "retrieval-2-7",
+					"category": "units",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [
+						"holdout-paper-c:2"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.4602079999999944
+				},
+				{
+					"id": "retrieval-2-8",
+					"category": "application",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-paper-c:1",
+						"holdout-paper-c:2"
+					],
+					"expected": [
+						"holdout-paper-c:1"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.27087500000000375
+				},
+				{
+					"id": "retrieval-2-9",
+					"category": "bilingual",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-paper-c:1"
+					],
+					"expected": [
+						"holdout-paper-c:1"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.2569999999999908
+				},
+				{
+					"id": "retrieval-3-0",
+					"category": "model",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-pe-d:1"
+					],
+					"expected": [
+						"holdout-pe-d:1",
+						"holdout-pe-d:2"
+					],
+					"recallAt5": 0.5,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.25645799999999497
+				},
+				{
+					"id": "retrieval-3-1",
+					"category": "structure",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-pe-d:1"
+					],
+					"expected": [
+						"holdout-pe-d:1"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.28974999999999795
+				},
+				{
+					"id": "retrieval-3-2",
+					"category": "table",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [
+						"holdout-pe-d:2"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.2302090000000021
+				},
+				{
+					"id": "retrieval-3-3",
+					"category": "bilingual",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-pe-d:2"
+					],
+					"expected": [
+						"holdout-pe-d:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.25079100000000665
+				},
+				{
+					"id": "retrieval-3-4",
+					"category": "semantic",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [
+						"holdout-pe-d:2"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.24929200000001117
+				},
+				{
+					"id": "retrieval-3-5",
+					"category": "acronym",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-pe-d:2"
+					],
+					"expected": [
+						"holdout-pe-d:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.22291699999999537
+				},
+				{
+					"id": "retrieval-3-6",
+					"category": "conditions",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-pe-d:2"
+					],
+					"expected": [
+						"holdout-pe-d:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.3051669999999973
+				},
+				{
+					"id": "retrieval-3-7",
+					"category": "units",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [
+						"holdout-pe-d:2"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.4375829999999894
+				},
+				{
+					"id": "retrieval-3-8",
+					"category": "application",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-pe-d:1",
+						"holdout-pe-d:2"
+					],
+					"expected": [
+						"holdout-pe-d:1"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.7169999999999845
+				},
+				{
+					"id": "retrieval-3-9",
+					"category": "bilingual",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-pe-d:1"
+					],
+					"expected": [
+						"holdout-pe-d:1"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.9350000000000023
+				},
+				{
+					"id": "absent-0",
+					"category": "no_answer",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.567875000000015
+				},
+				{
+					"id": "absent-1",
+					"category": "no_answer",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.6555000000000177
+				},
+				{
+					"id": "absent-2",
+					"category": "no_answer",
+					"split": "frozen_synthetic",
+					"found": [
+						"demo-pe-a:1",
+						"holdout-paper-c:1",
+						"demo-pet-b:1",
+						"conflict-z:1",
+						"conflict-z:1"
+					],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": false,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.4471249999999998
+				},
+				{
+					"id": "absent-3",
+					"category": "no_answer",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.8320840000000089
+				},
+				{
+					"id": "absent-4",
+					"category": "no_answer",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.8926670000000172
+				},
+				{
+					"id": "absent-5",
+					"category": "no_answer",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.9064579999999864
+				},
+				{
+					"id": "absent-6",
+					"category": "no_answer",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.4538750000000107
+				},
+				{
+					"id": "absent-7",
+					"category": "no_answer",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.7331669999999804
+				},
+				{
+					"id": "absent-8",
+					"category": "no_answer",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.6310420000000079
+				},
+				{
+					"id": "absent-9",
+					"category": "no_answer",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.9060000000000059
+				},
+				{
+					"id": "permission-0",
+					"category": "permission",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.13158300000000622
+				},
+				{
+					"id": "permission-1",
+					"category": "permission",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.13091700000001083
+				},
+				{
+					"id": "permission-2",
+					"category": "permission",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.10966700000000174
+				},
+				{
+					"id": "permission-3",
+					"category": "permission",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.11170899999999051
+				},
+				{
+					"id": "permission-4",
+					"category": "permission",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.3850000000000193
+				},
+				{
+					"id": "expired-0",
+					"category": "expired",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.2312080000000094
+				},
+				{
+					"id": "expired-1",
+					"category": "expired",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.42199999999999704
+				},
+				{
+					"id": "expired-2",
+					"category": "expired",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.21308400000000915
+				},
+				{
+					"id": "expired-3",
+					"category": "expired",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.24687499999998863
+				},
+				{
+					"id": "expired-4",
+					"category": "expired",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.8264159999999947
+				},
+				{
+					"id": "conflicting-revisions",
+					"category": "conflict",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [
+						"conflict-z@fixture-v1:2",
+						"conflict-z@fixture-v2:2"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.3690830000000176
+				},
+				{
+					"id": "conflict-source",
+					"category": "citation",
+					"split": "frozen_synthetic",
+					"found": [
+						"conflict-z@fixture-v2:2",
+						"conflict-z@fixture-v1:2"
+					],
+					"expected": [
+						"conflict-z@fixture-v1:2",
+						"conflict-z@fixture-v2:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.35208399999999074
+				},
+				{
+					"id": "region-cn",
+					"category": "region",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.44037499999998886
+				},
+				{
+					"id": "before-publication",
+					"category": "date",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.19833399999998846
+				},
+				{
+					"id": "compare-thickness",
+					"category": "comparison",
+					"split": "development",
+					"found": [],
+					"expected": [
+						"demo-pe-a:2",
+						"demo-pet-b:2"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.3513340000000085
+				},
+				{
+					"id": "compare-conditions",
+					"category": "conditions",
+					"split": "development",
+					"found": [
+						"conflict-z:2",
+						"conflict-z:2",
+						"demo-pe-a:2",
+						"holdout-paper-c:2",
+						"demo-pet-b:2"
+					],
+					"expected": [
+						"demo-pe-a:2",
+						"demo-pet-b:2"
+					],
+					"recallAt5": 1,
+					"mrr": 0.3333333333333333,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.38066599999999085
+				}
+			]
+		},
+		{
+			"mode": "hybrid",
+			"recallAt5": 0.9090909090909091,
+			"mrr": 0.9090909090909091,
+			"noAnswerAccuracy": 0.9090909090909091,
+			"citationLocatorIntegrity": 1,
+			"p50Ms": 0.29325000000000045,
+			"p95Ms": 0.8029589999999871,
+			"rows": [
+				{
+					"id": "retrieval-0-0",
+					"category": "model",
+					"split": "development",
+					"found": [
+						"demo-pe-a:1",
+						"demo-pe-a:2"
+					],
+					"expected": [
+						"demo-pe-a:1",
+						"demo-pe-a:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.3556250000000034
+				},
+				{
+					"id": "retrieval-0-1",
+					"category": "structure",
+					"split": "development",
+					"found": [
+						"demo-pe-a:1"
+					],
+					"expected": [
+						"demo-pe-a:1"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.2727920000000097
+				},
+				{
+					"id": "retrieval-0-2",
+					"category": "table",
+					"split": "development",
+					"found": [
+						"demo-pe-a:2"
+					],
+					"expected": [
+						"demo-pe-a:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.23416599999998766
+				},
+				{
+					"id": "retrieval-0-3",
+					"category": "bilingual",
+					"split": "development",
+					"found": [
+						"demo-pe-a:2"
+					],
+					"expected": [
+						"demo-pe-a:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.22808299999999804
+				},
+				{
+					"id": "retrieval-0-4",
+					"category": "semantic",
+					"split": "development",
+					"found": [],
+					"expected": [
+						"demo-pe-a:2"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.27120800000000145
+				},
+				{
+					"id": "retrieval-0-5",
+					"category": "acronym",
+					"split": "development",
+					"found": [
+						"demo-pe-a:2"
+					],
+					"expected": [
+						"demo-pe-a:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.29045899999999847
+				},
+				{
+					"id": "retrieval-0-6",
+					"category": "conditions",
+					"split": "development",
+					"found": [
+						"demo-pe-a:2",
+						"demo-pe-a:1"
+					],
+					"expected": [
+						"demo-pe-a:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.27454199999999673
+				},
+				{
+					"id": "retrieval-0-7",
+					"category": "units",
+					"split": "development",
+					"found": [
+						"demo-pe-a:2"
+					],
+					"expected": [
+						"demo-pe-a:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.24508399999999142
+				},
+				{
+					"id": "retrieval-0-8",
+					"category": "application",
+					"split": "development",
+					"found": [
+						"demo-pe-a:1",
+						"demo-pe-a:2"
+					],
+					"expected": [
+						"demo-pe-a:1"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.23983400000000188
+				},
+				{
+					"id": "retrieval-0-9",
+					"category": "bilingual",
+					"split": "development",
+					"found": [
+						"demo-pe-a:1"
+					],
+					"expected": [
+						"demo-pe-a:1"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.2562499999999943
+				},
+				{
+					"id": "retrieval-1-0",
+					"category": "model",
+					"split": "development",
+					"found": [
+						"demo-pet-b:1",
+						"demo-pet-b:2"
+					],
+					"expected": [
+						"demo-pet-b:1",
+						"demo-pet-b:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.497792000000004
+				},
+				{
+					"id": "retrieval-1-1",
+					"category": "structure",
+					"split": "development",
+					"found": [
+						"demo-pet-b:1"
+					],
+					"expected": [
+						"demo-pet-b:1"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.38649999999998386
+				},
+				{
+					"id": "retrieval-1-2",
+					"category": "table",
+					"split": "development",
+					"found": [
+						"demo-pet-b:2"
+					],
+					"expected": [
+						"demo-pet-b:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.6953330000000051
+				},
+				{
+					"id": "retrieval-1-3",
+					"category": "bilingual",
+					"split": "development",
+					"found": [
+						"demo-pet-b:2"
+					],
+					"expected": [
+						"demo-pet-b:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.720832999999999
+				},
+				{
+					"id": "retrieval-1-4",
+					"category": "semantic",
+					"split": "development",
+					"found": [],
+					"expected": [
+						"demo-pet-b:2"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.29325000000000045
+				},
+				{
+					"id": "retrieval-1-5",
+					"category": "acronym",
+					"split": "development",
+					"found": [
+						"demo-pet-b:2"
+					],
+					"expected": [
+						"demo-pet-b:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.5582500000000152
+				},
+				{
+					"id": "retrieval-1-6",
+					"category": "conditions",
+					"split": "development",
+					"found": [
+						"demo-pet-b:2",
+						"demo-pet-b:1"
+					],
+					"expected": [
+						"demo-pet-b:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.24645799999998985
+				},
+				{
+					"id": "retrieval-1-7",
+					"category": "units",
+					"split": "development",
+					"found": [
+						"demo-pet-b:2"
+					],
+					"expected": [
+						"demo-pet-b:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.620584000000008
+				},
+				{
+					"id": "retrieval-1-8",
+					"category": "application",
+					"split": "development",
+					"found": [
+						"demo-pet-b:1",
+						"demo-pet-b:2"
+					],
+					"expected": [
+						"demo-pet-b:1"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.812041999999991
+				},
+				{
+					"id": "retrieval-1-9",
+					"category": "bilingual",
+					"split": "development",
+					"found": [
+						"demo-pet-b:1"
+					],
+					"expected": [
+						"demo-pet-b:1"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.8029589999999871
+				},
+				{
+					"id": "retrieval-2-0",
+					"category": "model",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-paper-c:1",
+						"holdout-paper-c:2"
+					],
+					"expected": [
+						"holdout-paper-c:1",
+						"holdout-paper-c:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.5637079999999912
+				},
+				{
+					"id": "retrieval-2-1",
+					"category": "structure",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-paper-c:1"
+					],
+					"expected": [
+						"holdout-paper-c:1"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.2761250000000075
+				},
+				{
+					"id": "retrieval-2-2",
+					"category": "table",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-paper-c:2"
+					],
+					"expected": [
+						"holdout-paper-c:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.25899999999998613
+				},
+				{
+					"id": "retrieval-2-3",
+					"category": "bilingual",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-paper-c:2"
+					],
+					"expected": [
+						"holdout-paper-c:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.45308299999999235
+				},
+				{
+					"id": "retrieval-2-4",
+					"category": "semantic",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [
+						"holdout-paper-c:2"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.8263330000000053
+				},
+				{
+					"id": "retrieval-2-5",
+					"category": "acronym",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-paper-c:2"
+					],
+					"expected": [
+						"holdout-paper-c:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.6791670000000067
+				},
+				{
+					"id": "retrieval-2-6",
+					"category": "conditions",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-paper-c:2",
+						"holdout-paper-c:1"
+					],
+					"expected": [
+						"holdout-paper-c:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.6090829999999983
+				},
+				{
+					"id": "retrieval-2-7",
+					"category": "units",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-paper-c:2"
+					],
+					"expected": [
+						"holdout-paper-c:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.4378340000000094
+				},
+				{
+					"id": "retrieval-2-8",
+					"category": "application",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-paper-c:1",
+						"holdout-paper-c:2"
+					],
+					"expected": [
+						"holdout-paper-c:1"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.27608299999999986
+				},
+				{
+					"id": "retrieval-2-9",
+					"category": "bilingual",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-paper-c:1"
+					],
+					"expected": [
+						"holdout-paper-c:1"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.8354580000000169
+				},
+				{
+					"id": "retrieval-3-0",
+					"category": "model",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-pe-d:1",
+						"holdout-pe-d:2"
+					],
+					"expected": [
+						"holdout-pe-d:1",
+						"holdout-pe-d:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.46708300000000236
+				},
+				{
+					"id": "retrieval-3-1",
+					"category": "structure",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-pe-d:1"
+					],
+					"expected": [
+						"holdout-pe-d:1"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.2730420000000038
+				},
+				{
+					"id": "retrieval-3-2",
+					"category": "table",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-pe-d:2"
+					],
+					"expected": [
+						"holdout-pe-d:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.25225000000000364
+				},
+				{
+					"id": "retrieval-3-3",
+					"category": "bilingual",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-pe-d:2"
+					],
+					"expected": [
+						"holdout-pe-d:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.6478749999999991
+				},
+				{
+					"id": "retrieval-3-4",
+					"category": "semantic",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [
+						"holdout-pe-d:2"
+					],
+					"recallAt5": 0,
+					"mrr": 0,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.26337499999999636
+				},
+				{
+					"id": "retrieval-3-5",
+					"category": "acronym",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-pe-d:2"
+					],
+					"expected": [
+						"holdout-pe-d:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.47354100000001154
+				},
+				{
+					"id": "retrieval-3-6",
+					"category": "conditions",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-pe-d:2",
+						"holdout-pe-d:1"
+					],
+					"expected": [
+						"holdout-pe-d:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.2691250000000025
+				},
+				{
+					"id": "retrieval-3-7",
+					"category": "units",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-pe-d:2"
+					],
+					"expected": [
+						"holdout-pe-d:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.23533299999999713
+				},
+				{
+					"id": "retrieval-3-8",
+					"category": "application",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-pe-d:1",
+						"holdout-pe-d:2"
+					],
+					"expected": [
+						"holdout-pe-d:1"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.23116699999999923
+				},
+				{
+					"id": "retrieval-3-9",
+					"category": "bilingual",
+					"split": "frozen_synthetic",
+					"found": [
+						"holdout-pe-d:1"
+					],
+					"expected": [
+						"holdout-pe-d:1"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.24399999999999977
+				},
+				{
+					"id": "absent-0",
+					"category": "no_answer",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.4482089999999914
+				},
+				{
+					"id": "absent-1",
+					"category": "no_answer",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.3667920000000038
+				},
+				{
+					"id": "absent-2",
+					"category": "no_answer",
+					"split": "frozen_synthetic",
+					"found": [
+						"demo-pe-a:1",
+						"holdout-paper-c:1",
+						"demo-pet-b:1",
+						"conflict-z:1",
+						"conflict-z:1"
+					],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": false,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.35070899999999483
+				},
+				{
+					"id": "absent-3",
+					"category": "no_answer",
+					"split": "frozen_synthetic",
+					"found": [
+						"demo-pe-a:1",
+						"demo-pet-b:1",
+						"conflict-z:1",
+						"holdout-paper-c:1",
+						"conflict-z:1"
+					],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": false,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.36833399999997596
+				},
+				{
+					"id": "absent-4",
+					"category": "no_answer",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.3927919999999858
+				},
+				{
+					"id": "absent-5",
+					"category": "no_answer",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.36262499999998
+				},
+				{
+					"id": "absent-6",
+					"category": "no_answer",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.37120799999999576
+				},
+				{
+					"id": "absent-7",
+					"category": "no_answer",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.34083400000000097
+				},
+				{
+					"id": "absent-8",
+					"category": "no_answer",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.3402499999999975
+				},
+				{
+					"id": "absent-9",
+					"category": "no_answer",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.431666000000007
+				},
+				{
+					"id": "permission-0",
+					"category": "permission",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.14195799999998826
+				},
+				{
+					"id": "permission-1",
+					"category": "permission",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.08754100000001586
+				},
+				{
+					"id": "permission-2",
+					"category": "permission",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.08941699999999742
+				},
+				{
+					"id": "permission-3",
+					"category": "permission",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.0811249999999859
+				},
+				{
+					"id": "permission-4",
+					"category": "permission",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.07937499999999886
+				},
+				{
+					"id": "expired-0",
+					"category": "expired",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.17829100000000153
+				},
+				{
+					"id": "expired-1",
+					"category": "expired",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.21166600000000813
+				},
+				{
+					"id": "expired-2",
+					"category": "expired",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.18545800000001122
+				},
+				{
+					"id": "expired-3",
+					"category": "expired",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.19208299999999667
+				},
+				{
+					"id": "expired-4",
+					"category": "expired",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.18312499999998977
+				},
+				{
+					"id": "conflicting-revisions",
+					"category": "conflict",
+					"split": "frozen_synthetic",
+					"found": [
+						"conflict-z@fixture-v2:2",
+						"conflict-z@fixture-v1:2"
+					],
+					"expected": [
+						"conflict-z@fixture-v1:2",
+						"conflict-z@fixture-v2:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.3262499999999875
+				},
+				{
+					"id": "conflict-source",
+					"category": "citation",
+					"split": "frozen_synthetic",
+					"found": [
+						"conflict-z@fixture-v2:2",
+						"conflict-z@fixture-v1:2"
+					],
+					"expected": [
+						"conflict-z@fixture-v1:2",
+						"conflict-z@fixture-v2:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.2539170000000013
+				},
+				{
+					"id": "region-cn",
+					"category": "region",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.21612500000000523
+				},
+				{
+					"id": "before-publication",
+					"category": "date",
+					"split": "frozen_synthetic",
+					"found": [],
+					"expected": [],
+					"recallAt5": null,
+					"mrr": null,
+					"noAnswerCorrect": true,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.18191699999999855
+				},
+				{
+					"id": "compare-thickness",
+					"category": "comparison",
+					"split": "development",
+					"found": [
+						"demo-pe-a:2",
+						"demo-pet-b:2",
+						"conflict-z:2",
+						"holdout-paper-c:2",
+						"conflict-z:2"
+					],
+					"expected": [
+						"demo-pe-a:2",
+						"demo-pet-b:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.4276660000000163
+				},
+				{
+					"id": "compare-conditions",
+					"category": "conditions",
+					"split": "development",
+					"found": [
+						"demo-pe-a:2",
+						"conflict-z:2",
+						"demo-pet-b:2",
+						"conflict-z:2",
+						"holdout-paper-c:2"
+					],
+					"expected": [
+						"demo-pe-a:2",
+						"demo-pet-b:2"
+					],
+					"recallAt5": 1,
+					"mrr": 1,
+					"noAnswerCorrect": null,
+					"citationLocatorCorrect": true,
+					"latencyMs": 0.3353339999999889
+				}
+			]
+		}
+	],
+	"publicDiscoveryQuestions": [
+		{
+			"source": "avery-78838",
+			"question": "78838 的原文厚度、单位和测试条件是什么？需要逐页审核。",
+			"labelStatus": "model_assisted_unreviewed",
+			"expectedAnswer": null,
+			"scoreEligible": false
+		},
+		{
+			"source": "huhtamaki-coffee",
+			"question": "哪些咖啡包装产品家族在官方页面被列出？是否存在逐型号参数？",
+			"labelStatus": "model_assisted_unreviewed",
+			"expectedAnswer": null,
+			"scoreEligible": false
+		},
+		{
+			"source": "mondi-paper",
+			"question": "纸基复合包装页面是否给出带测试条件的数值阻隔数据？",
+			"labelStatus": "model_assisted_unreviewed",
+			"expectedAnswer": null,
+			"scoreEligible": false
+		},
+		{
+			"source": "amcor-coffee",
+			"question": "AmPrima 的咖啡应用范围与具体订单适用性有何区别？",
+			"labelStatus": "model_assisted_unreviewed",
+			"expectedAnswer": null,
+			"scoreEligible": false
+		},
+		{
+			"source": "constantia-coffee",
+			"question": "下载资料对应哪个型号、修订日期和使用许可？",
+			"labelStatus": "model_assisted_unreviewed",
+			"expectedAnswer": null,
+			"scoreEligible": false
+		},
+		{
+			"source": "fsc-search",
+			"question": "证书查询的范围、状态、查询时间和订单关联还缺什么？",
+			"labelStatus": "model_assisted_unreviewed",
+			"expectedAnswer": null,
+			"scoreEligible": false
+		},
+		{
+			"source": "gs1-ppm",
+			"question": "测量标准 3.3 的定义应定位到哪一节？",
+			"labelStatus": "model_assisted_unreviewed",
+			"expectedAnswer": null,
+			"scoreEligible": false
+		},
+		{
+			"source": "cqc-food-contact",
+			"question": "换版通知引用的标准与当前正式文本是否一致？",
+			"labelStatus": "model_assisted_unreviewed",
+			"expectedAnswer": null,
+			"scoreEligible": false
+		}
+	]
+}

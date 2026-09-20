@@ -1,0 +1,98 @@
+{
+	"schemaVersion": "knowledge-sentence-protocol.v2",
+	"variants": [
+		{
+			"id": "current-1000",
+			"index": "legacy-1000",
+			"expansion": "none"
+		},
+		{
+			"id": "previous-500",
+			"index": "legacy-500",
+			"expansion": "none"
+		},
+		{
+			"id": "whole-sentence-500",
+			"index": "sentence-500",
+			"expansion": "none"
+		},
+		{
+			"id": "long-sentence-linked",
+			"index": "sentence-linked",
+			"expansion": "linked"
+		},
+		{
+			"id": "500-restore-sentence",
+			"index": "legacy-500",
+			"expansion": "sentence"
+		},
+		{
+			"id": "500-restore-paragraph",
+			"index": "legacy-500",
+			"expansion": "paragraph"
+		},
+		{
+			"id": "linked-restore-paragraph",
+			"index": "sentence-linked",
+			"expansion": "paragraph"
+		}
+	],
+	"corpusHash": "46e09f7d57fc818bb6f69576d1d8050e86cb2fa7a25fbb0cd841e0bc2c7d0b89",
+	"caseHash": "1a860bcc9b94b22e03339a523c3caad905de39573cff1227851de97fdfc5e890",
+	"boundaryProbeHash": "9af133f207df6bda89da5757ce8a4a35fc7d6e122ec50e5109172d871818c3bd",
+	"sourceHashes": {
+		"server/knowledge/jats.ts": "964e448e6ff17a2a45faacca627d990e2e156f243e361ac918e1cbdc6d7349e4",
+		"server/knowledge/store.ts": "5f9802eb086bb9f89ae7cdc7328817840ca45c5b7ca0e9ebcc1f4305d7998c27",
+		"server/knowledge/ranking.ts": "a902f2419639e0ab4c4f7fd979b9965be83118b0aab320c7adc34da2192390c0",
+		"server/knowledge/onnxEmbedding.ts": "bf8e9c2a84f8b4557a5d50e0b4710f054314ea27704b9d359345427503fc1728",
+		"src/manufacturing/knowledgeRetrieval.ts": "331d8745a6cdd524cab80899930f180774b004aeb4bfb43466bc6ee063d10242",
+		"eval/knowledgeChunkingSupport.ts": "72a2dbec8429f1d3a2ad0f7366c6083bf4d2ab905431fe3950df1274517d009f",
+		"eval/knowledgeSentenceSupport.ts": "9f6847ca87c2e2edfe7bdff384231c5060a6414ed831c37637c0362f1c851b0b",
+		"eval/knowledgeSentence.ts": "1c15e7490a47ecb2f6f6f2f1acdb406e6cbf1d20d463b507695105f06bec55f6"
+	},
+	"model": {
+		"id": "Xenova/multilingual-e5-small",
+		"revision": "761b726dd34fb83930e26aab4e9ac3899aa1fa78",
+		"dimensions": 384,
+		"dtype": "q8",
+		"runtime": "transformers-4.3.0/cpu"
+	},
+	"segmentation": {
+		"implementation": "Intl.Segmenter/sentence + fixed abbreviation guard",
+		"icu": "78.2",
+		"node": "v24.14.0",
+		"targetCharacters": 500,
+		"longSentenceThreshold": 500,
+		"longSentenceTokenCap": 128,
+		"longSentenceOverlapMax": 32
+	},
+	"retrieval": {
+		"policy": "packaging-fields.v1",
+		"modes": [
+			"keyword",
+			"vector",
+			"hybrid"
+		],
+		"primary": "hybrid",
+		"candidateK": 8,
+		"diagnosticK": 5,
+		"concurrency": 1,
+		"queryReuse": "One search per index/query/mode; expansion variants share identical candidates. Four indexes, seven output policies."
+	},
+	"primaryMetric": "Complete provisional source bundle in a 1024 E5-token JSON evidence budget; ignore whitespace-only gaps for all variants. V1 source labels and all 64 questions unchanged. Strict V1 punctuation/character scores are not substituted retroactively.",
+	"budget": {
+		"tokens": 1024,
+		"counting": "E5 tokenizer, no special tokens; whole payload array including citation metadata, expansion ranges and source IDs",
+		"selection": "rank-order greedy, whole packets only, skip too large; identical source ranges deduplicated; no partial expansion fallback"
+	},
+	"expansion": "Same document VERSION and original paragraph only; restore all sentences intersecting the hit, or entire original paragraph including adjacent sentences. Linked mode restores only deliberately split long sentences. No question/answer label is passed to expansion. Every referenced chunk is re-read through store permission/date/state filters and anchor is rechecked.",
+	"boundaryMetric": "Separate mechanical replay of 19 known legacy cuts: choose first chunk containing left source word, then measure adjacent-word integrity before/after packing. Oracle source hit, NOT retrieval accuracy or human gold. Long-sentence replay separately checks all source sentences over 500 characters.",
+	"limitations": [
+		"5 research papers / 4 families; 64 observed provisional queries, 56 answerable / 8 absent or filter cases; 0 human gold",
+		"Only one native-segmented sentence exceeds 500 chars; synthetic tests show mechanics, not real quality",
+		"Sentence boundaries are ICU heuristics, not semantic certainty; source paragraph boundaries remain",
+		"No production promotion, no Agent/Fact/Approval changes",
+		"Single serial run, no significance or production latency claim",
+		"No generation model, paid API or new dependency"
+	]
+}

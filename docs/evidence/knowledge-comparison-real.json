@@ -1,0 +1,5316 @@
+{
+	"schemaVersion": "knowledge-comparison.v1",
+	"executedAt": "2026-09-17T10:18:09.671Z",
+	"caseHash": "668803ac32b554e5356600eeec72e3058a052d48088fa68938114b7cb89d7f59",
+	"ruleVersion": "packaging-parameters.v2",
+	"sourceHashes": {
+		"src/manufacturing/packagingKnowledge.ts": "0d9f359fbc18e28b1dd88b0cfdc732b8b27b3c9a679c77b12c67c73e2aebca4b",
+		"server/knowledge/store.ts": "5f9802eb086bb9f89ae7cdc7328817840ca45c5b7ca0e9ebcc1f4305d7998c27",
+		"server/manufacturing/knowledgeComparison.ts": "bc76654e5e91d855faa9350b48dbc3aef09ec305bf2313999f4f32c279d38a6c",
+		"server/knowledge/validation.ts": "a40b8a7113973b96cd05917047a71c552b79feee704206c84758b801c8038f1a"
+	},
+	"baseline": {
+		"cases": 40,
+		"expectedComparable": 6,
+		"decisionAgreement": 0.575,
+		"falseComparable": 17,
+		"falseBlocked": 0
+	},
+	"current": {
+		"cases": 40,
+		"expectedComparable": 6,
+		"decisionAgreement": 1,
+		"falseComparable": 0,
+		"falseBlocked": 0
+	},
+	"groups": [
+		{
+			"origin": "synthetic_contract",
+			"cases": 32,
+			"expectedComparable": 6,
+			"decisionAgreement": 1,
+			"falseComparable": 0,
+			"falseBlocked": 0
+		},
+		{
+			"origin": "real_source_pair",
+			"cases": 8,
+			"expectedComparable": 0,
+			"decisionAgreement": 1,
+			"falseComparable": 0,
+			"falseBlocked": 0
+		}
+	],
+	"rows": [
+		{
+			"id": "thickness-mm-um",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": true,
+				"difference": 0
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": 0
+			},
+			"actual": {
+				"comparable": true,
+				"reasons": [],
+				"conditionChecks": [],
+				"left": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				},
+				"right": {
+					"name": "thickness",
+					"subject": "SYN-B",
+					"originalValue": "100",
+					"originalUnit": "µm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				},
+				"difference": 0,
+				"unit": "µm"
+			}
+		},
+		{
+			"id": "thickness-mil",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": true,
+				"difference": 0
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": 0
+			},
+			"actual": {
+				"comparable": true,
+				"reasons": [],
+				"conditionChecks": [],
+				"left": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "2",
+					"originalUnit": "mil",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 50.8,
+						"unit": "µm"
+					}
+				},
+				"right": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "50.8",
+					"originalUnit": "um",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 50.8,
+						"unit": "µm"
+					}
+				},
+				"difference": 0,
+				"unit": "µm"
+			}
+		},
+		{
+			"id": "grammage",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": true,
+				"difference": 9
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": 9
+			},
+			"actual": {
+				"comparable": true,
+				"reasons": [],
+				"conditionChecks": [],
+				"left": {
+					"name": "grammage",
+					"subject": "SYN-A",
+					"originalValue": "90",
+					"originalUnit": "g/m2",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim"
+				},
+				"right": {
+					"name": "grammage",
+					"subject": "SYN-A",
+					"originalValue": "81",
+					"originalUnit": "g/m2",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim"
+				},
+				"difference": 9,
+				"unit": "g/m2"
+			}
+		},
+		{
+			"id": "normalized-injection",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": true,
+				"difference": 0
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": 0
+			},
+			"actual": {
+				"comparable": true,
+				"reasons": [],
+				"conditionChecks": [],
+				"left": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				},
+				"right": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "100",
+					"originalUnit": "µm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				},
+				"difference": 0,
+				"unit": "µm"
+			}
+		},
+		{
+			"id": "range",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": false
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"unit_or_value_not_comparable",
+					"unit_dimension_unrecognized"
+				],
+				"conditionChecks": [],
+				"left": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				},
+				"right": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "40 and 50",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim"
+				}
+			}
+		},
+		{
+			"id": "inequality",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": false
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"unit_or_value_not_comparable",
+					"unit_dimension_unrecognized"
+				],
+				"conditionChecks": [],
+				"left": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				},
+				"right": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "<0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim"
+				}
+			}
+		},
+		{
+			"id": "tolerance",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": false
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"unit_or_value_not_comparable",
+					"unit_dimension_unrecognized"
+				],
+				"conditionChecks": [],
+				"left": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				},
+				"right": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1 ± 0.01",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim"
+				}
+			}
+		},
+		{
+			"id": "unit_mismatch",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": false
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"unit_or_value_not_comparable",
+					"unit_dimension_unrecognized"
+				],
+				"conditionChecks": [],
+				"left": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				},
+				"right": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "g/m2",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim"
+				}
+			}
+		},
+		{
+			"id": "empty_unit",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": false
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"unit_or_value_not_comparable",
+					"unit_dimension_unrecognized"
+				],
+				"conditionChecks": [],
+				"left": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				},
+				"right": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim"
+				}
+			}
+		},
+		{
+			"id": "name_mismatch",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": false
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"parameter_mismatch",
+					"unit_or_value_not_comparable",
+					"unit_dimension_unrecognized"
+				],
+				"conditionChecks": [],
+				"left": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				},
+				"right": {
+					"name": "grammage",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim"
+				}
+			}
+		},
+		{
+			"id": "scope_mismatch",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": false
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"scope_mismatch_or_missing"
+				],
+				"conditionChecks": [],
+				"left": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				},
+				"right": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "inner layer",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				}
+			}
+		},
+		{
+			"id": "method_revision",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": false
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"test_method_mismatch_or_missing"
+				],
+				"conditionChecks": [],
+				"left": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				},
+				"right": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v2",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				}
+			}
+		},
+		{
+			"id": "condition_mismatch",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": false
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"test_conditions_mismatch_or_missing"
+				],
+				"conditionChecks": [],
+				"left": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				},
+				"right": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "38 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				}
+			}
+		},
+		{
+			"id": "unknown_method",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": 0
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"test_method_mismatch_or_missing"
+				],
+				"conditionChecks": [],
+				"left": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "unknown",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				},
+				"right": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "unknown",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				}
+			}
+		},
+		{
+			"id": "unreported_method",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": 0
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"test_method_mismatch_or_missing"
+				],
+				"conditionChecks": [],
+				"left": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "未说明",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				},
+				"right": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "未说明",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				}
+			}
+		},
+		{
+			"id": "unknown_scope",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": 0
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"scope_mismatch_or_missing"
+				],
+				"conditionChecks": [],
+				"left": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "N/A",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				},
+				"right": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "N/A",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				}
+			}
+		},
+		{
+			"id": "blank_conditions",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": 0
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"test_conditions_mismatch_or_missing"
+				],
+				"conditionChecks": [],
+				"left": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": " ",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				},
+				"right": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": " ",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				}
+			}
+		},
+		{
+			"id": "unknown_conditions",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": 0
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"test_conditions_mismatch_or_missing"
+				],
+				"conditionChecks": [],
+				"left": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "not reported",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				},
+				"right": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "not reported",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				}
+			}
+		},
+		{
+			"id": "otr-complete",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": true,
+				"difference": -1
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": -1
+			},
+			"actual": {
+				"comparable": true,
+				"reasons": [],
+				"conditionChecks": [
+					{
+						"name": "temperature",
+						"left": {
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						"right": {
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						"status": "same"
+					},
+					{
+						"name": "relative_humidity",
+						"left": {
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						"right": {
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						"status": "same"
+					},
+					{
+						"name": "pressure_difference",
+						"left": {
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						"right": {
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						"status": "same"
+					},
+					{
+						"name": "gas",
+						"left": {
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						},
+						"right": {
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						},
+						"status": "same"
+					}
+				],
+				"left": {
+					"name": "OTR",
+					"subject": "SYN-A",
+					"originalValue": "2",
+					"originalUnit": "cm3/(m2 day)",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C; 0 %; 100 kPa; O2",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"testConditions": [
+						{
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						{
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						{
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						{
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						}
+					]
+				},
+				"right": {
+					"name": "OTR",
+					"subject": "SYN-B",
+					"originalValue": "3",
+					"originalUnit": "cm3/(m2 day)",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C; 0 %; 100 kPa; O2",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"testConditions": [
+						{
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						{
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						{
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						{
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						}
+					]
+				},
+				"difference": -1,
+				"unit": "cm3/(m2 day)"
+			}
+		},
+		{
+			"id": "otr-no-structured-context",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": 0
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"structured_test_conditions_missing"
+				],
+				"conditionChecks": [
+					{
+						"name": "temperature",
+						"status": "missing"
+					},
+					{
+						"name": "relative_humidity",
+						"status": "missing"
+					},
+					{
+						"name": "pressure_difference",
+						"status": "missing"
+					},
+					{
+						"name": "gas",
+						"status": "missing"
+					}
+				],
+				"left": {
+					"name": "OTR",
+					"subject": "SYN-A",
+					"originalValue": "2",
+					"originalUnit": "cm3/(m2 day)",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C; 0 %; 100 kPa; O2",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim"
+				},
+				"right": {
+					"name": "OTR",
+					"subject": "SYN-A",
+					"originalValue": "2",
+					"originalUnit": "cm3/(m2 day)",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C; 0 %; 100 kPa; O2",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim"
+				}
+			}
+		},
+		{
+			"id": "otr-missing-temperature",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": 0
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"structured_test_conditions_missing"
+				],
+				"conditionChecks": [
+					{
+						"name": "temperature",
+						"status": "missing"
+					},
+					{
+						"name": "relative_humidity",
+						"left": {
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						"right": {
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						"status": "same"
+					},
+					{
+						"name": "pressure_difference",
+						"left": {
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						"right": {
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						"status": "same"
+					},
+					{
+						"name": "gas",
+						"left": {
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						},
+						"right": {
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						},
+						"status": "same"
+					}
+				],
+				"left": {
+					"name": "OTR",
+					"subject": "SYN-A",
+					"originalValue": "2",
+					"originalUnit": "cm3/(m2 day)",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C; 0 %; 100 kPa; O2",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"testConditions": [
+						{
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						{
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						{
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						}
+					]
+				},
+				"right": {
+					"name": "OTR",
+					"subject": "SYN-A",
+					"originalValue": "2",
+					"originalUnit": "cm3/(m2 day)",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C; 0 %; 100 kPa; O2",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"testConditions": [
+						{
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						{
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						{
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "otr-missing-relative_humidity",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": 0
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"structured_test_conditions_missing"
+				],
+				"conditionChecks": [
+					{
+						"name": "temperature",
+						"left": {
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						"right": {
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						"status": "same"
+					},
+					{
+						"name": "relative_humidity",
+						"status": "missing"
+					},
+					{
+						"name": "pressure_difference",
+						"left": {
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						"right": {
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						"status": "same"
+					},
+					{
+						"name": "gas",
+						"left": {
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						},
+						"right": {
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						},
+						"status": "same"
+					}
+				],
+				"left": {
+					"name": "OTR",
+					"subject": "SYN-A",
+					"originalValue": "2",
+					"originalUnit": "cm3/(m2 day)",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C; 0 %; 100 kPa; O2",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"testConditions": [
+						{
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						{
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						{
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						}
+					]
+				},
+				"right": {
+					"name": "OTR",
+					"subject": "SYN-A",
+					"originalValue": "2",
+					"originalUnit": "cm3/(m2 day)",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C; 0 %; 100 kPa; O2",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"testConditions": [
+						{
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						{
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						{
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "otr-missing-pressure_difference",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": 0
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"structured_test_conditions_missing"
+				],
+				"conditionChecks": [
+					{
+						"name": "temperature",
+						"left": {
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						"right": {
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						"status": "same"
+					},
+					{
+						"name": "relative_humidity",
+						"left": {
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						"right": {
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						"status": "same"
+					},
+					{
+						"name": "pressure_difference",
+						"status": "missing"
+					},
+					{
+						"name": "gas",
+						"left": {
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						},
+						"right": {
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						},
+						"status": "same"
+					}
+				],
+				"left": {
+					"name": "OTR",
+					"subject": "SYN-A",
+					"originalValue": "2",
+					"originalUnit": "cm3/(m2 day)",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C; 0 %; 100 kPa; O2",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"testConditions": [
+						{
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						{
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						{
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						}
+					]
+				},
+				"right": {
+					"name": "OTR",
+					"subject": "SYN-A",
+					"originalValue": "2",
+					"originalUnit": "cm3/(m2 day)",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C; 0 %; 100 kPa; O2",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"testConditions": [
+						{
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						{
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						{
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "otr-missing-gas",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": 0
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"structured_test_conditions_missing"
+				],
+				"conditionChecks": [
+					{
+						"name": "temperature",
+						"left": {
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						"right": {
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						"status": "same"
+					},
+					{
+						"name": "relative_humidity",
+						"left": {
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						"right": {
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						"status": "same"
+					},
+					{
+						"name": "pressure_difference",
+						"left": {
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						"right": {
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						"status": "same"
+					},
+					{
+						"name": "gas",
+						"status": "missing"
+					}
+				],
+				"left": {
+					"name": "OTR",
+					"subject": "SYN-A",
+					"originalValue": "2",
+					"originalUnit": "cm3/(m2 day)",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C; 0 %; 100 kPa; O2",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"testConditions": [
+						{
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						{
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						{
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						}
+					]
+				},
+				"right": {
+					"name": "OTR",
+					"subject": "SYN-A",
+					"originalValue": "2",
+					"originalUnit": "cm3/(m2 day)",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C; 0 %; 100 kPa; O2",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"testConditions": [
+						{
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						{
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						{
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "otr-structured-mismatch",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": 0
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"structured_test_conditions_mismatch"
+				],
+				"conditionChecks": [
+					{
+						"name": "temperature",
+						"left": {
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						"right": {
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						"status": "same"
+					},
+					{
+						"name": "relative_humidity",
+						"left": {
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						"right": {
+							"name": "relative_humidity",
+							"value": "50",
+							"unit": "%"
+						},
+						"status": "different"
+					},
+					{
+						"name": "pressure_difference",
+						"left": {
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						"right": {
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						"status": "same"
+					},
+					{
+						"name": "gas",
+						"left": {
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						},
+						"right": {
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						},
+						"status": "same"
+					}
+				],
+				"left": {
+					"name": "OTR",
+					"subject": "SYN-A",
+					"originalValue": "2",
+					"originalUnit": "cm3/(m2 day)",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C; 0 %; 100 kPa; O2",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"testConditions": [
+						{
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						{
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						{
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						{
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						}
+					]
+				},
+				"right": {
+					"name": "OTR",
+					"subject": "SYN-A",
+					"originalValue": "2",
+					"originalUnit": "cm3/(m2 day)",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C; 0 %; 100 kPa; O2",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"testConditions": [
+						{
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						{
+							"name": "relative_humidity",
+							"value": "50",
+							"unit": "%"
+						},
+						{
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						{
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "otr-pressure-unit-mismatch",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": 0
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"structured_test_conditions_mismatch"
+				],
+				"conditionChecks": [
+					{
+						"name": "temperature",
+						"left": {
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						"right": {
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						"status": "same"
+					},
+					{
+						"name": "relative_humidity",
+						"left": {
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						"right": {
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						"status": "same"
+					},
+					{
+						"name": "pressure_difference",
+						"left": {
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						"right": {
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "Pa"
+						},
+						"status": "different"
+					},
+					{
+						"name": "gas",
+						"left": {
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						},
+						"right": {
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						},
+						"status": "same"
+					}
+				],
+				"left": {
+					"name": "OTR",
+					"subject": "SYN-A",
+					"originalValue": "2",
+					"originalUnit": "cm3/(m2 day)",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C; 0 %; 100 kPa; O2",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"testConditions": [
+						{
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						{
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						{
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						{
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						}
+					]
+				},
+				"right": {
+					"name": "OTR",
+					"subject": "SYN-A",
+					"originalValue": "2",
+					"originalUnit": "cm3/(m2 day)",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C; 0 %; 100 kPa; O2",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"testConditions": [
+						{
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						{
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						{
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "Pa"
+						},
+						{
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "wvtr-complete",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": true,
+				"difference": -1
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": -1
+			},
+			"actual": {
+				"comparable": true,
+				"reasons": [],
+				"conditionChecks": [
+					{
+						"name": "temperature",
+						"left": {
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						"right": {
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						"status": "same"
+					},
+					{
+						"name": "humidity_source",
+						"left": {
+							"name": "humidity_source",
+							"value": "90",
+							"unit": "%"
+						},
+						"right": {
+							"name": "humidity_source",
+							"value": "90",
+							"unit": "%"
+						},
+						"status": "same"
+					},
+					{
+						"name": "humidity_receiver",
+						"left": {
+							"name": "humidity_receiver",
+							"value": "0",
+							"unit": "%"
+						},
+						"right": {
+							"name": "humidity_receiver",
+							"value": "0",
+							"unit": "%"
+						},
+						"status": "same"
+					}
+				],
+				"left": {
+					"name": "WVTR",
+					"subject": "SYN-A",
+					"originalValue": "2",
+					"originalUnit": "g/(m2 day)",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C; 90 % to 0 %",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"testConditions": [
+						{
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						{
+							"name": "humidity_source",
+							"value": "90",
+							"unit": "%"
+						},
+						{
+							"name": "humidity_receiver",
+							"value": "0",
+							"unit": "%"
+						}
+					]
+				},
+				"right": {
+					"name": "WVTR",
+					"subject": "SYN-A",
+					"originalValue": "3",
+					"originalUnit": "g/(m2 day)",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C; 90 % to 0 %",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"testConditions": [
+						{
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						{
+							"name": "humidity_source",
+							"value": "90",
+							"unit": "%"
+						},
+						{
+							"name": "humidity_receiver",
+							"value": "0",
+							"unit": "%"
+						}
+					]
+				},
+				"difference": -1,
+				"unit": "g/(m2 day)"
+			}
+		},
+		{
+			"id": "wvtr-missing-receiver",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": 0
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"structured_test_conditions_missing"
+				],
+				"conditionChecks": [
+					{
+						"name": "temperature",
+						"left": {
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						"right": {
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						"status": "same"
+					},
+					{
+						"name": "humidity_source",
+						"left": {
+							"name": "humidity_source",
+							"value": "90",
+							"unit": "%"
+						},
+						"right": {
+							"name": "humidity_source",
+							"value": "90",
+							"unit": "%"
+						},
+						"status": "same"
+					},
+					{
+						"name": "humidity_receiver",
+						"status": "missing"
+					}
+				],
+				"left": {
+					"name": "WVTR",
+					"subject": "SYN-A",
+					"originalValue": "2",
+					"originalUnit": "g/(m2 day)",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C; 90 % to 0 %",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"testConditions": [
+						{
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						{
+							"name": "humidity_source",
+							"value": "90",
+							"unit": "%"
+						}
+					]
+				},
+				"right": {
+					"name": "WVTR",
+					"subject": "SYN-A",
+					"originalValue": "2",
+					"originalUnit": "g/(m2 day)",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C; 90 % to 0 %",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"testConditions": [
+						{
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						{
+							"name": "humidity_source",
+							"value": "90",
+							"unit": "%"
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "otr-ambiguous-label",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": 0
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"parameter_not_supported",
+					"parameter_semantics_require_review",
+					"unit_dimension_unrecognized"
+				],
+				"conditionChecks": [
+					{
+						"name": "temperature",
+						"left": {
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						"right": {
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						"status": "same"
+					},
+					{
+						"name": "relative_humidity",
+						"left": {
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						"right": {
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						"status": "same"
+					},
+					{
+						"name": "pressure_difference",
+						"left": {
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						"right": {
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						"status": "same"
+					},
+					{
+						"name": "gas",
+						"left": {
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						},
+						"right": {
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						},
+						"status": "same"
+					}
+				],
+				"left": {
+					"name": "OTR_as_labelled",
+					"subject": "SYN-A",
+					"originalValue": "2",
+					"originalUnit": "cm3/(m2 day)",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C; 0 %; 100 kPa; O2",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"testConditions": [
+						{
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						{
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						{
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						{
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						}
+					]
+				},
+				"right": {
+					"name": "OTR_as_labelled",
+					"subject": "SYN-A",
+					"originalValue": "2",
+					"originalUnit": "cm3/(m2 day)",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C; 0 %; 100 kPa; O2",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"testConditions": [
+						{
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						{
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						{
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						{
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "not-physical-price",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": 0
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"parameter_not_supported",
+					"unit_dimension_unrecognized"
+				],
+				"conditionChecks": [],
+				"left": {
+					"name": "price",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim"
+				},
+				"right": {
+					"name": "price",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim"
+				}
+			}
+		},
+		{
+			"id": "not-physical-certificate",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": 0
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"parameter_not_supported",
+					"unit_dimension_unrecognized"
+				],
+				"conditionChecks": [],
+				"left": {
+					"name": "certificate",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim"
+				},
+				"right": {
+					"name": "certificate",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim"
+				}
+			}
+		},
+		{
+			"id": "not-physical-shelf_life",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": 0
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"parameter_not_supported",
+					"unit_dimension_unrecognized"
+				],
+				"conditionChecks": [],
+				"left": {
+					"name": "shelf_life",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim"
+				},
+				"right": {
+					"name": "shelf_life",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim"
+				}
+			}
+		},
+		{
+			"id": "rec-std-otr",
+			"origin": "real_source_pair",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": false
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"test_method_mismatch_or_missing",
+					"test_conditions_mismatch_or_missing",
+					"structured_test_conditions_missing",
+					"unit_or_value_not_comparable",
+					"unit_dimension_unrecognized"
+				],
+				"conditionChecks": [
+					{
+						"name": "temperature",
+						"status": "missing"
+					},
+					{
+						"name": "relative_humidity",
+						"status": "missing"
+					},
+					{
+						"name": "pressure_difference",
+						"status": "missing"
+					},
+					{
+						"name": "gas",
+						"status": "missing"
+					}
+				],
+				"left": {
+					"name": "OTR",
+					"subject": "STD",
+					"originalValue": "<1.0",
+					"originalUnit": "",
+					"method": "",
+					"conditions": "",
+					"scope": "Research sample only; not a supplier specification or current-order approval",
+					"verification": "unverified",
+					"authority": "research_report"
+				},
+				"right": {
+					"name": "OTR",
+					"subject": "REC",
+					"originalValue": "<0.5",
+					"originalUnit": "",
+					"method": "",
+					"conditions": "",
+					"scope": "Research sample only; not a supplier specification or current-order approval",
+					"verification": "unverified",
+					"authority": "research_report"
+				}
+			}
+		},
+		{
+			"id": "rec-std-grammage",
+			"origin": "real_source_pair",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": false
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"test_method_mismatch_or_missing",
+					"test_conditions_mismatch_or_missing"
+				],
+				"conditionChecks": [],
+				"left": {
+					"name": "grammage",
+					"subject": "STD",
+					"originalValue": "99",
+					"originalUnit": "g/m2",
+					"method": "",
+					"conditions": "",
+					"scope": "Research sample only; not a supplier specification or current-order approval",
+					"verification": "unverified",
+					"authority": "research_report"
+				},
+				"right": {
+					"name": "grammage",
+					"subject": "REC",
+					"originalValue": "81",
+					"originalUnit": "g/m2",
+					"method": "",
+					"conditions": "",
+					"scope": "Research sample only; not a supplier specification or current-order approval",
+					"verification": "unverified",
+					"authority": "research_report"
+				}
+			}
+		},
+		{
+			"id": "rec-std-layer",
+			"origin": "real_source_pair",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": false
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"test_method_mismatch_or_missing",
+					"test_conditions_mismatch_or_missing"
+				],
+				"conditionChecks": [],
+				"left": {
+					"name": "thickness",
+					"subject": "STD/PET",
+					"originalValue": "12",
+					"originalUnit": "microns",
+					"method": "",
+					"conditions": "",
+					"scope": "Research sample only; not a supplier specification or current-order approval",
+					"verification": "unverified",
+					"authority": "research_report",
+					"normalized": {
+						"value": 12,
+						"unit": "µm"
+					}
+				},
+				"right": {
+					"name": "thickness",
+					"subject": "REC/OPPHP",
+					"originalValue": "15",
+					"originalUnit": "microns",
+					"method": "",
+					"conditions": "",
+					"scope": "Research sample only; not a supplier specification or current-order approval",
+					"verification": "unverified",
+					"authority": "research_report",
+					"normalized": {
+						"value": 15,
+						"unit": "µm"
+					}
+				}
+			}
+		},
+		{
+			"id": "alt-std-otr",
+			"origin": "real_source_pair",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": false
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"test_method_mismatch_or_missing",
+					"test_conditions_mismatch_or_missing",
+					"structured_test_conditions_missing",
+					"unit_or_value_not_comparable",
+					"unit_dimension_unrecognized"
+				],
+				"conditionChecks": [
+					{
+						"name": "temperature",
+						"status": "missing"
+					},
+					{
+						"name": "relative_humidity",
+						"status": "missing"
+					},
+					{
+						"name": "pressure_difference",
+						"status": "missing"
+					},
+					{
+						"name": "gas",
+						"status": "missing"
+					}
+				],
+				"left": {
+					"name": "OTR",
+					"subject": "STD",
+					"originalValue": "<1.0",
+					"originalUnit": "",
+					"method": "",
+					"conditions": "",
+					"scope": "Research sample only; not a supplier specification or current-order approval",
+					"verification": "unverified",
+					"authority": "research_report"
+				},
+				"right": {
+					"name": "OTR",
+					"subject": "ALT",
+					"originalValue": "<1.5",
+					"originalUnit": "",
+					"method": "",
+					"conditions": "",
+					"scope": "Research sample only; not a supplier specification or current-order approval",
+					"verification": "unverified",
+					"authority": "research_report"
+				}
+			}
+		},
+		{
+			"id": "green-air",
+			"origin": "real_source_pair",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": false
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"test_method_mismatch_or_missing",
+					"test_conditions_mismatch_or_missing",
+					"structured_test_conditions_missing",
+					"unit_or_value_not_comparable"
+				],
+				"conditionChecks": [
+					{
+						"name": "temperature",
+						"status": "missing"
+					},
+					{
+						"name": "relative_humidity",
+						"status": "missing"
+					},
+					{
+						"name": "pressure_difference",
+						"status": "missing"
+					}
+				],
+				"left": {
+					"name": "air_permeability",
+					"subject": "LDPE",
+					"originalValue": "101.47 ± 2.70",
+					"originalUnit": "L/m2 s",
+					"method": "",
+					"conditions": "",
+					"scope": "Research sample only; not a supplier specification or current-order approval",
+					"verification": "unverified",
+					"authority": "research_report"
+				},
+				"right": {
+					"name": "air_permeability",
+					"subject": "GP",
+					"originalValue": "0.538 ± 0.04",
+					"originalUnit": "L/m2 s",
+					"method": "",
+					"conditions": "",
+					"scope": "Research sample only; not a supplier specification or current-order approval",
+					"verification": "unverified",
+					"authority": "research_report"
+				}
+			}
+		},
+		{
+			"id": "green-thickness",
+			"origin": "real_source_pair",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": false
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"test_method_mismatch_or_missing",
+					"test_conditions_mismatch_or_missing",
+					"unit_or_value_not_comparable",
+					"unit_dimension_unrecognized"
+				],
+				"conditionChecks": [],
+				"left": {
+					"name": "thickness",
+					"subject": "LDPE",
+					"originalValue": "0.075 ± 0.00",
+					"originalUnit": "mm",
+					"method": "",
+					"conditions": "",
+					"scope": "Research sample only; not a supplier specification or current-order approval",
+					"verification": "unverified",
+					"authority": "research_report"
+				},
+				"right": {
+					"name": "thickness",
+					"subject": "GP",
+					"originalValue": "0.124 ± 0.00",
+					"originalUnit": "mm",
+					"method": "",
+					"conditions": "",
+					"scope": "Research sample only; not a supplier specification or current-order approval",
+					"verification": "unverified",
+					"authority": "research_report"
+				}
+			}
+		},
+		{
+			"id": "pla-otr-label",
+			"origin": "real_source_pair",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": false
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"parameter_not_supported",
+					"parameter_semantics_require_review",
+					"test_method_mismatch_or_missing",
+					"test_conditions_mismatch_or_missing",
+					"unit_dimension_unrecognized"
+				],
+				"conditionChecks": [],
+				"left": {
+					"name": "OTR_as_labelled",
+					"subject": "PLA-C3",
+					"originalValue": "7",
+					"originalUnit": "cm3 mm/(m2·d·0.1 MPa)",
+					"method": "",
+					"conditions": "",
+					"scope": "Research sample only; not a supplier specification or current-order approval",
+					"verification": "unverified",
+					"authority": "research_report"
+				},
+				"right": {
+					"name": "OTR_as_labelled",
+					"subject": "PLA-O3",
+					"originalValue": "15",
+					"originalUnit": "cm3 mm/(m2·d·0.1 MPa)",
+					"method": "",
+					"conditions": "",
+					"scope": "Research sample only; not a supplier specification or current-order approval",
+					"verification": "unverified",
+					"authority": "research_report"
+				}
+			}
+		},
+		{
+			"id": "pla-wvtr",
+			"origin": "real_source_pair",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": false
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"test_method_mismatch_or_missing",
+					"test_conditions_mismatch_or_missing",
+					"structured_test_conditions_missing"
+				],
+				"conditionChecks": [
+					{
+						"name": "temperature",
+						"status": "missing"
+					},
+					{
+						"name": "humidity_source",
+						"status": "missing"
+					},
+					{
+						"name": "humidity_receiver",
+						"status": "missing"
+					}
+				],
+				"left": {
+					"name": "WVTR",
+					"subject": "PLA-C3",
+					"originalValue": "2.61",
+					"originalUnit": "g/m2·d",
+					"method": "",
+					"conditions": "",
+					"scope": "Research sample only; not a supplier specification or current-order approval",
+					"verification": "unverified",
+					"authority": "research_report"
+				},
+				"right": {
+					"name": "WVTR",
+					"subject": "PLA-O3",
+					"originalValue": "3.18",
+					"originalUnit": "g/m2·d",
+					"method": "",
+					"conditions": "",
+					"scope": "Research sample only; not a supplier specification or current-order approval",
+					"verification": "unverified",
+					"authority": "research_report"
+				}
+			}
+		}
+	],
+	"live": {
+		"model": "onnx:Xenova/multilingual-e5-small@761b726dd34fb83930e26aab4e9ac3899aa1fa78:q8:384:mean:l2:512:prefix-e5:windows-480-v1:transformers-4.3.0",
+		"corpusHash": "46e09f7d57fc818bb6f69576d1d8050e86cb2fa7a25fbb0cd841e0bc2c7d0b89",
+		"casesHash": "0966781aba9451bea4299bd2ffaccc0046a2023e29f37dd471bfcd7d58ba147c",
+		"previousReportHash": "971ba7e0c14ffcb4be360e14938a497a9c0d30ff31dfc02365907615d871ddbe",
+		"rankingUnchangedForAll64": true,
+		"comparisons": [
+			{
+				"id": "rec-std-otr",
+				"result": {
+					"schemaVersion": "packaging-comparison.v1",
+					"ruleVersion": "packaging-parameters.v2",
+					"correlationId": "rec-std-otr",
+					"createdAt": "2026-09-17T10:18:07.363Z",
+					"filters": {},
+					"status": "needs_review",
+					"verification": "unverified",
+					"conclusionAllowed": false,
+					"left": {
+						"evidenceId": "kb-2955bd26c0bbf68eb38e587486be219ba8f9c4c93bb314c1d44660943cc1936c:36",
+						"versionId": "kb-2955bd26c0bbf68eb38e587486be219ba8f9c4c93bb314c1d44660943cc1936c",
+						"contentHash": "0c9860441affa7722f3289eac72da704dd42f4d6b03217a015e4ea6dac3ceec9",
+						"documentId": "PMC11243642",
+						"title": "A Recyclable Polypropylene Multilayer Film Maintaining the Quality and the Aroma of Coffee Pods during Their Shelf Life",
+						"publisher": "Martina Calabrese et al.; MDPI",
+						"model": "study:PMC11243642",
+						"revision": "PMC11243642.1",
+						"sourceUrl": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11243642/",
+						"provenance": "public_source",
+						"attribution": "Martina Calabrese, Lucia De Luca, Giulia Basile, Gianfranco Lambiase, Raffaele Romano, Fabiana Pizzolongo. Molecules. 2024 Jun 25;29(13):3006. doi: 10.3390/molecules29133006. CC BY 4.0 https://creativecommons.org/licenses/by/4.0/. Source: PMC/NLM (no endorsement). Changes: structured extraction, segmentation and unverified parameter transcription. Snapshot dated 2026-09-17; not claimed current.",
+						"location": {
+							"anchor": "sec3dot2-molecules-29-03006",
+							"page": 13,
+							"paragraph": 2,
+							"part": 1,
+							"section": "3. Materials and Methods / 3.2. Samples"
+						},
+						"warnings": [
+							"candidate_not_verified",
+							"effective_date_unknown",
+							"region_unknown"
+						],
+						"parameterIndex": 0,
+						"parameter": {
+							"authority": "research_report",
+							"conditions": "",
+							"method": "",
+							"name": "OTR",
+							"originalUnit": "",
+							"originalValue": "<1.0",
+							"scope": "Research sample only; not a supplier specification or current-order approval",
+							"subject": "STD",
+							"verification": "unverified"
+						}
+					},
+					"right": {
+						"evidenceId": "kb-2955bd26c0bbf68eb38e587486be219ba8f9c4c93bb314c1d44660943cc1936c:37",
+						"versionId": "kb-2955bd26c0bbf68eb38e587486be219ba8f9c4c93bb314c1d44660943cc1936c",
+						"contentHash": "0c9860441affa7722f3289eac72da704dd42f4d6b03217a015e4ea6dac3ceec9",
+						"documentId": "PMC11243642",
+						"title": "A Recyclable Polypropylene Multilayer Film Maintaining the Quality and the Aroma of Coffee Pods during Their Shelf Life",
+						"publisher": "Martina Calabrese et al.; MDPI",
+						"model": "study:PMC11243642",
+						"revision": "PMC11243642.1",
+						"sourceUrl": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11243642/",
+						"provenance": "public_source",
+						"attribution": "Martina Calabrese, Lucia De Luca, Giulia Basile, Gianfranco Lambiase, Raffaele Romano, Fabiana Pizzolongo. Molecules. 2024 Jun 25;29(13):3006. doi: 10.3390/molecules29133006. CC BY 4.0 https://creativecommons.org/licenses/by/4.0/. Source: PMC/NLM (no endorsement). Changes: structured extraction, segmentation and unverified parameter transcription. Snapshot dated 2026-09-17; not claimed current.",
+						"location": {
+							"anchor": "sec3dot2-molecules-29-03006",
+							"page": 13,
+							"paragraph": 3,
+							"part": 1,
+							"section": "3. Materials and Methods / 3.2. Samples"
+						},
+						"warnings": [
+							"candidate_not_verified",
+							"effective_date_unknown",
+							"region_unknown"
+						],
+						"parameterIndex": 0,
+						"parameter": {
+							"authority": "research_report",
+							"conditions": "",
+							"method": "",
+							"name": "OTR",
+							"originalUnit": "",
+							"originalValue": "<0.5",
+							"scope": "Research sample only; not a supplier specification or current-order approval",
+							"subject": "REC",
+							"verification": "unverified"
+						}
+					},
+					"comparison": {
+						"comparable": false,
+						"reasons": [
+							"test_method_mismatch_or_missing",
+							"test_conditions_mismatch_or_missing",
+							"structured_test_conditions_missing",
+							"unit_or_value_not_comparable",
+							"unit_dimension_unrecognized"
+						],
+						"conditionChecks": [
+							{
+								"name": "temperature",
+								"status": "missing"
+							},
+							{
+								"name": "relative_humidity",
+								"status": "missing"
+							},
+							{
+								"name": "pressure_difference",
+								"status": "missing"
+							},
+							{
+								"name": "gas",
+								"status": "missing"
+							}
+						]
+					},
+					"questions": [
+						"测试方法或版本不同、缺失或标为未知",
+						"原文测试条件不同、缺失或标为未知",
+						"缺少逐项记录的温湿度、压差或气体条件",
+						"单位不同、原值含范围/不等号/误差或不是有效数值",
+						"单位尚未确认为该指标的可计算单位",
+						"测试温度：左侧 未说明；右侧 未说明。请分别提供对应测试报告中的条件与来源位置。",
+						"相对湿度：左侧 未说明；右侧 未说明。请分别提供对应测试报告中的条件与来源位置。",
+						"压差：左侧 未说明；右侧 未说明。请分别提供对应测试报告中的条件与来源位置。",
+						"测试气体：左侧 未说明；右侧 未说明。请分别提供对应测试报告中的条件与来源位置。"
+					],
+					"warnings": [
+						"numeric_comparison_is_not_order_suitability",
+						"source_transcriptions_not_semantic_proof",
+						"order_applicability_required",
+						"research_samples_not_supplier_specifications"
+					],
+					"durationMs": 0.444582999999966,
+					"usage": {
+						"embeddingCalls": 0,
+						"generationCalls": 0
+					}
+				}
+			},
+			{
+				"id": "rec-std-grammage",
+				"result": {
+					"schemaVersion": "packaging-comparison.v1",
+					"ruleVersion": "packaging-parameters.v2",
+					"correlationId": "rec-std-grammage",
+					"createdAt": "2026-09-17T10:18:07.363Z",
+					"filters": {},
+					"status": "needs_review",
+					"verification": "unverified",
+					"conclusionAllowed": false,
+					"left": {
+						"evidenceId": "kb-2955bd26c0bbf68eb38e587486be219ba8f9c4c93bb314c1d44660943cc1936c:36",
+						"versionId": "kb-2955bd26c0bbf68eb38e587486be219ba8f9c4c93bb314c1d44660943cc1936c",
+						"contentHash": "0c9860441affa7722f3289eac72da704dd42f4d6b03217a015e4ea6dac3ceec9",
+						"documentId": "PMC11243642",
+						"title": "A Recyclable Polypropylene Multilayer Film Maintaining the Quality and the Aroma of Coffee Pods during Their Shelf Life",
+						"publisher": "Martina Calabrese et al.; MDPI",
+						"model": "study:PMC11243642",
+						"revision": "PMC11243642.1",
+						"sourceUrl": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11243642/",
+						"provenance": "public_source",
+						"attribution": "Martina Calabrese, Lucia De Luca, Giulia Basile, Gianfranco Lambiase, Raffaele Romano, Fabiana Pizzolongo. Molecules. 2024 Jun 25;29(13):3006. doi: 10.3390/molecules29133006. CC BY 4.0 https://creativecommons.org/licenses/by/4.0/. Source: PMC/NLM (no endorsement). Changes: structured extraction, segmentation and unverified parameter transcription. Snapshot dated 2026-09-17; not claimed current.",
+						"location": {
+							"anchor": "sec3dot2-molecules-29-03006",
+							"page": 13,
+							"paragraph": 2,
+							"part": 1,
+							"section": "3. Materials and Methods / 3.2. Samples"
+						},
+						"warnings": [
+							"candidate_not_verified",
+							"effective_date_unknown",
+							"region_unknown"
+						],
+						"parameterIndex": 1,
+						"parameter": {
+							"authority": "research_report",
+							"conditions": "",
+							"method": "",
+							"name": "grammage",
+							"originalUnit": "g/m2",
+							"originalValue": "99",
+							"scope": "Research sample only; not a supplier specification or current-order approval",
+							"subject": "STD",
+							"verification": "unverified"
+						}
+					},
+					"right": {
+						"evidenceId": "kb-2955bd26c0bbf68eb38e587486be219ba8f9c4c93bb314c1d44660943cc1936c:37",
+						"versionId": "kb-2955bd26c0bbf68eb38e587486be219ba8f9c4c93bb314c1d44660943cc1936c",
+						"contentHash": "0c9860441affa7722f3289eac72da704dd42f4d6b03217a015e4ea6dac3ceec9",
+						"documentId": "PMC11243642",
+						"title": "A Recyclable Polypropylene Multilayer Film Maintaining the Quality and the Aroma of Coffee Pods during Their Shelf Life",
+						"publisher": "Martina Calabrese et al.; MDPI",
+						"model": "study:PMC11243642",
+						"revision": "PMC11243642.1",
+						"sourceUrl": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11243642/",
+						"provenance": "public_source",
+						"attribution": "Martina Calabrese, Lucia De Luca, Giulia Basile, Gianfranco Lambiase, Raffaele Romano, Fabiana Pizzolongo. Molecules. 2024 Jun 25;29(13):3006. doi: 10.3390/molecules29133006. CC BY 4.0 https://creativecommons.org/licenses/by/4.0/. Source: PMC/NLM (no endorsement). Changes: structured extraction, segmentation and unverified parameter transcription. Snapshot dated 2026-09-17; not claimed current.",
+						"location": {
+							"anchor": "sec3dot2-molecules-29-03006",
+							"page": 13,
+							"paragraph": 3,
+							"part": 1,
+							"section": "3. Materials and Methods / 3.2. Samples"
+						},
+						"warnings": [
+							"candidate_not_verified",
+							"effective_date_unknown",
+							"region_unknown"
+						],
+						"parameterIndex": 1,
+						"parameter": {
+							"authority": "research_report",
+							"conditions": "",
+							"method": "",
+							"name": "grammage",
+							"originalUnit": "g/m2",
+							"originalValue": "81",
+							"scope": "Research sample only; not a supplier specification or current-order approval",
+							"subject": "REC",
+							"verification": "unverified"
+						}
+					},
+					"comparison": {
+						"comparable": false,
+						"reasons": [
+							"test_method_mismatch_or_missing",
+							"test_conditions_mismatch_or_missing"
+						],
+						"conditionChecks": []
+					},
+					"questions": [
+						"测试方法或版本不同、缺失或标为未知",
+						"原文测试条件不同、缺失或标为未知"
+					],
+					"warnings": [
+						"numeric_comparison_is_not_order_suitability",
+						"source_transcriptions_not_semantic_proof",
+						"order_applicability_required",
+						"research_samples_not_supplier_specifications"
+					],
+					"durationMs": 0.15975000000003092,
+					"usage": {
+						"embeddingCalls": 0,
+						"generationCalls": 0
+					}
+				}
+			},
+			{
+				"id": "rec-std-layer",
+				"result": {
+					"schemaVersion": "packaging-comparison.v1",
+					"ruleVersion": "packaging-parameters.v2",
+					"correlationId": "rec-std-layer",
+					"createdAt": "2026-09-17T10:18:07.363Z",
+					"filters": {},
+					"status": "needs_review",
+					"verification": "unverified",
+					"conclusionAllowed": false,
+					"left": {
+						"evidenceId": "kb-2955bd26c0bbf68eb38e587486be219ba8f9c4c93bb314c1d44660943cc1936c:36",
+						"versionId": "kb-2955bd26c0bbf68eb38e587486be219ba8f9c4c93bb314c1d44660943cc1936c",
+						"contentHash": "0c9860441affa7722f3289eac72da704dd42f4d6b03217a015e4ea6dac3ceec9",
+						"documentId": "PMC11243642",
+						"title": "A Recyclable Polypropylene Multilayer Film Maintaining the Quality and the Aroma of Coffee Pods during Their Shelf Life",
+						"publisher": "Martina Calabrese et al.; MDPI",
+						"model": "study:PMC11243642",
+						"revision": "PMC11243642.1",
+						"sourceUrl": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11243642/",
+						"provenance": "public_source",
+						"attribution": "Martina Calabrese, Lucia De Luca, Giulia Basile, Gianfranco Lambiase, Raffaele Romano, Fabiana Pizzolongo. Molecules. 2024 Jun 25;29(13):3006. doi: 10.3390/molecules29133006. CC BY 4.0 https://creativecommons.org/licenses/by/4.0/. Source: PMC/NLM (no endorsement). Changes: structured extraction, segmentation and unverified parameter transcription. Snapshot dated 2026-09-17; not claimed current.",
+						"location": {
+							"anchor": "sec3dot2-molecules-29-03006",
+							"page": 13,
+							"paragraph": 2,
+							"part": 1,
+							"section": "3. Materials and Methods / 3.2. Samples"
+						},
+						"warnings": [
+							"candidate_not_verified",
+							"effective_date_unknown",
+							"region_unknown"
+						],
+						"parameterIndex": 2,
+						"parameter": {
+							"authority": "research_report",
+							"conditions": "",
+							"method": "",
+							"name": "thickness",
+							"originalUnit": "microns",
+							"originalValue": "12",
+							"scope": "Research sample only; not a supplier specification or current-order approval",
+							"subject": "STD/PET",
+							"verification": "unverified",
+							"normalized": {
+								"value": 12,
+								"unit": "µm"
+							}
+						}
+					},
+					"right": {
+						"evidenceId": "kb-2955bd26c0bbf68eb38e587486be219ba8f9c4c93bb314c1d44660943cc1936c:37",
+						"versionId": "kb-2955bd26c0bbf68eb38e587486be219ba8f9c4c93bb314c1d44660943cc1936c",
+						"contentHash": "0c9860441affa7722f3289eac72da704dd42f4d6b03217a015e4ea6dac3ceec9",
+						"documentId": "PMC11243642",
+						"title": "A Recyclable Polypropylene Multilayer Film Maintaining the Quality and the Aroma of Coffee Pods during Their Shelf Life",
+						"publisher": "Martina Calabrese et al.; MDPI",
+						"model": "study:PMC11243642",
+						"revision": "PMC11243642.1",
+						"sourceUrl": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11243642/",
+						"provenance": "public_source",
+						"attribution": "Martina Calabrese, Lucia De Luca, Giulia Basile, Gianfranco Lambiase, Raffaele Romano, Fabiana Pizzolongo. Molecules. 2024 Jun 25;29(13):3006. doi: 10.3390/molecules29133006. CC BY 4.0 https://creativecommons.org/licenses/by/4.0/. Source: PMC/NLM (no endorsement). Changes: structured extraction, segmentation and unverified parameter transcription. Snapshot dated 2026-09-17; not claimed current.",
+						"location": {
+							"anchor": "sec3dot2-molecules-29-03006",
+							"page": 13,
+							"paragraph": 3,
+							"part": 1,
+							"section": "3. Materials and Methods / 3.2. Samples"
+						},
+						"warnings": [
+							"candidate_not_verified",
+							"effective_date_unknown",
+							"region_unknown"
+						],
+						"parameterIndex": 2,
+						"parameter": {
+							"authority": "research_report",
+							"conditions": "",
+							"method": "",
+							"name": "thickness",
+							"originalUnit": "microns",
+							"originalValue": "15",
+							"scope": "Research sample only; not a supplier specification or current-order approval",
+							"subject": "REC/OPPHP",
+							"verification": "unverified",
+							"normalized": {
+								"value": 15,
+								"unit": "µm"
+							}
+						}
+					},
+					"comparison": {
+						"comparable": false,
+						"reasons": [
+							"test_method_mismatch_or_missing",
+							"test_conditions_mismatch_or_missing"
+						],
+						"conditionChecks": []
+					},
+					"questions": [
+						"测试方法或版本不同、缺失或标为未知",
+						"原文测试条件不同、缺失或标为未知"
+					],
+					"warnings": [
+						"numeric_comparison_is_not_order_suitability",
+						"source_transcriptions_not_semantic_proof",
+						"order_applicability_required",
+						"research_samples_not_supplier_specifications"
+					],
+					"durationMs": 0.16487499999993815,
+					"usage": {
+						"embeddingCalls": 0,
+						"generationCalls": 0
+					}
+				}
+			},
+			{
+				"id": "alt-std-otr",
+				"result": {
+					"schemaVersion": "packaging-comparison.v1",
+					"ruleVersion": "packaging-parameters.v2",
+					"correlationId": "alt-std-otr",
+					"createdAt": "2026-09-17T10:18:07.363Z",
+					"filters": {},
+					"status": "needs_review",
+					"verification": "unverified",
+					"conclusionAllowed": false,
+					"left": {
+						"evidenceId": "kb-a2ed260d5b6b8c4f5e01cb3fdaaa3e7ab0c5c45a0749745fdc5891425b150309:17",
+						"versionId": "kb-a2ed260d5b6b8c4f5e01cb3fdaaa3e7ab0c5c45a0749745fdc5891425b150309",
+						"contentHash": "72a8d93b3a07fc54c9c145286dfd4fe85da0fc423d2a60a7f11a2f5b3fc9ebc6",
+						"documentId": "PMC10931445",
+						"title": "The Lipidic and Volatile Components of Coffee Pods and Capsules Packaged in an Alternative Multilayer Film",
+						"publisher": "Giulia Basile et al.; MDPI",
+						"model": "study:PMC10931445",
+						"revision": "PMC10931445.1",
+						"sourceUrl": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10931445/",
+						"provenance": "public_source",
+						"attribution": "Giulia Basile, Lucia De Luca, Martina Calabrese, Gianfranco Lambiase, Fabiana Pizzolongo, Raffaele Romano. Foods. 2024 Feb 29;13(5):759. doi: 10.3390/foods13050759. CC BY 4.0 https://creativecommons.org/licenses/by/4.0/. Source: PMC/NLM (no endorsement). Changes: structured extraction, segmentation and unverified parameter transcription. Snapshot dated 2026-09-17; not claimed current.",
+						"location": {
+							"anchor": "sec2dot2-foods-13-00759",
+							"paragraph": 4,
+							"part": 1,
+							"section": "2. Materials and Methods / 2.2. Samples"
+						},
+						"warnings": [
+							"candidate_not_verified",
+							"effective_date_unknown",
+							"region_unknown"
+						],
+						"parameterIndex": 0,
+						"parameter": {
+							"authority": "research_report",
+							"conditions": "",
+							"method": "",
+							"name": "OTR",
+							"originalUnit": "",
+							"originalValue": "<1.0",
+							"scope": "Research sample only; not a supplier specification or current-order approval",
+							"subject": "STD",
+							"verification": "unverified"
+						}
+					},
+					"right": {
+						"evidenceId": "kb-a2ed260d5b6b8c4f5e01cb3fdaaa3e7ab0c5c45a0749745fdc5891425b150309:18",
+						"versionId": "kb-a2ed260d5b6b8c4f5e01cb3fdaaa3e7ab0c5c45a0749745fdc5891425b150309",
+						"contentHash": "72a8d93b3a07fc54c9c145286dfd4fe85da0fc423d2a60a7f11a2f5b3fc9ebc6",
+						"documentId": "PMC10931445",
+						"title": "The Lipidic and Volatile Components of Coffee Pods and Capsules Packaged in an Alternative Multilayer Film",
+						"publisher": "Giulia Basile et al.; MDPI",
+						"model": "study:PMC10931445",
+						"revision": "PMC10931445.1",
+						"sourceUrl": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10931445/",
+						"provenance": "public_source",
+						"attribution": "Giulia Basile, Lucia De Luca, Martina Calabrese, Gianfranco Lambiase, Fabiana Pizzolongo, Raffaele Romano. Foods. 2024 Feb 29;13(5):759. doi: 10.3390/foods13050759. CC BY 4.0 https://creativecommons.org/licenses/by/4.0/. Source: PMC/NLM (no endorsement). Changes: structured extraction, segmentation and unverified parameter transcription. Snapshot dated 2026-09-17; not claimed current.",
+						"location": {
+							"anchor": "sec2dot2-foods-13-00759",
+							"paragraph": 5,
+							"part": 1,
+							"section": "2. Materials and Methods / 2.2. Samples"
+						},
+						"warnings": [
+							"candidate_not_verified",
+							"effective_date_unknown",
+							"region_unknown"
+						],
+						"parameterIndex": 0,
+						"parameter": {
+							"authority": "research_report",
+							"conditions": "",
+							"method": "",
+							"name": "OTR",
+							"originalUnit": "",
+							"originalValue": "<1.5",
+							"scope": "Research sample only; not a supplier specification or current-order approval",
+							"subject": "ALT",
+							"verification": "unverified"
+						}
+					},
+					"comparison": {
+						"comparable": false,
+						"reasons": [
+							"test_method_mismatch_or_missing",
+							"test_conditions_mismatch_or_missing",
+							"structured_test_conditions_missing",
+							"unit_or_value_not_comparable",
+							"unit_dimension_unrecognized"
+						],
+						"conditionChecks": [
+							{
+								"name": "temperature",
+								"status": "missing"
+							},
+							{
+								"name": "relative_humidity",
+								"status": "missing"
+							},
+							{
+								"name": "pressure_difference",
+								"status": "missing"
+							},
+							{
+								"name": "gas",
+								"status": "missing"
+							}
+						]
+					},
+					"questions": [
+						"测试方法或版本不同、缺失或标为未知",
+						"原文测试条件不同、缺失或标为未知",
+						"缺少逐项记录的温湿度、压差或气体条件",
+						"单位不同、原值含范围/不等号/误差或不是有效数值",
+						"单位尚未确认为该指标的可计算单位",
+						"测试温度：左侧 未说明；右侧 未说明。请分别提供对应测试报告中的条件与来源位置。",
+						"相对湿度：左侧 未说明；右侧 未说明。请分别提供对应测试报告中的条件与来源位置。",
+						"压差：左侧 未说明；右侧 未说明。请分别提供对应测试报告中的条件与来源位置。",
+						"测试气体：左侧 未说明；右侧 未说明。请分别提供对应测试报告中的条件与来源位置。"
+					],
+					"warnings": [
+						"numeric_comparison_is_not_order_suitability",
+						"source_transcriptions_not_semantic_proof",
+						"order_applicability_required",
+						"research_samples_not_supplier_specifications"
+					],
+					"durationMs": 0.1626250000000482,
+					"usage": {
+						"embeddingCalls": 0,
+						"generationCalls": 0
+					}
+				}
+			},
+			{
+				"id": "green-air",
+				"result": {
+					"schemaVersion": "packaging-comparison.v1",
+					"ruleVersion": "packaging-parameters.v2",
+					"correlationId": "green-air",
+					"createdAt": "2026-09-17T10:18:07.364Z",
+					"filters": {},
+					"status": "needs_review",
+					"verification": "unverified",
+					"conclusionAllowed": false,
+					"left": {
+						"evidenceId": "kb-62bda55201deeef762ac298cdff86722feda9bc3ebb7b479ff64c582449c6831:51",
+						"versionId": "kb-62bda55201deeef762ac298cdff86722feda9bc3ebb7b479ff64c582449c6831",
+						"contentHash": "a2b27bbaee8be41dc725e56a868719e2fce05ff8760f303a7d1f3c66b55a0691",
+						"documentId": "PMC9563479",
+						"title": "Lipid Oxidation Changes of Arabica Green Coffee Beans during Accelerated Storage with Different Packaging Types",
+						"publisher": "Sai Aung Moon et al.; MDPI",
+						"model": "study:PMC9563479",
+						"revision": "PMC9563479.1",
+						"sourceUrl": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9563479/",
+						"provenance": "public_source",
+						"attribution": "Sai Aung Moon, Sirirung Wongsakul, Hiroaki Kitazawa, Rattapon Saengrayap. Foods. 2022 Sep 30;11(19):3040. doi: 10.3390/foods11193040. CC BY 4.0 https://creativecommons.org/licenses/by/4.0/. Source: PMC/NLM (no endorsement). Changes: structured extraction, segmentation and unverified parameter transcription. Snapshot dated 2026-09-17; not claimed current.",
+						"location": {
+							"anchor": "foods-11-03040-t001",
+							"row": 2,
+							"section": "Table 1",
+							"table": "Table 1"
+						},
+						"warnings": [
+							"candidate_not_verified",
+							"effective_date_unknown",
+							"region_unknown"
+						],
+						"parameterIndex": 0,
+						"parameter": {
+							"authority": "research_report",
+							"conditions": "",
+							"method": "",
+							"name": "air_permeability",
+							"originalUnit": "L/m2 s",
+							"originalValue": "101.47 ± 2.70",
+							"scope": "Research sample only; not a supplier specification or current-order approval",
+							"subject": "LDPE",
+							"verification": "unverified"
+						}
+					},
+					"right": {
+						"evidenceId": "kb-62bda55201deeef762ac298cdff86722feda9bc3ebb7b479ff64c582449c6831:52",
+						"versionId": "kb-62bda55201deeef762ac298cdff86722feda9bc3ebb7b479ff64c582449c6831",
+						"contentHash": "a2b27bbaee8be41dc725e56a868719e2fce05ff8760f303a7d1f3c66b55a0691",
+						"documentId": "PMC9563479",
+						"title": "Lipid Oxidation Changes of Arabica Green Coffee Beans during Accelerated Storage with Different Packaging Types",
+						"publisher": "Sai Aung Moon et al.; MDPI",
+						"model": "study:PMC9563479",
+						"revision": "PMC9563479.1",
+						"sourceUrl": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9563479/",
+						"provenance": "public_source",
+						"attribution": "Sai Aung Moon, Sirirung Wongsakul, Hiroaki Kitazawa, Rattapon Saengrayap. Foods. 2022 Sep 30;11(19):3040. doi: 10.3390/foods11193040. CC BY 4.0 https://creativecommons.org/licenses/by/4.0/. Source: PMC/NLM (no endorsement). Changes: structured extraction, segmentation and unverified parameter transcription. Snapshot dated 2026-09-17; not claimed current.",
+						"location": {
+							"anchor": "foods-11-03040-t001",
+							"row": 3,
+							"section": "Table 1",
+							"table": "Table 1"
+						},
+						"warnings": [
+							"candidate_not_verified",
+							"effective_date_unknown",
+							"region_unknown"
+						],
+						"parameterIndex": 0,
+						"parameter": {
+							"authority": "research_report",
+							"conditions": "",
+							"method": "",
+							"name": "air_permeability",
+							"originalUnit": "L/m2 s",
+							"originalValue": "0.538 ± 0.04",
+							"scope": "Research sample only; not a supplier specification or current-order approval",
+							"subject": "GP",
+							"verification": "unverified"
+						}
+					},
+					"comparison": {
+						"comparable": false,
+						"reasons": [
+							"test_method_mismatch_or_missing",
+							"test_conditions_mismatch_or_missing",
+							"structured_test_conditions_missing",
+							"unit_or_value_not_comparable"
+						],
+						"conditionChecks": [
+							{
+								"name": "temperature",
+								"status": "missing"
+							},
+							{
+								"name": "relative_humidity",
+								"status": "missing"
+							},
+							{
+								"name": "pressure_difference",
+								"status": "missing"
+							}
+						]
+					},
+					"questions": [
+						"测试方法或版本不同、缺失或标为未知",
+						"原文测试条件不同、缺失或标为未知",
+						"缺少逐项记录的温湿度、压差或气体条件",
+						"单位不同、原值含范围/不等号/误差或不是有效数值",
+						"测试温度：左侧 未说明；右侧 未说明。请分别提供对应测试报告中的条件与来源位置。",
+						"相对湿度：左侧 未说明；右侧 未说明。请分别提供对应测试报告中的条件与来源位置。",
+						"压差：左侧 未说明；右侧 未说明。请分别提供对应测试报告中的条件与来源位置。"
+					],
+					"warnings": [
+						"numeric_comparison_is_not_order_suitability",
+						"source_transcriptions_not_semantic_proof",
+						"order_applicability_required",
+						"research_samples_not_supplier_specifications"
+					],
+					"durationMs": 0.16287499999998545,
+					"usage": {
+						"embeddingCalls": 0,
+						"generationCalls": 0
+					}
+				}
+			},
+			{
+				"id": "green-thickness",
+				"result": {
+					"schemaVersion": "packaging-comparison.v1",
+					"ruleVersion": "packaging-parameters.v2",
+					"correlationId": "green-thickness",
+					"createdAt": "2026-09-17T10:18:07.364Z",
+					"filters": {},
+					"status": "needs_review",
+					"verification": "unverified",
+					"conclusionAllowed": false,
+					"left": {
+						"evidenceId": "kb-62bda55201deeef762ac298cdff86722feda9bc3ebb7b479ff64c582449c6831:51",
+						"versionId": "kb-62bda55201deeef762ac298cdff86722feda9bc3ebb7b479ff64c582449c6831",
+						"contentHash": "a2b27bbaee8be41dc725e56a868719e2fce05ff8760f303a7d1f3c66b55a0691",
+						"documentId": "PMC9563479",
+						"title": "Lipid Oxidation Changes of Arabica Green Coffee Beans during Accelerated Storage with Different Packaging Types",
+						"publisher": "Sai Aung Moon et al.; MDPI",
+						"model": "study:PMC9563479",
+						"revision": "PMC9563479.1",
+						"sourceUrl": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9563479/",
+						"provenance": "public_source",
+						"attribution": "Sai Aung Moon, Sirirung Wongsakul, Hiroaki Kitazawa, Rattapon Saengrayap. Foods. 2022 Sep 30;11(19):3040. doi: 10.3390/foods11193040. CC BY 4.0 https://creativecommons.org/licenses/by/4.0/. Source: PMC/NLM (no endorsement). Changes: structured extraction, segmentation and unverified parameter transcription. Snapshot dated 2026-09-17; not claimed current.",
+						"location": {
+							"anchor": "foods-11-03040-t001",
+							"row": 2,
+							"section": "Table 1",
+							"table": "Table 1"
+						},
+						"warnings": [
+							"candidate_not_verified",
+							"effective_date_unknown",
+							"region_unknown"
+						],
+						"parameterIndex": 1,
+						"parameter": {
+							"authority": "research_report",
+							"conditions": "",
+							"method": "",
+							"name": "thickness",
+							"originalUnit": "mm",
+							"originalValue": "0.075 ± 0.00",
+							"scope": "Research sample only; not a supplier specification or current-order approval",
+							"subject": "LDPE",
+							"verification": "unverified"
+						}
+					},
+					"right": {
+						"evidenceId": "kb-62bda55201deeef762ac298cdff86722feda9bc3ebb7b479ff64c582449c6831:52",
+						"versionId": "kb-62bda55201deeef762ac298cdff86722feda9bc3ebb7b479ff64c582449c6831",
+						"contentHash": "a2b27bbaee8be41dc725e56a868719e2fce05ff8760f303a7d1f3c66b55a0691",
+						"documentId": "PMC9563479",
+						"title": "Lipid Oxidation Changes of Arabica Green Coffee Beans during Accelerated Storage with Different Packaging Types",
+						"publisher": "Sai Aung Moon et al.; MDPI",
+						"model": "study:PMC9563479",
+						"revision": "PMC9563479.1",
+						"sourceUrl": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9563479/",
+						"provenance": "public_source",
+						"attribution": "Sai Aung Moon, Sirirung Wongsakul, Hiroaki Kitazawa, Rattapon Saengrayap. Foods. 2022 Sep 30;11(19):3040. doi: 10.3390/foods11193040. CC BY 4.0 https://creativecommons.org/licenses/by/4.0/. Source: PMC/NLM (no endorsement). Changes: structured extraction, segmentation and unverified parameter transcription. Snapshot dated 2026-09-17; not claimed current.",
+						"location": {
+							"anchor": "foods-11-03040-t001",
+							"row": 3,
+							"section": "Table 1",
+							"table": "Table 1"
+						},
+						"warnings": [
+							"candidate_not_verified",
+							"effective_date_unknown",
+							"region_unknown"
+						],
+						"parameterIndex": 1,
+						"parameter": {
+							"authority": "research_report",
+							"conditions": "",
+							"method": "",
+							"name": "thickness",
+							"originalUnit": "mm",
+							"originalValue": "0.124 ± 0.00",
+							"scope": "Research sample only; not a supplier specification or current-order approval",
+							"subject": "GP",
+							"verification": "unverified"
+						}
+					},
+					"comparison": {
+						"comparable": false,
+						"reasons": [
+							"test_method_mismatch_or_missing",
+							"test_conditions_mismatch_or_missing",
+							"unit_or_value_not_comparable",
+							"unit_dimension_unrecognized"
+						],
+						"conditionChecks": []
+					},
+					"questions": [
+						"测试方法或版本不同、缺失或标为未知",
+						"原文测试条件不同、缺失或标为未知",
+						"单位不同、原值含范围/不等号/误差或不是有效数值",
+						"单位尚未确认为该指标的可计算单位"
+					],
+					"warnings": [
+						"numeric_comparison_is_not_order_suitability",
+						"source_transcriptions_not_semantic_proof",
+						"order_applicability_required",
+						"research_samples_not_supplier_specifications"
+					],
+					"durationMs": 0.12733300000002146,
+					"usage": {
+						"embeddingCalls": 0,
+						"generationCalls": 0
+					}
+				}
+			},
+			{
+				"id": "pla-otr-label",
+				"result": {
+					"schemaVersion": "packaging-comparison.v1",
+					"ruleVersion": "packaging-parameters.v2",
+					"correlationId": "pla-otr-label",
+					"createdAt": "2026-09-17T10:18:07.364Z",
+					"filters": {},
+					"status": "needs_review",
+					"verification": "unverified",
+					"conclusionAllowed": false,
+					"left": {
+						"evidenceId": "kb-81d730a77c170e6844c29248dfdf86b2d5bf4d45246c03e69bd412d9d03f56df:76",
+						"versionId": "kb-81d730a77c170e6844c29248dfdf86b2d5bf4d45246c03e69bd412d9d03f56df",
+						"contentHash": "f7559d061121b0081797d2155b1192b4be6a59e4cedb36fdad2717cbf9fc6fbd",
+						"documentId": "PMC11944891",
+						"title": "Preparation and Characterization of Biocomposite Films with Enhanced Oxygen Barrier and Antioxidant Properties Based on Polylactide and Extracts from Coffee Silverskin",
+						"publisher": "Argyri-Ioanna Petaloti et al.; MDPI",
+						"model": "study:PMC11944891",
+						"revision": "PMC11944891.1",
+						"sourceUrl": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11944891/",
+						"provenance": "public_source",
+						"attribution": "Argyri-Ioanna Petaloti, Adamantini Paraskevopoulou, Dimitris S. Achilias. Molecules. 2025 Mar 20;30(6):1383. doi: 10.3390/molecules30061383. CC BY 4.0 https://creativecommons.org/licenses/by/4.0/. Source: PMC/NLM (no endorsement). Changes: structured extraction, segmentation and unverified parameter transcription. Snapshot dated 2026-09-17; not claimed current.",
+						"location": {
+							"anchor": "molecules-30-01383-t003",
+							"page": 9,
+							"row": 4,
+							"section": "Table 3",
+							"table": "Table 3"
+						},
+						"warnings": [
+							"candidate_not_verified",
+							"effective_date_unknown",
+							"region_unknown"
+						],
+						"parameterIndex": 0,
+						"parameter": {
+							"authority": "research_report",
+							"conditions": "",
+							"method": "",
+							"name": "OTR_as_labelled",
+							"originalUnit": "cm3 mm/(m2·d·0.1 MPa)",
+							"originalValue": "7",
+							"scope": "Research sample only; not a supplier specification or current-order approval",
+							"subject": "PLA-C3",
+							"verification": "unverified"
+						}
+					},
+					"right": {
+						"evidenceId": "kb-81d730a77c170e6844c29248dfdf86b2d5bf4d45246c03e69bd412d9d03f56df:77",
+						"versionId": "kb-81d730a77c170e6844c29248dfdf86b2d5bf4d45246c03e69bd412d9d03f56df",
+						"contentHash": "f7559d061121b0081797d2155b1192b4be6a59e4cedb36fdad2717cbf9fc6fbd",
+						"documentId": "PMC11944891",
+						"title": "Preparation and Characterization of Biocomposite Films with Enhanced Oxygen Barrier and Antioxidant Properties Based on Polylactide and Extracts from Coffee Silverskin",
+						"publisher": "Argyri-Ioanna Petaloti et al.; MDPI",
+						"model": "study:PMC11944891",
+						"revision": "PMC11944891.1",
+						"sourceUrl": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11944891/",
+						"provenance": "public_source",
+						"attribution": "Argyri-Ioanna Petaloti, Adamantini Paraskevopoulou, Dimitris S. Achilias. Molecules. 2025 Mar 20;30(6):1383. doi: 10.3390/molecules30061383. CC BY 4.0 https://creativecommons.org/licenses/by/4.0/. Source: PMC/NLM (no endorsement). Changes: structured extraction, segmentation and unverified parameter transcription. Snapshot dated 2026-09-17; not claimed current.",
+						"location": {
+							"anchor": "molecules-30-01383-t003",
+							"page": 9,
+							"row": 5,
+							"section": "Table 3",
+							"table": "Table 3"
+						},
+						"warnings": [
+							"candidate_not_verified",
+							"effective_date_unknown",
+							"region_unknown"
+						],
+						"parameterIndex": 0,
+						"parameter": {
+							"authority": "research_report",
+							"conditions": "",
+							"method": "",
+							"name": "OTR_as_labelled",
+							"originalUnit": "cm3 mm/(m2·d·0.1 MPa)",
+							"originalValue": "15",
+							"scope": "Research sample only; not a supplier specification or current-order approval",
+							"subject": "PLA-O3",
+							"verification": "unverified"
+						}
+					},
+					"comparison": {
+						"comparable": false,
+						"reasons": [
+							"parameter_not_supported",
+							"parameter_semantics_require_review",
+							"test_method_mismatch_or_missing",
+							"test_conditions_mismatch_or_missing",
+							"unit_dimension_unrecognized"
+						],
+						"conditionChecks": []
+					},
+					"questions": [
+						"此参数不能自动做数值比较",
+						"原文指标名称与物理含义需要人工核对",
+						"测试方法或版本不同、缺失或标为未知",
+						"原文测试条件不同、缺失或标为未知",
+						"单位尚未确认为该指标的可计算单位"
+					],
+					"warnings": [
+						"numeric_comparison_is_not_order_suitability",
+						"source_transcriptions_not_semantic_proof",
+						"order_applicability_required",
+						"research_samples_not_supplier_specifications"
+					],
+					"durationMs": 0.1758749999999054,
+					"usage": {
+						"embeddingCalls": 0,
+						"generationCalls": 0
+					}
+				}
+			},
+			{
+				"id": "pla-wvtr",
+				"result": {
+					"schemaVersion": "packaging-comparison.v1",
+					"ruleVersion": "packaging-parameters.v2",
+					"correlationId": "pla-wvtr",
+					"createdAt": "2026-09-17T10:18:07.364Z",
+					"filters": {},
+					"status": "needs_review",
+					"verification": "unverified",
+					"conclusionAllowed": false,
+					"left": {
+						"evidenceId": "kb-81d730a77c170e6844c29248dfdf86b2d5bf4d45246c03e69bd412d9d03f56df:76",
+						"versionId": "kb-81d730a77c170e6844c29248dfdf86b2d5bf4d45246c03e69bd412d9d03f56df",
+						"contentHash": "f7559d061121b0081797d2155b1192b4be6a59e4cedb36fdad2717cbf9fc6fbd",
+						"documentId": "PMC11944891",
+						"title": "Preparation and Characterization of Biocomposite Films with Enhanced Oxygen Barrier and Antioxidant Properties Based on Polylactide and Extracts from Coffee Silverskin",
+						"publisher": "Argyri-Ioanna Petaloti et al.; MDPI",
+						"model": "study:PMC11944891",
+						"revision": "PMC11944891.1",
+						"sourceUrl": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11944891/",
+						"provenance": "public_source",
+						"attribution": "Argyri-Ioanna Petaloti, Adamantini Paraskevopoulou, Dimitris S. Achilias. Molecules. 2025 Mar 20;30(6):1383. doi: 10.3390/molecules30061383. CC BY 4.0 https://creativecommons.org/licenses/by/4.0/. Source: PMC/NLM (no endorsement). Changes: structured extraction, segmentation and unverified parameter transcription. Snapshot dated 2026-09-17; not claimed current.",
+						"location": {
+							"anchor": "molecules-30-01383-t003",
+							"page": 9,
+							"row": 4,
+							"section": "Table 3",
+							"table": "Table 3"
+						},
+						"warnings": [
+							"candidate_not_verified",
+							"effective_date_unknown",
+							"region_unknown"
+						],
+						"parameterIndex": 1,
+						"parameter": {
+							"authority": "research_report",
+							"conditions": "",
+							"method": "",
+							"name": "WVTR",
+							"originalUnit": "g/m2·d",
+							"originalValue": "2.61",
+							"scope": "Research sample only; not a supplier specification or current-order approval",
+							"subject": "PLA-C3",
+							"verification": "unverified"
+						}
+					},
+					"right": {
+						"evidenceId": "kb-81d730a77c170e6844c29248dfdf86b2d5bf4d45246c03e69bd412d9d03f56df:77",
+						"versionId": "kb-81d730a77c170e6844c29248dfdf86b2d5bf4d45246c03e69bd412d9d03f56df",
+						"contentHash": "f7559d061121b0081797d2155b1192b4be6a59e4cedb36fdad2717cbf9fc6fbd",
+						"documentId": "PMC11944891",
+						"title": "Preparation and Characterization of Biocomposite Films with Enhanced Oxygen Barrier and Antioxidant Properties Based on Polylactide and Extracts from Coffee Silverskin",
+						"publisher": "Argyri-Ioanna Petaloti et al.; MDPI",
+						"model": "study:PMC11944891",
+						"revision": "PMC11944891.1",
+						"sourceUrl": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11944891/",
+						"provenance": "public_source",
+						"attribution": "Argyri-Ioanna Petaloti, Adamantini Paraskevopoulou, Dimitris S. Achilias. Molecules. 2025 Mar 20;30(6):1383. doi: 10.3390/molecules30061383. CC BY 4.0 https://creativecommons.org/licenses/by/4.0/. Source: PMC/NLM (no endorsement). Changes: structured extraction, segmentation and unverified parameter transcription. Snapshot dated 2026-09-17; not claimed current.",
+						"location": {
+							"anchor": "molecules-30-01383-t003",
+							"page": 9,
+							"row": 5,
+							"section": "Table 3",
+							"table": "Table 3"
+						},
+						"warnings": [
+							"candidate_not_verified",
+							"effective_date_unknown",
+							"region_unknown"
+						],
+						"parameterIndex": 1,
+						"parameter": {
+							"authority": "research_report",
+							"conditions": "",
+							"method": "",
+							"name": "WVTR",
+							"originalUnit": "g/m2·d",
+							"originalValue": "3.18",
+							"scope": "Research sample only; not a supplier specification or current-order approval",
+							"subject": "PLA-O3",
+							"verification": "unverified"
+						}
+					},
+					"comparison": {
+						"comparable": false,
+						"reasons": [
+							"test_method_mismatch_or_missing",
+							"test_conditions_mismatch_or_missing",
+							"structured_test_conditions_missing"
+						],
+						"conditionChecks": [
+							{
+								"name": "temperature",
+								"status": "missing"
+							},
+							{
+								"name": "humidity_source",
+								"status": "missing"
+							},
+							{
+								"name": "humidity_receiver",
+								"status": "missing"
+							}
+						]
+					},
+					"questions": [
+						"测试方法或版本不同、缺失或标为未知",
+						"原文测试条件不同、缺失或标为未知",
+						"缺少逐项记录的温湿度、压差或气体条件",
+						"测试温度：左侧 未说明；右侧 未说明。请分别提供对应测试报告中的条件与来源位置。",
+						"供给侧湿度：左侧 未说明；右侧 未说明。请分别提供对应测试报告中的条件与来源位置。",
+						"接收侧湿度：左侧 未说明；右侧 未说明。请分别提供对应测试报告中的条件与来源位置。"
+					],
+					"warnings": [
+						"numeric_comparison_is_not_order_suitability",
+						"source_transcriptions_not_semantic_proof",
+						"order_applicability_required",
+						"research_samples_not_supplier_specifications"
+					],
+					"durationMs": 0.13162499999998545,
+					"usage": {
+						"embeddingCalls": 0,
+						"generationCalls": 0
+					}
+				}
+			}
+		],
+		"retrieval": [
+			{
+				"id": "rec-pet-zh",
+				"found": [
+					"PMC11243642:36",
+					"PMC11243642:5",
+					"PMC11243642:15",
+					"PMC11243642:69",
+					"PMC11243642:48"
+				],
+				"expected": [
+					"PMC11243642:36"
+				],
+				"recall": 1,
+				"mrr": 1,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 62.815833999999995,
+				"usage": {
+					"inputTokens": 47,
+					"modelDurationMs": 8.741499999999974,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "rec-pet-en",
+				"found": [
+					"PMC11243642:36",
+					"PMC11243642:5",
+					"PMC11243642:15",
+					"PMC11243642:48",
+					"PMC11243642:52"
+				],
+				"expected": [
+					"PMC11243642:36"
+				],
+				"recall": 1,
+				"mrr": 1,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 38.462416000000076,
+				"usage": {
+					"inputTokens": 31,
+					"modelDurationMs": 4.219500000000039,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "rec-pe-zh",
+				"found": [
+					"PMC11243642:36",
+					"PMC11243642:73",
+					"PMC11243642:51",
+					"PMC11243642:118",
+					"PMC11243642:158"
+				],
+				"expected": [
+					"PMC11243642:36"
+				],
+				"recall": 1,
+				"mrr": 1,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 38.618958999999904,
+				"usage": {
+					"inputTokens": 28,
+					"modelDurationMs": 3.86262499999998,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "rec-pe-en",
+				"found": [
+					"PMC11243642:36",
+					"PMC11243642:51",
+					"PMC11243642:37",
+					"PMC11243642:54",
+					"PMC11944891:46"
+				],
+				"expected": [
+					"PMC11243642:36"
+				],
+				"recall": 1,
+				"mrr": 1,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 35.39499999999998,
+				"usage": {
+					"inputTokens": 23,
+					"modelDurationMs": 3.2426249999999754,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "rec-structure-zh",
+				"found": [
+					"PMC11243642:37",
+					"PMC11243642:15",
+					"PMC11243642:92",
+					"PMC11243642:5",
+					"PMC11243642:137"
+				],
+				"expected": [
+					"PMC11243642:37"
+				],
+				"recall": 1,
+				"mrr": 1,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 36.41895899999997,
+				"usage": {
+					"inputTokens": 26,
+					"modelDurationMs": 6.181083000000058,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "rec-structure-en",
+				"found": [
+					"PMC11243642:37",
+					"PMC11243642:15",
+					"PMC11243642:6",
+					"PMC11243642:48",
+					"PMC11243642:2"
+				],
+				"expected": [
+					"PMC11243642:37"
+				],
+				"recall": 1,
+				"mrr": 1,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 37.044083,
+				"usage": {
+					"inputTokens": 16,
+					"modelDurationMs": 2.5971669999998994,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "rec-opp-zh",
+				"found": [
+					"PMC11243642:37",
+					"PMC11243642:72",
+					"PMC11243642:117",
+					"PMC11243642:148",
+					"PMC10670670:36"
+				],
+				"expected": [
+					"PMC11243642:37"
+				],
+				"recall": 1,
+				"mrr": 1,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 35.00649999999996,
+				"usage": {
+					"inputTokens": 23,
+					"modelDurationMs": 3.124916999999982,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "rec-opp-en",
+				"found": [
+					"PMC11243642:37",
+					"PMC11243642:15",
+					"PMC11243642:21",
+					"PMC11243642:38",
+					"PMC11243642:50"
+				],
+				"expected": [
+					"PMC11243642:37"
+				],
+				"recall": 1,
+				"mrr": 1,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 33.84999999999991,
+				"usage": {
+					"inputTokens": 21,
+					"modelDurationMs": 5.315458000000035,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "rec-barrier-zh",
+				"found": [
+					"PMC11944891:73",
+					"PMC11243642:63",
+					"PMC11243642:37",
+					"PMC11944891:29",
+					"PMC11243642:113"
+				],
+				"expected": [
+					"PMC11243642:37"
+				],
+				"recall": 1,
+				"mrr": 0.3333333333333333,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 36.490749999999935,
+				"usage": {
+					"inputTokens": 20,
+					"modelDurationMs": 2.951583000000028,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "rec-barrier-en",
+				"found": [
+					"PMC11243642:37",
+					"PMC11944891:73",
+					"PMC11243642:21",
+					"PMC11243642:15",
+					"PMC11243642:38"
+				],
+				"expected": [
+					"PMC11243642:37"
+				],
+				"recall": 1,
+				"mrr": 1,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 33.647875,
+				"usage": {
+					"inputTokens": 16,
+					"modelDurationMs": 2.6666660000000775,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "rec-grammage-zh",
+				"found": [
+					"PMC11243642:79",
+					"PMC11243642:124",
+					"PMC11243642:37",
+					"PMC11243642:38",
+					"PMC11243642:16"
+				],
+				"expected": [
+					"PMC11243642:37"
+				],
+				"recall": 1,
+				"mrr": 0.3333333333333333,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 35.122499999999945,
+				"usage": {
+					"inputTokens": 17,
+					"modelDurationMs": 4.5599160000001575,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "rec-grammage-en",
+				"found": [
+					"PMC11243642:37",
+					"PMC11243642:38",
+					"PMC11243642:71",
+					"PMC11243642:101",
+					"PMC10670670:39"
+				],
+				"expected": [
+					"PMC11243642:37"
+				],
+				"recall": 1,
+				"mrr": 1,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 36.42341600000009,
+				"usage": {
+					"inputTokens": 16,
+					"modelDurationMs": 2.6242500000000746,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "rec-fill-zh",
+				"found": [
+					"PMC11243642:35",
+					"PMC11243642:5",
+					"PMC11243642:94",
+					"PMC11243642:15",
+					"PMC11243642:1"
+				],
+				"expected": [
+					"PMC11243642:35"
+				],
+				"recall": 1,
+				"mrr": 1,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 37.69220799999994,
+				"usage": {
+					"inputTokens": 38,
+					"modelDurationMs": 4.77995900000019,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "rec-fill-en",
+				"found": [
+					"PMC11243642:35",
+					"PMC11243642:15",
+					"PMC11243642:1",
+					"PMC11243642:48",
+					"PMC11243642:50"
+				],
+				"expected": [
+					"PMC11243642:35"
+				],
+				"recall": 1,
+				"mrr": 1,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 36.22520899999995,
+				"usage": {
+					"inputTokens": 24,
+					"modelDurationMs": 5.718500000000176,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "rec-gas-zh",
+				"found": [
+					"PMC11243642:21",
+					"PMC11243642:16",
+					"PMC11243642:35",
+					"PMC11243642:58",
+					"PMC11243642:15"
+				],
+				"expected": [
+					"PMC11243642:35"
+				],
+				"recall": 1,
+				"mrr": 0.3333333333333333,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 37.74370799999997,
+				"usage": {
+					"inputTokens": 25,
+					"modelDurationMs": 3.402499999999918,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "rec-gas-en",
+				"found": [
+					"PMC11243642:35",
+					"PMC11243642:18",
+					"PMC11243642:21",
+					"PMC11243642:16",
+					"PMC11243642:14"
+				],
+				"expected": [
+					"PMC11243642:35"
+				],
+				"recall": 1,
+				"mrr": 1,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 34.78262500000005,
+				"usage": {
+					"inputTokens": 21,
+					"modelDurationMs": 2.923917000000074,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "rec-store-zh",
+				"found": [
+					"PMC11243642:146",
+					"PMC11243642:39",
+					"PMC11243642:51",
+					"PMC11243642:32",
+					"PMC11243642:31"
+				],
+				"expected": [
+					"PMC11243642:39"
+				],
+				"recall": 1,
+				"mrr": 0.5,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 39.97383300000001,
+				"usage": {
+					"inputTokens": 31,
+					"modelDurationMs": 6.647791999999981,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "rec-store-en",
+				"found": [
+					"PMC11243642:24",
+					"PMC11243642:17",
+					"PMC11243642:21",
+					"PMC11243642:16",
+					"PMC11243642:18"
+				],
+				"expected": [
+					"PMC11243642:39"
+				],
+				"recall": 0,
+				"mrr": 0,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 37.820625000000064,
+				"usage": {
+					"inputTokens": 21,
+					"modelDurationMs": 3.1596250000000055,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "alt-pe-zh",
+				"found": [
+					"PMC10931445:18",
+					"PMC10931445:6",
+					"PMC10931445:19",
+					"PMC10931445:5",
+					"PMC10931445:4"
+				],
+				"expected": [
+					"PMC10931445:18"
+				],
+				"recall": 1,
+				"mrr": 1,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 35.324292000000014,
+				"usage": {
+					"inputTokens": 28,
+					"modelDurationMs": 3.4977499999999964,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "alt-pe-en",
+				"found": [
+					"PMC10931445:18",
+					"PMC10931445:4",
+					"PMC11243642:5",
+					"PMC10931445:59",
+					"PMC10931445:6"
+				],
+				"expected": [
+					"PMC10931445:18"
+				],
+				"recall": 1,
+				"mrr": 1,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 37.728541999999834,
+				"usage": {
+					"inputTokens": 25,
+					"modelDurationMs": 6.49350000000004,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "alt-metallization-zh",
+				"found": [
+					"PMC10931445:18",
+					"PMC10931445:5",
+					"PMC10931445:6",
+					"PMC10931445:71",
+					"PMC10931445:19"
+				],
+				"expected": [
+					"PMC10931445:18"
+				],
+				"recall": 1,
+				"mrr": 1,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 40.33529199999998,
+				"usage": {
+					"inputTokens": 32,
+					"modelDurationMs": 4.012084000000186,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "alt-metallization-en",
+				"found": [
+					"PMC10931445:18",
+					"PMC10931445:5",
+					"PMC10931445:6",
+					"PMC10931445:1",
+					"PMC10931445:12"
+				],
+				"expected": [
+					"PMC10931445:18"
+				],
+				"recall": 1,
+				"mrr": 1,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 34.55124999999998,
+				"usage": {
+					"inputTokens": 24,
+					"modelDurationMs": 3.276249999999891,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "alt-pack-zh",
+				"found": [
+					"PMC10931445:161",
+					"PMC10931445:63",
+					"PMC10931445:116",
+					"PMC10931445:32",
+					"PMC10931445:47"
+				],
+				"expected": [
+					"PMC10931445:16"
+				],
+				"recall": 0,
+				"mrr": 0,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 36.281999999999925,
+				"usage": {
+					"inputTokens": 23,
+					"modelDurationMs": 5.702125000000024,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "alt-pack-en",
+				"found": [
+					"PMC10931445:16",
+					"PMC10931445:35",
+					"PMC10931445:32",
+					"PMC10931445:161",
+					"PMC10931445:2"
+				],
+				"expected": [
+					"PMC10931445:16"
+				],
+				"recall": 1,
+				"mrr": 1,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 36.336291000000074,
+				"usage": {
+					"inputTokens": 18,
+					"modelDurationMs": 2.8666670000000067,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "alt-store-zh",
+				"found": [
+					"PMC9563479:48",
+					"PMC10931445:68",
+					"PMC10931445:62",
+					"PMC10931445:35",
+					"PMC9563479:47"
+				],
+				"expected": [
+					"PMC10931445:21"
+				],
+				"recall": 0,
+				"mrr": 0,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 35.116457999999966,
+				"usage": {
+					"inputTokens": 23,
+					"modelDurationMs": 3.2822919999998703,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "alt-store-en",
+				"found": [
+					"PMC10931445:35",
+					"PMC10670670:52",
+					"PMC10931445:50",
+					"PMC10931445:58",
+					"PMC10931445:32"
+				],
+				"expected": [
+					"PMC10931445:21"
+				],
+				"recall": 0,
+				"mrr": 0,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 35.12329199999999,
+				"usage": {
+					"inputTokens": 16,
+					"modelDurationMs": 5.135500000000093,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "green-method-zh",
+				"found": [
+					"PMC9563479:12",
+					"PMC10670670:36",
+					"PMC10670670:43",
+					"PMC9563479:50",
+					"PMC10670670:37"
+				],
+				"expected": [
+					"PMC9563479:12"
+				],
+				"recall": 1,
+				"mrr": 1,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 39.61816699999986,
+				"usage": {
+					"inputTokens": 34,
+					"modelDurationMs": 4.825959000000012,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "green-method-en",
+				"found": [
+					"PMC9563479:12",
+					"PMC9563479:50",
+					"PMC9563479:28",
+					"PMC9563479:4",
+					"PMC9563479:6"
+				],
+				"expected": [
+					"PMC9563479:12"
+				],
+				"recall": 1,
+				"mrr": 1,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 35.420917000000145,
+				"usage": {
+					"inputTokens": 22,
+					"modelDurationMs": 3.367374999999811,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "green-instrument-zh",
+				"found": [
+					"PMC9563479:12",
+					"PMC10670670:36",
+					"PMC9563479:28",
+					"PMC9563479:23",
+					"PMC10670670:64"
+				],
+				"expected": [
+					"PMC9563479:12"
+				],
+				"recall": 1,
+				"mrr": 1,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 36.786124999999856,
+				"usage": {
+					"inputTokens": 31,
+					"modelDurationMs": 6.1787910000000466,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "green-instrument-en",
+				"found": [
+					"PMC9563479:12",
+					"PMC11243642:8",
+					"PMC9563479:5",
+					"PMC9563479:4",
+					"PMC9563479:52"
+				],
+				"expected": [
+					"PMC9563479:12"
+				],
+				"recall": 1,
+				"mrr": 1,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 38.02991699999984,
+				"usage": {
+					"inputTokens": 18,
+					"modelDurationMs": 2.723707999999988,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "green-rh-zh",
+				"found": [
+					"PMC9563479:12",
+					"PMC9563479:1",
+					"PMC9563479:30",
+					"PMC9563479:8",
+					"PMC9563479:28"
+				],
+				"expected": [
+					"PMC9563479:12"
+				],
+				"recall": 1,
+				"mrr": 1,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 35.877083000000084,
+				"usage": {
+					"inputTokens": 29,
+					"modelDurationMs": 3.593499999999949,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "green-rh-en",
+				"found": [
+					"PMC9563479:8",
+					"PMC9563479:12",
+					"PMC9563479:33",
+					"PMC9563479:28",
+					"PMC9563479:1"
+				],
+				"expected": [
+					"PMC9563479:12"
+				],
+				"recall": 1,
+				"mrr": 0.5,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 35.137291000000005,
+				"usage": {
+					"inputTokens": 21,
+					"modelDurationMs": 5.78975000000014,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "green-fill-zh",
+				"found": [
+					"PMC9563479:12",
+					"PMC9563479:30",
+					"PMC9563479:28",
+					"PMC9563479:32",
+					"PMC9563479:33"
+				],
+				"expected": [
+					"PMC9563479:12"
+				],
+				"recall": 1,
+				"mrr": 1,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 39.14820799999984,
+				"usage": {
+					"inputTokens": 35,
+					"modelDurationMs": 4.454625000000078,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "green-fill-en",
+				"found": [
+					"PMC9563479:32",
+					"PMC9563479:33",
+					"PMC9563479:12",
+					"PMC9563479:8",
+					"PMC9563479:47"
+				],
+				"expected": [
+					"PMC9563479:12"
+				],
+				"recall": 1,
+				"mrr": 0.3333333333333333,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 34.22304199999985,
+				"usage": {
+					"inputTokens": 21,
+					"modelDurationMs": 2.77800000000002,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "green-gp-air-zh",
+				"found": [
+					"PMC9563479:12",
+					"PMC9563479:61",
+					"PMC9563479:52",
+					"PMC9563479:28",
+					"PMC9563479:1"
+				],
+				"expected": [
+					"PMC9563479:52"
+				],
+				"recall": 1,
+				"mrr": 0.3333333333333333,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 38.734750000000076,
+				"usage": {
+					"inputTokens": 36,
+					"modelDurationMs": 7.739082999999937,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "green-gp-air-en",
+				"found": [
+					"PMC9563479:12",
+					"PMC9563479:29",
+					"PMC9563479:28",
+					"PMC9563479:1",
+					"PMC9563479:52"
+				],
+				"expected": [
+					"PMC9563479:52"
+				],
+				"recall": 1,
+				"mrr": 0.2,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 40.07016599999997,
+				"usage": {
+					"inputTokens": 27,
+					"modelDurationMs": 3.6054999999998927,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "green-ldpe-thick-zh",
+				"found": [
+					"PMC9563479:12",
+					"PMC9563479:60",
+					"PMC9563479:30",
+					"PMC9563479:1",
+					"PMC9563479:51"
+				],
+				"expected": [
+					"PMC9563479:51"
+				],
+				"recall": 1,
+				"mrr": 0.2,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 37.096874999999955,
+				"usage": {
+					"inputTokens": 34,
+					"modelDurationMs": 4.141332999999804,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "green-ldpe-thick-en",
+				"found": [
+					"PMC9563479:12",
+					"PMC9563479:51",
+					"PMC9563479:60",
+					"PMC9563479:45",
+					"PMC9563479:1"
+				],
+				"expected": [
+					"PMC9563479:51"
+				],
+				"recall": 1,
+				"mrr": 0.5,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 36.104707999999846,
+				"usage": {
+					"inputTokens": 25,
+					"modelDurationMs": 7.048749999999927,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "scg-thick-zh",
+				"found": [
+					"PMC10670670:64",
+					"PMC10670670:62",
+					"PMC11944891:13",
+					"PMC11944891:27",
+					"PMC11944891:15"
+				],
+				"expected": [
+					"PMC10670670:64"
+				],
+				"recall": 1,
+				"mrr": 1,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 35.01983400000017,
+				"usage": {
+					"inputTokens": 32,
+					"modelDurationMs": 3.7737499999998363,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "scg-thick-en",
+				"found": [
+					"PMC10670670:9",
+					"PMC10670670:62",
+					"PMC10670670:64",
+					"PMC10670670:1",
+					"PMC11944891:13"
+				],
+				"expected": [
+					"PMC10670670:64"
+				],
+				"recall": 1,
+				"mrr": 0.3333333333333333,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 36.299916000000394,
+				"usage": {
+					"inputTokens": 26,
+					"modelDurationMs": 3.3808749999998327,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "scg-microscope-zh",
+				"found": [
+					"PMC10670670:64",
+					"PMC10670670:32",
+					"PMC10670670:31",
+					"PMC10670670:62",
+					"PMC11944891:15"
+				],
+				"expected": [
+					"PMC10670670:31"
+				],
+				"recall": 1,
+				"mrr": 0.3333333333333333,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 49.87987499999963,
+				"usage": {
+					"inputTokens": 30,
+					"modelDurationMs": 7.185582999999951,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "scg-microscope-en",
+				"found": [
+					"PMC10670670:64",
+					"PMC11944891:13",
+					"PMC11944891:15",
+					"PMC10670670:62",
+					"PMC10670670:9"
+				],
+				"expected": [
+					"PMC10670670:31"
+				],
+				"recall": 0,
+				"mrr": 0,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 39.387083000000075,
+				"usage": {
+					"inputTokens": 27,
+					"modelDurationMs": 3.5379159999997682,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "pla-otr-unit-zh",
+				"found": [
+					"PMC11944891:76",
+					"PMC11944891:17",
+					"PMC11944891:29",
+					"PMC10670670:89",
+					"PMC11944891:12"
+				],
+				"expected": [
+					"PMC11944891:76"
+				],
+				"recall": 1,
+				"mrr": 1,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 35.85787500000015,
+				"usage": {
+					"inputTokens": 34,
+					"modelDurationMs": 4.349291999999878,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "pla-otr-unit-en",
+				"found": [
+					"PMC11944891:12",
+					"PMC11944891:76",
+					"PMC11944891:44",
+					"PMC11944891:41",
+					"PMC11944891:82"
+				],
+				"expected": [
+					"PMC11944891:76"
+				],
+				"recall": 1,
+				"mrr": 0.5,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 36.77400000000034,
+				"usage": {
+					"inputTokens": 30,
+					"modelDurationMs": 3.6949170000002596,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "pla-otr-value-zh",
+				"found": [
+					"PMC11944891:76",
+					"PMC11944891:17",
+					"PMC11944891:26",
+					"PMC11944891:14",
+					"PMC11944891:12"
+				],
+				"expected": [
+					"PMC11944891:76"
+				],
+				"recall": 1,
+				"mrr": 1,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 34.15416699999969,
+				"usage": {
+					"inputTokens": 32,
+					"modelDurationMs": 3.6393749999997453,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "pla-otr-value-en",
+				"found": [
+					"PMC11944891:12",
+					"PMC11944891:76",
+					"PMC11944891:44",
+					"PMC11944891:34",
+					"PMC11944891:17"
+				],
+				"expected": [
+					"PMC11944891:76"
+				],
+				"recall": 1,
+				"mrr": 0.5,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 32.99379200000021,
+				"usage": {
+					"inputTokens": 27,
+					"modelDurationMs": 3.435667000000194,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "pla-wvtr-zh",
+				"found": [
+					"PMC11944891:76",
+					"PMC11944891:29",
+					"PMC11944891:17",
+					"PMC11944891:52",
+					"PMC11944891:12"
+				],
+				"expected": [
+					"PMC11944891:76"
+				],
+				"recall": 1,
+				"mrr": 1,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 34.28049999999985,
+				"usage": {
+					"inputTokens": 28,
+					"modelDurationMs": 5.5885410000000775,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "pla-wvtr-en",
+				"found": [
+					"PMC11944891:76",
+					"PMC11944891:29",
+					"PMC11944891:44",
+					"PMC11944891:12",
+					"PMC11944891:34"
+				],
+				"expected": [
+					"PMC11944891:76"
+				],
+				"recall": 1,
+				"mrr": 1,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 33.477750000000015,
+				"usage": {
+					"inputTokens": 26,
+					"modelDurationMs": 3.360957999999755,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "pla-oxygen-conditions-zh",
+				"found": [
+					"PMC11944891:52",
+					"PMC11944891:51",
+					"PMC11944891:21",
+					"PMC11944891:30",
+					"PMC11944891:29"
+				],
+				"expected": [
+					"PMC11944891:51"
+				],
+				"recall": 1,
+				"mrr": 0.5,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 36.6237500000002,
+				"usage": {
+					"inputTokens": 41,
+					"modelDurationMs": 4.8493750000002365,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "pla-oxygen-conditions-en",
+				"found": [
+					"PMC11944891:51",
+					"PMC11944891:44",
+					"PMC11944891:45",
+					"PMC11944891:59",
+					"PMC11944891:30"
+				],
+				"expected": [
+					"PMC11944891:51"
+				],
+				"recall": 1,
+				"mrr": 1,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 32.42429200000015,
+				"usage": {
+					"inputTokens": 26,
+					"modelDurationMs": 3.382042000000183,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "pla-flow-zh",
+				"found": [
+					"PMC11944891:51",
+					"PMC10670670:38",
+					"PMC11944891:30",
+					"PMC11944891:17",
+					"PMC10931445:22"
+				],
+				"expected": [
+					"PMC11944891:51"
+				],
+				"recall": 1,
+				"mrr": 1,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 34.49629199999981,
+				"usage": {
+					"inputTokens": 35,
+					"modelDurationMs": 4.389458000000104,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "pla-flow-en",
+				"found": [
+					"PMC11944891:51",
+					"PMC11944891:30",
+					"PMC11944891:12",
+					"PMC11944891:44",
+					"PMC11944891:59"
+				],
+				"expected": [
+					"PMC11944891:51"
+				],
+				"recall": 1,
+				"mrr": 1,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 32.703125,
+				"usage": {
+					"inputTokens": 22,
+					"modelDurationMs": 5.1693750000004,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "pla-water-method-zh",
+				"found": [
+					"PMC11944891:52",
+					"PMC11944891:29",
+					"PMC11944891:73",
+					"PMC11944891:34",
+					"PMC11944891:30"
+				],
+				"expected": [
+					"PMC11944891:52"
+				],
+				"recall": 1,
+				"mrr": 1,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 34.62333400000034,
+				"usage": {
+					"inputTokens": 33,
+					"modelDurationMs": 4.398666999999932,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "pla-water-method-en",
+				"found": [
+					"PMC11944891:52",
+					"PMC11944891:29",
+					"PMC11944891:2",
+					"PMC11944891:59",
+					"PMC11944891:34"
+				],
+				"expected": [
+					"PMC11944891:52"
+				],
+				"recall": 1,
+				"mrr": 1,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 35.454083999999966,
+				"usage": {
+					"inputTokens": 25,
+					"modelDurationMs": 3.1775410000000193,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "pla-water-delta-zh",
+				"found": [
+					"PMC11944891:53",
+					"PMC11944891:73",
+					"PMC11944891:52",
+					"PMC10670670:41",
+					"PMC11944891:29"
+				],
+				"expected": [
+					"PMC11944891:53"
+				],
+				"recall": 1,
+				"mrr": 1,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 34.821040999999695,
+				"usage": {
+					"inputTokens": 38,
+					"modelDurationMs": 4.566041999999925,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "pla-water-delta-en",
+				"found": [
+					"PMC11944891:53",
+					"PMC11944891:52",
+					"PMC11944891:34",
+					"PMC11944891:73",
+					"PMC11944891:59"
+				],
+				"expected": [
+					"PMC11944891:53"
+				],
+				"recall": 1,
+				"mrr": 1,
+				"rawNoAnswerCorrect": null,
+				"durationMs": 32.6528330000001,
+				"usage": {
+					"inputTokens": 28,
+					"modelDurationMs": 3.306542000000263,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "absent-size",
+				"found": [
+					"PMC10931445:48",
+					"PMC10670670:28",
+					"PMC9563479:24",
+					"PMC9563479:61",
+					"PMC10670670:15"
+				],
+				"expected": [],
+				"recall": null,
+				"mrr": null,
+				"rawNoAnswerCorrect": false,
+				"durationMs": 33.781833000000006,
+				"usage": {
+					"inputTokens": 21,
+					"modelDurationMs": 5.352083000000221,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "absent-quote",
+				"found": [
+					"PMC11243642:61",
+					"PMC11243642:35",
+					"PMC11243642:15",
+					"PMC11243642:139",
+					"PMC11243642:51"
+				],
+				"expected": [],
+				"recall": null,
+				"mrr": null,
+				"rawNoAnswerCorrect": false,
+				"durationMs": 33.38070800000014,
+				"usage": {
+					"inputTokens": 22,
+					"modelDurationMs": 3.0814589999999953,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "absent-certificate",
+				"found": [
+					"PMC10931445:70",
+					"PMC10931445:116",
+					"PMC10931445:63",
+					"PMC10931445:32",
+					"PMC10931445:35"
+				],
+				"expected": [],
+				"recall": null,
+				"mrr": null,
+				"rawNoAnswerCorrect": false,
+				"durationMs": 35.268540999999914,
+				"usage": {
+					"inputTokens": 21,
+					"modelDurationMs": 2.860708000000159,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "absent-shelf",
+				"found": [
+					"PMC11243642:18",
+					"PMC10670670:7",
+					"PMC11243642:51",
+					"PMC11243642:17",
+					"PMC10931445:3"
+				],
+				"expected": [],
+				"recall": null,
+				"mrr": null,
+				"rawNoAnswerCorrect": false,
+				"durationMs": 33.68816700000025,
+				"usage": {
+					"inputTokens": 25,
+					"modelDurationMs": 3.2140830000003007,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "absent-seal",
+				"found": [
+					"PMC11243642:148",
+					"PMC11944891:21",
+					"PMC11243642:51",
+					"PMC11243642:18",
+					"PMC10670670:1"
+				],
+				"expected": [],
+				"recall": null,
+				"mrr": null,
+				"rawNoAnswerCorrect": false,
+				"durationMs": 32.957082999999784,
+				"usage": {
+					"inputTokens": 21,
+					"modelDurationMs": 2.9965839999999844,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "absent-valve",
+				"found": [
+					"PMC11243642:15",
+					"PMC11243642:21",
+					"PMC11243642:17",
+					"PMC11243642:37",
+					"PMC11243642:72"
+				],
+				"expected": [],
+				"recall": null,
+				"mrr": null,
+				"rawNoAnswerCorrect": false,
+				"durationMs": 32.22733299999982,
+				"usage": {
+					"inputTokens": 23,
+					"modelDurationMs": 3.132415999999921,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "unknown-model",
+				"found": [],
+				"expected": [],
+				"recall": null,
+				"mrr": null,
+				"rawNoAnswerCorrect": true,
+				"durationMs": 9.204666999999972,
+				"usage": {
+					"inputTokens": 8,
+					"modelDurationMs": 1.7738329999997404,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			},
+			{
+				"id": "before-publication",
+				"found": [],
+				"expected": [],
+				"recall": null,
+				"mrr": null,
+				"rawNoAnswerCorrect": true,
+				"durationMs": 8.950792000000092,
+				"usage": {
+					"inputTokens": 8,
+					"modelDurationMs": 1.8862079999998969,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				}
+			}
+		],
+		"metrics": {
+			"recallAt5": 0.9107142857142857,
+			"mrr": 0.7452380952380951,
+			"rawNoAnswerAccuracy": 0.25,
+			"p50Ms": 35.420917000000145,
+			"p95Ms": 40.07016599999997,
+			"embeddingTokens": 1655
+		}
+	},
+	"hardware": {
+		"cpu": "Apple M5",
+		"cores": 10,
+		"memoryBytes": 25769803776,
+		"platform": "darwin",
+		"release": "25.6.0",
+		"node": "v24.14.0",
+		"concurrency": 1
+	},
+	"paidModelCalls": 0,
+	"generationCalls": 0,
+	"costUsd": null,
+	"labelLimitations": "32 authored contract cases and 8 source-checked research pairs. Not human expert gold, not semantic entailment, not independent supplier-data generalization. Real-pair group contains no comparable positive examples."
+}

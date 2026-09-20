@@ -1,0 +1,200 @@
+{
+	"schemaVersion": "knowledge-comparison-verification.v1",
+	"checkedAt": "2026-09-17T10:20:44.324Z",
+	"branch": "codex/plan-subagents",
+	"baseCommit": "2f764adc2b6df7b6d7708e470e343caa63d10e57",
+	"workingTree": "uncommitted; includes preceding RAG implementation",
+	"commands": [
+		{
+			"command": "npm run check",
+			"exitCode": 0,
+			"completedAt": "2026-09-17T10:18:36.312Z",
+			"logSha256": "96d0aa887ff63edafa57a932fe93cbdea6d77b0171589d1d03ae7392a6a3df68",
+			"evidence": [
+				"61 passed (61)",
+				"347 passed | 20 skipped (367)",
+				"built in"
+			]
+		},
+		{
+			"command": "npm run test -- server/manufacturing/knowledgeComparison.test.ts",
+			"exitCode": 0,
+			"completedAt": "2026-09-17T10:18:57.004Z",
+			"logSha256": "1cc719e80964fe2b4c7676e6470c1eb1b954dcc0ba4eb9ecb5e5f63892e06e72",
+			"evidence": [
+				"55 passed (55)"
+			]
+		},
+		{
+			"command": "npm run eval:knowledge-compare",
+			"exitCode": 0,
+			"completedAt": "2026-09-17T10:18:56.766Z",
+			"logSha256": "399a9894f836b1a95c732309c7a3b3752f239071a1fb7625cef259977764663b",
+			"evidence": [
+				"\"decisionAgreement\": 1",
+				"\"falseComparable\": 0"
+			]
+		},
+		{
+			"command": "npm run eval:knowledge-compare -- --real",
+			"exitCode": 0,
+			"completedAt": "2026-09-17T10:18:09.673Z",
+			"logSha256": "c4fc02f18551be0914643946784ef53c7dd1f7fa0c92bf0cc3fba91b72b65048",
+			"evidence": [
+				"\"liveModelRegression\": true"
+			]
+		},
+		{
+			"command": "npm run demo:knowledge",
+			"exitCode": 0,
+			"completedAt": "2026-09-17T10:18:56.705Z",
+			"logSha256": "10071c424f897d8c954b17de963d6eb0a0d01c8bbe42b6695627a4be691688ea",
+			"evidence": [
+				"\"fabricatedDimensionRejected\": true",
+				"\"paidModelCalls\": 0"
+			]
+		},
+		{
+			"command": "npm run eval:product",
+			"exitCode": 0,
+			"completedAt": "2026-09-17T10:19:30.480Z",
+			"logSha256": "984cb71f65f76b557212f33d53b66517cd3508896930a51998a52f0e8a32a489",
+			"evidence": [
+				"PASS: parameter comparison HTTP path",
+				"PASS: Plan mode",
+				"PASS: authenticated live SSE"
+			]
+		}
+	],
+	"checks": {
+		"typecheck": "passed",
+		"build": "passed",
+		"testFiles": 61,
+		"passed": 347,
+		"skipped": 20,
+		"comparisonModuleTests": 55,
+		"localHttpComparison": "passed_with_synthetic_fixtures",
+		"browserVisual": "not_run_computer_locked",
+		"realModel": "pinned_local_E5_no_paid_API",
+		"fakeProviderMeaning": "integration_only_not_generation_quality"
+	},
+	"comparison": {
+		"before": {
+			"cases": 40,
+			"expectedComparable": 6,
+			"decisionAgreement": 0.575,
+			"falseComparable": 17,
+			"falseBlocked": 0
+		},
+		"after": {
+			"cases": 40,
+			"expectedComparable": 6,
+			"decisionAgreement": 1,
+			"falseComparable": 0,
+			"falseBlocked": 0
+		},
+		"groups": [
+			{
+				"origin": "synthetic_contract",
+				"cases": 32,
+				"expectedComparable": 6,
+				"decisionAgreement": 1,
+				"falseComparable": 0,
+				"falseBlocked": 0
+			},
+			{
+				"origin": "real_source_pair",
+				"cases": 8,
+				"expectedComparable": 0,
+				"decisionAgreement": 1,
+				"falseComparable": 0,
+				"falseBlocked": 0
+			}
+		],
+		"realSourcePairs": 8,
+		"realSourceDocuments": 4,
+		"realComparablePositiveExamples": 0,
+		"industrialAccuracy": null
+	},
+	"retrieval": {
+		"queries": 64,
+		"answerable": 56,
+		"hits": 51,
+		"noAnswerQuestions": 8,
+		"rawNoAnswerCorrect": 2,
+		"allRankingsUnchanged": true,
+		"recallAt5": 0.9107142857142857,
+		"mrr": 0.7452380952380951,
+		"rawNoAnswerAccuracy": 0.25,
+		"p50Ms": 35.420917000000145,
+		"p95Ms": 40.07016599999997,
+		"embeddingTokens": 1655,
+		"model": "onnx:Xenova/multilingual-e5-small@761b726dd34fb83930e26aab4e9ac3899aa1fa78:q8:384:mean:l2:512:prefix-e5:windows-480-v1:transformers-4.3.0",
+		"executedAt": "2026-09-17T10:18:09.671Z",
+		"hardware": {
+			"cpu": "Apple M5",
+			"cores": 10,
+			"memoryBytes": 25769803776,
+			"platform": "darwin",
+			"release": "25.6.0",
+			"node": "v24.14.0",
+			"concurrency": 1
+		},
+		"generationCalls": 0,
+		"costUsd": null
+	},
+	"data": {
+		"licensedFullTexts": 5,
+		"provenance": "public_source_CC_BY_research",
+		"chunks": 568,
+		"parameterTranscriptions": 40,
+		"supplierTds": 0,
+		"expertReviewedGold": 0,
+		"realBusinessUsers": 0,
+		"originalCorpusHash": "46e09f7d57fc818bb6f69576d1d8050e86cb2fa7a25fbb0cd841e0bc2c7d0b89",
+		"originalRetrievalCaseHash": "0966781aba9451bea4299bd2ffaccc0046a2023e29f37dd471bfcd7d58ba147c",
+		"frozenRuleCaseHash": "668803ac32b554e5356600eeec72e3058a052d48088fa68938114b7cb89d7f59"
+	},
+	"limitations": [
+		"32 authored synthetic rule cases and 8 source-checked research negatives are not expert gold",
+		"Formerly frozen retrieval questions have been observed; this is regression, not blind generalization",
+		"No retrieval no-answer improvement claimed",
+		"Conservative metadata completeness and equality are not semantic entailment or standards compliance",
+		"Existing 20 environment-dependent tests remain skipped",
+		"No browser visual acceptance",
+		"No production latency, real users or business benefit demonstrated"
+	],
+	"paidModelCalls": 0,
+	"newDependenciesThisIteration": [],
+	"newDatabaseMigration": false,
+	"hashes": {
+		"algorithm": "SHA-256 of file bytes; semantic JSON hashes above use existing KnowledgeStore digest",
+		"sources": {
+			"src/manufacturing/packagingKnowledge.ts": "10f94587ec1d4d9f7ab3392763f0a75d38a418bf9e73527bde4ec1f7e0d51ff2",
+			"server/knowledge/store.ts": "c91d9dce10004d2e934a261a0fd32cc416a779cccbe3e5fe54f1eb520264ad51",
+			"server/manufacturing/knowledgeComparison.ts": "aaf0e40d7e38f35cb21db2f528e7b1ff8dd87a8aadb2d4f063298c1ddbb1d1cf",
+			"server/knowledge/validation.ts": "3abccc9ace11322e97eb419fc6fa48c9febc2d0f107da1c71758343281753908",
+			"src/enterprise/knowledge.ts": "cbc89248d65276dcf7d2dd369a1dd1cd0f9a03b30c799d0ab042129bade75e5f",
+			"src/runtime/knowledgeView.ts": "dbba1315a163cf7e351be7faa44f144c97d3853d3bbe9777e9764d79a2a7bed5",
+			"src/runtime/conversationClient.ts": "b95072fe7ab3b97acc9c9e485cac6d009e5f69085f1661ac74f7f243c6a03f86",
+			"src/components/KnowledgePanel.tsx": "906a6c217400ec6db2838afd6665ba19ed0b6d90018c2dd4a9b587ceb77328f2",
+			"src/components/knowledge.css": "c81b5363f112076a2e828f80f30ef5c65eaf898f6e1725207e9b379d1e7e6c14",
+			"server/manufacturing/knowledgeApi.ts": "8925d19c5bcec19bb4eb0a584f7284f7c207cfd5d555158fe57f353d271dbf53",
+			"server/manufacturing/knowledgeComparison.test.ts": "4d3a31e88e6ff2cd0ed03376ebf6d1943fed061e0ed9718e2360e096fc5f7b60",
+			"server/manufacturing/requirementBriefWorker.ts": "3d4cc4a1ec819e421c64f1d0bf095522674063073b291206c6662ecb11927dd9",
+			"server/eval/knowledgeWorkflow.ts": "a7568a36b6ae55746a15b3ab29defbea87800fcdfa7b7cfea84bc217afc720ff",
+			"server/index.ts": "b706fd46a007867929f6b01882754e1771b09cfea8a846b9a561183778cd37bd",
+			"eval/knowledgeCompare.ts": "ec8cc40e86b69a5d8964c4d3cbded4f7e979183b74a0eb4afb7f2aaf1ec71265",
+			"eval/productSmoke.ts": "68f8847535da940006ef2fac6ae9ed2c1550ca6fe9333e9e9c1277d6afb1b4fc",
+			"package.json": "4617993234c4d49c4341e806c0f2de51de9e1a6e8a25e7aab333bc286f143953"
+		},
+		"evidence": {
+			"docs/evidence/knowledge-comparison-real.json": "f8a1fa28a3c87d18b6b70ec9193bdb8a4b8479033d6fa55c63785e54855ec1b3",
+			"docs/evidence/knowledge-comparison-baseline.json": "5de0853efa67d9812b8b723cd47355beb8405df0f9e846c3a8e50494605b8b4d",
+			"docs/evidence/knowledge-comparison-offline.json": "b2f83acdef552476604421a3ed912b06be7f9dd04f5b426f358695bbad02df33",
+			"data/knowledge/comparison-v1/cases.json": "4f7179174430d488363040ba7a5d18fde8b82432b5017a1b56b944f9507bbe76",
+			"docs/knowledge/comparison.md": "9979eeef632b3f506596b13c8a3a16b5da8ce5be94149768cd25cbccbf606c89",
+			"docs/adr/0021-source-bound-parameter-comparison.md": "38e9321d6739fa4766c07493d3117aba28f252f0a2e1ce5e8df91bfaff659055"
+		}
+	}
+}

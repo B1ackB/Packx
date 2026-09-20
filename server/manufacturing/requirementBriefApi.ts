@@ -1,3 +1,5 @@
+import { factSourceReference, type KnowledgeService } from "../knowledge/service";
+import { KnowledgeError } from "../../src/enterprise/knowledge";
 import type { RequirementDelivery } from "../../src/manufacturing/requirementDelivery";
 import { evaluateRequirementBrief, type RequirementBriefV1 } from "../../src/manufacturing/requirementBrief";
 import type { AssetInspectionRecord } from "../../src/runtime/assetInspection";
@@ -56,6 +58,7 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 		attachments?: FileConversationAttachmentStore,
 		private readonly now: () => string = () => new Date().toISOString(),
 		readPlan?: (scope: PlanScope) => PlanWorkspace,
+		private readonly knowledge?: KnowledgeService,
 	) {
 		super(conversations, requirementEngine, requirementArtifacts, outbox, requirementScheduler, {
 			responseKey: "requirementBrief",
@@ -65,12 +68,17 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 			stageId: "requirement-brief",
 			jobPrefix: "requirement",
 			evaluationArtifactId: "requirement-brief-evaluation",
-			protectedFactKeys: ["industry", "customer_brief", "customer_attachments", "plan_source"],
+			protectedFactKeys: ["industry", "customer_brief", "customer_attachments", "plan_source", "knowledge_source"],
 			assertWritable: (state) => {
 				if (state.aggregateVersion > 0 && state.facts.industry?.value !== "print") throw new ProposalWorkspaceValidationError("历史非包装需求已停用，请新建包装会话；原始资料与交付版本保留。");
 			},
 			prepareStart: (payload, conversation, scope) => {
 				const facts: ArtifactWorkspaceStartFact[] = industryFact(payload, conversation);
+				const selected = knowledge?.store.selected({ ...scope, runId: conversation.conversationId });
+				if (selected?.unavailable.length) throw new ProposalWorkspaceValidationError("已选证据过期或不可用，请在证据面板重新选择。", "evidence_unavailable");
+				try { knowledge?.assertFacts(requirementEngine.load(scope), requirementEngine, selected?.hits ?? []); }
+				catch (error) { if (error instanceof KnowledgeError) throw new ProposalWorkspaceValidationError("已有字段仍依赖旧证据，请重新录入并确认该字段。", error.code); throw error; }
+				if (selected?.selection) facts.push({ key: "knowledge_source", value: JSON.stringify(selected.selection), status: "unverified", sourceType: "source_document", sourceRef: `knowledge-selection:${selected.selection.digest}` });
 				const attachmentScope = {
 					tenantId: scope.tenantId,
 					workspaceId: scope.workspaceId,
@@ -83,6 +91,8 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 					if (!readPlan) throw new ProposalWorkspaceValidationError("计划来源不可用。");
 					const imported = planRequirementSource(readPlan({ ...scope, runId: conversation.conversationId }), planVersion, conversation,
 						attachments?.list(attachmentScope).slice(-8).map(({ name, sourceRef, sha256 }) => ({ name, sourceRef, sha256 })) ?? []);
+					const planSelection = JSON.parse(imported.brief).originalContext?.knowledge;
+					if ((planSelection?.digest ?? null) !== (selected?.selection?.digest ?? null)) throw new ProposalWorkspaceValidationError("计划中的证据已变化，请重新规划。", "plan_evidence_stale");
 					brief = imported.brief;
 					facts.push(imported.source);
 				} else if (this.requirementEngine.load(scope).facts.plan_source) {
@@ -100,6 +110,24 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 		});
 	}
 
+	override get(context: Parameters<ConversationApiController["get"]>[0], conversationId: unknown) {
+		return this.respond(() => {
+			const { scope } = this.target(context, conversationId);
+			this.knowledge?.refreshRun(this.requirementEngine, scope);
+			return super.get(context, conversationId);
+		});
+	}
+
+	override resolveApproval(context: Parameters<ConversationApiController["get"]>[0], conversationId: unknown, payload: unknown) {
+		return this.respond(() => {
+			const { scope } = this.target(context, conversationId);
+			this.knowledge?.refreshRun(this.requirementEngine, scope);
+			try { this.knowledge?.assertRun(this.requirementEngine.load(scope), this.requirementEngine); }
+			catch (error) { if (error instanceof KnowledgeError) return { status: 409, body: { code: error.code, message: "证据需要重新核对，不能批准。" } }; throw error; }
+			return super.resolveApproval(context, conversationId, payload);
+		});
+	}
+
 	override recordFact(context: Parameters<ConversationApiController["get"]>[0], conversationId: unknown, payload: unknown) {
 		if (payload && typeof payload === "object" && "key" in payload &&
 			!packagingFactKeys.includes(String(payload.key))) {
@@ -111,6 +139,7 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 	delivery(context: Parameters<ConversationApiController["get"]>[0], conversationId: unknown, version: number) {
 		return this.respond(() => {
 			const { scope } = this.target(context, conversationId);
+			this.knowledge?.refreshRun(this.requirementEngine, scope);
 			const state = this.requirementEngine.load(scope);
 			if (state.aggregateVersion > 0 && state.facts.industry?.value !== "print") return { status: 410, body: { code: "industry_retired", message: "历史非包装交付保留在本地，不再通过当前包装需求单导出。" } };
 			const artifact = state.proposalVersions.find((item) => item.artifactId === "requirement-brief" && item.version === version);
@@ -123,15 +152,24 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 			const brief = content as RequirementBriefV1;
 			const sourcePlan = artifact.inputFactVersions.plan_source === undefined ? undefined : events.find((event) => event.data.type === "fact.version_recorded" && event.data.factKey === "plan_source" && event.data.factVersion === artifact.inputFactVersions.plan_source);
 			const citations: Record<string, string> = {};
+			const knowledgeSource = artifact.inputFactVersions.knowledge_source === undefined ? undefined : events.find((event) => event.data.type === "fact.version_recorded" && event.data.factKey === "knowledge_source" && event.data.factVersion === artifact.inputFactVersions.knowledge_source);
+			let knowledgeEvidence: import("../../src/enterprise/knowledge").EvidenceHit[] = [];
+			if (knowledgeSource?.data.type === "fact.version_recorded") {
+				try { knowledgeEvidence = this.knowledge!.store.assertSelection(scope, String(knowledgeSource.data.value)); }
+				catch { return { status: 409, body: { code: "evidence_unavailable", message: "来源已撤回、过期或权限变化，此交付物必须复核。" } }; }
+			}
 			for (const fact of brief.facts) {
-				const original = events.findLast((event) => event.data.type === "fact.version_recorded" && event.data.factKey === fact.key && event.data.factVersion <= fact.version && event.data.value === fact.value && event.data.unit === fact.unit && event.data.sourceType === "model_output");
-				if (original?.data.type === "fact.version_recorded") citations[fact.key] = original.data.sourceRef;
+				const evidenceRef = factSourceReference(events, fact.key, fact.version);
+				if (evidenceRef?.startsWith("kb-")) {
+					if (!knowledgeEvidence.some((hit) => hit.evidenceId === evidenceRef)) return { status: 409, body: { code: "evidence_fact_requires_review", message: "字段仍依赖旧证据，需要重新核对。" } };
+				}
+				if (evidenceRef) citations[fact.key] = evidenceRef;
 			}
 			const approved = artifact.freshness !== "stale" && state.currentProposal?.version === version && state.approval?.status === "approved" && state.approval.artifactVersion === version;
 			const delivery: RequirementDelivery = {
 				schemaVersion: "requirement-delivery.v1", runId: scope.runId, version,
 				status: artifact.freshness === "stale" || state.currentProposal?.version !== version ? "stale" : approved ? "approved" : "draft",
-				createdAt: created?.occurredAt ?? "", content: brief, sources: checkpoint?.inspections ?? [], citations,
+				createdAt: created?.occurredAt ?? "", content: brief, knowledgeEvidence, sources: checkpoint?.inspections ?? [], citations,
 				...(sourcePlan?.data.type === "fact.version_recorded" ? { sourcePlan: sourcePlan.data.sourceRef } : {}),
 				...(approved ? { approval: { approvalId: state.approval!.approvalId, artifactVersion: version } } : {}),
 			};

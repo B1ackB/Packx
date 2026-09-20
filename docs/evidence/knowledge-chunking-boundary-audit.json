@@ -1,0 +1,334 @@
+{
+	"schemaVersion": "knowledge-chunking-boundary-audit.v1",
+	"auditedAt": "2026-09-17T12:31:29.738Z",
+	"corpusHash": "46e09f7d57fc818bb6f69576d1d8050e86cb2fa7a25fbb0cd841e0bc2c7d0b89",
+	"supportSourceHash": "72a2dbec8429f1d3a2ad0f7366c6083bf4d2ab905431fe3950df1274517d009f",
+	"method": "Post-hoc scan of all prose chunks in the three character strategies. Count a boundary when non-whitespace source text remains in the same paragraph; flag it if the chunk does not end in ., ! or ?. Preserve source positions and adjacent excerpts. No tokenization or embedding call.",
+	"limitations": [
+		"Punctuation heuristic, not complete linguistic segmentation; terminal dots may be abbreviations.",
+		"Does not audit source paragraph boundaries, cross-sentence dependencies or all domain term boundaries.",
+		"No changes to frozen query labels, primary experimental scores or production chunking."
+	],
+	"results": [
+		{
+			"variant": "paragraph-1000-row-1",
+			"withinParagraphBoundaries": 69,
+			"boundariesWithoutTerminalPunctuation": 0,
+			"examples": []
+		},
+		{
+			"variant": "paragraph-500-row-1",
+			"withinParagraphBoundaries": 252,
+			"boundariesWithoutTerminalPunctuation": 19,
+			"examples": [
+				{
+					"documentId": "PMC10931445",
+					"location": {
+						"section": "3. Results / 3.1. Percentage of Oxygen in the Headspace during Shelf Life",
+						"anchor": "sec3dot1-foods-13-00759",
+						"paragraph": 5,
+						"part": 1
+					},
+					"span": {
+						"unitId": "PMC10931445:38de50db01002dd01d47",
+						"start": 0,
+						"end": 487
+					},
+					"left": "ease in levels of 2-furfurylthiol, an important compound of coffee aroma [33], at oxygen levels equal to or greater than 5%, while at an oxygen concentration of",
+					"right": " approximatively 2%, this decrease was slowed. Using packaging with good oxygen barrier properties helps to prevent or slow down the oxidative degradation of coffee aroma, subseque"
+				},
+				{
+					"documentId": "PMC9563479",
+					"location": {
+						"section": "Abstract",
+						"paragraph": 1,
+						"part": 2
+					},
+					"span": {
+						"unitId": "PMC9563479:2fb087f30230d26d04ac",
+						"start": 301,
+						"end": 799
+					},
+					"left": "dation parameters including acid value (AV), free fatty acids (FFA), peroxide value (PV), ρ-anisidine value (PAV), total oxidation value (TOTOX), thiobarbituric",
+					"right": " acid reactive substances (TBARS), moisture content (MC), water activity (aw) and color. Primary oxidation was observed, with AV, FFA and PAV gradually changing during storage from"
+				},
+				{
+					"documentId": "PMC9563479",
+					"location": {
+						"section": "1. Introduction",
+						"anchor": "sec1-foods-11-03040",
+						"paragraph": 2,
+						"part": 1
+					},
+					"span": {
+						"unitId": "PMC9563479:93a3d590f66c64e4e724",
+						"start": 0,
+						"end": 493
+					},
+					"left": "sing techniques and equipment to develop a qualified, precise, commercialized industry on a large scale, improve product quality, and conduct more comprehensive",
+					"right": " investigations and research on problem issues. In Thailand, coffee farmers and roasters typically store green coffee beans (GCB) for six months to a year before roasting. During p"
+				},
+				{
+					"documentId": "PMC9563479",
+					"location": {
+						"section": "2. Materials and Methods / 2.5. Lipid Oxidation Determination / 2.5.7. Fatty Acid Profile",
+						"anchor": "sec2dot5dot7-foods-11-03040",
+						"paragraph": 1,
+						"part": 2
+					},
+					"span": {
+						"unitId": "PMC9563479:4f2f45207784d712f550",
+						"start": 410,
+						"end": 902
+					},
+					"left": " for analysis by GC-MS (6890N, Agilent Technologies, Santa Clara, CA, USA) [34,35] with an HP-5 column (0.25 mm × 30 m × 0.25 μm) and MS detector (5973N Agilent",
+					"right": " Technologies, Santa Clara, CA, USA). The temperature gradient was set at 150 °C for 10 min at 10 °C/min until reaching 250 °C and then 250 °C for 10 min. Helium was used as the ca"
+				},
+				{
+					"documentId": "PMC10670670",
+					"location": {
+						"section": "Abstract",
+						"paragraph": 1,
+						"part": 1
+					},
+					"span": {
+						"unitId": "PMC10670670:2fb087f30230d26d04ac",
+						"start": 0,
+						"end": 497
+					},
+					"left": "raction (HPTE) and a further purified extract by liquid–liquid extraction (LLE) were separately used as active agents, and the effects on packaging features and",
+					"right": " active compounds migration were analyzed. The selected active agents showed antioxidant and lipid peroxidation inhibition effects on food simulants (peroxide values of 9.2 ÷ 12.0 "
+				},
+				{
+					"documentId": "PMC10670670",
+					"location": {
+						"section": "Abstract",
+						"paragraph": 1,
+						"part": 2
+					},
+					"span": {
+						"unitId": "PMC10670670:2fb087f30230d26d04ac",
+						"start": 498,
+						"end": 994
+					},
+					"left": " to the presence of the extract were observed, since it can enhance gas barrier properties of the polymer (O2 permeability of 1.6 ÷ 1.3 × 10−9 cm2/s) and confer",
+					"right": " better processability. In general, the HPTE extract exhibited better performances than the further purified extract, which was due to the presence of a complex pool of antioxidant"
+				},
+				{
+					"documentId": "PMC10670670",
+					"location": {
+						"section": "1. Introduction",
+						"anchor": "sec1-foods-12-04167",
+						"paragraph": 4,
+						"part": 1
+					},
+					"span": {
+						"unitId": "PMC10670670:c128bab58c016cd5a0ab",
+						"start": 0,
+						"end": 499
+					},
+					"left": "hance the food shelf life, preferentially adopting naturally based active agents, such as extracts from rosemary [12], Piper betel leaf [13], thyme [14], potato",
+					"right": " peels [15], and lemon by-products [16]."
+				},
+				{
+					"documentId": "PMC10670670",
+					"location": {
+						"section": "2. Materials and Methods / 2.1. Chemicals and Spent Coffee Grounds Preparation",
+						"anchor": "sec2dot1-foods-12-04167",
+						"paragraph": 1,
+						"part": 1
+					},
+					"span": {
+						"unitId": "PMC10670670:64f6f706643612b056c6",
+						"start": 0,
+						"end": 496
+					},
+					"left": "affeine and chlorogenic acid) (Sigma Aldrich, Milan, Italy), and polylactic acid (PLA, Ingeo™ Biopolymer 2003D, NatureWorks Italia S.r.l., Milan, Italy) were of",
+					"right": " analytical grade, and they were used without further purification. Deionized water (Idrotecnica, Genova, Italy) and ultrapure water (Milli-Q System, Millipore Inc., Burlington, MA"
+				},
+				{
+					"documentId": "PMC10670670",
+					"location": {
+						"section": "2. Materials and Methods / 2.5. Lipid Peroxidation Inhibition of HPTE Extract",
+						"anchor": "sec2dot5-foods-12-04167",
+						"paragraph": 2,
+						"part": 2
+					},
+					"span": {
+						"unitId": "PMC10670670:3352d0a31e1739c2ea8a",
+						"start": 496,
+						"end": 995
+					},
+					"left": "lume (mL) of the standardized sodium thiosulfate solution used for the analysis; T, expressed as mol/L, is the molarity of the sodium thiosulfate solution (0.01",
+					"right": " mol/L); and m is the mass of the EVO sample."
+				},
+				{
+					"documentId": "PMC10670670",
+					"location": {
+						"section": "2. Materials and Methods / 2.7. Packaging Characterization / 2.7.3. Gas Permeability and Diffusivity Measurements",
+						"anchor": "sec2dot7dot3-foods-12-04167",
+						"paragraph": 4,
+						"part": 1
+					},
+					"span": {
+						"unitId": "PMC10670670:4e79634c1c36e0f023fa",
+						"start": 0,
+						"end": 494
+					},
+					"left": " Q(t) that passed through the membrane at time t > t* can be expressed as reported in Equation (3), where t* is the time at which the steady-state condition was",
+					"right": " reached. (3)Qt=A(∫0t*Jtdt+∫t*τJssdt) where J(t) is the rate of gas transfer per unit of area, Jss is the rate at the steady-state, and τ is the total measurement time."
+				},
+				{
+					"documentId": "PMC10670670",
+					"location": {
+						"section": "3. Results and Discussion / 3.1. Optimization of Solvent Casting Technique for PLA Film Production",
+						"anchor": "sec3dot1-foods-12-04167",
+						"paragraph": 1,
+						"part": 1
+					},
+					"span": {
+						"unitId": "PMC10670670:0888b1d8dce0160d0b8a",
+						"start": 0,
+						"end": 500
+					},
+					"left": "led to low polymer transparency and halos, as shown in Figure 3a, without significant advantages in terms of versability of the polymer solution, homogeneity of",
+					"right": " the film, and surface smoothness. Concerning the polymer-to-solvent ratio, this variable affected the solution versability being directly related to the solution viscosity, i.e., "
+				},
+				{
+					"documentId": "PMC10670670",
+					"location": {
+						"section": "3. Results and Discussion / 3.3. Lipid Peroxidation Inhibition of HPTE Extract",
+						"anchor": "sec3dot3-foods-12-04167",
+						"paragraph": 1,
+						"part": 2
+					},
+					"span": {
+						"unitId": "PMC10670670:07f8ee517b5f7d7fbfee",
+						"start": 476,
+						"end": 965
+					},
+					"left": "tion was then evaluated by adding 10% (w/v) dry extract into 20 mL of EVO and exposing the samples to pure oxygen and sunlight as stress factors to induce lipid",
+					"right": " peroxidation. Figure 5a shows the data related to control samples, which were used to assess potential interferences in the PV evaluation. The EVO control sample, stored in the da"
+				},
+				{
+					"documentId": "PMC10670670",
+					"location": {
+						"section": "3. Results and Discussion / 3.3. Lipid Peroxidation Inhibition of HPTE Extract",
+						"anchor": "sec3dot3-foods-12-04167",
+						"paragraph": 1,
+						"part": 3
+					},
+					"span": {
+						"unitId": "PMC10670670:07f8ee517b5f7d7fbfee",
+						"start": 966,
+						"end": 1459
+					},
+					"left": "at there were no significant differences (p > 0.05) between the values of PV of the samples with only EVO and with encapsulated extract (p = 0.0551), while a PV",
+					"right": " slightly higher was shown by the sample in which pure maltodextrins were added (p = 0.0036). The first result implies that the presence of encapsulated extract did not interfere w"
+				},
+				{
+					"documentId": "PMC10670670",
+					"location": {
+						"section": "3. Results and Discussion / 3.3. Lipid Peroxidation Inhibition of HPTE Extract",
+						"anchor": "sec3dot3-foods-12-04167",
+						"paragraph": 2,
+						"part": 1
+					},
+					"span": {
+						"unitId": "PMC10670670:c4cacffb46977c4f8070",
+						"start": 0,
+						"end": 499
+					},
+					"left": "amples (caffeic, vanillic, and ferulic acids) provided a reduction in the PV, and particularly, caffeic acid, which is contained in the structure of chlorogenic",
+					"right": " acid, resulted as the most active in preventing lipid oxidation. Moreover, Hwang et al. [55] investigated the effect of SCG extracts on the inhibition of the oxidation of soybean "
+				},
+				{
+					"documentId": "PMC10670670",
+					"location": {
+						"section": "3. Results and Discussion / 3.4. Characterization of Packaging Enriched with SCG Extracts / 3.4.3. Gas Permeability and Diffusivity Measurements",
+						"anchor": "sec3dot4dot3-foods-12-04167",
+						"paragraph": 2,
+						"part": 2
+					},
+					"span": {
+						"unitId": "PMC10670670:db0dc9815f636a83ce0d",
+						"start": 466,
+						"end": 961
+					},
+					"left": "solubility, since the presence of the extracts probably affected CO2 condensability, strictly related to its solubility [58], as well as any type of gas–polymer",
+					"right": " interactions and the polymer morphology. Instead, CO2 diffusivity increased as the extract concentration increased. This was presumably ascribed to the fact that both the lipidic "
+				},
+				{
+					"documentId": "PMC10670670",
+					"location": {
+						"section": "3. Results and Discussion / 3.4. Characterization of Packaging Enriched with SCG Extracts / 3.4.5. Lipid Peroxidation Inhibition Ability",
+						"anchor": "sec3dot4dot5-foods-12-04167",
+						"paragraph": 2,
+						"part": 4
+					},
+					"span": {
+						"unitId": "PMC10670670:e655304d3d40905a8a09",
+						"start": 1216,
+						"end": 1714
+					},
+					"left": "oxidants and the browning effect on the film, is expected to exert a higher inhibition compared to the LLE extract at the same value of theoretical loading, but",
+					"right": " the highest loading capability of films produced using LLE extract allows us to reach comparable effects to HPTE extract by increasing the loading values."
+				},
+				{
+					"documentId": "PMC11944891",
+					"location": {
+						"section": "1. Introduction",
+						"anchor": "sec1-molecules-30-01383",
+						"paragraph": 4,
+						"part": 2
+					},
+					"span": {
+						"unitId": "PMC11944891:a0442d869ad0551ff036",
+						"start": 410,
+						"end": 910
+					},
+					"left": "ge, silverskin, and spent coffee grounds (SCGs), which are generated during various stages of coffee processing, including harvesting, processing, roasting, and",
+					"right": " brewing [13]."
+				},
+				{
+					"documentId": "PMC11944891",
+					"location": {
+						"section": "2. Results and Discussion / 2.1. Morphological and Structural Observations",
+						"anchor": "sec2dot1-molecules-30-01383",
+						"paragraph": 2,
+						"part": 1
+					},
+					"span": {
+						"unitId": "PMC11944891:8ae9f16ac67bba7c1cde",
+						"start": 0,
+						"end": 494
+					},
+					"left": " and flake-like structure, while no visible cracks were present, indicating that the integration of CS chloroform extract at higher concentrations was not fully",
+					"right": " successful. Notably, films with coffee silverskin oil extracts demonstrated a more uniform and seamless structure, without any breaks or interruptions. This implies a possible int"
+				},
+				{
+					"documentId": "PMC11944891",
+					"location": {
+						"section": "2. Results and Discussion / 2.5. Functional Properties / 2.5.1. Gas Barrier Properties",
+						"anchor": "sec2dot5dot1-molecules-30-01383",
+						"paragraph": 2,
+						"part": 2
+					},
+					"span": {
+						"unitId": "PMC11944891:75e037d93fd732861344",
+						"start": 422,
+						"end": 916
+					},
+					"left": "ns between CS extracts and the polymer matrix could lead to the development of materials with reduced oxygen permeability, which is essential for food packaging",
+					"right": " applications requiring high oxygen barrier properties. Materials such as polystyrene (PS), polypropylene (PP), and poly(ethylene terephthalate) (PET) are commonly used in food pac"
+				}
+			]
+		},
+		{
+			"variant": "paragraph-1500-row-1",
+			"withinParagraphBoundaries": 26,
+			"boundariesWithoutTerminalPunctuation": 0,
+			"examples": []
+		}
+	]
+}

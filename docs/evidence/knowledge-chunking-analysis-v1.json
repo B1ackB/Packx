@@ -1,0 +1,6874 @@
+{
+	"schemaVersion": "knowledge-chunking-analysis.v1",
+	"analyzedAt": "2026-09-17T11:50:17.104Z",
+	"protocolHash": "86f13865ba91f93ec80701a95dab0c17748cdbc45a890118c58f55c66c107c46",
+	"reportHash": "184586d06a938eb6b22dbc1a3eba8a9343cefb8323618804a36302eeabaf7dc2",
+	"analysisSourceHash": "c20698a9e07b8773adce979c90024fa1bd5888e5ba55908122ec7a2bf8a06551",
+	"description": "Post-hoc paired failure analysis and whitespace sensitivity. Primary preregistered results unchanged. Bilingual pairs are grouped; only four paper families, no significance/generalization claim.",
+	"analyses": [
+		{
+			"variant": "paragraph-1000-row-1",
+			"indexUsage": {
+				"inputTokens": 159829,
+				"forwardPasses": 592,
+				"modelDurationMs": 17491.731459
+			},
+			"pairedQueries": {
+				"win": 0,
+				"loss": 0,
+				"tie": 56
+			},
+			"bilingualGroups": {
+				"count": 28,
+				"win": 0,
+				"loss": 0,
+				"tie": 28,
+				"groups": [
+					{
+						"id": "rec-pet",
+						"meanDelta": 0
+					},
+					{
+						"id": "rec-pe",
+						"meanDelta": 0
+					},
+					{
+						"id": "rec-structure",
+						"meanDelta": 0
+					},
+					{
+						"id": "rec-opp",
+						"meanDelta": 0
+					},
+					{
+						"id": "rec-barrier",
+						"meanDelta": 0
+					},
+					{
+						"id": "rec-grammage",
+						"meanDelta": 0
+					},
+					{
+						"id": "rec-fill",
+						"meanDelta": 0
+					},
+					{
+						"id": "rec-gas",
+						"meanDelta": 0
+					},
+					{
+						"id": "rec-store",
+						"meanDelta": 0
+					},
+					{
+						"id": "alt-pe",
+						"meanDelta": 0
+					},
+					{
+						"id": "alt-metallization",
+						"meanDelta": 0
+					},
+					{
+						"id": "alt-pack",
+						"meanDelta": 0
+					},
+					{
+						"id": "alt-store",
+						"meanDelta": 0
+					},
+					{
+						"id": "green-method",
+						"meanDelta": 0
+					},
+					{
+						"id": "green-instrument",
+						"meanDelta": 0
+					},
+					{
+						"id": "green-rh",
+						"meanDelta": 0
+					},
+					{
+						"id": "green-fill",
+						"meanDelta": 0
+					},
+					{
+						"id": "green-gp-air",
+						"meanDelta": 0
+					},
+					{
+						"id": "green-ldpe-thick",
+						"meanDelta": 0
+					},
+					{
+						"id": "scg-thick",
+						"meanDelta": 0
+					},
+					{
+						"id": "scg-microscope",
+						"meanDelta": 0
+					},
+					{
+						"id": "pla-otr-unit",
+						"meanDelta": 0
+					},
+					{
+						"id": "pla-otr-value",
+						"meanDelta": 0
+					},
+					{
+						"id": "pla-wvtr",
+						"meanDelta": 0
+					},
+					{
+						"id": "pla-oxygen-conditions",
+						"meanDelta": 0
+					},
+					{
+						"id": "pla-flow",
+						"meanDelta": 0
+					},
+					{
+						"id": "pla-water-method",
+						"meanDelta": 0
+					},
+					{
+						"id": "pla-water-delta",
+						"meanDelta": 0
+					}
+				]
+			},
+			"whitespaceSensitivity": {
+				"changes": [],
+				"relaxedComplete": 0.7857142857142857
+			},
+			"paired": [
+				{
+					"id": "rec-pet-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-9ff98bd21b91069fd95d17c9a6707a3061d2092a70ba03b2ec3ef02bc9a15807:36",
+						"kb-9ff98bd21b91069fd95d17c9a6707a3061d2092a70ba03b2ec3ef02bc9a15807:5"
+					]
+				},
+				{
+					"id": "rec-pet-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-9ff98bd21b91069fd95d17c9a6707a3061d2092a70ba03b2ec3ef02bc9a15807:36",
+						"kb-9ff98bd21b91069fd95d17c9a6707a3061d2092a70ba03b2ec3ef02bc9a15807:5"
+					]
+				},
+				{
+					"id": "rec-pe-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-9ff98bd21b91069fd95d17c9a6707a3061d2092a70ba03b2ec3ef02bc9a15807:36",
+						"kb-9ff98bd21b91069fd95d17c9a6707a3061d2092a70ba03b2ec3ef02bc9a15807:73"
+					]
+				},
+				{
+					"id": "rec-pe-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-9ff98bd21b91069fd95d17c9a6707a3061d2092a70ba03b2ec3ef02bc9a15807:36",
+						"kb-9ff98bd21b91069fd95d17c9a6707a3061d2092a70ba03b2ec3ef02bc9a15807:51"
+					]
+				},
+				{
+					"id": "rec-structure-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-9ff98bd21b91069fd95d17c9a6707a3061d2092a70ba03b2ec3ef02bc9a15807:37",
+						"kb-9ff98bd21b91069fd95d17c9a6707a3061d2092a70ba03b2ec3ef02bc9a15807:15"
+					]
+				},
+				{
+					"id": "rec-structure-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-9ff98bd21b91069fd95d17c9a6707a3061d2092a70ba03b2ec3ef02bc9a15807:37",
+						"kb-9ff98bd21b91069fd95d17c9a6707a3061d2092a70ba03b2ec3ef02bc9a15807:15"
+					]
+				},
+				{
+					"id": "rec-opp-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-9ff98bd21b91069fd95d17c9a6707a3061d2092a70ba03b2ec3ef02bc9a15807:37",
+						"kb-9ff98bd21b91069fd95d17c9a6707a3061d2092a70ba03b2ec3ef02bc9a15807:72"
+					]
+				},
+				{
+					"id": "rec-opp-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-9ff98bd21b91069fd95d17c9a6707a3061d2092a70ba03b2ec3ef02bc9a15807:37",
+						"kb-9ff98bd21b91069fd95d17c9a6707a3061d2092a70ba03b2ec3ef02bc9a15807:15"
+					]
+				},
+				{
+					"id": "rec-barrier-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-d6eb897f1bdf29077e0125555c594defd86e49658c69ea6a5b95292a388888bc:73",
+						"kb-9ff98bd21b91069fd95d17c9a6707a3061d2092a70ba03b2ec3ef02bc9a15807:63"
+					]
+				},
+				{
+					"id": "rec-barrier-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-9ff98bd21b91069fd95d17c9a6707a3061d2092a70ba03b2ec3ef02bc9a15807:37",
+						"kb-d6eb897f1bdf29077e0125555c594defd86e49658c69ea6a5b95292a388888bc:73",
+						"kb-9ff98bd21b91069fd95d17c9a6707a3061d2092a70ba03b2ec3ef02bc9a15807:38"
+					]
+				},
+				{
+					"id": "rec-grammage-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-9ff98bd21b91069fd95d17c9a6707a3061d2092a70ba03b2ec3ef02bc9a15807:79",
+						"kb-9ff98bd21b91069fd95d17c9a6707a3061d2092a70ba03b2ec3ef02bc9a15807:124"
+					]
+				},
+				{
+					"id": "rec-grammage-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-9ff98bd21b91069fd95d17c9a6707a3061d2092a70ba03b2ec3ef02bc9a15807:37",
+						"kb-9ff98bd21b91069fd95d17c9a6707a3061d2092a70ba03b2ec3ef02bc9a15807:38",
+						"kb-8e4088003e30823f5d6a0a1e5d3c3109fbbe7b332e49cb2abc32191b2a342c4a:19"
+					]
+				},
+				{
+					"id": "rec-fill-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-9ff98bd21b91069fd95d17c9a6707a3061d2092a70ba03b2ec3ef02bc9a15807:35",
+						"kb-9ff98bd21b91069fd95d17c9a6707a3061d2092a70ba03b2ec3ef02bc9a15807:5"
+					]
+				},
+				{
+					"id": "rec-fill-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-9ff98bd21b91069fd95d17c9a6707a3061d2092a70ba03b2ec3ef02bc9a15807:35",
+						"kb-9ff98bd21b91069fd95d17c9a6707a3061d2092a70ba03b2ec3ef02bc9a15807:15"
+					]
+				},
+				{
+					"id": "rec-gas-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-9ff98bd21b91069fd95d17c9a6707a3061d2092a70ba03b2ec3ef02bc9a15807:21",
+						"kb-9ff98bd21b91069fd95d17c9a6707a3061d2092a70ba03b2ec3ef02bc9a15807:16"
+					]
+				},
+				{
+					"id": "rec-gas-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-9ff98bd21b91069fd95d17c9a6707a3061d2092a70ba03b2ec3ef02bc9a15807:35",
+						"kb-9ff98bd21b91069fd95d17c9a6707a3061d2092a70ba03b2ec3ef02bc9a15807:18"
+					]
+				},
+				{
+					"id": "rec-store-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-9ff98bd21b91069fd95d17c9a6707a3061d2092a70ba03b2ec3ef02bc9a15807:146",
+						"kb-9ff98bd21b91069fd95d17c9a6707a3061d2092a70ba03b2ec3ef02bc9a15807:39"
+					]
+				},
+				{
+					"id": "rec-store-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "missing_from_top8",
+					"selected": [
+						"kb-9ff98bd21b91069fd95d17c9a6707a3061d2092a70ba03b2ec3ef02bc9a15807:24",
+						"kb-9ff98bd21b91069fd95d17c9a6707a3061d2092a70ba03b2ec3ef02bc9a15807:17"
+					]
+				},
+				{
+					"id": "alt-pe-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-8e4088003e30823f5d6a0a1e5d3c3109fbbe7b332e49cb2abc32191b2a342c4a:18",
+						"kb-8e4088003e30823f5d6a0a1e5d3c3109fbbe7b332e49cb2abc32191b2a342c4a:6",
+						"kb-8e4088003e30823f5d6a0a1e5d3c3109fbbe7b332e49cb2abc32191b2a342c4a:19"
+					]
+				},
+				{
+					"id": "alt-pe-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-8e4088003e30823f5d6a0a1e5d3c3109fbbe7b332e49cb2abc32191b2a342c4a:18",
+						"kb-8e4088003e30823f5d6a0a1e5d3c3109fbbe7b332e49cb2abc32191b2a342c4a:4"
+					]
+				},
+				{
+					"id": "alt-metallization-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-8e4088003e30823f5d6a0a1e5d3c3109fbbe7b332e49cb2abc32191b2a342c4a:18",
+						"kb-8e4088003e30823f5d6a0a1e5d3c3109fbbe7b332e49cb2abc32191b2a342c4a:5"
+					]
+				},
+				{
+					"id": "alt-metallization-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-8e4088003e30823f5d6a0a1e5d3c3109fbbe7b332e49cb2abc32191b2a342c4a:18",
+						"kb-8e4088003e30823f5d6a0a1e5d3c3109fbbe7b332e49cb2abc32191b2a342c4a:5"
+					]
+				},
+				{
+					"id": "alt-pack-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-8e4088003e30823f5d6a0a1e5d3c3109fbbe7b332e49cb2abc32191b2a342c4a:161",
+						"kb-8e4088003e30823f5d6a0a1e5d3c3109fbbe7b332e49cb2abc32191b2a342c4a:32"
+					]
+				},
+				{
+					"id": "alt-pack-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-8e4088003e30823f5d6a0a1e5d3c3109fbbe7b332e49cb2abc32191b2a342c4a:16",
+						"kb-8e4088003e30823f5d6a0a1e5d3c3109fbbe7b332e49cb2abc32191b2a342c4a:35"
+					]
+				},
+				{
+					"id": "alt-store-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "missing_from_top8",
+					"selected": [
+						"kb-4a8f76a5ca5b4e0585c47bda33f048b0be4004ecdb9b8358b9110b39067a8b50:48",
+						"kb-8e4088003e30823f5d6a0a1e5d3c3109fbbe7b332e49cb2abc32191b2a342c4a:68"
+					]
+				},
+				{
+					"id": "alt-store-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "missing_from_top8",
+					"selected": [
+						"kb-8e4088003e30823f5d6a0a1e5d3c3109fbbe7b332e49cb2abc32191b2a342c4a:35",
+						"kb-b7e768737ae48edf492941ac58f830da4c7c168f27533857aef53ea39f738b32:52"
+					]
+				},
+				{
+					"id": "green-method-zh",
+					"language": "zh",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-4a8f76a5ca5b4e0585c47bda33f048b0be4004ecdb9b8358b9110b39067a8b50:12",
+						"kb-b7e768737ae48edf492941ac58f830da4c7c168f27533857aef53ea39f738b32:36"
+					]
+				},
+				{
+					"id": "green-method-en",
+					"language": "en",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-4a8f76a5ca5b4e0585c47bda33f048b0be4004ecdb9b8358b9110b39067a8b50:12",
+						"kb-4a8f76a5ca5b4e0585c47bda33f048b0be4004ecdb9b8358b9110b39067a8b50:50"
+					]
+				},
+				{
+					"id": "green-instrument-zh",
+					"language": "zh",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-4a8f76a5ca5b4e0585c47bda33f048b0be4004ecdb9b8358b9110b39067a8b50:12",
+						"kb-b7e768737ae48edf492941ac58f830da4c7c168f27533857aef53ea39f738b32:36"
+					]
+				},
+				{
+					"id": "green-instrument-en",
+					"language": "en",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-4a8f76a5ca5b4e0585c47bda33f048b0be4004ecdb9b8358b9110b39067a8b50:12",
+						"kb-9ff98bd21b91069fd95d17c9a6707a3061d2092a70ba03b2ec3ef02bc9a15807:8"
+					]
+				},
+				{
+					"id": "green-rh-zh",
+					"language": "zh",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-4a8f76a5ca5b4e0585c47bda33f048b0be4004ecdb9b8358b9110b39067a8b50:12",
+						"kb-4a8f76a5ca5b4e0585c47bda33f048b0be4004ecdb9b8358b9110b39067a8b50:1"
+					]
+				},
+				{
+					"id": "green-rh-en",
+					"language": "en",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-4a8f76a5ca5b4e0585c47bda33f048b0be4004ecdb9b8358b9110b39067a8b50:8",
+						"kb-4a8f76a5ca5b4e0585c47bda33f048b0be4004ecdb9b8358b9110b39067a8b50:12"
+					]
+				},
+				{
+					"id": "green-fill-zh",
+					"language": "zh",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-4a8f76a5ca5b4e0585c47bda33f048b0be4004ecdb9b8358b9110b39067a8b50:12",
+						"kb-4a8f76a5ca5b4e0585c47bda33f048b0be4004ecdb9b8358b9110b39067a8b50:30"
+					]
+				},
+				{
+					"id": "green-fill-en",
+					"language": "en",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-4a8f76a5ca5b4e0585c47bda33f048b0be4004ecdb9b8358b9110b39067a8b50:32",
+						"kb-4a8f76a5ca5b4e0585c47bda33f048b0be4004ecdb9b8358b9110b39067a8b50:33"
+					]
+				},
+				{
+					"id": "green-gp-air-zh",
+					"language": "zh",
+					"family": "PMC9563479",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-4a8f76a5ca5b4e0585c47bda33f048b0be4004ecdb9b8358b9110b39067a8b50:12",
+						"kb-4a8f76a5ca5b4e0585c47bda33f048b0be4004ecdb9b8358b9110b39067a8b50:52"
+					]
+				},
+				{
+					"id": "green-gp-air-en",
+					"language": "en",
+					"family": "PMC9563479",
+					"table": true,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-4a8f76a5ca5b4e0585c47bda33f048b0be4004ecdb9b8358b9110b39067a8b50:12",
+						"kb-4a8f76a5ca5b4e0585c47bda33f048b0be4004ecdb9b8358b9110b39067a8b50:29"
+					]
+				},
+				{
+					"id": "green-ldpe-thick-zh",
+					"language": "zh",
+					"family": "PMC9563479",
+					"table": true,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-4a8f76a5ca5b4e0585c47bda33f048b0be4004ecdb9b8358b9110b39067a8b50:12",
+						"kb-4a8f76a5ca5b4e0585c47bda33f048b0be4004ecdb9b8358b9110b39067a8b50:30"
+					]
+				},
+				{
+					"id": "green-ldpe-thick-en",
+					"language": "en",
+					"family": "PMC9563479",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-4a8f76a5ca5b4e0585c47bda33f048b0be4004ecdb9b8358b9110b39067a8b50:12",
+						"kb-4a8f76a5ca5b4e0585c47bda33f048b0be4004ecdb9b8358b9110b39067a8b50:51"
+					]
+				},
+				{
+					"id": "scg-thick-zh",
+					"language": "zh",
+					"family": "PMC10670670",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-b7e768737ae48edf492941ac58f830da4c7c168f27533857aef53ea39f738b32:64",
+						"kb-b7e768737ae48edf492941ac58f830da4c7c168f27533857aef53ea39f738b32:62"
+					]
+				},
+				{
+					"id": "scg-thick-en",
+					"language": "en",
+					"family": "PMC10670670",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-b7e768737ae48edf492941ac58f830da4c7c168f27533857aef53ea39f738b32:9",
+						"kb-b7e768737ae48edf492941ac58f830da4c7c168f27533857aef53ea39f738b32:62"
+					]
+				},
+				{
+					"id": "scg-microscope-zh",
+					"language": "zh",
+					"family": "PMC10670670",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-b7e768737ae48edf492941ac58f830da4c7c168f27533857aef53ea39f738b32:64",
+						"kb-b7e768737ae48edf492941ac58f830da4c7c168f27533857aef53ea39f738b32:32",
+						"kb-b7e768737ae48edf492941ac58f830da4c7c168f27533857aef53ea39f738b32:31"
+					]
+				},
+				{
+					"id": "scg-microscope-en",
+					"language": "en",
+					"family": "PMC10670670",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-b7e768737ae48edf492941ac58f830da4c7c168f27533857aef53ea39f738b32:64",
+						"kb-d6eb897f1bdf29077e0125555c594defd86e49658c69ea6a5b95292a388888bc:13",
+						"kb-d6eb897f1bdf29077e0125555c594defd86e49658c69ea6a5b95292a388888bc:15"
+					]
+				},
+				{
+					"id": "pla-otr-unit-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-d6eb897f1bdf29077e0125555c594defd86e49658c69ea6a5b95292a388888bc:76",
+						"kb-d6eb897f1bdf29077e0125555c594defd86e49658c69ea6a5b95292a388888bc:17"
+					]
+				},
+				{
+					"id": "pla-otr-unit-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-d6eb897f1bdf29077e0125555c594defd86e49658c69ea6a5b95292a388888bc:12",
+						"kb-d6eb897f1bdf29077e0125555c594defd86e49658c69ea6a5b95292a388888bc:76"
+					]
+				},
+				{
+					"id": "pla-otr-value-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-d6eb897f1bdf29077e0125555c594defd86e49658c69ea6a5b95292a388888bc:76",
+						"kb-d6eb897f1bdf29077e0125555c594defd86e49658c69ea6a5b95292a388888bc:17"
+					]
+				},
+				{
+					"id": "pla-otr-value-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-d6eb897f1bdf29077e0125555c594defd86e49658c69ea6a5b95292a388888bc:12",
+						"kb-d6eb897f1bdf29077e0125555c594defd86e49658c69ea6a5b95292a388888bc:76"
+					]
+				},
+				{
+					"id": "pla-wvtr-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-d6eb897f1bdf29077e0125555c594defd86e49658c69ea6a5b95292a388888bc:76",
+						"kb-d6eb897f1bdf29077e0125555c594defd86e49658c69ea6a5b95292a388888bc:29"
+					]
+				},
+				{
+					"id": "pla-wvtr-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-d6eb897f1bdf29077e0125555c594defd86e49658c69ea6a5b95292a388888bc:76",
+						"kb-d6eb897f1bdf29077e0125555c594defd86e49658c69ea6a5b95292a388888bc:29"
+					]
+				},
+				{
+					"id": "pla-oxygen-conditions-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-d6eb897f1bdf29077e0125555c594defd86e49658c69ea6a5b95292a388888bc:52",
+						"kb-d6eb897f1bdf29077e0125555c594defd86e49658c69ea6a5b95292a388888bc:51"
+					]
+				},
+				{
+					"id": "pla-oxygen-conditions-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-d6eb897f1bdf29077e0125555c594defd86e49658c69ea6a5b95292a388888bc:51",
+						"kb-d6eb897f1bdf29077e0125555c594defd86e49658c69ea6a5b95292a388888bc:44"
+					]
+				},
+				{
+					"id": "pla-flow-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-d6eb897f1bdf29077e0125555c594defd86e49658c69ea6a5b95292a388888bc:51",
+						"kb-b7e768737ae48edf492941ac58f830da4c7c168f27533857aef53ea39f738b32:38"
+					]
+				},
+				{
+					"id": "pla-flow-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-d6eb897f1bdf29077e0125555c594defd86e49658c69ea6a5b95292a388888bc:51",
+						"kb-d6eb897f1bdf29077e0125555c594defd86e49658c69ea6a5b95292a388888bc:30"
+					]
+				},
+				{
+					"id": "pla-water-method-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-d6eb897f1bdf29077e0125555c594defd86e49658c69ea6a5b95292a388888bc:52",
+						"kb-d6eb897f1bdf29077e0125555c594defd86e49658c69ea6a5b95292a388888bc:29"
+					]
+				},
+				{
+					"id": "pla-water-method-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-d6eb897f1bdf29077e0125555c594defd86e49658c69ea6a5b95292a388888bc:52",
+						"kb-d6eb897f1bdf29077e0125555c594defd86e49658c69ea6a5b95292a388888bc:29"
+					]
+				},
+				{
+					"id": "pla-water-delta-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-d6eb897f1bdf29077e0125555c594defd86e49658c69ea6a5b95292a388888bc:53",
+						"kb-d6eb897f1bdf29077e0125555c594defd86e49658c69ea6a5b95292a388888bc:73"
+					]
+				},
+				{
+					"id": "pla-water-delta-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-d6eb897f1bdf29077e0125555c594defd86e49658c69ea6a5b95292a388888bc:53",
+						"kb-d6eb897f1bdf29077e0125555c594defd86e49658c69ea6a5b95292a388888bc:52"
+					]
+				}
+			]
+		},
+		{
+			"variant": "paragraph-500-row-1",
+			"indexUsage": {
+				"inputTokens": 173453,
+				"forwardPasses": 775,
+				"modelDurationMs": 19153.695332999996
+			},
+			"pairedQueries": {
+				"win": 4,
+				"loss": 0,
+				"tie": 52
+			},
+			"bilingualGroups": {
+				"count": 28,
+				"win": 4,
+				"loss": 0,
+				"tie": 24,
+				"groups": [
+					{
+						"id": "rec-pet",
+						"meanDelta": 0
+					},
+					{
+						"id": "rec-pe",
+						"meanDelta": 0
+					},
+					{
+						"id": "rec-structure",
+						"meanDelta": 0
+					},
+					{
+						"id": "rec-opp",
+						"meanDelta": 0
+					},
+					{
+						"id": "rec-barrier",
+						"meanDelta": 0.5
+					},
+					{
+						"id": "rec-grammage",
+						"meanDelta": 0.5
+					},
+					{
+						"id": "rec-fill",
+						"meanDelta": 0
+					},
+					{
+						"id": "rec-gas",
+						"meanDelta": 0
+					},
+					{
+						"id": "rec-store",
+						"meanDelta": 0
+					},
+					{
+						"id": "alt-pe",
+						"meanDelta": 0
+					},
+					{
+						"id": "alt-metallization",
+						"meanDelta": 0
+					},
+					{
+						"id": "alt-pack",
+						"meanDelta": 0
+					},
+					{
+						"id": "alt-store",
+						"meanDelta": 0
+					},
+					{
+						"id": "green-method",
+						"meanDelta": 0
+					},
+					{
+						"id": "green-instrument",
+						"meanDelta": 0
+					},
+					{
+						"id": "green-rh",
+						"meanDelta": 0
+					},
+					{
+						"id": "green-fill",
+						"meanDelta": 0.5
+					},
+					{
+						"id": "green-gp-air",
+						"meanDelta": 0.5
+					},
+					{
+						"id": "green-ldpe-thick",
+						"meanDelta": 0
+					},
+					{
+						"id": "scg-thick",
+						"meanDelta": 0
+					},
+					{
+						"id": "scg-microscope",
+						"meanDelta": 0
+					},
+					{
+						"id": "pla-otr-unit",
+						"meanDelta": 0
+					},
+					{
+						"id": "pla-otr-value",
+						"meanDelta": 0
+					},
+					{
+						"id": "pla-wvtr",
+						"meanDelta": 0
+					},
+					{
+						"id": "pla-oxygen-conditions",
+						"meanDelta": 0
+					},
+					{
+						"id": "pla-flow",
+						"meanDelta": 0
+					},
+					{
+						"id": "pla-water-method",
+						"meanDelta": 0
+					},
+					{
+						"id": "pla-water-delta",
+						"meanDelta": 0
+					}
+				]
+			},
+			"whitespaceSensitivity": {
+				"changes": [],
+				"relaxedComplete": 0.8571428571428571
+			},
+			"paired": [
+				{
+					"id": "rec-pet-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:57",
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:8",
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:74"
+					]
+				},
+				{
+					"id": "rec-pet-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:57",
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:8",
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:23"
+					]
+				},
+				{
+					"id": "rec-pe-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:57",
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:100"
+					]
+				},
+				{
+					"id": "rec-pe-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:57",
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:78"
+					]
+				},
+				{
+					"id": "rec-structure-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:58",
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:23",
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:57"
+					]
+				},
+				{
+					"id": "rec-structure-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:23",
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:58",
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:11"
+					]
+				},
+				{
+					"id": "rec-opp-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:58",
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:99"
+					]
+				},
+				{
+					"id": "rec-opp-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:58",
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:23",
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:59"
+					]
+				},
+				{
+					"id": "rec-barrier-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 1,
+					"delta": 1,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-9cc0538b8b40c99930b32d02e493ab5329a213483278dfc4ca69f4438d5e9c15:117",
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:58"
+					]
+				},
+				{
+					"id": "rec-barrier-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:58",
+						"kb-9cc0538b8b40c99930b32d02e493ab5329a213483278dfc4ca69f4438d5e9c15:117",
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:59"
+					]
+				},
+				{
+					"id": "rec-grammage-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 1,
+					"delta": 1,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:106",
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:58"
+					]
+				},
+				{
+					"id": "rec-grammage-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:58",
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:59",
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:23"
+					]
+				},
+				{
+					"id": "rec-fill-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:23",
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:56",
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:22"
+					]
+				},
+				{
+					"id": "rec-fill-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:23",
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:56",
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:1"
+					]
+				},
+				{
+					"id": "rec-gas-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:13",
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:25",
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:30"
+					]
+				},
+				{
+					"id": "rec-gas-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:30",
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:56",
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:22"
+					]
+				},
+				{
+					"id": "rec-store-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:173",
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:60"
+					]
+				},
+				{
+					"id": "rec-store-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "missing_from_top8",
+					"selected": [
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:45",
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:40",
+						"kb-128cffac2e82ac990ca687e602ad8d39b829445f45e466ef3d31978991cbfbe3:25"
+					]
+				},
+				{
+					"id": "alt-pe-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-e736347bb9dc6c3f8a04b0a6e714e508e25998e166bcd8e7205d01a68728dd10:27",
+						"kb-e736347bb9dc6c3f8a04b0a6e714e508e25998e166bcd8e7205d01a68728dd10:7",
+						"kb-e736347bb9dc6c3f8a04b0a6e714e508e25998e166bcd8e7205d01a68728dd10:28"
+					]
+				},
+				{
+					"id": "alt-pe-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-e736347bb9dc6c3f8a04b0a6e714e508e25998e166bcd8e7205d01a68728dd10:27",
+						"kb-e736347bb9dc6c3f8a04b0a6e714e508e25998e166bcd8e7205d01a68728dd10:7",
+						"kb-e736347bb9dc6c3f8a04b0a6e714e508e25998e166bcd8e7205d01a68728dd10:83"
+					]
+				},
+				{
+					"id": "alt-metallization-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-e736347bb9dc6c3f8a04b0a6e714e508e25998e166bcd8e7205d01a68728dd10:27",
+						"kb-e736347bb9dc6c3f8a04b0a6e714e508e25998e166bcd8e7205d01a68728dd10:10",
+						"kb-e736347bb9dc6c3f8a04b0a6e714e508e25998e166bcd8e7205d01a68728dd10:8"
+					]
+				},
+				{
+					"id": "alt-metallization-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-e736347bb9dc6c3f8a04b0a6e714e508e25998e166bcd8e7205d01a68728dd10:27",
+						"kb-e736347bb9dc6c3f8a04b0a6e714e508e25998e166bcd8e7205d01a68728dd10:10",
+						"kb-e736347bb9dc6c3f8a04b0a6e714e508e25998e166bcd8e7205d01a68728dd10:8"
+					]
+				},
+				{
+					"id": "alt-pack-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-e736347bb9dc6c3f8a04b0a6e714e508e25998e166bcd8e7205d01a68728dd10:185",
+						"kb-e736347bb9dc6c3f8a04b0a6e714e508e25998e166bcd8e7205d01a68728dd10:45"
+					]
+				},
+				{
+					"id": "alt-pack-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-e736347bb9dc6c3f8a04b0a6e714e508e25998e166bcd8e7205d01a68728dd10:25",
+						"kb-e736347bb9dc6c3f8a04b0a6e714e508e25998e166bcd8e7205d01a68728dd10:49",
+						"kb-e736347bb9dc6c3f8a04b0a6e714e508e25998e166bcd8e7205d01a68728dd10:45"
+					]
+				},
+				{
+					"id": "alt-store-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "missing_from_top8",
+					"selected": [
+						"kb-fe17d3bd6ea6dd75c0d4e0288f22e9a669c660dc055891c08ec69ca4b26cb29c:91",
+						"kb-e736347bb9dc6c3f8a04b0a6e714e508e25998e166bcd8e7205d01a68728dd10:92"
+					]
+				},
+				{
+					"id": "alt-store-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "missing_from_top8",
+					"selected": [
+						"kb-e736347bb9dc6c3f8a04b0a6e714e508e25998e166bcd8e7205d01a68728dd10:49",
+						"kb-e736347bb9dc6c3f8a04b0a6e714e508e25998e166bcd8e7205d01a68728dd10:81"
+					]
+				},
+				{
+					"id": "green-method-zh",
+					"language": "zh",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-fe17d3bd6ea6dd75c0d4e0288f22e9a669c660dc055891c08ec69ca4b26cb29c:24",
+						"kb-5267784318c8bcff3ec3f0816b76c65e5bf8f5f170f5c1afcb8d02e459531270:54",
+						"kb-fe17d3bd6ea6dd75c0d4e0288f22e9a669c660dc055891c08ec69ca4b26cb29c:11"
+					]
+				},
+				{
+					"id": "green-method-en",
+					"language": "en",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-fe17d3bd6ea6dd75c0d4e0288f22e9a669c660dc055891c08ec69ca4b26cb29c:24",
+						"kb-fe17d3bd6ea6dd75c0d4e0288f22e9a669c660dc055891c08ec69ca4b26cb29c:95"
+					]
+				},
+				{
+					"id": "green-instrument-zh",
+					"language": "zh",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-fe17d3bd6ea6dd75c0d4e0288f22e9a669c660dc055891c08ec69ca4b26cb29c:24",
+						"kb-fe17d3bd6ea6dd75c0d4e0288f22e9a669c660dc055891c08ec69ca4b26cb29c:11",
+						"kb-fe17d3bd6ea6dd75c0d4e0288f22e9a669c660dc055891c08ec69ca4b26cb29c:23"
+					]
+				},
+				{
+					"id": "green-instrument-en",
+					"language": "en",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-fe17d3bd6ea6dd75c0d4e0288f22e9a669c660dc055891c08ec69ca4b26cb29c:24",
+						"kb-fe17d3bd6ea6dd75c0d4e0288f22e9a669c660dc055891c08ec69ca4b26cb29c:23",
+						"kb-e736347bb9dc6c3f8a04b0a6e714e508e25998e166bcd8e7205d01a68728dd10:34"
+					]
+				},
+				{
+					"id": "green-rh-zh",
+					"language": "zh",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-fe17d3bd6ea6dd75c0d4e0288f22e9a669c660dc055891c08ec69ca4b26cb29c:23",
+						"kb-fe17d3bd6ea6dd75c0d4e0288f22e9a669c660dc055891c08ec69ca4b26cb29c:1",
+						"kb-fe17d3bd6ea6dd75c0d4e0288f22e9a669c660dc055891c08ec69ca4b26cb29c:12"
+					]
+				},
+				{
+					"id": "green-rh-en",
+					"language": "en",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-fe17d3bd6ea6dd75c0d4e0288f22e9a669c660dc055891c08ec69ca4b26cb29c:23",
+						"kb-fe17d3bd6ea6dd75c0d4e0288f22e9a669c660dc055891c08ec69ca4b26cb29c:15",
+						"kb-fe17d3bd6ea6dd75c0d4e0288f22e9a669c660dc055891c08ec69ca4b26cb29c:59"
+					]
+				},
+				{
+					"id": "green-fill-zh",
+					"language": "zh",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-fe17d3bd6ea6dd75c0d4e0288f22e9a669c660dc055891c08ec69ca4b26cb29c:23",
+						"kb-fe17d3bd6ea6dd75c0d4e0288f22e9a669c660dc055891c08ec69ca4b26cb29c:1",
+						"kb-fe17d3bd6ea6dd75c0d4e0288f22e9a669c660dc055891c08ec69ca4b26cb29c:52"
+					]
+				},
+				{
+					"id": "green-fill-en",
+					"language": "en",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 0,
+					"after": 1,
+					"delta": 1,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-fe17d3bd6ea6dd75c0d4e0288f22e9a669c660dc055891c08ec69ca4b26cb29c:56",
+						"kb-fe17d3bd6ea6dd75c0d4e0288f22e9a669c660dc055891c08ec69ca4b26cb29c:23",
+						"kb-fe17d3bd6ea6dd75c0d4e0288f22e9a669c660dc055891c08ec69ca4b26cb29c:59"
+					]
+				},
+				{
+					"id": "green-gp-air-zh",
+					"language": "zh",
+					"family": "PMC9563479",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-fe17d3bd6ea6dd75c0d4e0288f22e9a669c660dc055891c08ec69ca4b26cb29c:24",
+						"kb-fe17d3bd6ea6dd75c0d4e0288f22e9a669c660dc055891c08ec69ca4b26cb29c:97"
+					]
+				},
+				{
+					"id": "green-gp-air-en",
+					"language": "en",
+					"family": "PMC9563479",
+					"table": true,
+					"before": 0,
+					"after": 1,
+					"delta": 1,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-fe17d3bd6ea6dd75c0d4e0288f22e9a669c660dc055891c08ec69ca4b26cb29c:97",
+						"kb-fe17d3bd6ea6dd75c0d4e0288f22e9a669c660dc055891c08ec69ca4b26cb29c:48",
+						"kb-fe17d3bd6ea6dd75c0d4e0288f22e9a669c660dc055891c08ec69ca4b26cb29c:4"
+					]
+				},
+				{
+					"id": "green-ldpe-thick-zh",
+					"language": "zh",
+					"family": "PMC9563479",
+					"table": true,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-fe17d3bd6ea6dd75c0d4e0288f22e9a669c660dc055891c08ec69ca4b26cb29c:105"
+					]
+				},
+				{
+					"id": "green-ldpe-thick-en",
+					"language": "en",
+					"family": "PMC9563479",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-fe17d3bd6ea6dd75c0d4e0288f22e9a669c660dc055891c08ec69ca4b26cb29c:96",
+						"kb-fe17d3bd6ea6dd75c0d4e0288f22e9a669c660dc055891c08ec69ca4b26cb29c:23",
+						"kb-fe17d3bd6ea6dd75c0d4e0288f22e9a669c660dc055891c08ec69ca4b26cb29c:20"
+					]
+				},
+				{
+					"id": "scg-thick-zh",
+					"language": "zh",
+					"family": "PMC10670670",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-5267784318c8bcff3ec3f0816b76c65e5bf8f5f170f5c1afcb8d02e459531270:99",
+						"kb-5267784318c8bcff3ec3f0816b76c65e5bf8f5f170f5c1afcb8d02e459531270:95"
+					]
+				},
+				{
+					"id": "scg-thick-en",
+					"language": "en",
+					"family": "PMC10670670",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-5267784318c8bcff3ec3f0816b76c65e5bf8f5f170f5c1afcb8d02e459531270:1",
+						"kb-5267784318c8bcff3ec3f0816b76c65e5bf8f5f170f5c1afcb8d02e459531270:95"
+					]
+				},
+				{
+					"id": "scg-microscope-zh",
+					"language": "zh",
+					"family": "PMC10670670",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-5267784318c8bcff3ec3f0816b76c65e5bf8f5f170f5c1afcb8d02e459531270:99",
+						"kb-5267784318c8bcff3ec3f0816b76c65e5bf8f5f170f5c1afcb8d02e459531270:48",
+						"kb-5267784318c8bcff3ec3f0816b76c65e5bf8f5f170f5c1afcb8d02e459531270:47"
+					]
+				},
+				{
+					"id": "scg-microscope-en",
+					"language": "en",
+					"family": "PMC10670670",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-5267784318c8bcff3ec3f0816b76c65e5bf8f5f170f5c1afcb8d02e459531270:99",
+						"kb-5267784318c8bcff3ec3f0816b76c65e5bf8f5f170f5c1afcb8d02e459531270:1",
+						"kb-9cc0538b8b40c99930b32d02e493ab5329a213483278dfc4ca69f4438d5e9c15:26"
+					]
+				},
+				{
+					"id": "pla-otr-unit-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-9cc0538b8b40c99930b32d02e493ab5329a213483278dfc4ca69f4438d5e9c15:120",
+						"kb-5267784318c8bcff3ec3f0816b76c65e5bf8f5f170f5c1afcb8d02e459531270:132"
+					]
+				},
+				{
+					"id": "pla-otr-unit-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-9cc0538b8b40c99930b32d02e493ab5329a213483278dfc4ca69f4438d5e9c15:120",
+						"kb-9cc0538b8b40c99930b32d02e493ab5329a213483278dfc4ca69f4438d5e9c15:24"
+					]
+				},
+				{
+					"id": "pla-otr-value-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-9cc0538b8b40c99930b32d02e493ab5329a213483278dfc4ca69f4438d5e9c15:120",
+						"kb-9cc0538b8b40c99930b32d02e493ab5329a213483278dfc4ca69f4438d5e9c15:33"
+					]
+				},
+				{
+					"id": "pla-otr-value-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-9cc0538b8b40c99930b32d02e493ab5329a213483278dfc4ca69f4438d5e9c15:24",
+						"kb-9cc0538b8b40c99930b32d02e493ab5329a213483278dfc4ca69f4438d5e9c15:120"
+					]
+				},
+				{
+					"id": "pla-wvtr-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-9cc0538b8b40c99930b32d02e493ab5329a213483278dfc4ca69f4438d5e9c15:120",
+						"kb-9cc0538b8b40c99930b32d02e493ab5329a213483278dfc4ca69f4438d5e9c15:33"
+					]
+				},
+				{
+					"id": "pla-wvtr-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-9cc0538b8b40c99930b32d02e493ab5329a213483278dfc4ca69f4438d5e9c15:120",
+						"kb-9cc0538b8b40c99930b32d02e493ab5329a213483278dfc4ca69f4438d5e9c15:55"
+					]
+				},
+				{
+					"id": "pla-oxygen-conditions-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-9cc0538b8b40c99930b32d02e493ab5329a213483278dfc4ca69f4438d5e9c15:91",
+						"kb-9cc0538b8b40c99930b32d02e493ab5329a213483278dfc4ca69f4438d5e9c15:90"
+					]
+				},
+				{
+					"id": "pla-oxygen-conditions-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-9cc0538b8b40c99930b32d02e493ab5329a213483278dfc4ca69f4438d5e9c15:90",
+						"kb-9cc0538b8b40c99930b32d02e493ab5329a213483278dfc4ca69f4438d5e9c15:91"
+					]
+				},
+				{
+					"id": "pla-flow-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-9cc0538b8b40c99930b32d02e493ab5329a213483278dfc4ca69f4438d5e9c15:90",
+						"kb-5267784318c8bcff3ec3f0816b76c65e5bf8f5f170f5c1afcb8d02e459531270:57",
+						"kb-e736347bb9dc6c3f8a04b0a6e714e508e25998e166bcd8e7205d01a68728dd10:31"
+					]
+				},
+				{
+					"id": "pla-flow-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-9cc0538b8b40c99930b32d02e493ab5329a213483278dfc4ca69f4438d5e9c15:90",
+						"kb-9cc0538b8b40c99930b32d02e493ab5329a213483278dfc4ca69f4438d5e9c15:58"
+					]
+				},
+				{
+					"id": "pla-water-method-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-9cc0538b8b40c99930b32d02e493ab5329a213483278dfc4ca69f4438d5e9c15:91",
+						"kb-9cc0538b8b40c99930b32d02e493ab5329a213483278dfc4ca69f4438d5e9c15:117"
+					]
+				},
+				{
+					"id": "pla-water-method-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-9cc0538b8b40c99930b32d02e493ab5329a213483278dfc4ca69f4438d5e9c15:91",
+						"kb-9cc0538b8b40c99930b32d02e493ab5329a213483278dfc4ca69f4438d5e9c15:55"
+					]
+				},
+				{
+					"id": "pla-water-delta-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-9cc0538b8b40c99930b32d02e493ab5329a213483278dfc4ca69f4438d5e9c15:93",
+						"kb-9cc0538b8b40c99930b32d02e493ab5329a213483278dfc4ca69f4438d5e9c15:117"
+					]
+				},
+				{
+					"id": "pla-water-delta-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-9cc0538b8b40c99930b32d02e493ab5329a213483278dfc4ca69f4438d5e9c15:93",
+						"kb-9cc0538b8b40c99930b32d02e493ab5329a213483278dfc4ca69f4438d5e9c15:117"
+					]
+				}
+			]
+		},
+		{
+			"variant": "paragraph-1500-row-1",
+			"indexUsage": {
+				"inputTokens": 156684,
+				"forwardPasses": 550,
+				"modelDurationMs": 20520.00316800001
+			},
+			"pairedQueries": {
+				"win": 4,
+				"loss": 2,
+				"tie": 50
+			},
+			"bilingualGroups": {
+				"count": 28,
+				"win": 4,
+				"loss": 2,
+				"tie": 22,
+				"groups": [
+					{
+						"id": "rec-pet",
+						"meanDelta": 0
+					},
+					{
+						"id": "rec-pe",
+						"meanDelta": 0
+					},
+					{
+						"id": "rec-structure",
+						"meanDelta": 0
+					},
+					{
+						"id": "rec-opp",
+						"meanDelta": 0
+					},
+					{
+						"id": "rec-barrier",
+						"meanDelta": 0
+					},
+					{
+						"id": "rec-grammage",
+						"meanDelta": 0
+					},
+					{
+						"id": "rec-fill",
+						"meanDelta": 0
+					},
+					{
+						"id": "rec-gas",
+						"meanDelta": 0
+					},
+					{
+						"id": "rec-store",
+						"meanDelta": 0
+					},
+					{
+						"id": "alt-pe",
+						"meanDelta": 0
+					},
+					{
+						"id": "alt-metallization",
+						"meanDelta": 0
+					},
+					{
+						"id": "alt-pack",
+						"meanDelta": 0
+					},
+					{
+						"id": "alt-store",
+						"meanDelta": 0
+					},
+					{
+						"id": "green-method",
+						"meanDelta": 0
+					},
+					{
+						"id": "green-instrument",
+						"meanDelta": 0
+					},
+					{
+						"id": "green-rh",
+						"meanDelta": -0.5
+					},
+					{
+						"id": "green-fill",
+						"meanDelta": 0.5
+					},
+					{
+						"id": "green-gp-air",
+						"meanDelta": 0.5
+					},
+					{
+						"id": "green-ldpe-thick",
+						"meanDelta": 0.5
+					},
+					{
+						"id": "scg-thick",
+						"meanDelta": 0.5
+					},
+					{
+						"id": "scg-microscope",
+						"meanDelta": 0
+					},
+					{
+						"id": "pla-otr-unit",
+						"meanDelta": 0
+					},
+					{
+						"id": "pla-otr-value",
+						"meanDelta": 0
+					},
+					{
+						"id": "pla-wvtr",
+						"meanDelta": 0
+					},
+					{
+						"id": "pla-oxygen-conditions",
+						"meanDelta": 0
+					},
+					{
+						"id": "pla-flow",
+						"meanDelta": 0
+					},
+					{
+						"id": "pla-water-method",
+						"meanDelta": -0.5
+					},
+					{
+						"id": "pla-water-delta",
+						"meanDelta": 0
+					}
+				]
+			},
+			"whitespaceSensitivity": {
+				"changes": [],
+				"relaxedComplete": 0.8214285714285714
+			},
+			"paired": [
+				{
+					"id": "rec-pet-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-495d324798e52c66bc0b347e419a0e79be1b49c47837449921402da84b9e55a2:30",
+						"kb-495d324798e52c66bc0b347e419a0e79be1b49c47837449921402da84b9e55a2:11"
+					]
+				},
+				{
+					"id": "rec-pet-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-495d324798e52c66bc0b347e419a0e79be1b49c47837449921402da84b9e55a2:30",
+						"kb-495d324798e52c66bc0b347e419a0e79be1b49c47837449921402da84b9e55a2:4"
+					]
+				},
+				{
+					"id": "rec-pe-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-495d324798e52c66bc0b347e419a0e79be1b49c47837449921402da84b9e55a2:30",
+						"kb-495d324798e52c66bc0b347e419a0e79be1b49c47837449921402da84b9e55a2:67"
+					]
+				},
+				{
+					"id": "rec-pe-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-495d324798e52c66bc0b347e419a0e79be1b49c47837449921402da84b9e55a2:30",
+						"kb-495d324798e52c66bc0b347e419a0e79be1b49c47837449921402da84b9e55a2:45"
+					]
+				},
+				{
+					"id": "rec-structure-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-495d324798e52c66bc0b347e419a0e79be1b49c47837449921402da84b9e55a2:31",
+						"kb-495d324798e52c66bc0b347e419a0e79be1b49c47837449921402da84b9e55a2:11"
+					]
+				},
+				{
+					"id": "rec-structure-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-495d324798e52c66bc0b347e419a0e79be1b49c47837449921402da84b9e55a2:31",
+						"kb-495d324798e52c66bc0b347e419a0e79be1b49c47837449921402da84b9e55a2:5",
+						"kb-495d324798e52c66bc0b347e419a0e79be1b49c47837449921402da84b9e55a2:16"
+					]
+				},
+				{
+					"id": "rec-opp-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-495d324798e52c66bc0b347e419a0e79be1b49c47837449921402da84b9e55a2:31",
+						"kb-495d324798e52c66bc0b347e419a0e79be1b49c47837449921402da84b9e55a2:66"
+					]
+				},
+				{
+					"id": "rec-opp-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-495d324798e52c66bc0b347e419a0e79be1b49c47837449921402da84b9e55a2:31",
+						"kb-495d324798e52c66bc0b347e419a0e79be1b49c47837449921402da84b9e55a2:11"
+					]
+				},
+				{
+					"id": "rec-barrier-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-055619d08869590469cf3e4647d8a7bbf0e6158b1f3d350cf08b1637cb4ffc54:62",
+						"kb-495d324798e52c66bc0b347e419a0e79be1b49c47837449921402da84b9e55a2:57"
+					]
+				},
+				{
+					"id": "rec-barrier-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-495d324798e52c66bc0b347e419a0e79be1b49c47837449921402da84b9e55a2:31",
+						"kb-055619d08869590469cf3e4647d8a7bbf0e6158b1f3d350cf08b1637cb4ffc54:62",
+						"kb-495d324798e52c66bc0b347e419a0e79be1b49c47837449921402da84b9e55a2:32"
+					]
+				},
+				{
+					"id": "rec-grammage-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-495d324798e52c66bc0b347e419a0e79be1b49c47837449921402da84b9e55a2:73",
+						"kb-495d324798e52c66bc0b347e419a0e79be1b49c47837449921402da84b9e55a2:118"
+					]
+				},
+				{
+					"id": "rec-grammage-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-495d324798e52c66bc0b347e419a0e79be1b49c47837449921402da84b9e55a2:31",
+						"kb-495d324798e52c66bc0b347e419a0e79be1b49c47837449921402da84b9e55a2:32",
+						"kb-5df1f74035c905f44703201fdce09c94f4adb6cbfd9b265a3657bce4bec0c26f:16"
+					]
+				},
+				{
+					"id": "rec-fill-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-495d324798e52c66bc0b347e419a0e79be1b49c47837449921402da84b9e55a2:29",
+						"kb-495d324798e52c66bc0b347e419a0e79be1b49c47837449921402da84b9e55a2:88"
+					]
+				},
+				{
+					"id": "rec-fill-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-495d324798e52c66bc0b347e419a0e79be1b49c47837449921402da84b9e55a2:29",
+						"kb-495d324798e52c66bc0b347e419a0e79be1b49c47837449921402da84b9e55a2:11"
+					]
+				},
+				{
+					"id": "rec-gas-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-495d324798e52c66bc0b347e419a0e79be1b49c47837449921402da84b9e55a2:12",
+						"kb-495d324798e52c66bc0b347e419a0e79be1b49c47837449921402da84b9e55a2:52"
+					]
+				},
+				{
+					"id": "rec-gas-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-495d324798e52c66bc0b347e419a0e79be1b49c47837449921402da84b9e55a2:29",
+						"kb-495d324798e52c66bc0b347e419a0e79be1b49c47837449921402da84b9e55a2:14"
+					]
+				},
+				{
+					"id": "rec-store-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-495d324798e52c66bc0b347e419a0e79be1b49c47837449921402da84b9e55a2:140",
+						"kb-495d324798e52c66bc0b347e419a0e79be1b49c47837449921402da84b9e55a2:33"
+					]
+				},
+				{
+					"id": "rec-store-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "missing_from_top8",
+					"selected": [
+						"kb-495d324798e52c66bc0b347e419a0e79be1b49c47837449921402da84b9e55a2:18",
+						"kb-495d324798e52c66bc0b347e419a0e79be1b49c47837449921402da84b9e55a2:13"
+					]
+				},
+				{
+					"id": "alt-pe-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-5df1f74035c905f44703201fdce09c94f4adb6cbfd9b265a3657bce4bec0c26f:3",
+						"kb-5df1f74035c905f44703201fdce09c94f4adb6cbfd9b265a3657bce4bec0c26f:15"
+					]
+				},
+				{
+					"id": "alt-pe-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-5df1f74035c905f44703201fdce09c94f4adb6cbfd9b265a3657bce4bec0c26f:15",
+						"kb-5df1f74035c905f44703201fdce09c94f4adb6cbfd9b265a3657bce4bec0c26f:3"
+					]
+				},
+				{
+					"id": "alt-metallization-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-5df1f74035c905f44703201fdce09c94f4adb6cbfd9b265a3657bce4bec0c26f:15",
+						"kb-5df1f74035c905f44703201fdce09c94f4adb6cbfd9b265a3657bce4bec0c26f:4"
+					]
+				},
+				{
+					"id": "alt-metallization-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-5df1f74035c905f44703201fdce09c94f4adb6cbfd9b265a3657bce4bec0c26f:15",
+						"kb-5df1f74035c905f44703201fdce09c94f4adb6cbfd9b265a3657bce4bec0c26f:4"
+					]
+				},
+				{
+					"id": "alt-pack-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-5df1f74035c905f44703201fdce09c94f4adb6cbfd9b265a3657bce4bec0c26f:153",
+						"kb-5df1f74035c905f44703201fdce09c94f4adb6cbfd9b265a3657bce4bec0c26f:27"
+					]
+				},
+				{
+					"id": "alt-pack-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-5df1f74035c905f44703201fdce09c94f4adb6cbfd9b265a3657bce4bec0c26f:13",
+						"kb-5df1f74035c905f44703201fdce09c94f4adb6cbfd9b265a3657bce4bec0c26f:30"
+					]
+				},
+				{
+					"id": "alt-store-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "missing_from_top8",
+					"selected": [
+						"kb-5df1f74035c905f44703201fdce09c94f4adb6cbfd9b265a3657bce4bec0c26f:60",
+						"kb-69bedbef110cb93c6cb22ae839b7bbdc661299386ab83808752532096726f0b0:30"
+					]
+				},
+				{
+					"id": "alt-store-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "missing_from_top8",
+					"selected": [
+						"kb-5df1f74035c905f44703201fdce09c94f4adb6cbfd9b265a3657bce4bec0c26f:30",
+						"kb-5df1f74035c905f44703201fdce09c94f4adb6cbfd9b265a3657bce4bec0c26f:43"
+					]
+				},
+				{
+					"id": "green-method-zh",
+					"language": "zh",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-69bedbef110cb93c6cb22ae839b7bbdc661299386ab83808752532096726f0b0:11",
+						"kb-e5f362d96b42dfee4c7584c15c36ce9987e25d884ded79d955aff15cce3b126b:38"
+					]
+				},
+				{
+					"id": "green-method-en",
+					"language": "en",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-69bedbef110cb93c6cb22ae839b7bbdc661299386ab83808752532096726f0b0:11",
+						"kb-69bedbef110cb93c6cb22ae839b7bbdc661299386ab83808752532096726f0b0:45"
+					]
+				},
+				{
+					"id": "green-instrument-zh",
+					"language": "zh",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-69bedbef110cb93c6cb22ae839b7bbdc661299386ab83808752532096726f0b0:11",
+						"kb-69bedbef110cb93c6cb22ae839b7bbdc661299386ab83808752532096726f0b0:5"
+					]
+				},
+				{
+					"id": "green-instrument-en",
+					"language": "en",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-69bedbef110cb93c6cb22ae839b7bbdc661299386ab83808752532096726f0b0:11",
+						"kb-69bedbef110cb93c6cb22ae839b7bbdc661299386ab83808752532096726f0b0:45"
+					]
+				},
+				{
+					"id": "green-rh-zh",
+					"language": "zh",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-69bedbef110cb93c6cb22ae839b7bbdc661299386ab83808752532096726f0b0:11"
+					]
+				},
+				{
+					"id": "green-rh-en",
+					"language": "en",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-69bedbef110cb93c6cb22ae839b7bbdc661299386ab83808752532096726f0b0:7",
+						"kb-69bedbef110cb93c6cb22ae839b7bbdc661299386ab83808752532096726f0b0:28"
+					]
+				},
+				{
+					"id": "green-fill-zh",
+					"language": "zh",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-69bedbef110cb93c6cb22ae839b7bbdc661299386ab83808752532096726f0b0:11",
+						"kb-69bedbef110cb93c6cb22ae839b7bbdc661299386ab83808752532096726f0b0:5"
+					]
+				},
+				{
+					"id": "green-fill-en",
+					"language": "en",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 0,
+					"after": 1,
+					"delta": 1,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-69bedbef110cb93c6cb22ae839b7bbdc661299386ab83808752532096726f0b0:11",
+						"kb-69bedbef110cb93c6cb22ae839b7bbdc661299386ab83808752532096726f0b0:28"
+					]
+				},
+				{
+					"id": "green-gp-air-zh",
+					"language": "zh",
+					"family": "PMC9563479",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-69bedbef110cb93c6cb22ae839b7bbdc661299386ab83808752532096726f0b0:11",
+						"kb-69bedbef110cb93c6cb22ae839b7bbdc661299386ab83808752532096726f0b0:45"
+					]
+				},
+				{
+					"id": "green-gp-air-en",
+					"language": "en",
+					"family": "PMC9563479",
+					"table": true,
+					"before": 0,
+					"after": 1,
+					"delta": 1,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-69bedbef110cb93c6cb22ae839b7bbdc661299386ab83808752532096726f0b0:11",
+						"kb-69bedbef110cb93c6cb22ae839b7bbdc661299386ab83808752532096726f0b0:45"
+					]
+				},
+				{
+					"id": "green-ldpe-thick-zh",
+					"language": "zh",
+					"family": "PMC9563479",
+					"table": true,
+					"before": 0,
+					"after": 1,
+					"delta": 1,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-69bedbef110cb93c6cb22ae839b7bbdc661299386ab83808752532096726f0b0:11",
+						"kb-69bedbef110cb93c6cb22ae839b7bbdc661299386ab83808752532096726f0b0:44"
+					]
+				},
+				{
+					"id": "green-ldpe-thick-en",
+					"language": "en",
+					"family": "PMC9563479",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-69bedbef110cb93c6cb22ae839b7bbdc661299386ab83808752532096726f0b0:11",
+						"kb-69bedbef110cb93c6cb22ae839b7bbdc661299386ab83808752532096726f0b0:44"
+					]
+				},
+				{
+					"id": "scg-thick-zh",
+					"language": "zh",
+					"family": "PMC10670670",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-e5f362d96b42dfee4c7584c15c36ce9987e25d884ded79d955aff15cce3b126b:54",
+						"kb-055619d08869590469cf3e4647d8a7bbf0e6158b1f3d350cf08b1637cb4ffc54:12"
+					]
+				},
+				{
+					"id": "scg-thick-en",
+					"language": "en",
+					"family": "PMC10670670",
+					"table": false,
+					"before": 0,
+					"after": 1,
+					"delta": 1,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-055619d08869590469cf3e4647d8a7bbf0e6158b1f3d350cf08b1637cb4ffc54:11",
+						"kb-e5f362d96b42dfee4c7584c15c36ce9987e25d884ded79d955aff15cce3b126b:54"
+					]
+				},
+				{
+					"id": "scg-microscope-zh",
+					"language": "zh",
+					"family": "PMC10670670",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-e5f362d96b42dfee4c7584c15c36ce9987e25d884ded79d955aff15cce3b126b:54",
+						"kb-e5f362d96b42dfee4c7584c15c36ce9987e25d884ded79d955aff15cce3b126b:27",
+						"kb-e5f362d96b42dfee4c7584c15c36ce9987e25d884ded79d955aff15cce3b126b:26"
+					]
+				},
+				{
+					"id": "scg-microscope-en",
+					"language": "en",
+					"family": "PMC10670670",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-e5f362d96b42dfee4c7584c15c36ce9987e25d884ded79d955aff15cce3b126b:54",
+						"kb-055619d08869590469cf3e4647d8a7bbf0e6158b1f3d350cf08b1637cb4ffc54:11"
+					]
+				},
+				{
+					"id": "pla-otr-unit-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-055619d08869590469cf3e4647d8a7bbf0e6158b1f3d350cf08b1637cb4ffc54:65",
+						"kb-055619d08869590469cf3e4647d8a7bbf0e6158b1f3d350cf08b1637cb4ffc54:23"
+					]
+				},
+				{
+					"id": "pla-otr-unit-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-055619d08869590469cf3e4647d8a7bbf0e6158b1f3d350cf08b1637cb4ffc54:65",
+						"kb-055619d08869590469cf3e4647d8a7bbf0e6158b1f3d350cf08b1637cb4ffc54:11"
+					]
+				},
+				{
+					"id": "pla-otr-value-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-055619d08869590469cf3e4647d8a7bbf0e6158b1f3d350cf08b1637cb4ffc54:65",
+						"kb-055619d08869590469cf3e4647d8a7bbf0e6158b1f3d350cf08b1637cb4ffc54:53"
+					]
+				},
+				{
+					"id": "pla-otr-value-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-055619d08869590469cf3e4647d8a7bbf0e6158b1f3d350cf08b1637cb4ffc54:65",
+						"kb-055619d08869590469cf3e4647d8a7bbf0e6158b1f3d350cf08b1637cb4ffc54:11"
+					]
+				},
+				{
+					"id": "pla-wvtr-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-055619d08869590469cf3e4647d8a7bbf0e6158b1f3d350cf08b1637cb4ffc54:65",
+						"kb-055619d08869590469cf3e4647d8a7bbf0e6158b1f3d350cf08b1637cb4ffc54:23"
+					]
+				},
+				{
+					"id": "pla-wvtr-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-055619d08869590469cf3e4647d8a7bbf0e6158b1f3d350cf08b1637cb4ffc54:65",
+						"kb-055619d08869590469cf3e4647d8a7bbf0e6158b1f3d350cf08b1637cb4ffc54:23"
+					]
+				},
+				{
+					"id": "pla-oxygen-conditions-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-055619d08869590469cf3e4647d8a7bbf0e6158b1f3d350cf08b1637cb4ffc54:41",
+						"kb-055619d08869590469cf3e4647d8a7bbf0e6158b1f3d350cf08b1637cb4ffc54:40"
+					]
+				},
+				{
+					"id": "pla-oxygen-conditions-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-055619d08869590469cf3e4647d8a7bbf0e6158b1f3d350cf08b1637cb4ffc54:40",
+						"kb-055619d08869590469cf3e4647d8a7bbf0e6158b1f3d350cf08b1637cb4ffc54:1"
+					]
+				},
+				{
+					"id": "pla-flow-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-055619d08869590469cf3e4647d8a7bbf0e6158b1f3d350cf08b1637cb4ffc54:40",
+						"kb-e5f362d96b42dfee4c7584c15c36ce9987e25d884ded79d955aff15cce3b126b:33"
+					]
+				},
+				{
+					"id": "pla-flow-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-055619d08869590469cf3e4647d8a7bbf0e6158b1f3d350cf08b1637cb4ffc54:40",
+						"kb-055619d08869590469cf3e4647d8a7bbf0e6158b1f3d350cf08b1637cb4ffc54:24"
+					]
+				},
+				{
+					"id": "pla-water-method-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-055619d08869590469cf3e4647d8a7bbf0e6158b1f3d350cf08b1637cb4ffc54:41",
+						"kb-055619d08869590469cf3e4647d8a7bbf0e6158b1f3d350cf08b1637cb4ffc54:23"
+					]
+				},
+				{
+					"id": "pla-water-method-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-055619d08869590469cf3e4647d8a7bbf0e6158b1f3d350cf08b1637cb4ffc54:1",
+						"kb-055619d08869590469cf3e4647d8a7bbf0e6158b1f3d350cf08b1637cb4ffc54:23"
+					]
+				},
+				{
+					"id": "pla-water-delta-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-055619d08869590469cf3e4647d8a7bbf0e6158b1f3d350cf08b1637cb4ffc54:42",
+						"kb-055619d08869590469cf3e4647d8a7bbf0e6158b1f3d350cf08b1637cb4ffc54:62"
+					]
+				},
+				{
+					"id": "pla-water-delta-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-055619d08869590469cf3e4647d8a7bbf0e6158b1f3d350cf08b1637cb4ffc54:42",
+						"kb-055619d08869590469cf3e4647d8a7bbf0e6158b1f3d350cf08b1637cb4ffc54:1"
+					]
+				}
+			]
+		},
+		{
+			"variant": "section-256-overlap-0-row-1",
+			"indexUsage": {
+				"inputTokens": 154239,
+				"forwardPasses": 515,
+				"modelDurationMs": 19927.323206000015
+			},
+			"pairedQueries": {
+				"win": 2,
+				"loss": 18,
+				"tie": 36
+			},
+			"bilingualGroups": {
+				"count": 28,
+				"win": 2,
+				"loss": 12,
+				"tie": 14,
+				"groups": [
+					{
+						"id": "rec-pet",
+						"meanDelta": 0
+					},
+					{
+						"id": "rec-pe",
+						"meanDelta": 0
+					},
+					{
+						"id": "rec-structure",
+						"meanDelta": -1
+					},
+					{
+						"id": "rec-opp",
+						"meanDelta": -1
+					},
+					{
+						"id": "rec-barrier",
+						"meanDelta": -0.5
+					},
+					{
+						"id": "rec-grammage",
+						"meanDelta": -0.5
+					},
+					{
+						"id": "rec-fill",
+						"meanDelta": 0
+					},
+					{
+						"id": "rec-gas",
+						"meanDelta": -0.5
+					},
+					{
+						"id": "rec-store",
+						"meanDelta": 0
+					},
+					{
+						"id": "alt-pe",
+						"meanDelta": -1
+					},
+					{
+						"id": "alt-metallization",
+						"meanDelta": -1
+					},
+					{
+						"id": "alt-pack",
+						"meanDelta": 0.5
+					},
+					{
+						"id": "alt-store",
+						"meanDelta": 0
+					},
+					{
+						"id": "green-method",
+						"meanDelta": 0
+					},
+					{
+						"id": "green-instrument",
+						"meanDelta": 0
+					},
+					{
+						"id": "green-rh",
+						"meanDelta": 0
+					},
+					{
+						"id": "green-fill",
+						"meanDelta": -0.5
+					},
+					{
+						"id": "green-gp-air",
+						"meanDelta": -0.5
+					},
+					{
+						"id": "green-ldpe-thick",
+						"meanDelta": 0
+					},
+					{
+						"id": "scg-thick",
+						"meanDelta": 0.5
+					},
+					{
+						"id": "scg-microscope",
+						"meanDelta": 0
+					},
+					{
+						"id": "pla-otr-unit",
+						"meanDelta": 0
+					},
+					{
+						"id": "pla-otr-value",
+						"meanDelta": 0
+					},
+					{
+						"id": "pla-wvtr",
+						"meanDelta": 0
+					},
+					{
+						"id": "pla-oxygen-conditions",
+						"meanDelta": 0
+					},
+					{
+						"id": "pla-flow",
+						"meanDelta": -0.5
+					},
+					{
+						"id": "pla-water-method",
+						"meanDelta": -1
+					},
+					{
+						"id": "pla-water-delta",
+						"meanDelta": -1
+					}
+				]
+			},
+			"whitespaceSensitivity": {
+				"changes": [
+					"rec-opp-zh",
+					"rec-opp-en",
+					"rec-barrier-en"
+				],
+				"relaxedComplete": 0.5535714285714286
+			},
+			"paired": [
+				{
+					"id": "rec-pet-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-48af26cb6b6e6c1bf29c7148864c268865554c08bd32132dbbff8849608341b4:55",
+						"kb-48af26cb6b6e6c1bf29c7148864c268865554c08bd32132dbbff8849608341b4:24"
+					]
+				},
+				{
+					"id": "rec-pet-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-48af26cb6b6e6c1bf29c7148864c268865554c08bd32132dbbff8849608341b4:24",
+						"kb-48af26cb6b6e6c1bf29c7148864c268865554c08bd32132dbbff8849608341b4:4"
+					]
+				},
+				{
+					"id": "rec-pe-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-48af26cb6b6e6c1bf29c7148864c268865554c08bd32132dbbff8849608341b4:59",
+						"kb-48af26cb6b6e6c1bf29c7148864c268865554c08bd32132dbbff8849608341b4:24"
+					]
+				},
+				{
+					"id": "rec-pe-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-48af26cb6b6e6c1bf29c7148864c268865554c08bd32132dbbff8849608341b4:24",
+						"kb-48af26cb6b6e6c1bf29c7148864c268865554c08bd32132dbbff8849608341b4:37"
+					]
+				},
+				{
+					"id": "rec-structure-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "context_split_across_chunks",
+					"selected": [
+						"kb-48af26cb6b6e6c1bf29c7148864c268865554c08bd32132dbbff8849608341b4:9",
+						"kb-48af26cb6b6e6c1bf29c7148864c268865554c08bd32132dbbff8849608341b4:24"
+					]
+				},
+				{
+					"id": "rec-structure-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "context_split_across_chunks",
+					"selected": [
+						"kb-48af26cb6b6e6c1bf29c7148864c268865554c08bd32132dbbff8849608341b4:9",
+						"kb-48af26cb6b6e6c1bf29c7148864c268865554c08bd32132dbbff8849608341b4:24"
+					]
+				},
+				{
+					"id": "rec-opp-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 1,
+					"failure": "context_split_across_chunks",
+					"selected": [
+						"kb-48af26cb6b6e6c1bf29c7148864c268865554c08bd32132dbbff8849608341b4:25",
+						"kb-48af26cb6b6e6c1bf29c7148864c268865554c08bd32132dbbff8849608341b4:24"
+					]
+				},
+				{
+					"id": "rec-opp-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 1,
+					"failure": "context_split_across_chunks",
+					"selected": [
+						"kb-48af26cb6b6e6c1bf29c7148864c268865554c08bd32132dbbff8849608341b4:24",
+						"kb-48af26cb6b6e6c1bf29c7148864c268865554c08bd32132dbbff8849608341b4:25"
+					]
+				},
+				{
+					"id": "rec-barrier-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "context_split_across_chunks",
+					"selected": [
+						"kb-c994bbed4be89f2d36b494c3f72713ee9df49bd4b854353c49367788d87ef0f3:59",
+						"kb-48af26cb6b6e6c1bf29c7148864c268865554c08bd32132dbbff8849608341b4:25"
+					]
+				},
+				{
+					"id": "rec-barrier-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 1,
+					"failure": "context_split_across_chunks",
+					"selected": [
+						"kb-48af26cb6b6e6c1bf29c7148864c268865554c08bd32132dbbff8849608341b4:24",
+						"kb-48af26cb6b6e6c1bf29c7148864c268865554c08bd32132dbbff8849608341b4:25"
+					]
+				},
+				{
+					"id": "rec-grammage-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "context_split_across_chunks",
+					"selected": [
+						"kb-48af26cb6b6e6c1bf29c7148864c268865554c08bd32132dbbff8849608341b4:25",
+						"kb-48af26cb6b6e6c1bf29c7148864c268865554c08bd32132dbbff8849608341b4:49"
+					]
+				},
+				{
+					"id": "rec-grammage-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "context_split_across_chunks",
+					"selected": [
+						"kb-48af26cb6b6e6c1bf29c7148864c268865554c08bd32132dbbff8849608341b4:25",
+						"kb-48af26cb6b6e6c1bf29c7148864c268865554c08bd32132dbbff8849608341b4:57"
+					]
+				},
+				{
+					"id": "rec-fill-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-48af26cb6b6e6c1bf29c7148864c268865554c08bd32132dbbff8849608341b4:9",
+						"kb-48af26cb6b6e6c1bf29c7148864c268865554c08bd32132dbbff8849608341b4:24"
+					]
+				},
+				{
+					"id": "rec-fill-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-48af26cb6b6e6c1bf29c7148864c268865554c08bd32132dbbff8849608341b4:9",
+						"kb-48af26cb6b6e6c1bf29c7148864c268865554c08bd32132dbbff8849608341b4:24"
+					]
+				},
+				{
+					"id": "rec-gas-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-48af26cb6b6e6c1bf29c7148864c268865554c08bd32132dbbff8849608341b4:9",
+						"kb-48af26cb6b6e6c1bf29c7148864c268865554c08bd32132dbbff8849608341b4:15"
+					]
+				},
+				{
+					"id": "rec-gas-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-48af26cb6b6e6c1bf29c7148864c268865554c08bd32132dbbff8849608341b4:9",
+						"kb-48af26cb6b6e6c1bf29c7148864c268865554c08bd32132dbbff8849608341b4:13"
+					]
+				},
+				{
+					"id": "rec-store-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-48af26cb6b6e6c1bf29c7148864c268865554c08bd32132dbbff8849608341b4:132",
+						"kb-48af26cb6b6e6c1bf29c7148864c268865554c08bd32132dbbff8849608341b4:25"
+					]
+				},
+				{
+					"id": "rec-store-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-48af26cb6b6e6c1bf29c7148864c268865554c08bd32132dbbff8849608341b4:15",
+						"kb-48af26cb6b6e6c1bf29c7148864c268865554c08bd32132dbbff8849608341b4:21"
+					]
+				},
+				{
+					"id": "alt-pe-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-ef325c95befbb75eb73094df7ddf45e71bdb47b47fda06930b88a96c52899617:4",
+						"kb-ef325c95befbb75eb73094df7ddf45e71bdb47b47fda06930b88a96c52899617:5"
+					]
+				},
+				{
+					"id": "alt-pe-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-ef325c95befbb75eb73094df7ddf45e71bdb47b47fda06930b88a96c52899617:11",
+						"kb-ef325c95befbb75eb73094df7ddf45e71bdb47b47fda06930b88a96c52899617:4"
+					]
+				},
+				{
+					"id": "alt-metallization-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "context_split_across_chunks",
+					"selected": [
+						"kb-ef325c95befbb75eb73094df7ddf45e71bdb47b47fda06930b88a96c52899617:12",
+						"kb-ef325c95befbb75eb73094df7ddf45e71bdb47b47fda06930b88a96c52899617:5"
+					]
+				},
+				{
+					"id": "alt-metallization-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "context_split_across_chunks",
+					"selected": [
+						"kb-ef325c95befbb75eb73094df7ddf45e71bdb47b47fda06930b88a96c52899617:12",
+						"kb-ef325c95befbb75eb73094df7ddf45e71bdb47b47fda06930b88a96c52899617:5"
+					]
+				},
+				{
+					"id": "alt-pack-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 1,
+					"delta": 1,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-ef325c95befbb75eb73094df7ddf45e71bdb47b47fda06930b88a96c52899617:139",
+						"kb-ef325c95befbb75eb73094df7ddf45e71bdb47b47fda06930b88a96c52899617:11"
+					]
+				},
+				{
+					"id": "alt-pack-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-ef325c95befbb75eb73094df7ddf45e71bdb47b47fda06930b88a96c52899617:11",
+						"kb-ef325c95befbb75eb73094df7ddf45e71bdb47b47fda06930b88a96c52899617:9"
+					]
+				},
+				{
+					"id": "alt-store-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "missing_from_top8",
+					"selected": [
+						"kb-ef325c95befbb75eb73094df7ddf45e71bdb47b47fda06930b88a96c52899617:46",
+						"kb-ef325c95befbb75eb73094df7ddf45e71bdb47b47fda06930b88a96c52899617:9"
+					]
+				},
+				{
+					"id": "alt-store-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "missing_from_top8",
+					"selected": [
+						"kb-ef325c95befbb75eb73094df7ddf45e71bdb47b47fda06930b88a96c52899617:9",
+						"kb-ef325c95befbb75eb73094df7ddf45e71bdb47b47fda06930b88a96c52899617:24"
+					]
+				},
+				{
+					"id": "green-method-zh",
+					"language": "zh",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-128e23eb57d1986ffe25323da90f8419fde8afb390b2056cdc0e51fbd4ab9d3e:10",
+						"kb-c994bbed4be89f2d36b494c3f72713ee9df49bd4b854353c49367788d87ef0f3:40"
+					]
+				},
+				{
+					"id": "green-method-en",
+					"language": "en",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-128e23eb57d1986ffe25323da90f8419fde8afb390b2056cdc0e51fbd4ab9d3e:10",
+						"kb-128e23eb57d1986ffe25323da90f8419fde8afb390b2056cdc0e51fbd4ab9d3e:5"
+					]
+				},
+				{
+					"id": "green-instrument-zh",
+					"language": "zh",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-128e23eb57d1986ffe25323da90f8419fde8afb390b2056cdc0e51fbd4ab9d3e:10",
+						"kb-128e23eb57d1986ffe25323da90f8419fde8afb390b2056cdc0e51fbd4ab9d3e:5"
+					]
+				},
+				{
+					"id": "green-instrument-en",
+					"language": "en",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-128e23eb57d1986ffe25323da90f8419fde8afb390b2056cdc0e51fbd4ab9d3e:10",
+						"kb-128e23eb57d1986ffe25323da90f8419fde8afb390b2056cdc0e51fbd4ab9d3e:4"
+					]
+				},
+				{
+					"id": "green-rh-zh",
+					"language": "zh",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-128e23eb57d1986ffe25323da90f8419fde8afb390b2056cdc0e51fbd4ab9d3e:9",
+						"kb-128e23eb57d1986ffe25323da90f8419fde8afb390b2056cdc0e51fbd4ab9d3e:5"
+					]
+				},
+				{
+					"id": "green-rh-en",
+					"language": "en",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-128e23eb57d1986ffe25323da90f8419fde8afb390b2056cdc0e51fbd4ab9d3e:6",
+						"kb-128e23eb57d1986ffe25323da90f8419fde8afb390b2056cdc0e51fbd4ab9d3e:9"
+					]
+				},
+				{
+					"id": "green-fill-zh",
+					"language": "zh",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "missing_from_top8",
+					"selected": [
+						"kb-128e23eb57d1986ffe25323da90f8419fde8afb390b2056cdc0e51fbd4ab9d3e:27",
+						"kb-128e23eb57d1986ffe25323da90f8419fde8afb390b2056cdc0e51fbd4ab9d3e:5"
+					]
+				},
+				{
+					"id": "green-fill-en",
+					"language": "en",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "missing_from_top8",
+					"selected": [
+						"kb-128e23eb57d1986ffe25323da90f8419fde8afb390b2056cdc0e51fbd4ab9d3e:6",
+						"kb-128e23eb57d1986ffe25323da90f8419fde8afb390b2056cdc0e51fbd4ab9d3e:29"
+					]
+				},
+				{
+					"id": "green-gp-air-zh",
+					"language": "zh",
+					"family": "PMC9563479",
+					"table": true,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-128e23eb57d1986ffe25323da90f8419fde8afb390b2056cdc0e51fbd4ab9d3e:10",
+						"kb-128e23eb57d1986ffe25323da90f8419fde8afb390b2056cdc0e51fbd4ab9d3e:27"
+					]
+				},
+				{
+					"id": "green-gp-air-en",
+					"language": "en",
+					"family": "PMC9563479",
+					"table": true,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-128e23eb57d1986ffe25323da90f8419fde8afb390b2056cdc0e51fbd4ab9d3e:27",
+						"kb-128e23eb57d1986ffe25323da90f8419fde8afb390b2056cdc0e51fbd4ab9d3e:10"
+					]
+				},
+				{
+					"id": "green-ldpe-thick-zh",
+					"language": "zh",
+					"family": "PMC9563479",
+					"table": true,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-128e23eb57d1986ffe25323da90f8419fde8afb390b2056cdc0e51fbd4ab9d3e:57"
+					]
+				},
+				{
+					"id": "green-ldpe-thick-en",
+					"language": "en",
+					"family": "PMC9563479",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-128e23eb57d1986ffe25323da90f8419fde8afb390b2056cdc0e51fbd4ab9d3e:10",
+						"kb-128e23eb57d1986ffe25323da90f8419fde8afb390b2056cdc0e51fbd4ab9d3e:48"
+					]
+				},
+				{
+					"id": "scg-thick-zh",
+					"language": "zh",
+					"family": "PMC10670670",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-9fe5f3125aa83b327e662010ad75e83f9af99b66faf08818d205412736c3387c:45",
+						"kb-c994bbed4be89f2d36b494c3f72713ee9df49bd4b854353c49367788d87ef0f3:12"
+					]
+				},
+				{
+					"id": "scg-thick-en",
+					"language": "en",
+					"family": "PMC10670670",
+					"table": false,
+					"before": 0,
+					"after": 1,
+					"delta": 1,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-9fe5f3125aa83b327e662010ad75e83f9af99b66faf08818d205412736c3387c:5",
+						"kb-9fe5f3125aa83b327e662010ad75e83f9af99b66faf08818d205412736c3387c:45"
+					]
+				},
+				{
+					"id": "scg-microscope-zh",
+					"language": "zh",
+					"family": "PMC10670670",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-9fe5f3125aa83b327e662010ad75e83f9af99b66faf08818d205412736c3387c:21",
+						"kb-9fe5f3125aa83b327e662010ad75e83f9af99b66faf08818d205412736c3387c:45"
+					]
+				},
+				{
+					"id": "scg-microscope-en",
+					"language": "en",
+					"family": "PMC10670670",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-9fe5f3125aa83b327e662010ad75e83f9af99b66faf08818d205412736c3387c:45",
+						"kb-9fe5f3125aa83b327e662010ad75e83f9af99b66faf08818d205412736c3387c:5"
+					]
+				},
+				{
+					"id": "pla-otr-unit-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-c994bbed4be89f2d36b494c3f72713ee9df49bd4b854353c49367788d87ef0f3:62",
+						"kb-c994bbed4be89f2d36b494c3f72713ee9df49bd4b854353c49367788d87ef0f3:23"
+					]
+				},
+				{
+					"id": "pla-otr-unit-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-c994bbed4be89f2d36b494c3f72713ee9df49bd4b854353c49367788d87ef0f3:62",
+						"kb-c994bbed4be89f2d36b494c3f72713ee9df49bd4b854353c49367788d87ef0f3:35"
+					]
+				},
+				{
+					"id": "pla-otr-value-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-c994bbed4be89f2d36b494c3f72713ee9df49bd4b854353c49367788d87ef0f3:62",
+						"kb-c994bbed4be89f2d36b494c3f72713ee9df49bd4b854353c49367788d87ef0f3:23"
+					]
+				},
+				{
+					"id": "pla-otr-value-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-c994bbed4be89f2d36b494c3f72713ee9df49bd4b854353c49367788d87ef0f3:10",
+						"kb-c994bbed4be89f2d36b494c3f72713ee9df49bd4b854353c49367788d87ef0f3:62"
+					]
+				},
+				{
+					"id": "pla-wvtr-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-c994bbed4be89f2d36b494c3f72713ee9df49bd4b854353c49367788d87ef0f3:62",
+						"kb-c994bbed4be89f2d36b494c3f72713ee9df49bd4b854353c49367788d87ef0f3:23"
+					]
+				},
+				{
+					"id": "pla-wvtr-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-c994bbed4be89f2d36b494c3f72713ee9df49bd4b854353c49367788d87ef0f3:62",
+						"kb-c994bbed4be89f2d36b494c3f72713ee9df49bd4b854353c49367788d87ef0f3:35"
+					]
+				},
+				{
+					"id": "pla-oxygen-conditions-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-c994bbed4be89f2d36b494c3f72713ee9df49bd4b854353c49367788d87ef0f3:40",
+						"kb-128e23eb57d1986ffe25323da90f8419fde8afb390b2056cdc0e51fbd4ab9d3e:10"
+					]
+				},
+				{
+					"id": "pla-oxygen-conditions-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-c994bbed4be89f2d36b494c3f72713ee9df49bd4b854353c49367788d87ef0f3:40",
+						"kb-c994bbed4be89f2d36b494c3f72713ee9df49bd4b854353c49367788d87ef0f3:36"
+					]
+				},
+				{
+					"id": "pla-flow-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-c994bbed4be89f2d36b494c3f72713ee9df49bd4b854353c49367788d87ef0f3:40",
+						"kb-ef325c95befbb75eb73094df7ddf45e71bdb47b47fda06930b88a96c52899617:14"
+					]
+				},
+				{
+					"id": "pla-flow-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-9fe5f3125aa83b327e662010ad75e83f9af99b66faf08818d205412736c3387c:54",
+						"kb-c994bbed4be89f2d36b494c3f72713ee9df49bd4b854353c49367788d87ef0f3:10"
+					]
+				},
+				{
+					"id": "pla-water-method-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-c994bbed4be89f2d36b494c3f72713ee9df49bd4b854353c49367788d87ef0f3:23",
+						"kb-c994bbed4be89f2d36b494c3f72713ee9df49bd4b854353c49367788d87ef0f3:59"
+					]
+				},
+				{
+					"id": "pla-water-method-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-c994bbed4be89f2d36b494c3f72713ee9df49bd4b854353c49367788d87ef0f3:1",
+						"kb-c994bbed4be89f2d36b494c3f72713ee9df49bd4b854353c49367788d87ef0f3:23"
+					]
+				},
+				{
+					"id": "pla-water-delta-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "missing_from_top8",
+					"selected": [
+						"kb-c994bbed4be89f2d36b494c3f72713ee9df49bd4b854353c49367788d87ef0f3:41",
+						"kb-c994bbed4be89f2d36b494c3f72713ee9df49bd4b854353c49367788d87ef0f3:59"
+					]
+				},
+				{
+					"id": "pla-water-delta-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "missing_from_top8",
+					"selected": [
+						"kb-c994bbed4be89f2d36b494c3f72713ee9df49bd4b854353c49367788d87ef0f3:41",
+						"kb-c994bbed4be89f2d36b494c3f72713ee9df49bd4b854353c49367788d87ef0f3:59"
+					]
+				}
+			]
+		},
+		{
+			"variant": "section-256-overlap-64-row-1",
+			"indexUsage": {
+				"inputTokens": 165562,
+				"forwardPasses": 543,
+				"modelDurationMs": 18577.35308300001
+			},
+			"pairedQueries": {
+				"win": 3,
+				"loss": 10,
+				"tie": 43
+			},
+			"bilingualGroups": {
+				"count": 28,
+				"win": 3,
+				"loss": 8,
+				"tie": 17,
+				"groups": [
+					{
+						"id": "rec-pet",
+						"meanDelta": 0
+					},
+					{
+						"id": "rec-pe",
+						"meanDelta": -0.5
+					},
+					{
+						"id": "rec-structure",
+						"meanDelta": 0
+					},
+					{
+						"id": "rec-opp",
+						"meanDelta": 0
+					},
+					{
+						"id": "rec-barrier",
+						"meanDelta": 0.5
+					},
+					{
+						"id": "rec-grammage",
+						"meanDelta": 0
+					},
+					{
+						"id": "rec-fill",
+						"meanDelta": 0
+					},
+					{
+						"id": "rec-gas",
+						"meanDelta": -0.5
+					},
+					{
+						"id": "rec-store",
+						"meanDelta": -0.5
+					},
+					{
+						"id": "alt-pe",
+						"meanDelta": -0.5
+					},
+					{
+						"id": "alt-metallization",
+						"meanDelta": 0
+					},
+					{
+						"id": "alt-pack",
+						"meanDelta": 0.5
+					},
+					{
+						"id": "alt-store",
+						"meanDelta": 0
+					},
+					{
+						"id": "green-method",
+						"meanDelta": 0
+					},
+					{
+						"id": "green-instrument",
+						"meanDelta": 0
+					},
+					{
+						"id": "green-rh",
+						"meanDelta": -1
+					},
+					{
+						"id": "green-fill",
+						"meanDelta": -0.5
+					},
+					{
+						"id": "green-gp-air",
+						"meanDelta": 0
+					},
+					{
+						"id": "green-ldpe-thick",
+						"meanDelta": 0
+					},
+					{
+						"id": "scg-thick",
+						"meanDelta": 0.5
+					},
+					{
+						"id": "scg-microscope",
+						"meanDelta": 0
+					},
+					{
+						"id": "pla-otr-unit",
+						"meanDelta": 0
+					},
+					{
+						"id": "pla-otr-value",
+						"meanDelta": 0
+					},
+					{
+						"id": "pla-wvtr",
+						"meanDelta": 0
+					},
+					{
+						"id": "pla-oxygen-conditions",
+						"meanDelta": 0
+					},
+					{
+						"id": "pla-flow",
+						"meanDelta": -0.5
+					},
+					{
+						"id": "pla-water-method",
+						"meanDelta": -1
+					},
+					{
+						"id": "pla-water-delta",
+						"meanDelta": 0
+					}
+				]
+			},
+			"whitespaceSensitivity": {
+				"changes": [],
+				"relaxedComplete": 0.6607142857142857
+			},
+			"paired": [
+				{
+					"id": "rec-pet-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-3f41386bcdcf3e19a45a83c1c6e78a254e00a1634fd1d9a6b2ca02ef36484787:27",
+						"kb-3f41386bcdcf3e19a45a83c1c6e78a254e00a1634fd1d9a6b2ca02ef36484787:4"
+					]
+				},
+				{
+					"id": "rec-pet-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-3f41386bcdcf3e19a45a83c1c6e78a254e00a1634fd1d9a6b2ca02ef36484787:27",
+						"kb-3f41386bcdcf3e19a45a83c1c6e78a254e00a1634fd1d9a6b2ca02ef36484787:4"
+					]
+				},
+				{
+					"id": "rec-pe-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-3f41386bcdcf3e19a45a83c1c6e78a254e00a1634fd1d9a6b2ca02ef36484787:62",
+						"kb-3f41386bcdcf3e19a45a83c1c6e78a254e00a1634fd1d9a6b2ca02ef36484787:40"
+					]
+				},
+				{
+					"id": "rec-pe-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-3f41386bcdcf3e19a45a83c1c6e78a254e00a1634fd1d9a6b2ca02ef36484787:27",
+						"kb-3f41386bcdcf3e19a45a83c1c6e78a254e00a1634fd1d9a6b2ca02ef36484787:40"
+					]
+				},
+				{
+					"id": "rec-structure-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-3f41386bcdcf3e19a45a83c1c6e78a254e00a1634fd1d9a6b2ca02ef36484787:28",
+						"kb-3f41386bcdcf3e19a45a83c1c6e78a254e00a1634fd1d9a6b2ca02ef36484787:27"
+					]
+				},
+				{
+					"id": "rec-structure-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-3f41386bcdcf3e19a45a83c1c6e78a254e00a1634fd1d9a6b2ca02ef36484787:28",
+						"kb-3f41386bcdcf3e19a45a83c1c6e78a254e00a1634fd1d9a6b2ca02ef36484787:11"
+					]
+				},
+				{
+					"id": "rec-opp-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-3f41386bcdcf3e19a45a83c1c6e78a254e00a1634fd1d9a6b2ca02ef36484787:28",
+						"kb-3f41386bcdcf3e19a45a83c1c6e78a254e00a1634fd1d9a6b2ca02ef36484787:27"
+					]
+				},
+				{
+					"id": "rec-opp-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-3f41386bcdcf3e19a45a83c1c6e78a254e00a1634fd1d9a6b2ca02ef36484787:27",
+						"kb-3f41386bcdcf3e19a45a83c1c6e78a254e00a1634fd1d9a6b2ca02ef36484787:28"
+					]
+				},
+				{
+					"id": "rec-barrier-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 1,
+					"delta": 1,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-d5c9e8bd4705caaf033f1d5dc5b99a52ac8be6cf6f183ac1dcd0a3cc7e967f54:65",
+						"kb-3f41386bcdcf3e19a45a83c1c6e78a254e00a1634fd1d9a6b2ca02ef36484787:28"
+					]
+				},
+				{
+					"id": "rec-barrier-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-3f41386bcdcf3e19a45a83c1c6e78a254e00a1634fd1d9a6b2ca02ef36484787:27",
+						"kb-3f41386bcdcf3e19a45a83c1c6e78a254e00a1634fd1d9a6b2ca02ef36484787:28"
+					]
+				},
+				{
+					"id": "rec-grammage-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-3f41386bcdcf3e19a45a83c1c6e78a254e00a1634fd1d9a6b2ca02ef36484787:52",
+						"kb-3f41386bcdcf3e19a45a83c1c6e78a254e00a1634fd1d9a6b2ca02ef36484787:113"
+					]
+				},
+				{
+					"id": "rec-grammage-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-3f41386bcdcf3e19a45a83c1c6e78a254e00a1634fd1d9a6b2ca02ef36484787:28",
+						"kb-3f41386bcdcf3e19a45a83c1c6e78a254e00a1634fd1d9a6b2ca02ef36484787:60"
+					]
+				},
+				{
+					"id": "rec-fill-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-3f41386bcdcf3e19a45a83c1c6e78a254e00a1634fd1d9a6b2ca02ef36484787:11",
+						"kb-3f41386bcdcf3e19a45a83c1c6e78a254e00a1634fd1d9a6b2ca02ef36484787:27"
+					]
+				},
+				{
+					"id": "rec-fill-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-3f41386bcdcf3e19a45a83c1c6e78a254e00a1634fd1d9a6b2ca02ef36484787:11",
+						"kb-3f41386bcdcf3e19a45a83c1c6e78a254e00a1634fd1d9a6b2ca02ef36484787:27"
+					]
+				},
+				{
+					"id": "rec-gas-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-3f41386bcdcf3e19a45a83c1c6e78a254e00a1634fd1d9a6b2ca02ef36484787:17",
+						"kb-3f41386bcdcf3e19a45a83c1c6e78a254e00a1634fd1d9a6b2ca02ef36484787:11"
+					]
+				},
+				{
+					"id": "rec-gas-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-3f41386bcdcf3e19a45a83c1c6e78a254e00a1634fd1d9a6b2ca02ef36484787:11",
+						"kb-3f41386bcdcf3e19a45a83c1c6e78a254e00a1634fd1d9a6b2ca02ef36484787:15"
+					]
+				},
+				{
+					"id": "rec-store-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "missing_from_top8",
+					"selected": [
+						"kb-3f41386bcdcf3e19a45a83c1c6e78a254e00a1634fd1d9a6b2ca02ef36484787:135",
+						"kb-3f41386bcdcf3e19a45a83c1c6e78a254e00a1634fd1d9a6b2ca02ef36484787:24"
+					]
+				},
+				{
+					"id": "rec-store-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-3f41386bcdcf3e19a45a83c1c6e78a254e00a1634fd1d9a6b2ca02ef36484787:22",
+						"kb-3f41386bcdcf3e19a45a83c1c6e78a254e00a1634fd1d9a6b2ca02ef36484787:19"
+					]
+				},
+				{
+					"id": "alt-pe-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-a2989cbd183a2938f23ffc28c8eefb6d84ac1cab035cd6a998668a67e3506ba8:5",
+						"kb-a2989cbd183a2938f23ffc28c8eefb6d84ac1cab035cd6a998668a67e3506ba8:14"
+					]
+				},
+				{
+					"id": "alt-pe-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-a2989cbd183a2938f23ffc28c8eefb6d84ac1cab035cd6a998668a67e3506ba8:13",
+						"kb-a2989cbd183a2938f23ffc28c8eefb6d84ac1cab035cd6a998668a67e3506ba8:5"
+					]
+				},
+				{
+					"id": "alt-metallization-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-a2989cbd183a2938f23ffc28c8eefb6d84ac1cab035cd6a998668a67e3506ba8:14",
+						"kb-a2989cbd183a2938f23ffc28c8eefb6d84ac1cab035cd6a998668a67e3506ba8:5"
+					]
+				},
+				{
+					"id": "alt-metallization-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-a2989cbd183a2938f23ffc28c8eefb6d84ac1cab035cd6a998668a67e3506ba8:14",
+						"kb-a2989cbd183a2938f23ffc28c8eefb6d84ac1cab035cd6a998668a67e3506ba8:5"
+					]
+				},
+				{
+					"id": "alt-pack-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 1,
+					"delta": 1,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-a2989cbd183a2938f23ffc28c8eefb6d84ac1cab035cd6a998668a67e3506ba8:143",
+						"kb-a2989cbd183a2938f23ffc28c8eefb6d84ac1cab035cd6a998668a67e3506ba8:13"
+					]
+				},
+				{
+					"id": "alt-pack-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-a2989cbd183a2938f23ffc28c8eefb6d84ac1cab035cd6a998668a67e3506ba8:13",
+						"kb-a2989cbd183a2938f23ffc28c8eefb6d84ac1cab035cd6a998668a67e3506ba8:11"
+					]
+				},
+				{
+					"id": "alt-store-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "missing_from_top8",
+					"selected": [
+						"kb-bc653d4221c0ec3828acc70899909b3bd366604cce07e21a2e63bce4dc6afb71:52",
+						"kb-bc653d4221c0ec3828acc70899909b3bd366604cce07e21a2e63bce4dc6afb71:12"
+					]
+				},
+				{
+					"id": "alt-store-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "missing_from_top8",
+					"selected": [
+						"kb-a2989cbd183a2938f23ffc28c8eefb6d84ac1cab035cd6a998668a67e3506ba8:11",
+						"kb-a2989cbd183a2938f23ffc28c8eefb6d84ac1cab035cd6a998668a67e3506ba8:26"
+					]
+				},
+				{
+					"id": "green-method-zh",
+					"language": "zh",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-bc653d4221c0ec3828acc70899909b3bd366604cce07e21a2e63bce4dc6afb71:11",
+						"kb-bc653d4221c0ec3828acc70899909b3bd366604cce07e21a2e63bce4dc6afb71:5"
+					]
+				},
+				{
+					"id": "green-method-en",
+					"language": "en",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-bc653d4221c0ec3828acc70899909b3bd366604cce07e21a2e63bce4dc6afb71:11",
+						"kb-bc653d4221c0ec3828acc70899909b3bd366604cce07e21a2e63bce4dc6afb71:56"
+					]
+				},
+				{
+					"id": "green-instrument-zh",
+					"language": "zh",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-bc653d4221c0ec3828acc70899909b3bd366604cce07e21a2e63bce4dc6afb71:11",
+						"kb-bc653d4221c0ec3828acc70899909b3bd366604cce07e21a2e63bce4dc6afb71:5"
+					]
+				},
+				{
+					"id": "green-instrument-en",
+					"language": "en",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-bc653d4221c0ec3828acc70899909b3bd366604cce07e21a2e63bce4dc6afb71:11",
+						"kb-bc653d4221c0ec3828acc70899909b3bd366604cce07e21a2e63bce4dc6afb71:5"
+					]
+				},
+				{
+					"id": "green-rh-zh",
+					"language": "zh",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "context_lost_to_budget",
+					"selected": [
+						"kb-bc653d4221c0ec3828acc70899909b3bd366604cce07e21a2e63bce4dc6afb71:11",
+						"kb-bc653d4221c0ec3828acc70899909b3bd366604cce07e21a2e63bce4dc6afb71:7"
+					]
+				},
+				{
+					"id": "green-rh-en",
+					"language": "en",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "context_lost_to_budget",
+					"selected": [
+						"kb-bc653d4221c0ec3828acc70899909b3bd366604cce07e21a2e63bce4dc6afb71:7",
+						"kb-bc653d4221c0ec3828acc70899909b3bd366604cce07e21a2e63bce4dc6afb71:11"
+					]
+				},
+				{
+					"id": "green-fill-zh",
+					"language": "zh",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "missing_from_top8",
+					"selected": [
+						"kb-bc653d4221c0ec3828acc70899909b3bd366604cce07e21a2e63bce4dc6afb71:30",
+						"kb-bc653d4221c0ec3828acc70899909b3bd366604cce07e21a2e63bce4dc6afb71:28"
+					]
+				},
+				{
+					"id": "green-fill-en",
+					"language": "en",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "missing_from_top8",
+					"selected": [
+						"kb-bc653d4221c0ec3828acc70899909b3bd366604cce07e21a2e63bce4dc6afb71:33",
+						"kb-bc653d4221c0ec3828acc70899909b3bd366604cce07e21a2e63bce4dc6afb71:7"
+					]
+				},
+				{
+					"id": "green-gp-air-zh",
+					"language": "zh",
+					"family": "PMC9563479",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-bc653d4221c0ec3828acc70899909b3bd366604cce07e21a2e63bce4dc6afb71:11",
+						"kb-bc653d4221c0ec3828acc70899909b3bd366604cce07e21a2e63bce4dc6afb71:56"
+					]
+				},
+				{
+					"id": "green-gp-air-en",
+					"language": "en",
+					"family": "PMC9563479",
+					"table": true,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-bc653d4221c0ec3828acc70899909b3bd366604cce07e21a2e63bce4dc6afb71:11",
+						"kb-bc653d4221c0ec3828acc70899909b3bd366604cce07e21a2e63bce4dc6afb71:29"
+					]
+				},
+				{
+					"id": "green-ldpe-thick-zh",
+					"language": "zh",
+					"family": "PMC9563479",
+					"table": true,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-bc653d4221c0ec3828acc70899909b3bd366604cce07e21a2e63bce4dc6afb71:64"
+					]
+				},
+				{
+					"id": "green-ldpe-thick-en",
+					"language": "en",
+					"family": "PMC9563479",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-bc653d4221c0ec3828acc70899909b3bd366604cce07e21a2e63bce4dc6afb71:55",
+						"kb-bc653d4221c0ec3828acc70899909b3bd366604cce07e21a2e63bce4dc6afb71:11"
+					]
+				},
+				{
+					"id": "scg-thick-zh",
+					"language": "zh",
+					"family": "PMC10670670",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-d5c9e8bd4705caaf033f1d5dc5b99a52ac8be6cf6f183ac1dcd0a3cc7e967f54:12",
+						"kb-268f91d66fb60a8ef337917faab29635b20abb670263e4a717136a37997e3c19:51"
+					]
+				},
+				{
+					"id": "scg-thick-en",
+					"language": "en",
+					"family": "PMC10670670",
+					"table": false,
+					"before": 0,
+					"after": 1,
+					"delta": 1,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-268f91d66fb60a8ef337917faab29635b20abb670263e4a717136a37997e3c19:51",
+						"kb-268f91d66fb60a8ef337917faab29635b20abb670263e4a717136a37997e3c19:6"
+					]
+				},
+				{
+					"id": "scg-microscope-zh",
+					"language": "zh",
+					"family": "PMC10670670",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-268f91d66fb60a8ef337917faab29635b20abb670263e4a717136a37997e3c19:25",
+						"kb-d5c9e8bd4705caaf033f1d5dc5b99a52ac8be6cf6f183ac1dcd0a3cc7e967f54:12"
+					]
+				},
+				{
+					"id": "scg-microscope-en",
+					"language": "en",
+					"family": "PMC10670670",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-268f91d66fb60a8ef337917faab29635b20abb670263e4a717136a37997e3c19:51",
+						"kb-d5c9e8bd4705caaf033f1d5dc5b99a52ac8be6cf6f183ac1dcd0a3cc7e967f54:12"
+					]
+				},
+				{
+					"id": "pla-otr-unit-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-d5c9e8bd4705caaf033f1d5dc5b99a52ac8be6cf6f183ac1dcd0a3cc7e967f54:68",
+						"kb-d5c9e8bd4705caaf033f1d5dc5b99a52ac8be6cf6f183ac1dcd0a3cc7e967f54:27"
+					]
+				},
+				{
+					"id": "pla-otr-unit-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-d5c9e8bd4705caaf033f1d5dc5b99a52ac8be6cf6f183ac1dcd0a3cc7e967f54:40",
+						"kb-d5c9e8bd4705caaf033f1d5dc5b99a52ac8be6cf6f183ac1dcd0a3cc7e967f54:68"
+					]
+				},
+				{
+					"id": "pla-otr-value-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-d5c9e8bd4705caaf033f1d5dc5b99a52ac8be6cf6f183ac1dcd0a3cc7e967f54:68",
+						"kb-d5c9e8bd4705caaf033f1d5dc5b99a52ac8be6cf6f183ac1dcd0a3cc7e967f54:27"
+					]
+				},
+				{
+					"id": "pla-otr-value-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-d5c9e8bd4705caaf033f1d5dc5b99a52ac8be6cf6f183ac1dcd0a3cc7e967f54:12",
+						"kb-d5c9e8bd4705caaf033f1d5dc5b99a52ac8be6cf6f183ac1dcd0a3cc7e967f54:68"
+					]
+				},
+				{
+					"id": "pla-wvtr-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-d5c9e8bd4705caaf033f1d5dc5b99a52ac8be6cf6f183ac1dcd0a3cc7e967f54:68",
+						"kb-d5c9e8bd4705caaf033f1d5dc5b99a52ac8be6cf6f183ac1dcd0a3cc7e967f54:27"
+					]
+				},
+				{
+					"id": "pla-wvtr-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-d5c9e8bd4705caaf033f1d5dc5b99a52ac8be6cf6f183ac1dcd0a3cc7e967f54:68",
+						"kb-d5c9e8bd4705caaf033f1d5dc5b99a52ac8be6cf6f183ac1dcd0a3cc7e967f54:40"
+					]
+				},
+				{
+					"id": "pla-oxygen-conditions-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-d5c9e8bd4705caaf033f1d5dc5b99a52ac8be6cf6f183ac1dcd0a3cc7e967f54:45",
+						"kb-d5c9e8bd4705caaf033f1d5dc5b99a52ac8be6cf6f183ac1dcd0a3cc7e967f54:41"
+					]
+				},
+				{
+					"id": "pla-oxygen-conditions-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-d5c9e8bd4705caaf033f1d5dc5b99a52ac8be6cf6f183ac1dcd0a3cc7e967f54:46",
+						"kb-d5c9e8bd4705caaf033f1d5dc5b99a52ac8be6cf6f183ac1dcd0a3cc7e967f54:41"
+					]
+				},
+				{
+					"id": "pla-flow-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-d5c9e8bd4705caaf033f1d5dc5b99a52ac8be6cf6f183ac1dcd0a3cc7e967f54:45",
+						"kb-a2989cbd183a2938f23ffc28c8eefb6d84ac1cab035cd6a998668a67e3506ba8:16"
+					]
+				},
+				{
+					"id": "pla-flow-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-d5c9e8bd4705caaf033f1d5dc5b99a52ac8be6cf6f183ac1dcd0a3cc7e967f54:28",
+						"kb-d5c9e8bd4705caaf033f1d5dc5b99a52ac8be6cf6f183ac1dcd0a3cc7e967f54:41"
+					]
+				},
+				{
+					"id": "pla-water-method-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-d5c9e8bd4705caaf033f1d5dc5b99a52ac8be6cf6f183ac1dcd0a3cc7e967f54:27",
+						"kb-d5c9e8bd4705caaf033f1d5dc5b99a52ac8be6cf6f183ac1dcd0a3cc7e967f54:65"
+					]
+				},
+				{
+					"id": "pla-water-method-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-d5c9e8bd4705caaf033f1d5dc5b99a52ac8be6cf6f183ac1dcd0a3cc7e967f54:1",
+						"kb-d5c9e8bd4705caaf033f1d5dc5b99a52ac8be6cf6f183ac1dcd0a3cc7e967f54:2"
+					]
+				},
+				{
+					"id": "pla-water-delta-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-d5c9e8bd4705caaf033f1d5dc5b99a52ac8be6cf6f183ac1dcd0a3cc7e967f54:47",
+						"kb-d5c9e8bd4705caaf033f1d5dc5b99a52ac8be6cf6f183ac1dcd0a3cc7e967f54:65"
+					]
+				},
+				{
+					"id": "pla-water-delta-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-d5c9e8bd4705caaf033f1d5dc5b99a52ac8be6cf6f183ac1dcd0a3cc7e967f54:47",
+						"kb-d5c9e8bd4705caaf033f1d5dc5b99a52ac8be6cf6f183ac1dcd0a3cc7e967f54:65"
+					]
+				}
+			]
+		},
+		{
+			"variant": "section-384-overlap-64-row-1",
+			"indexUsage": {
+				"inputTokens": 155385,
+				"forwardPasses": 472,
+				"modelDurationMs": 18760.36966700002
+			},
+			"pairedQueries": {
+				"win": 2,
+				"loss": 17,
+				"tie": 37
+			},
+			"bilingualGroups": {
+				"count": 28,
+				"win": 1,
+				"loss": 13,
+				"tie": 14,
+				"groups": [
+					{
+						"id": "rec-pet",
+						"meanDelta": -0.5
+					},
+					{
+						"id": "rec-pe",
+						"meanDelta": -0.5
+					},
+					{
+						"id": "rec-structure",
+						"meanDelta": -1
+					},
+					{
+						"id": "rec-opp",
+						"meanDelta": 0
+					},
+					{
+						"id": "rec-barrier",
+						"meanDelta": 0
+					},
+					{
+						"id": "rec-grammage",
+						"meanDelta": 0
+					},
+					{
+						"id": "rec-fill",
+						"meanDelta": -1
+					},
+					{
+						"id": "rec-gas",
+						"meanDelta": 0
+					},
+					{
+						"id": "rec-store",
+						"meanDelta": -0.5
+					},
+					{
+						"id": "alt-pe",
+						"meanDelta": -0.5
+					},
+					{
+						"id": "alt-metallization",
+						"meanDelta": -1
+					},
+					{
+						"id": "alt-pack",
+						"meanDelta": 0
+					},
+					{
+						"id": "alt-store",
+						"meanDelta": 0
+					},
+					{
+						"id": "green-method",
+						"meanDelta": 0
+					},
+					{
+						"id": "green-instrument",
+						"meanDelta": 0
+					},
+					{
+						"id": "green-rh",
+						"meanDelta": -0.5
+					},
+					{
+						"id": "green-fill",
+						"meanDelta": -0.5
+					},
+					{
+						"id": "green-gp-air",
+						"meanDelta": 0
+					},
+					{
+						"id": "green-ldpe-thick",
+						"meanDelta": 0
+					},
+					{
+						"id": "scg-thick",
+						"meanDelta": 0.5
+					},
+					{
+						"id": "scg-microscope",
+						"meanDelta": 0
+					},
+					{
+						"id": "pla-otr-unit",
+						"meanDelta": -0.5
+					},
+					{
+						"id": "pla-otr-value",
+						"meanDelta": -0.5
+					},
+					{
+						"id": "pla-wvtr",
+						"meanDelta": 0
+					},
+					{
+						"id": "pla-oxygen-conditions",
+						"meanDelta": 0
+					},
+					{
+						"id": "pla-flow",
+						"meanDelta": -0.5
+					},
+					{
+						"id": "pla-water-method",
+						"meanDelta": -0.5
+					},
+					{
+						"id": "pla-water-delta",
+						"meanDelta": 0
+					}
+				]
+			},
+			"whitespaceSensitivity": {
+				"changes": [],
+				"relaxedComplete": 0.5178571428571429
+			},
+			"paired": [
+				{
+					"id": "rec-pet-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-17b01a9b72ccf607899b5c6e12a48b0c5583e12c44c2650a501afc5f30378e54:49",
+						"kb-17b01a9b72ccf607899b5c6e12a48b0c5583e12c44c2650a501afc5f30378e54:7"
+					]
+				},
+				{
+					"id": "rec-pet-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-17b01a9b72ccf607899b5c6e12a48b0c5583e12c44c2650a501afc5f30378e54:19"
+					]
+				},
+				{
+					"id": "rec-pe-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-17b01a9b72ccf607899b5c6e12a48b0c5583e12c44c2650a501afc5f30378e54:53",
+						"kb-17b01a9b72ccf607899b5c6e12a48b0c5583e12c44c2650a501afc5f30378e54:98"
+					]
+				},
+				{
+					"id": "rec-pe-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-17b01a9b72ccf607899b5c6e12a48b0c5583e12c44c2650a501afc5f30378e54:19"
+					]
+				},
+				{
+					"id": "rec-structure-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-17b01a9b72ccf607899b5c6e12a48b0c5583e12c44c2650a501afc5f30378e54:7",
+						"kb-17b01a9b72ccf607899b5c6e12a48b0c5583e12c44c2650a501afc5f30378e54:43"
+					]
+				},
+				{
+					"id": "rec-structure-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-17b01a9b72ccf607899b5c6e12a48b0c5583e12c44c2650a501afc5f30378e54:3",
+						"kb-17b01a9b72ccf607899b5c6e12a48b0c5583e12c44c2650a501afc5f30378e54:11"
+					]
+				},
+				{
+					"id": "rec-opp-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-17b01a9b72ccf607899b5c6e12a48b0c5583e12c44c2650a501afc5f30378e54:19"
+					]
+				},
+				{
+					"id": "rec-opp-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-17b01a9b72ccf607899b5c6e12a48b0c5583e12c44c2650a501afc5f30378e54:19",
+						"kb-17b01a9b72ccf607899b5c6e12a48b0c5583e12c44c2650a501afc5f30378e54:11"
+					]
+				},
+				{
+					"id": "rec-barrier-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-6e4afc727c90bc61a9f104d2ee874a7e36a12bf70c0c5306792b9407ca986bb3:47",
+						"kb-17b01a9b72ccf607899b5c6e12a48b0c5583e12c44c2650a501afc5f30378e54:43"
+					]
+				},
+				{
+					"id": "rec-barrier-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-17b01a9b72ccf607899b5c6e12a48b0c5583e12c44c2650a501afc5f30378e54:19",
+						"kb-17b01a9b72ccf607899b5c6e12a48b0c5583e12c44c2650a501afc5f30378e54:11"
+					]
+				},
+				{
+					"id": "rec-grammage-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-17b01a9b72ccf607899b5c6e12a48b0c5583e12c44c2650a501afc5f30378e54:43",
+						"kb-17b01a9b72ccf607899b5c6e12a48b0c5583e12c44c2650a501afc5f30378e54:104"
+					]
+				},
+				{
+					"id": "rec-grammage-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-17b01a9b72ccf607899b5c6e12a48b0c5583e12c44c2650a501afc5f30378e54:19"
+					]
+				},
+				{
+					"id": "rec-fill-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-17b01a9b72ccf607899b5c6e12a48b0c5583e12c44c2650a501afc5f30378e54:7",
+						"kb-17b01a9b72ccf607899b5c6e12a48b0c5583e12c44c2650a501afc5f30378e54:40"
+					]
+				},
+				{
+					"id": "rec-fill-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-17b01a9b72ccf607899b5c6e12a48b0c5583e12c44c2650a501afc5f30378e54:7",
+						"kb-17b01a9b72ccf607899b5c6e12a48b0c5583e12c44c2650a501afc5f30378e54:28"
+					]
+				},
+				{
+					"id": "rec-gas-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-17b01a9b72ccf607899b5c6e12a48b0c5583e12c44c2650a501afc5f30378e54:6"
+					]
+				},
+				{
+					"id": "rec-gas-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-17b01a9b72ccf607899b5c6e12a48b0c5583e12c44c2650a501afc5f30378e54:19",
+						"kb-17b01a9b72ccf607899b5c6e12a48b0c5583e12c44c2650a501afc5f30378e54:11"
+					]
+				},
+				{
+					"id": "rec-store-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "missing_from_top8",
+					"selected": [
+						"kb-17b01a9b72ccf607899b5c6e12a48b0c5583e12c44c2650a501afc5f30378e54:126",
+						"kb-17b01a9b72ccf607899b5c6e12a48b0c5583e12c44c2650a501afc5f30378e54:8"
+					]
+				},
+				{
+					"id": "rec-store-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-17b01a9b72ccf607899b5c6e12a48b0c5583e12c44c2650a501afc5f30378e54:12",
+						"kb-17b01a9b72ccf607899b5c6e12a48b0c5583e12c44c2650a501afc5f30378e54:16"
+					]
+				},
+				{
+					"id": "alt-pe-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-c17371e57e951614e481fdc78cbd89bbb368734e93d38652c10d7a2b02e890d7:3"
+					]
+				},
+				{
+					"id": "alt-pe-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-c17371e57e951614e481fdc78cbd89bbb368734e93d38652c10d7a2b02e890d7:9"
+					]
+				},
+				{
+					"id": "alt-metallization-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-c17371e57e951614e481fdc78cbd89bbb368734e93d38652c10d7a2b02e890d7:3"
+					]
+				},
+				{
+					"id": "alt-metallization-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-c17371e57e951614e481fdc78cbd89bbb368734e93d38652c10d7a2b02e890d7:3",
+						"kb-c17371e57e951614e481fdc78cbd89bbb368734e93d38652c10d7a2b02e890d7:7"
+					]
+				},
+				{
+					"id": "alt-pack-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-c17371e57e951614e481fdc78cbd89bbb368734e93d38652c10d7a2b02e890d7:131",
+						"kb-c17371e57e951614e481fdc78cbd89bbb368734e93d38652c10d7a2b02e890d7:20"
+					]
+				},
+				{
+					"id": "alt-pack-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-c17371e57e951614e481fdc78cbd89bbb368734e93d38652c10d7a2b02e890d7:9"
+					]
+				},
+				{
+					"id": "alt-store-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "missing_from_top8",
+					"selected": [
+						"kb-c17371e57e951614e481fdc78cbd89bbb368734e93d38652c10d7a2b02e890d7:38"
+					]
+				},
+				{
+					"id": "alt-store-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "missing_from_top8",
+					"selected": [
+						"kb-c17371e57e951614e481fdc78cbd89bbb368734e93d38652c10d7a2b02e890d7:19"
+					]
+				},
+				{
+					"id": "green-method-zh",
+					"language": "zh",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-61149130cadb139f887a4ebf3a73a5d40353293ed231035759e47afd88fce697:7",
+						"kb-61149130cadb139f887a4ebf3a73a5d40353293ed231035759e47afd88fce697:41"
+					]
+				},
+				{
+					"id": "green-method-en",
+					"language": "en",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-61149130cadb139f887a4ebf3a73a5d40353293ed231035759e47afd88fce697:7",
+						"kb-61149130cadb139f887a4ebf3a73a5d40353293ed231035759e47afd88fce697:41"
+					]
+				},
+				{
+					"id": "green-instrument-zh",
+					"language": "zh",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-61149130cadb139f887a4ebf3a73a5d40353293ed231035759e47afd88fce697:8",
+						"kb-61149130cadb139f887a4ebf3a73a5d40353293ed231035759e47afd88fce697:7"
+					]
+				},
+				{
+					"id": "green-instrument-en",
+					"language": "en",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-61149130cadb139f887a4ebf3a73a5d40353293ed231035759e47afd88fce697:7",
+						"kb-61149130cadb139f887a4ebf3a73a5d40353293ed231035759e47afd88fce697:8"
+					]
+				},
+				{
+					"id": "green-rh-zh",
+					"language": "zh",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-61149130cadb139f887a4ebf3a73a5d40353293ed231035759e47afd88fce697:7",
+						"kb-61149130cadb139f887a4ebf3a73a5d40353293ed231035759e47afd88fce697:8"
+					]
+				},
+				{
+					"id": "green-rh-en",
+					"language": "en",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-61149130cadb139f887a4ebf3a73a5d40353293ed231035759e47afd88fce697:5",
+						"kb-61149130cadb139f887a4ebf3a73a5d40353293ed231035759e47afd88fce697:25"
+					]
+				},
+				{
+					"id": "green-fill-zh",
+					"language": "zh",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-61149130cadb139f887a4ebf3a73a5d40353293ed231035759e47afd88fce697:23"
+					]
+				},
+				{
+					"id": "green-fill-en",
+					"language": "en",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "missing_from_top8",
+					"selected": [
+						"kb-61149130cadb139f887a4ebf3a73a5d40353293ed231035759e47afd88fce697:24",
+						"kb-61149130cadb139f887a4ebf3a73a5d40353293ed231035759e47afd88fce697:25"
+					]
+				},
+				{
+					"id": "green-gp-air-zh",
+					"language": "zh",
+					"family": "PMC9563479",
+					"table": true,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-61149130cadb139f887a4ebf3a73a5d40353293ed231035759e47afd88fce697:50"
+					]
+				},
+				{
+					"id": "green-gp-air-en",
+					"language": "en",
+					"family": "PMC9563479",
+					"table": true,
+					"before": 0,
+					"after": 1,
+					"delta": 1,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-61149130cadb139f887a4ebf3a73a5d40353293ed231035759e47afd88fce697:7",
+						"kb-61149130cadb139f887a4ebf3a73a5d40353293ed231035759e47afd88fce697:41"
+					]
+				},
+				{
+					"id": "green-ldpe-thick-zh",
+					"language": "zh",
+					"family": "PMC9563479",
+					"table": true,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-61149130cadb139f887a4ebf3a73a5d40353293ed231035759e47afd88fce697:49"
+					]
+				},
+				{
+					"id": "green-ldpe-thick-en",
+					"language": "en",
+					"family": "PMC9563479",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-61149130cadb139f887a4ebf3a73a5d40353293ed231035759e47afd88fce697:7",
+						"kb-61149130cadb139f887a4ebf3a73a5d40353293ed231035759e47afd88fce697:40"
+					]
+				},
+				{
+					"id": "scg-thick-zh",
+					"language": "zh",
+					"family": "PMC10670670",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-6e4afc727c90bc61a9f104d2ee874a7e36a12bf70c0c5306792b9407ca986bb3:8",
+						"kb-a03dbdae80f2e42827a48f02ed3242030cba6f148d97f3cf1e6d39ae6371f036:34"
+					]
+				},
+				{
+					"id": "scg-thick-en",
+					"language": "en",
+					"family": "PMC10670670",
+					"table": false,
+					"before": 0,
+					"after": 1,
+					"delta": 1,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-a03dbdae80f2e42827a48f02ed3242030cba6f148d97f3cf1e6d39ae6371f036:33"
+					]
+				},
+				{
+					"id": "scg-microscope-zh",
+					"language": "zh",
+					"family": "PMC10670670",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-a03dbdae80f2e42827a48f02ed3242030cba6f148d97f3cf1e6d39ae6371f036:16",
+						"kb-a03dbdae80f2e42827a48f02ed3242030cba6f148d97f3cf1e6d39ae6371f036:34"
+					]
+				},
+				{
+					"id": "scg-microscope-en",
+					"language": "en",
+					"family": "PMC10670670",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-a03dbdae80f2e42827a48f02ed3242030cba6f148d97f3cf1e6d39ae6371f036:33"
+					]
+				},
+				{
+					"id": "pla-otr-unit-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-6e4afc727c90bc61a9f104d2ee874a7e36a12bf70c0c5306792b9407ca986bb3:50",
+						"kb-a03dbdae80f2e42827a48f02ed3242030cba6f148d97f3cf1e6d39ae6371f036:53"
+					]
+				},
+				{
+					"id": "pla-otr-unit-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": true,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-6e4afc727c90bc61a9f104d2ee874a7e36a12bf70c0c5306792b9407ca986bb3:25",
+						"kb-6e4afc727c90bc61a9f104d2ee874a7e36a12bf70c0c5306792b9407ca986bb3:23"
+					]
+				},
+				{
+					"id": "pla-otr-value-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-6e4afc727c90bc61a9f104d2ee874a7e36a12bf70c0c5306792b9407ca986bb3:50"
+					]
+				},
+				{
+					"id": "pla-otr-value-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": true,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-6e4afc727c90bc61a9f104d2ee874a7e36a12bf70c0c5306792b9407ca986bb3:6",
+						"kb-6e4afc727c90bc61a9f104d2ee874a7e36a12bf70c0c5306792b9407ca986bb3:23"
+					]
+				},
+				{
+					"id": "pla-wvtr-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-6e4afc727c90bc61a9f104d2ee874a7e36a12bf70c0c5306792b9407ca986bb3:50"
+					]
+				},
+				{
+					"id": "pla-wvtr-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-6e4afc727c90bc61a9f104d2ee874a7e36a12bf70c0c5306792b9407ca986bb3:50",
+						"kb-6e4afc727c90bc61a9f104d2ee874a7e36a12bf70c0c5306792b9407ca986bb3:1"
+					]
+				},
+				{
+					"id": "pla-oxygen-conditions-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-6e4afc727c90bc61a9f104d2ee874a7e36a12bf70c0c5306792b9407ca986bb3:29"
+					]
+				},
+				{
+					"id": "pla-oxygen-conditions-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-6e4afc727c90bc61a9f104d2ee874a7e36a12bf70c0c5306792b9407ca986bb3:29"
+					]
+				},
+				{
+					"id": "pla-flow-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-6e4afc727c90bc61a9f104d2ee874a7e36a12bf70c0c5306792b9407ca986bb3:29",
+						"kb-c17371e57e951614e481fdc78cbd89bbb368734e93d38652c10d7a2b02e890d7:11"
+					]
+				},
+				{
+					"id": "pla-flow-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-6e4afc727c90bc61a9f104d2ee874a7e36a12bf70c0c5306792b9407ca986bb3:16"
+					]
+				},
+				{
+					"id": "pla-water-method-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-6e4afc727c90bc61a9f104d2ee874a7e36a12bf70c0c5306792b9407ca986bb3:29"
+					]
+				},
+				{
+					"id": "pla-water-method-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-6e4afc727c90bc61a9f104d2ee874a7e36a12bf70c0c5306792b9407ca986bb3:1"
+					]
+				},
+				{
+					"id": "pla-water-delta-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-6e4afc727c90bc61a9f104d2ee874a7e36a12bf70c0c5306792b9407ca986bb3:30"
+					]
+				},
+				{
+					"id": "pla-water-delta-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-6e4afc727c90bc61a9f104d2ee874a7e36a12bf70c0c5306792b9407ca986bb3:30"
+					]
+				}
+			]
+		},
+		{
+			"variant": "paragraph-1000-row-3",
+			"indexUsage": {
+				"inputTokens": 111977,
+				"forwardPasses": 467,
+				"modelDurationMs": 11935.45087499998
+			},
+			"pairedQueries": {
+				"win": 1,
+				"loss": 5,
+				"tie": 50
+			},
+			"bilingualGroups": {
+				"count": 28,
+				"win": 0,
+				"loss": 4,
+				"tie": 24,
+				"groups": [
+					{
+						"id": "rec-pet",
+						"meanDelta": 0
+					},
+					{
+						"id": "rec-pe",
+						"meanDelta": 0
+					},
+					{
+						"id": "rec-structure",
+						"meanDelta": 0
+					},
+					{
+						"id": "rec-opp",
+						"meanDelta": 0
+					},
+					{
+						"id": "rec-barrier",
+						"meanDelta": 0
+					},
+					{
+						"id": "rec-grammage",
+						"meanDelta": 0
+					},
+					{
+						"id": "rec-fill",
+						"meanDelta": 0
+					},
+					{
+						"id": "rec-gas",
+						"meanDelta": 0
+					},
+					{
+						"id": "rec-store",
+						"meanDelta": -0.5
+					},
+					{
+						"id": "alt-pe",
+						"meanDelta": -0.5
+					},
+					{
+						"id": "alt-metallization",
+						"meanDelta": -0.5
+					},
+					{
+						"id": "alt-pack",
+						"meanDelta": 0
+					},
+					{
+						"id": "alt-store",
+						"meanDelta": 0
+					},
+					{
+						"id": "green-method",
+						"meanDelta": 0
+					},
+					{
+						"id": "green-instrument",
+						"meanDelta": 0
+					},
+					{
+						"id": "green-rh",
+						"meanDelta": 0
+					},
+					{
+						"id": "green-fill",
+						"meanDelta": 0
+					},
+					{
+						"id": "green-gp-air",
+						"meanDelta": 0
+					},
+					{
+						"id": "green-ldpe-thick",
+						"meanDelta": 0
+					},
+					{
+						"id": "scg-thick",
+						"meanDelta": 0
+					},
+					{
+						"id": "scg-microscope",
+						"meanDelta": -0.5
+					},
+					{
+						"id": "pla-otr-unit",
+						"meanDelta": 0
+					},
+					{
+						"id": "pla-otr-value",
+						"meanDelta": 0
+					},
+					{
+						"id": "pla-wvtr",
+						"meanDelta": 0
+					},
+					{
+						"id": "pla-oxygen-conditions",
+						"meanDelta": 0
+					},
+					{
+						"id": "pla-flow",
+						"meanDelta": 0
+					},
+					{
+						"id": "pla-water-method",
+						"meanDelta": 0
+					},
+					{
+						"id": "pla-water-delta",
+						"meanDelta": 0
+					}
+				]
+			},
+			"whitespaceSensitivity": {
+				"changes": [],
+				"relaxedComplete": 0.7142857142857143
+			},
+			"paired": [
+				{
+					"id": "rec-pet-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-c005969ba6d5f1a8c86d6df51923e4c7b536199e9c7ee58ed287fbebbee8a9c6:36",
+						"kb-c005969ba6d5f1a8c86d6df51923e4c7b536199e9c7ee58ed287fbebbee8a9c6:51"
+					]
+				},
+				{
+					"id": "rec-pet-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-c005969ba6d5f1a8c86d6df51923e4c7b536199e9c7ee58ed287fbebbee8a9c6:5",
+						"kb-c005969ba6d5f1a8c86d6df51923e4c7b536199e9c7ee58ed287fbebbee8a9c6:36"
+					]
+				},
+				{
+					"id": "rec-pe-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-c005969ba6d5f1a8c86d6df51923e4c7b536199e9c7ee58ed287fbebbee8a9c6:51",
+						"kb-c005969ba6d5f1a8c86d6df51923e4c7b536199e9c7ee58ed287fbebbee8a9c6:36"
+					]
+				},
+				{
+					"id": "rec-pe-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-c005969ba6d5f1a8c86d6df51923e4c7b536199e9c7ee58ed287fbebbee8a9c6:36",
+						"kb-c005969ba6d5f1a8c86d6df51923e4c7b536199e9c7ee58ed287fbebbee8a9c6:37",
+						"kb-00b04ccee90fc2b25b225ca21a1feda3c7bb2b4cd09d9c9afc8792db3ac85036:64"
+					]
+				},
+				{
+					"id": "rec-structure-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-c005969ba6d5f1a8c86d6df51923e4c7b536199e9c7ee58ed287fbebbee8a9c6:37",
+						"kb-c005969ba6d5f1a8c86d6df51923e4c7b536199e9c7ee58ed287fbebbee8a9c6:15"
+					]
+				},
+				{
+					"id": "rec-structure-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-c005969ba6d5f1a8c86d6df51923e4c7b536199e9c7ee58ed287fbebbee8a9c6:37",
+						"kb-c005969ba6d5f1a8c86d6df51923e4c7b536199e9c7ee58ed287fbebbee8a9c6:15"
+					]
+				},
+				{
+					"id": "rec-opp-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-c005969ba6d5f1a8c86d6df51923e4c7b536199e9c7ee58ed287fbebbee8a9c6:37",
+						"kb-c005969ba6d5f1a8c86d6df51923e4c7b536199e9c7ee58ed287fbebbee8a9c6:78"
+					]
+				},
+				{
+					"id": "rec-opp-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-c005969ba6d5f1a8c86d6df51923e4c7b536199e9c7ee58ed287fbebbee8a9c6:37",
+						"kb-c005969ba6d5f1a8c86d6df51923e4c7b536199e9c7ee58ed287fbebbee8a9c6:5"
+					]
+				},
+				{
+					"id": "rec-barrier-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-c005969ba6d5f1a8c86d6df51923e4c7b536199e9c7ee58ed287fbebbee8a9c6:52",
+						"kb-c005969ba6d5f1a8c86d6df51923e4c7b536199e9c7ee58ed287fbebbee8a9c6:36"
+					]
+				},
+				{
+					"id": "rec-barrier-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-c005969ba6d5f1a8c86d6df51923e4c7b536199e9c7ee58ed287fbebbee8a9c6:37",
+						"kb-c005969ba6d5f1a8c86d6df51923e4c7b536199e9c7ee58ed287fbebbee8a9c6:55"
+					]
+				},
+				{
+					"id": "rec-grammage-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-c005969ba6d5f1a8c86d6df51923e4c7b536199e9c7ee58ed287fbebbee8a9c6:52",
+						"kb-c005969ba6d5f1a8c86d6df51923e4c7b536199e9c7ee58ed287fbebbee8a9c6:38"
+					]
+				},
+				{
+					"id": "rec-grammage-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-c005969ba6d5f1a8c86d6df51923e4c7b536199e9c7ee58ed287fbebbee8a9c6:37",
+						"kb-c005969ba6d5f1a8c86d6df51923e4c7b536199e9c7ee58ed287fbebbee8a9c6:38",
+						"kb-98cc46984d4de9a0c4f5bc18354615a15051b9c8d244c10b1d329a5418945180:19"
+					]
+				},
+				{
+					"id": "rec-fill-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-c005969ba6d5f1a8c86d6df51923e4c7b536199e9c7ee58ed287fbebbee8a9c6:35",
+						"kb-c005969ba6d5f1a8c86d6df51923e4c7b536199e9c7ee58ed287fbebbee8a9c6:15"
+					]
+				},
+				{
+					"id": "rec-fill-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-c005969ba6d5f1a8c86d6df51923e4c7b536199e9c7ee58ed287fbebbee8a9c6:35",
+						"kb-c005969ba6d5f1a8c86d6df51923e4c7b536199e9c7ee58ed287fbebbee8a9c6:15"
+					]
+				},
+				{
+					"id": "rec-gas-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-c005969ba6d5f1a8c86d6df51923e4c7b536199e9c7ee58ed287fbebbee8a9c6:21",
+						"kb-c005969ba6d5f1a8c86d6df51923e4c7b536199e9c7ee58ed287fbebbee8a9c6:16"
+					]
+				},
+				{
+					"id": "rec-gas-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-c005969ba6d5f1a8c86d6df51923e4c7b536199e9c7ee58ed287fbebbee8a9c6:35",
+						"kb-c005969ba6d5f1a8c86d6df51923e4c7b536199e9c7ee58ed287fbebbee8a9c6:18"
+					]
+				},
+				{
+					"id": "rec-store-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "missing_from_top8",
+					"selected": [
+						"kb-c005969ba6d5f1a8c86d6df51923e4c7b536199e9c7ee58ed287fbebbee8a9c6:51"
+					]
+				},
+				{
+					"id": "rec-store-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "missing_from_top8",
+					"selected": [
+						"kb-c005969ba6d5f1a8c86d6df51923e4c7b536199e9c7ee58ed287fbebbee8a9c6:24",
+						"kb-c005969ba6d5f1a8c86d6df51923e4c7b536199e9c7ee58ed287fbebbee8a9c6:17"
+					]
+				},
+				{
+					"id": "alt-pe-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-98cc46984d4de9a0c4f5bc18354615a15051b9c8d244c10b1d329a5418945180:73"
+					]
+				},
+				{
+					"id": "alt-pe-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-98cc46984d4de9a0c4f5bc18354615a15051b9c8d244c10b1d329a5418945180:18",
+						"kb-98cc46984d4de9a0c4f5bc18354615a15051b9c8d244c10b1d329a5418945180:4"
+					]
+				},
+				{
+					"id": "alt-metallization-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-98cc46984d4de9a0c4f5bc18354615a15051b9c8d244c10b1d329a5418945180:63"
+					]
+				},
+				{
+					"id": "alt-metallization-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-98cc46984d4de9a0c4f5bc18354615a15051b9c8d244c10b1d329a5418945180:18",
+						"kb-98cc46984d4de9a0c4f5bc18354615a15051b9c8d244c10b1d329a5418945180:5"
+					]
+				},
+				{
+					"id": "alt-pack-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-98cc46984d4de9a0c4f5bc18354615a15051b9c8d244c10b1d329a5418945180:79"
+					]
+				},
+				{
+					"id": "alt-pack-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-98cc46984d4de9a0c4f5bc18354615a15051b9c8d244c10b1d329a5418945180:16",
+						"kb-98cc46984d4de9a0c4f5bc18354615a15051b9c8d244c10b1d329a5418945180:35"
+					]
+				},
+				{
+					"id": "alt-store-zh",
+					"language": "zh",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "missing_from_top8",
+					"selected": [
+						"kb-98cc46984d4de9a0c4f5bc18354615a15051b9c8d244c10b1d329a5418945180:65"
+					]
+				},
+				{
+					"id": "alt-store-en",
+					"language": "en",
+					"family": "calabrese-coffee-films",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "missing_from_top8",
+					"selected": [
+						"kb-98cc46984d4de9a0c4f5bc18354615a15051b9c8d244c10b1d329a5418945180:64"
+					]
+				},
+				{
+					"id": "green-method-zh",
+					"language": "zh",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-362bdc7c7414d932556f05f86df0fea71c2b3ee6cf8c596f7061d9056f128864:12",
+						"kb-936145af650765de3c511de35508e8e9f2bd48ce3ea8da857602464ecedfe7ed:52"
+					]
+				},
+				{
+					"id": "green-method-en",
+					"language": "en",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-362bdc7c7414d932556f05f86df0fea71c2b3ee6cf8c596f7061d9056f128864:12",
+						"kb-362bdc7c7414d932556f05f86df0fea71c2b3ee6cf8c596f7061d9056f128864:50"
+					]
+				},
+				{
+					"id": "green-instrument-zh",
+					"language": "zh",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-362bdc7c7414d932556f05f86df0fea71c2b3ee6cf8c596f7061d9056f128864:12",
+						"kb-00b04ccee90fc2b25b225ca21a1feda3c7bb2b4cd09d9c9afc8792db3ac85036:36"
+					]
+				},
+				{
+					"id": "green-instrument-en",
+					"language": "en",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-362bdc7c7414d932556f05f86df0fea71c2b3ee6cf8c596f7061d9056f128864:12",
+						"kb-c005969ba6d5f1a8c86d6df51923e4c7b536199e9c7ee58ed287fbebbee8a9c6:8"
+					]
+				},
+				{
+					"id": "green-rh-zh",
+					"language": "zh",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-362bdc7c7414d932556f05f86df0fea71c2b3ee6cf8c596f7061d9056f128864:12",
+						"kb-362bdc7c7414d932556f05f86df0fea71c2b3ee6cf8c596f7061d9056f128864:8"
+					]
+				},
+				{
+					"id": "green-rh-en",
+					"language": "en",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-362bdc7c7414d932556f05f86df0fea71c2b3ee6cf8c596f7061d9056f128864:8",
+						"kb-362bdc7c7414d932556f05f86df0fea71c2b3ee6cf8c596f7061d9056f128864:12"
+					]
+				},
+				{
+					"id": "green-fill-zh",
+					"language": "zh",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-362bdc7c7414d932556f05f86df0fea71c2b3ee6cf8c596f7061d9056f128864:12",
+						"kb-362bdc7c7414d932556f05f86df0fea71c2b3ee6cf8c596f7061d9056f128864:13"
+					]
+				},
+				{
+					"id": "green-fill-en",
+					"language": "en",
+					"family": "PMC9563479",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-362bdc7c7414d932556f05f86df0fea71c2b3ee6cf8c596f7061d9056f128864:32",
+						"kb-362bdc7c7414d932556f05f86df0fea71c2b3ee6cf8c596f7061d9056f128864:33"
+					]
+				},
+				{
+					"id": "green-gp-air-zh",
+					"language": "zh",
+					"family": "PMC9563479",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-362bdc7c7414d932556f05f86df0fea71c2b3ee6cf8c596f7061d9056f128864:12",
+						"kb-362bdc7c7414d932556f05f86df0fea71c2b3ee6cf8c596f7061d9056f128864:50"
+					]
+				},
+				{
+					"id": "green-gp-air-en",
+					"language": "en",
+					"family": "PMC9563479",
+					"table": true,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-362bdc7c7414d932556f05f86df0fea71c2b3ee6cf8c596f7061d9056f128864:12",
+						"kb-362bdc7c7414d932556f05f86df0fea71c2b3ee6cf8c596f7061d9056f128864:28"
+					]
+				},
+				{
+					"id": "green-ldpe-thick-zh",
+					"language": "zh",
+					"family": "PMC9563479",
+					"table": true,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-362bdc7c7414d932556f05f86df0fea71c2b3ee6cf8c596f7061d9056f128864:12",
+						"kb-362bdc7c7414d932556f05f86df0fea71c2b3ee6cf8c596f7061d9056f128864:1"
+					]
+				},
+				{
+					"id": "green-ldpe-thick-en",
+					"language": "en",
+					"family": "PMC9563479",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-362bdc7c7414d932556f05f86df0fea71c2b3ee6cf8c596f7061d9056f128864:12",
+						"kb-362bdc7c7414d932556f05f86df0fea71c2b3ee6cf8c596f7061d9056f128864:50"
+					]
+				},
+				{
+					"id": "scg-thick-zh",
+					"language": "zh",
+					"family": "PMC10670670",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-936145af650765de3c511de35508e8e9f2bd48ce3ea8da857602464ecedfe7ed:13",
+						"kb-936145af650765de3c511de35508e8e9f2bd48ce3ea8da857602464ecedfe7ed:27"
+					]
+				},
+				{
+					"id": "scg-thick-en",
+					"language": "en",
+					"family": "PMC10670670",
+					"table": false,
+					"before": 0,
+					"after": 1,
+					"delta": 1,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-00b04ccee90fc2b25b225ca21a1feda3c7bb2b4cd09d9c9afc8792db3ac85036:9",
+						"kb-00b04ccee90fc2b25b225ca21a1feda3c7bb2b4cd09d9c9afc8792db3ac85036:64"
+					]
+				},
+				{
+					"id": "scg-microscope-zh",
+					"language": "zh",
+					"family": "PMC10670670",
+					"table": false,
+					"before": 1,
+					"after": 0,
+					"delta": -1,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-00b04ccee90fc2b25b225ca21a1feda3c7bb2b4cd09d9c9afc8792db3ac85036:64",
+						"kb-936145af650765de3c511de35508e8e9f2bd48ce3ea8da857602464ecedfe7ed:13",
+						"kb-936145af650765de3c511de35508e8e9f2bd48ce3ea8da857602464ecedfe7ed:15"
+					]
+				},
+				{
+					"id": "scg-microscope-en",
+					"language": "en",
+					"family": "PMC10670670",
+					"table": false,
+					"before": 0,
+					"after": 0,
+					"delta": 0,
+					"whitespaceRelaxed": 0,
+					"failure": "anchor_lost_to_budget",
+					"selected": [
+						"kb-00b04ccee90fc2b25b225ca21a1feda3c7bb2b4cd09d9c9afc8792db3ac85036:64",
+						"kb-936145af650765de3c511de35508e8e9f2bd48ce3ea8da857602464ecedfe7ed:13",
+						"kb-936145af650765de3c511de35508e8e9f2bd48ce3ea8da857602464ecedfe7ed:15"
+					]
+				},
+				{
+					"id": "pla-otr-unit-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-936145af650765de3c511de35508e8e9f2bd48ce3ea8da857602464ecedfe7ed:66",
+						"kb-936145af650765de3c511de35508e8e9f2bd48ce3ea8da857602464ecedfe7ed:29"
+					]
+				},
+				{
+					"id": "pla-otr-unit-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-936145af650765de3c511de35508e8e9f2bd48ce3ea8da857602464ecedfe7ed:66",
+						"kb-936145af650765de3c511de35508e8e9f2bd48ce3ea8da857602464ecedfe7ed:12"
+					]
+				},
+				{
+					"id": "pla-otr-value-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-936145af650765de3c511de35508e8e9f2bd48ce3ea8da857602464ecedfe7ed:66",
+						"kb-936145af650765de3c511de35508e8e9f2bd48ce3ea8da857602464ecedfe7ed:44"
+					]
+				},
+				{
+					"id": "pla-otr-value-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-936145af650765de3c511de35508e8e9f2bd48ce3ea8da857602464ecedfe7ed:66",
+						"kb-936145af650765de3c511de35508e8e9f2bd48ce3ea8da857602464ecedfe7ed:12"
+					]
+				},
+				{
+					"id": "pla-wvtr-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-936145af650765de3c511de35508e8e9f2bd48ce3ea8da857602464ecedfe7ed:66",
+						"kb-936145af650765de3c511de35508e8e9f2bd48ce3ea8da857602464ecedfe7ed:29"
+					]
+				},
+				{
+					"id": "pla-wvtr-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": true,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-936145af650765de3c511de35508e8e9f2bd48ce3ea8da857602464ecedfe7ed:66",
+						"kb-936145af650765de3c511de35508e8e9f2bd48ce3ea8da857602464ecedfe7ed:29"
+					]
+				},
+				{
+					"id": "pla-oxygen-conditions-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-936145af650765de3c511de35508e8e9f2bd48ce3ea8da857602464ecedfe7ed:52",
+						"kb-936145af650765de3c511de35508e8e9f2bd48ce3ea8da857602464ecedfe7ed:51"
+					]
+				},
+				{
+					"id": "pla-oxygen-conditions-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-936145af650765de3c511de35508e8e9f2bd48ce3ea8da857602464ecedfe7ed:51",
+						"kb-936145af650765de3c511de35508e8e9f2bd48ce3ea8da857602464ecedfe7ed:44"
+					]
+				},
+				{
+					"id": "pla-flow-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-936145af650765de3c511de35508e8e9f2bd48ce3ea8da857602464ecedfe7ed:51",
+						"kb-936145af650765de3c511de35508e8e9f2bd48ce3ea8da857602464ecedfe7ed:52"
+					]
+				},
+				{
+					"id": "pla-flow-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-936145af650765de3c511de35508e8e9f2bd48ce3ea8da857602464ecedfe7ed:30",
+						"kb-936145af650765de3c511de35508e8e9f2bd48ce3ea8da857602464ecedfe7ed:51"
+					]
+				},
+				{
+					"id": "pla-water-method-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-936145af650765de3c511de35508e8e9f2bd48ce3ea8da857602464ecedfe7ed:29",
+						"kb-936145af650765de3c511de35508e8e9f2bd48ce3ea8da857602464ecedfe7ed:52"
+					]
+				},
+				{
+					"id": "pla-water-method-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-936145af650765de3c511de35508e8e9f2bd48ce3ea8da857602464ecedfe7ed:52",
+						"kb-936145af650765de3c511de35508e8e9f2bd48ce3ea8da857602464ecedfe7ed:29"
+					]
+				},
+				{
+					"id": "pla-water-delta-zh",
+					"language": "zh",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-936145af650765de3c511de35508e8e9f2bd48ce3ea8da857602464ecedfe7ed:65",
+						"kb-936145af650765de3c511de35508e8e9f2bd48ce3ea8da857602464ecedfe7ed:53"
+					]
+				},
+				{
+					"id": "pla-water-delta-en",
+					"language": "en",
+					"family": "PMC11944891",
+					"table": false,
+					"before": 1,
+					"after": 1,
+					"delta": 0,
+					"whitespaceRelaxed": 1,
+					"failure": null,
+					"selected": [
+						"kb-936145af650765de3c511de35508e8e9f2bd48ce3ea8da857602464ecedfe7ed:53",
+						"kb-936145af650765de3c511de35508e8e9f2bd48ce3ea8da857602464ecedfe7ed:65"
+					]
+				}
+			]
+		}
+	]
+}

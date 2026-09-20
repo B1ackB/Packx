@@ -1,4 +1,5 @@
 import type { PlanWorkspace } from "../src/enterprise/agentPlan";
+import type { KnowledgeView, PackagingComparisonResult } from "../src/runtime/knowledgeView";
 import { readEvents } from "../src/runtime/eventStream";
 import { summarizeModelCalls, type ModelTelemetryView } from "../src/runtime/modelTelemetry";
 import assert from "node:assert/strict";
@@ -142,6 +143,22 @@ try {
 		const value = await response.json(); assert(response.ok, `${path}: ${JSON.stringify(value)}`); return value as T;
 	}
 	const planId = (await api("/api/conversations", {})).conversation.conversationId;
+	const comparisonTask = (await api("/api/conversations", {})).conversation.conversationId;
+	const knowledgePath = `/api/conversations/${comparisonTask}/knowledge`;
+	await api(`${knowledgePath}/demo`, {});
+	let knowledge = await api<KnowledgeView>(knowledgePath);
+	for (let i = 0; i < 100 && knowledge.documents.filter((d) => d.status === "indexed").length !== 2; i++) { await new Promise((resolve) => setTimeout(resolve, 100)); knowledge = await api<KnowledgeView>(knowledgePath); }
+	assert.equal(knowledge.documents.filter((d) => d.status === "indexed").length, 2);
+	const sourceA = knowledge.documents.find((d) => d.manifest.model === "DEMO-PE-A")!, sourceB = knowledge.documents.find((d) => d.manifest.model === "DEMO-PET-B")!;
+	const pair = { left: { evidenceId: `${sourceA.versionId}:2`, parameterIndex: 0 }, right: { evidenceId: `${sourceB.versionId}:2`, parameterIndex: 0 }, region: "HK", asOf: "2026-09-17T10:00:00.000Z" };
+	const comparable = await api<PackagingComparisonResult>(`${knowledgePath}/compare`, pair);
+	assert.equal(comparable.status, "comparable"); assert.equal(comparable.comparison.difference, 0); assert.equal(comparable.conclusionAllowed, false);
+	const barrier = await api<PackagingComparisonResult>(`${knowledgePath}/compare`, { ...pair, left: { ...pair.left, parameterIndex: 1 }, right: { ...pair.right, parameterIndex: 1 } });
+	assert.equal(barrier.status, "needs_review"); assert(barrier.comparison.reasons.includes("structured_test_conditions_missing"));
+	for (const [extraHeaders, body, expectedStatus] of [[{}, { ...pair, originalValue: "invented" }, 400], [{ "x-blackx-tenant-id": "foreign" }, pair, 403]] as const) assert.equal((await fetch(`${baseUrl}${knowledgePath}/compare`, { method: "POST", headers: { ...headers, ...extraHeaders, "content-type": "application/json" }, body: JSON.stringify(body) })).status, expectedStatus);
+	await api(`${knowledgePath}/withdraw`, { versionId: sourceB.versionId });
+	assert.equal((await fetch(`${baseUrl}${knowledgePath}/compare`, { method: "POST", headers: { ...headers, "content-type": "application/json" }, body: JSON.stringify(pair) })).status, 404);
+	console.log("PASS: parameter comparison HTTP path, exact citations, equivalent thickness, blocked barrier conditions, injected values, tenant spoofing and source withdrawal; synthetic fixtures only.");
 	const planPath = `/api/conversations/${planId}/plan`;
 	let planState = (await api<{ plan: PlanWorkspace }>(planPath)).plan;
 	const planCommand = async (command: Record<string, unknown>) => {

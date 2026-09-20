@@ -1,0 +1,120 @@
+{
+	"schemaVersion": "knowledge-optimization-verification.v1",
+	"recordedAt": "2026-09-17T08:47:09.102Z",
+	"gitState": "codex/plan-subagents; uncommitted worktree; existing changes preserved",
+	"corpusHash": "46e09f7d57fc818bb6f69576d1d8050e86cb2fa7a25fbb0cd841e0bc2c7d0b89",
+	"caseHash": "0966781aba9451bea4299bd2ffaccc0046a2023e29f37dd471bfcd7d58ba147c",
+	"model": "onnx:Xenova/multilingual-e5-small@761b726dd34fb83930e26aab4e9ac3899aa1fa78:q8:384:mean:l2:512:prefix-e5:windows-480-v1:transformers-4.3.0",
+	"retrievalVersion": "packaging-fields.v1",
+	"reports": {
+		"development": {
+			"path": "docs/evidence/knowledge-optimization-development.json",
+			"sha256": "d8bc9fa90e825bdfbe227aadfd9f343cc17fdc799ccff6627c74a87ac2376a6b"
+		},
+		"regression": {
+			"path": "docs/evidence/knowledge-optimization-regression.json",
+			"sha256": "8344d45cb956ca3effa0b3d03fc9faf5ec6b62f1b40e97918016f4f3cd50c06e"
+		}
+	},
+	"sourceSha256": {
+		"src/enterprise/knowledge.ts": "f7a604ccd784d1a4614b40384829f8dff22a3092dbde23d79f0d295077ce6763",
+		"src/manufacturing/knowledgeRetrieval.ts": "82f9c904f5c6cec919036dfe22e6d4f7a43ad5a9183cfc1f401521867712fb4a",
+		"server/knowledge/ranking.ts": "a7669de9ba1a62db6a1a56b252aef39ea9aa18bf46e5e8e489c87f232df42296",
+		"server/knowledge/ranking.test.ts": "5e3f47087febf810defc3d330f4b783b158cd89c638b0cd57ee0f9ded8f25056",
+		"server/knowledge/store.ts": "5842c5341a07798c0e6fcd8bf93ccd2e2d405dcbbdd85cc73ccf72c6a139f65f",
+		"server/knowledge/service.ts": "fa38bb3ac36042fc43fa35c661a9399b5f7288598511b81d400123674b6a5522",
+		"server/index.ts": "4eb060fa5a54f2e0eba456f9b6a6e2cd03d9ea3b5d5446cc8c9bcfe17cfb2a1e",
+		"server/eval/knowledgeWorkflow.ts": "8bc1871d4f3477a9b72f777f219a97c6abcd383c157da2bfc212e20539f3b203",
+		"server/manufacturing/knowledgeApi.test.ts": "8511c1e91f6821bea354c1fc9b3a0746634048ddfe03d59c86781a3a5aa19bca",
+		"src/components/KnowledgePanel.tsx": "db8d9e79fc383b83e44e5c497ec50d20044a586678f8f5aaa81b3010a4dcfefc",
+		"eval/knowledgeOptimize.ts": "3a4eab1364413dfc15283c8d48dd571b369c42f5ed6b9a2aee712008d8b415d1",
+		"package.json": "3cfa61e3d2d7092d6d17c8526c464a6a6a5f19f783614262ea190f14cd75d2a9"
+	},
+	"checks": [
+		{
+			"command": "npm run check",
+			"status": "passed",
+			"files": 60,
+			"passed": 292,
+			"skipped": 20,
+			"logSha256": "69b602fb82cc03cc5d1d946224b860ddb0a747795d4c242f7ff14bf5602c9e37"
+		},
+		{
+			"command": "npm run test -- server/manufacturing/knowledgeApi.test.ts",
+			"status": "passed",
+			"passed": 3,
+			"note": "Final harness additionally asserts knowledge_search assessment arrives through Runtime/ContextEngine.",
+			"logSha256": "278e7133f7eafb2918c0cf98cc1c91e6a29fff4697f169a3a870de0809a3a1a6"
+		},
+		{
+			"command": "npx tsc -b",
+			"status": "passed",
+			"note": "After final integration harness change",
+			"logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+		},
+		{
+			"command": "npm run demo:knowledge",
+			"status": "passed",
+			"fabricatedDimensionRejected": true,
+			"factStatus": "unverified",
+			"paidModelCalls": 0,
+			"logSha256": "687e15b0414e3818b61a4d8bae0916f6ac417094acce5247fc508046567b391b"
+		},
+		{
+			"command": "npm run eval:knowledge",
+			"status": "completed; retrieval metrics equal historical baseline",
+			"cases": 66,
+			"metrics": [
+				{
+					"mode": "keyword",
+					"recallAt5": 0.9090909090909091,
+					"mrr": 0.9090909090909091,
+					"noAnswerAccuracy": 0.9545454545454546,
+					"citationLocatorIntegrity": 1
+				},
+				{
+					"mode": "vector",
+					"recallAt5": 0.6363636363636364,
+					"mrr": 0.6666666666666666,
+					"noAnswerAccuracy": 0.9545454545454546,
+					"citationLocatorIntegrity": 1
+				},
+				{
+					"mode": "hybrid",
+					"recallAt5": 0.9090909090909091,
+					"mrr": 0.9090909090909091,
+					"noAnswerAccuracy": 0.9090909090909091,
+					"citationLocatorIntegrity": 1
+				}
+			],
+			"logSha256": "b49783a169dba518836bacc8c2699cfce7e676d65b38501b662f16125d07dd75"
+		},
+		{
+			"command": "npm run eval:knowledge-optimize",
+			"status": "completed",
+			"cases": 30
+		},
+		{
+			"command": "npm run eval:knowledge-optimize -- --all",
+			"status": "completed; observed regression, not blind",
+			"cases": 64
+		},
+		{
+			"command": "git diff --check",
+			"status": "passed"
+		}
+	],
+	"newRegressionTests": 14,
+	"paidModelCalls": 0,
+	"newDependencies": 0,
+	"fulltextCount": 5,
+	"supplierTdsCount": 0,
+	"humanReviewedGoldenLabels": 0,
+	"liveBrowserValidation": "not repeated in this iteration",
+	"limitations": [
+		"Small research corpus, provisional labels; no industrial accuracy or independent generalization claim",
+		"Raw no-answer retrieval still 2/8; 6 production questions have structured field-gap notices, not semantic entailment",
+		"Generation correctness, cost, expert annotation accuracy, real user outcomes and production load unmeasured"
+	],
+	"costUsd": null
+}

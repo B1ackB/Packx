@@ -85,6 +85,11 @@ async function attachmentRequest(path: string, init?: RequestInit): Promise<Resp
 }
 
 export class ConversationClient {
+	knowledge(conversationId: string) { return request<import("./knowledgeView").KnowledgeView>(`/api/conversations/${encodeURIComponent(conversationId)}/knowledge`); }
+	searchKnowledge(conversationId: string, query: import("../enterprise/knowledge").KnowledgeQuery) { return request<import("./knowledgeView").KnowledgeSearchView>(`/api/conversations/${encodeURIComponent(conversationId)}/knowledge/search`, { method: "POST", body: JSON.stringify(query) }); }
+	findCoffeeProducts(conversationId: string, query: string) { return request<import("./knowledgeView").KnowledgeSearchView>(`/api/conversations/${encodeURIComponent(conversationId)}/knowledge/products`, { method: "POST", body: JSON.stringify({ query }) }); }
+	compareKnowledge(conversationId: string, input: import("./knowledgeView").PackagingComparisonInput) { return request<import("./knowledgeView").PackagingComparisonResult>(`/api/conversations/${encodeURIComponent(conversationId)}/knowledge/compare`, { method: "POST", body: JSON.stringify(input) }); }
+	knowledgeCommand(conversationId: string, action: string, payload: unknown) { return request<unknown>(`/api/conversations/${encodeURIComponent(conversationId)}/knowledge/${action}`, { method: "POST", body: JSON.stringify(payload) }); }
 	modelSettings() { return request<ModelSettingsView>("/api/model-settings"); }
 	saveModelSettings(value: ModelSettingsInput) { return request<ModelSettingsView>("/api/model-settings", { method: "PUT", body: JSON.stringify(value) }); }
 	async rename(conversationId: string, name: string, nameRevision: number, language: Language) {

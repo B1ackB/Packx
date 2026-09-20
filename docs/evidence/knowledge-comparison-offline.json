@@ -1,0 +1,2742 @@
+{
+	"schemaVersion": "knowledge-comparison.v1",
+	"executedAt": "2026-09-17T10:18:56.764Z",
+	"caseHash": "668803ac32b554e5356600eeec72e3058a052d48088fa68938114b7cb89d7f59",
+	"ruleVersion": "packaging-parameters.v2",
+	"sourceHashes": {
+		"src/manufacturing/packagingKnowledge.ts": "0d9f359fbc18e28b1dd88b0cfdc732b8b27b3c9a679c77b12c67c73e2aebca4b",
+		"server/knowledge/store.ts": "5f9802eb086bb9f89ae7cdc7328817840ca45c5b7ca0e9ebcc1f4305d7998c27",
+		"server/manufacturing/knowledgeComparison.ts": "bc76654e5e91d855faa9350b48dbc3aef09ec305bf2313999f4f32c279d38a6c",
+		"server/knowledge/validation.ts": "a40b8a7113973b96cd05917047a71c552b79feee704206c84758b801c8038f1a"
+	},
+	"baseline": {
+		"cases": 40,
+		"expectedComparable": 6,
+		"decisionAgreement": 0.575,
+		"falseComparable": 17,
+		"falseBlocked": 0
+	},
+	"current": {
+		"cases": 40,
+		"expectedComparable": 6,
+		"decisionAgreement": 1,
+		"falseComparable": 0,
+		"falseBlocked": 0
+	},
+	"groups": [
+		{
+			"origin": "synthetic_contract",
+			"cases": 32,
+			"expectedComparable": 6,
+			"decisionAgreement": 1,
+			"falseComparable": 0,
+			"falseBlocked": 0
+		},
+		{
+			"origin": "real_source_pair",
+			"cases": 8,
+			"expectedComparable": 0,
+			"decisionAgreement": 1,
+			"falseComparable": 0,
+			"falseBlocked": 0
+		}
+	],
+	"rows": [
+		{
+			"id": "thickness-mm-um",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": true,
+				"difference": 0
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": 0
+			},
+			"actual": {
+				"comparable": true,
+				"reasons": [],
+				"conditionChecks": [],
+				"left": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				},
+				"right": {
+					"name": "thickness",
+					"subject": "SYN-B",
+					"originalValue": "100",
+					"originalUnit": "µm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				},
+				"difference": 0,
+				"unit": "µm"
+			}
+		},
+		{
+			"id": "thickness-mil",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": true,
+				"difference": 0
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": 0
+			},
+			"actual": {
+				"comparable": true,
+				"reasons": [],
+				"conditionChecks": [],
+				"left": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "2",
+					"originalUnit": "mil",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 50.8,
+						"unit": "µm"
+					}
+				},
+				"right": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "50.8",
+					"originalUnit": "um",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 50.8,
+						"unit": "µm"
+					}
+				},
+				"difference": 0,
+				"unit": "µm"
+			}
+		},
+		{
+			"id": "grammage",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": true,
+				"difference": 9
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": 9
+			},
+			"actual": {
+				"comparable": true,
+				"reasons": [],
+				"conditionChecks": [],
+				"left": {
+					"name": "grammage",
+					"subject": "SYN-A",
+					"originalValue": "90",
+					"originalUnit": "g/m2",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim"
+				},
+				"right": {
+					"name": "grammage",
+					"subject": "SYN-A",
+					"originalValue": "81",
+					"originalUnit": "g/m2",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim"
+				},
+				"difference": 9,
+				"unit": "g/m2"
+			}
+		},
+		{
+			"id": "normalized-injection",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": true,
+				"difference": 0
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": 0
+			},
+			"actual": {
+				"comparable": true,
+				"reasons": [],
+				"conditionChecks": [],
+				"left": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				},
+				"right": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "100",
+					"originalUnit": "µm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				},
+				"difference": 0,
+				"unit": "µm"
+			}
+		},
+		{
+			"id": "range",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": false
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"unit_or_value_not_comparable",
+					"unit_dimension_unrecognized"
+				],
+				"conditionChecks": [],
+				"left": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				},
+				"right": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "40 and 50",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim"
+				}
+			}
+		},
+		{
+			"id": "inequality",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": false
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"unit_or_value_not_comparable",
+					"unit_dimension_unrecognized"
+				],
+				"conditionChecks": [],
+				"left": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				},
+				"right": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "<0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim"
+				}
+			}
+		},
+		{
+			"id": "tolerance",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": false
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"unit_or_value_not_comparable",
+					"unit_dimension_unrecognized"
+				],
+				"conditionChecks": [],
+				"left": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				},
+				"right": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1 ± 0.01",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim"
+				}
+			}
+		},
+		{
+			"id": "unit_mismatch",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": false
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"unit_or_value_not_comparable",
+					"unit_dimension_unrecognized"
+				],
+				"conditionChecks": [],
+				"left": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				},
+				"right": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "g/m2",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim"
+				}
+			}
+		},
+		{
+			"id": "empty_unit",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": false
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"unit_or_value_not_comparable",
+					"unit_dimension_unrecognized"
+				],
+				"conditionChecks": [],
+				"left": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				},
+				"right": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim"
+				}
+			}
+		},
+		{
+			"id": "name_mismatch",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": false
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"parameter_mismatch",
+					"unit_or_value_not_comparable",
+					"unit_dimension_unrecognized"
+				],
+				"conditionChecks": [],
+				"left": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				},
+				"right": {
+					"name": "grammage",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim"
+				}
+			}
+		},
+		{
+			"id": "scope_mismatch",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": false
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"scope_mismatch_or_missing"
+				],
+				"conditionChecks": [],
+				"left": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				},
+				"right": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "inner layer",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				}
+			}
+		},
+		{
+			"id": "method_revision",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": false
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"test_method_mismatch_or_missing"
+				],
+				"conditionChecks": [],
+				"left": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				},
+				"right": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v2",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				}
+			}
+		},
+		{
+			"id": "condition_mismatch",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": false
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"test_conditions_mismatch_or_missing"
+				],
+				"conditionChecks": [],
+				"left": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				},
+				"right": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "38 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				}
+			}
+		},
+		{
+			"id": "unknown_method",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": 0
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"test_method_mismatch_or_missing"
+				],
+				"conditionChecks": [],
+				"left": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "unknown",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				},
+				"right": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "unknown",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				}
+			}
+		},
+		{
+			"id": "unreported_method",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": 0
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"test_method_mismatch_or_missing"
+				],
+				"conditionChecks": [],
+				"left": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "未说明",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				},
+				"right": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "未说明",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				}
+			}
+		},
+		{
+			"id": "unknown_scope",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": 0
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"scope_mismatch_or_missing"
+				],
+				"conditionChecks": [],
+				"left": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "N/A",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				},
+				"right": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "N/A",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				}
+			}
+		},
+		{
+			"id": "blank_conditions",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": 0
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"test_conditions_mismatch_or_missing"
+				],
+				"conditionChecks": [],
+				"left": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": " ",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				},
+				"right": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": " ",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				}
+			}
+		},
+		{
+			"id": "unknown_conditions",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": 0
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"test_conditions_mismatch_or_missing"
+				],
+				"conditionChecks": [],
+				"left": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "not reported",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				},
+				"right": {
+					"name": "thickness",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "not reported",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"normalized": {
+						"value": 100,
+						"unit": "µm"
+					}
+				}
+			}
+		},
+		{
+			"id": "otr-complete",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": true,
+				"difference": -1
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": -1
+			},
+			"actual": {
+				"comparable": true,
+				"reasons": [],
+				"conditionChecks": [
+					{
+						"name": "temperature",
+						"left": {
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						"right": {
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						"status": "same"
+					},
+					{
+						"name": "relative_humidity",
+						"left": {
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						"right": {
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						"status": "same"
+					},
+					{
+						"name": "pressure_difference",
+						"left": {
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						"right": {
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						"status": "same"
+					},
+					{
+						"name": "gas",
+						"left": {
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						},
+						"right": {
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						},
+						"status": "same"
+					}
+				],
+				"left": {
+					"name": "OTR",
+					"subject": "SYN-A",
+					"originalValue": "2",
+					"originalUnit": "cm3/(m2 day)",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C; 0 %; 100 kPa; O2",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"testConditions": [
+						{
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						{
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						{
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						{
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						}
+					]
+				},
+				"right": {
+					"name": "OTR",
+					"subject": "SYN-B",
+					"originalValue": "3",
+					"originalUnit": "cm3/(m2 day)",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C; 0 %; 100 kPa; O2",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"testConditions": [
+						{
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						{
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						{
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						{
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						}
+					]
+				},
+				"difference": -1,
+				"unit": "cm3/(m2 day)"
+			}
+		},
+		{
+			"id": "otr-no-structured-context",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": 0
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"structured_test_conditions_missing"
+				],
+				"conditionChecks": [
+					{
+						"name": "temperature",
+						"status": "missing"
+					},
+					{
+						"name": "relative_humidity",
+						"status": "missing"
+					},
+					{
+						"name": "pressure_difference",
+						"status": "missing"
+					},
+					{
+						"name": "gas",
+						"status": "missing"
+					}
+				],
+				"left": {
+					"name": "OTR",
+					"subject": "SYN-A",
+					"originalValue": "2",
+					"originalUnit": "cm3/(m2 day)",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C; 0 %; 100 kPa; O2",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim"
+				},
+				"right": {
+					"name": "OTR",
+					"subject": "SYN-A",
+					"originalValue": "2",
+					"originalUnit": "cm3/(m2 day)",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C; 0 %; 100 kPa; O2",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim"
+				}
+			}
+		},
+		{
+			"id": "otr-missing-temperature",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": 0
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"structured_test_conditions_missing"
+				],
+				"conditionChecks": [
+					{
+						"name": "temperature",
+						"status": "missing"
+					},
+					{
+						"name": "relative_humidity",
+						"left": {
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						"right": {
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						"status": "same"
+					},
+					{
+						"name": "pressure_difference",
+						"left": {
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						"right": {
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						"status": "same"
+					},
+					{
+						"name": "gas",
+						"left": {
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						},
+						"right": {
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						},
+						"status": "same"
+					}
+				],
+				"left": {
+					"name": "OTR",
+					"subject": "SYN-A",
+					"originalValue": "2",
+					"originalUnit": "cm3/(m2 day)",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C; 0 %; 100 kPa; O2",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"testConditions": [
+						{
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						{
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						{
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						}
+					]
+				},
+				"right": {
+					"name": "OTR",
+					"subject": "SYN-A",
+					"originalValue": "2",
+					"originalUnit": "cm3/(m2 day)",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C; 0 %; 100 kPa; O2",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"testConditions": [
+						{
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						{
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						{
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "otr-missing-relative_humidity",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": 0
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"structured_test_conditions_missing"
+				],
+				"conditionChecks": [
+					{
+						"name": "temperature",
+						"left": {
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						"right": {
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						"status": "same"
+					},
+					{
+						"name": "relative_humidity",
+						"status": "missing"
+					},
+					{
+						"name": "pressure_difference",
+						"left": {
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						"right": {
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						"status": "same"
+					},
+					{
+						"name": "gas",
+						"left": {
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						},
+						"right": {
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						},
+						"status": "same"
+					}
+				],
+				"left": {
+					"name": "OTR",
+					"subject": "SYN-A",
+					"originalValue": "2",
+					"originalUnit": "cm3/(m2 day)",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C; 0 %; 100 kPa; O2",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"testConditions": [
+						{
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						{
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						{
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						}
+					]
+				},
+				"right": {
+					"name": "OTR",
+					"subject": "SYN-A",
+					"originalValue": "2",
+					"originalUnit": "cm3/(m2 day)",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C; 0 %; 100 kPa; O2",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"testConditions": [
+						{
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						{
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						{
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "otr-missing-pressure_difference",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": 0
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"structured_test_conditions_missing"
+				],
+				"conditionChecks": [
+					{
+						"name": "temperature",
+						"left": {
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						"right": {
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						"status": "same"
+					},
+					{
+						"name": "relative_humidity",
+						"left": {
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						"right": {
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						"status": "same"
+					},
+					{
+						"name": "pressure_difference",
+						"status": "missing"
+					},
+					{
+						"name": "gas",
+						"left": {
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						},
+						"right": {
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						},
+						"status": "same"
+					}
+				],
+				"left": {
+					"name": "OTR",
+					"subject": "SYN-A",
+					"originalValue": "2",
+					"originalUnit": "cm3/(m2 day)",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C; 0 %; 100 kPa; O2",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"testConditions": [
+						{
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						{
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						{
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						}
+					]
+				},
+				"right": {
+					"name": "OTR",
+					"subject": "SYN-A",
+					"originalValue": "2",
+					"originalUnit": "cm3/(m2 day)",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C; 0 %; 100 kPa; O2",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"testConditions": [
+						{
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						{
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						{
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "otr-missing-gas",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": 0
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"structured_test_conditions_missing"
+				],
+				"conditionChecks": [
+					{
+						"name": "temperature",
+						"left": {
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						"right": {
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						"status": "same"
+					},
+					{
+						"name": "relative_humidity",
+						"left": {
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						"right": {
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						"status": "same"
+					},
+					{
+						"name": "pressure_difference",
+						"left": {
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						"right": {
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						"status": "same"
+					},
+					{
+						"name": "gas",
+						"status": "missing"
+					}
+				],
+				"left": {
+					"name": "OTR",
+					"subject": "SYN-A",
+					"originalValue": "2",
+					"originalUnit": "cm3/(m2 day)",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C; 0 %; 100 kPa; O2",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"testConditions": [
+						{
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						{
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						{
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						}
+					]
+				},
+				"right": {
+					"name": "OTR",
+					"subject": "SYN-A",
+					"originalValue": "2",
+					"originalUnit": "cm3/(m2 day)",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C; 0 %; 100 kPa; O2",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"testConditions": [
+						{
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						{
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						{
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "otr-structured-mismatch",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": 0
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"structured_test_conditions_mismatch"
+				],
+				"conditionChecks": [
+					{
+						"name": "temperature",
+						"left": {
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						"right": {
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						"status": "same"
+					},
+					{
+						"name": "relative_humidity",
+						"left": {
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						"right": {
+							"name": "relative_humidity",
+							"value": "50",
+							"unit": "%"
+						},
+						"status": "different"
+					},
+					{
+						"name": "pressure_difference",
+						"left": {
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						"right": {
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						"status": "same"
+					},
+					{
+						"name": "gas",
+						"left": {
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						},
+						"right": {
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						},
+						"status": "same"
+					}
+				],
+				"left": {
+					"name": "OTR",
+					"subject": "SYN-A",
+					"originalValue": "2",
+					"originalUnit": "cm3/(m2 day)",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C; 0 %; 100 kPa; O2",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"testConditions": [
+						{
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						{
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						{
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						{
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						}
+					]
+				},
+				"right": {
+					"name": "OTR",
+					"subject": "SYN-A",
+					"originalValue": "2",
+					"originalUnit": "cm3/(m2 day)",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C; 0 %; 100 kPa; O2",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"testConditions": [
+						{
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						{
+							"name": "relative_humidity",
+							"value": "50",
+							"unit": "%"
+						},
+						{
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						{
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "otr-pressure-unit-mismatch",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": 0
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"structured_test_conditions_mismatch"
+				],
+				"conditionChecks": [
+					{
+						"name": "temperature",
+						"left": {
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						"right": {
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						"status": "same"
+					},
+					{
+						"name": "relative_humidity",
+						"left": {
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						"right": {
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						"status": "same"
+					},
+					{
+						"name": "pressure_difference",
+						"left": {
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						"right": {
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "Pa"
+						},
+						"status": "different"
+					},
+					{
+						"name": "gas",
+						"left": {
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						},
+						"right": {
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						},
+						"status": "same"
+					}
+				],
+				"left": {
+					"name": "OTR",
+					"subject": "SYN-A",
+					"originalValue": "2",
+					"originalUnit": "cm3/(m2 day)",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C; 0 %; 100 kPa; O2",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"testConditions": [
+						{
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						{
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						{
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						{
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						}
+					]
+				},
+				"right": {
+					"name": "OTR",
+					"subject": "SYN-A",
+					"originalValue": "2",
+					"originalUnit": "cm3/(m2 day)",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C; 0 %; 100 kPa; O2",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"testConditions": [
+						{
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						{
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						{
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "Pa"
+						},
+						{
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "wvtr-complete",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": true,
+				"difference": -1
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": -1
+			},
+			"actual": {
+				"comparable": true,
+				"reasons": [],
+				"conditionChecks": [
+					{
+						"name": "temperature",
+						"left": {
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						"right": {
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						"status": "same"
+					},
+					{
+						"name": "humidity_source",
+						"left": {
+							"name": "humidity_source",
+							"value": "90",
+							"unit": "%"
+						},
+						"right": {
+							"name": "humidity_source",
+							"value": "90",
+							"unit": "%"
+						},
+						"status": "same"
+					},
+					{
+						"name": "humidity_receiver",
+						"left": {
+							"name": "humidity_receiver",
+							"value": "0",
+							"unit": "%"
+						},
+						"right": {
+							"name": "humidity_receiver",
+							"value": "0",
+							"unit": "%"
+						},
+						"status": "same"
+					}
+				],
+				"left": {
+					"name": "WVTR",
+					"subject": "SYN-A",
+					"originalValue": "2",
+					"originalUnit": "g/(m2 day)",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C; 90 % to 0 %",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"testConditions": [
+						{
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						{
+							"name": "humidity_source",
+							"value": "90",
+							"unit": "%"
+						},
+						{
+							"name": "humidity_receiver",
+							"value": "0",
+							"unit": "%"
+						}
+					]
+				},
+				"right": {
+					"name": "WVTR",
+					"subject": "SYN-A",
+					"originalValue": "3",
+					"originalUnit": "g/(m2 day)",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C; 90 % to 0 %",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"testConditions": [
+						{
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						{
+							"name": "humidity_source",
+							"value": "90",
+							"unit": "%"
+						},
+						{
+							"name": "humidity_receiver",
+							"value": "0",
+							"unit": "%"
+						}
+					]
+				},
+				"difference": -1,
+				"unit": "g/(m2 day)"
+			}
+		},
+		{
+			"id": "wvtr-missing-receiver",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": 0
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"structured_test_conditions_missing"
+				],
+				"conditionChecks": [
+					{
+						"name": "temperature",
+						"left": {
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						"right": {
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						"status": "same"
+					},
+					{
+						"name": "humidity_source",
+						"left": {
+							"name": "humidity_source",
+							"value": "90",
+							"unit": "%"
+						},
+						"right": {
+							"name": "humidity_source",
+							"value": "90",
+							"unit": "%"
+						},
+						"status": "same"
+					},
+					{
+						"name": "humidity_receiver",
+						"status": "missing"
+					}
+				],
+				"left": {
+					"name": "WVTR",
+					"subject": "SYN-A",
+					"originalValue": "2",
+					"originalUnit": "g/(m2 day)",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C; 90 % to 0 %",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"testConditions": [
+						{
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						{
+							"name": "humidity_source",
+							"value": "90",
+							"unit": "%"
+						}
+					]
+				},
+				"right": {
+					"name": "WVTR",
+					"subject": "SYN-A",
+					"originalValue": "2",
+					"originalUnit": "g/(m2 day)",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C; 90 % to 0 %",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"testConditions": [
+						{
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						{
+							"name": "humidity_source",
+							"value": "90",
+							"unit": "%"
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "otr-ambiguous-label",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": 0
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"parameter_not_supported",
+					"parameter_semantics_require_review",
+					"unit_dimension_unrecognized"
+				],
+				"conditionChecks": [
+					{
+						"name": "temperature",
+						"left": {
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						"right": {
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						"status": "same"
+					},
+					{
+						"name": "relative_humidity",
+						"left": {
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						"right": {
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						"status": "same"
+					},
+					{
+						"name": "pressure_difference",
+						"left": {
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						"right": {
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						"status": "same"
+					},
+					{
+						"name": "gas",
+						"left": {
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						},
+						"right": {
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						},
+						"status": "same"
+					}
+				],
+				"left": {
+					"name": "OTR_as_labelled",
+					"subject": "SYN-A",
+					"originalValue": "2",
+					"originalUnit": "cm3/(m2 day)",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C; 0 %; 100 kPa; O2",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"testConditions": [
+						{
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						{
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						{
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						{
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						}
+					]
+				},
+				"right": {
+					"name": "OTR_as_labelled",
+					"subject": "SYN-A",
+					"originalValue": "2",
+					"originalUnit": "cm3/(m2 day)",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C; 0 %; 100 kPa; O2",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim",
+					"testConditions": [
+						{
+							"name": "temperature",
+							"value": "23",
+							"unit": "C"
+						},
+						{
+							"name": "relative_humidity",
+							"value": "0",
+							"unit": "%"
+						},
+						{
+							"name": "pressure_difference",
+							"value": "100",
+							"unit": "kPa"
+						},
+						{
+							"name": "gas",
+							"value": "O2",
+							"unit": ""
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "not-physical-price",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": 0
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"parameter_not_supported",
+					"unit_dimension_unrecognized"
+				],
+				"conditionChecks": [],
+				"left": {
+					"name": "price",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim"
+				},
+				"right": {
+					"name": "price",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim"
+				}
+			}
+		},
+		{
+			"id": "not-physical-certificate",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": 0
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"parameter_not_supported",
+					"unit_dimension_unrecognized"
+				],
+				"conditionChecks": [],
+				"left": {
+					"name": "certificate",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim"
+				},
+				"right": {
+					"name": "certificate",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim"
+				}
+			}
+		},
+		{
+			"id": "not-physical-shelf_life",
+			"origin": "synthetic_contract",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": true,
+				"difference": 0
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"parameter_not_supported",
+					"unit_dimension_unrecognized"
+				],
+				"conditionChecks": [],
+				"left": {
+					"name": "shelf_life",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim"
+				},
+				"right": {
+					"name": "shelf_life",
+					"subject": "SYN-A",
+					"originalValue": "0.1",
+					"originalUnit": "mm",
+					"method": "synthetic-method-v1",
+					"conditions": "23 C",
+					"scope": "whole flat film",
+					"verification": "unverified",
+					"authority": "supplier_claim"
+				}
+			}
+		},
+		{
+			"id": "rec-std-otr",
+			"origin": "real_source_pair",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": false
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"test_method_mismatch_or_missing",
+					"test_conditions_mismatch_or_missing",
+					"structured_test_conditions_missing",
+					"unit_or_value_not_comparable",
+					"unit_dimension_unrecognized"
+				],
+				"conditionChecks": [
+					{
+						"name": "temperature",
+						"status": "missing"
+					},
+					{
+						"name": "relative_humidity",
+						"status": "missing"
+					},
+					{
+						"name": "pressure_difference",
+						"status": "missing"
+					},
+					{
+						"name": "gas",
+						"status": "missing"
+					}
+				],
+				"left": {
+					"name": "OTR",
+					"subject": "STD",
+					"originalValue": "<1.0",
+					"originalUnit": "",
+					"method": "",
+					"conditions": "",
+					"scope": "Research sample only; not a supplier specification or current-order approval",
+					"verification": "unverified",
+					"authority": "research_report"
+				},
+				"right": {
+					"name": "OTR",
+					"subject": "REC",
+					"originalValue": "<0.5",
+					"originalUnit": "",
+					"method": "",
+					"conditions": "",
+					"scope": "Research sample only; not a supplier specification or current-order approval",
+					"verification": "unverified",
+					"authority": "research_report"
+				}
+			}
+		},
+		{
+			"id": "rec-std-grammage",
+			"origin": "real_source_pair",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": false
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"test_method_mismatch_or_missing",
+					"test_conditions_mismatch_or_missing"
+				],
+				"conditionChecks": [],
+				"left": {
+					"name": "grammage",
+					"subject": "STD",
+					"originalValue": "99",
+					"originalUnit": "g/m2",
+					"method": "",
+					"conditions": "",
+					"scope": "Research sample only; not a supplier specification or current-order approval",
+					"verification": "unverified",
+					"authority": "research_report"
+				},
+				"right": {
+					"name": "grammage",
+					"subject": "REC",
+					"originalValue": "81",
+					"originalUnit": "g/m2",
+					"method": "",
+					"conditions": "",
+					"scope": "Research sample only; not a supplier specification or current-order approval",
+					"verification": "unverified",
+					"authority": "research_report"
+				}
+			}
+		},
+		{
+			"id": "rec-std-layer",
+			"origin": "real_source_pair",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": false
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"test_method_mismatch_or_missing",
+					"test_conditions_mismatch_or_missing"
+				],
+				"conditionChecks": [],
+				"left": {
+					"name": "thickness",
+					"subject": "STD/PET",
+					"originalValue": "12",
+					"originalUnit": "microns",
+					"method": "",
+					"conditions": "",
+					"scope": "Research sample only; not a supplier specification or current-order approval",
+					"verification": "unverified",
+					"authority": "research_report",
+					"normalized": {
+						"value": 12,
+						"unit": "µm"
+					}
+				},
+				"right": {
+					"name": "thickness",
+					"subject": "REC/OPPHP",
+					"originalValue": "15",
+					"originalUnit": "microns",
+					"method": "",
+					"conditions": "",
+					"scope": "Research sample only; not a supplier specification or current-order approval",
+					"verification": "unverified",
+					"authority": "research_report",
+					"normalized": {
+						"value": 15,
+						"unit": "µm"
+					}
+				}
+			}
+		},
+		{
+			"id": "alt-std-otr",
+			"origin": "real_source_pair",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": false
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"test_method_mismatch_or_missing",
+					"test_conditions_mismatch_or_missing",
+					"structured_test_conditions_missing",
+					"unit_or_value_not_comparable",
+					"unit_dimension_unrecognized"
+				],
+				"conditionChecks": [
+					{
+						"name": "temperature",
+						"status": "missing"
+					},
+					{
+						"name": "relative_humidity",
+						"status": "missing"
+					},
+					{
+						"name": "pressure_difference",
+						"status": "missing"
+					},
+					{
+						"name": "gas",
+						"status": "missing"
+					}
+				],
+				"left": {
+					"name": "OTR",
+					"subject": "STD",
+					"originalValue": "<1.0",
+					"originalUnit": "",
+					"method": "",
+					"conditions": "",
+					"scope": "Research sample only; not a supplier specification or current-order approval",
+					"verification": "unverified",
+					"authority": "research_report"
+				},
+				"right": {
+					"name": "OTR",
+					"subject": "ALT",
+					"originalValue": "<1.5",
+					"originalUnit": "",
+					"method": "",
+					"conditions": "",
+					"scope": "Research sample only; not a supplier specification or current-order approval",
+					"verification": "unverified",
+					"authority": "research_report"
+				}
+			}
+		},
+		{
+			"id": "green-air",
+			"origin": "real_source_pair",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": false
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"test_method_mismatch_or_missing",
+					"test_conditions_mismatch_or_missing",
+					"structured_test_conditions_missing",
+					"unit_or_value_not_comparable"
+				],
+				"conditionChecks": [
+					{
+						"name": "temperature",
+						"status": "missing"
+					},
+					{
+						"name": "relative_humidity",
+						"status": "missing"
+					},
+					{
+						"name": "pressure_difference",
+						"status": "missing"
+					}
+				],
+				"left": {
+					"name": "air_permeability",
+					"subject": "LDPE",
+					"originalValue": "101.47 ± 2.70",
+					"originalUnit": "L/m2 s",
+					"method": "",
+					"conditions": "",
+					"scope": "Research sample only; not a supplier specification or current-order approval",
+					"verification": "unverified",
+					"authority": "research_report"
+				},
+				"right": {
+					"name": "air_permeability",
+					"subject": "GP",
+					"originalValue": "0.538 ± 0.04",
+					"originalUnit": "L/m2 s",
+					"method": "",
+					"conditions": "",
+					"scope": "Research sample only; not a supplier specification or current-order approval",
+					"verification": "unverified",
+					"authority": "research_report"
+				}
+			}
+		},
+		{
+			"id": "green-thickness",
+			"origin": "real_source_pair",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": false
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"test_method_mismatch_or_missing",
+					"test_conditions_mismatch_or_missing",
+					"unit_or_value_not_comparable",
+					"unit_dimension_unrecognized"
+				],
+				"conditionChecks": [],
+				"left": {
+					"name": "thickness",
+					"subject": "LDPE",
+					"originalValue": "0.075 ± 0.00",
+					"originalUnit": "mm",
+					"method": "",
+					"conditions": "",
+					"scope": "Research sample only; not a supplier specification or current-order approval",
+					"verification": "unverified",
+					"authority": "research_report"
+				},
+				"right": {
+					"name": "thickness",
+					"subject": "GP",
+					"originalValue": "0.124 ± 0.00",
+					"originalUnit": "mm",
+					"method": "",
+					"conditions": "",
+					"scope": "Research sample only; not a supplier specification or current-order approval",
+					"verification": "unverified",
+					"authority": "research_report"
+				}
+			}
+		},
+		{
+			"id": "pla-otr-label",
+			"origin": "real_source_pair",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": false
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"parameter_not_supported",
+					"parameter_semantics_require_review",
+					"test_method_mismatch_or_missing",
+					"test_conditions_mismatch_or_missing",
+					"unit_dimension_unrecognized"
+				],
+				"conditionChecks": [],
+				"left": {
+					"name": "OTR_as_labelled",
+					"subject": "PLA-C3",
+					"originalValue": "7",
+					"originalUnit": "cm3 mm/(m2·d·0.1 MPa)",
+					"method": "",
+					"conditions": "",
+					"scope": "Research sample only; not a supplier specification or current-order approval",
+					"verification": "unverified",
+					"authority": "research_report"
+				},
+				"right": {
+					"name": "OTR_as_labelled",
+					"subject": "PLA-O3",
+					"originalValue": "15",
+					"originalUnit": "cm3 mm/(m2·d·0.1 MPa)",
+					"method": "",
+					"conditions": "",
+					"scope": "Research sample only; not a supplier specification or current-order approval",
+					"verification": "unverified",
+					"authority": "research_report"
+				}
+			}
+		},
+		{
+			"id": "pla-wvtr",
+			"origin": "real_source_pair",
+			"expected": {
+				"comparable": false
+			},
+			"baseline": {
+				"comparable": false
+			},
+			"actual": {
+				"comparable": false,
+				"reasons": [
+					"test_method_mismatch_or_missing",
+					"test_conditions_mismatch_or_missing",
+					"structured_test_conditions_missing"
+				],
+				"conditionChecks": [
+					{
+						"name": "temperature",
+						"status": "missing"
+					},
+					{
+						"name": "humidity_source",
+						"status": "missing"
+					},
+					{
+						"name": "humidity_receiver",
+						"status": "missing"
+					}
+				],
+				"left": {
+					"name": "WVTR",
+					"subject": "PLA-C3",
+					"originalValue": "2.61",
+					"originalUnit": "g/m2·d",
+					"method": "",
+					"conditions": "",
+					"scope": "Research sample only; not a supplier specification or current-order approval",
+					"verification": "unverified",
+					"authority": "research_report"
+				},
+				"right": {
+					"name": "WVTR",
+					"subject": "PLA-O3",
+					"originalValue": "3.18",
+					"originalUnit": "g/m2·d",
+					"method": "",
+					"conditions": "",
+					"scope": "Research sample only; not a supplier specification or current-order approval",
+					"verification": "unverified",
+					"authority": "research_report"
+				}
+			}
+		}
+	],
+	"live": null,
+	"hardware": {
+		"cpu": "Apple M5",
+		"cores": 10,
+		"memoryBytes": 25769803776,
+		"platform": "darwin",
+		"release": "25.6.0",
+		"node": "v24.14.0",
+		"concurrency": 1
+	},
+	"paidModelCalls": 0,
+	"generationCalls": 0,
+	"costUsd": null,
+	"labelLimitations": "32 authored contract cases and 8 source-checked research pairs. Not human expert gold, not semantic entailment, not independent supplier-data generalization. Real-pair group contains no comparable positive examples."
+}

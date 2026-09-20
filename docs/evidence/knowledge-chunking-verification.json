@@ -1,0 +1,36 @@
+{
+	"verifiedAt": "2026-09-17T11:50:17.131Z",
+	"protocolHash": "86f13865ba91f93ec80701a95dab0c17748cdbc45a890118c58f55c66c107c46",
+	"checks": [
+		{
+			"command": "npm run check",
+			"passed": true,
+			"files": 62,
+			"testsPassed": 352,
+			"testsSkipped": 20
+		},
+		{
+			"command": "npx tsc -p tsconfig.server.json",
+			"passed": true
+		},
+		{
+			"command": "npx vitest run server/knowledge/chunkingEval.test.ts",
+			"passed": true,
+			"testsPassed": 5
+		},
+		{
+			"command": "npm run eval:knowledge-chunking (second invocation)",
+			"passed": true,
+			"cachedVariants": 7,
+			"runsUnchanged": true,
+			"indexingEventsThisInvocation": 0
+		},
+		{
+			"command": "node --import tsx eval/knowledgeChunkingAnalysis.ts",
+			"passed": true
+		}
+	],
+	"generationCalls": 0,
+	"paidApiCalls": 0,
+	"newDependencies": 0
+}

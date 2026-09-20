@@ -1,0 +1,132 @@
+{
+	"schema": "knowledge-overlap-rerank.v3",
+	"corpusHash": "44d201562294ddb6d659828d9707c06fe5e00eb52ef032b46a360adc3f71f7ab",
+	"caseHash": "73752989cf7104231317d26d882721897352564eaad35eaa3b578787661a1a97",
+	"overlaps": [
+		0,
+		32,
+		64
+	],
+	"chunking": "Unchanged sentence-500 base boundaries; prepend complete trailing sentences within the same original paragraph up to 0/32/64 E5 tokens. Never split a sentence to fill overlap. Actual overlap can be zero. Table rows/headers/units/conditions/footnotes unchanged.",
+	"retrieval": {
+		"candidateK": 20,
+		"returnedK": 8,
+		"diagnosticK": 5,
+		"budgetTokens": 1024,
+		"paths": [
+			"keyword",
+			"vector",
+			"hybrid",
+			"hybrid-top20",
+			"hybrid-rerank20"
+		],
+		"policy": "packaging-fields.v1",
+		"rerankQuery": "Original question, no translation or rewriting",
+		"rerankScores": "Uncalibrated logits; descending stable sort; no acceptance threshold; oversized pairs split at whitespace and use max window score; full evidence retained"
+	},
+	"embedding": {
+		"schemaVersion": "knowledge-model.v1",
+		"model": "Xenova/multilingual-e5-small",
+		"revision": "761b726dd34fb83930e26aab4e9ac3899aa1fa78",
+		"dtype": "q8",
+		"dimensions": 384,
+		"pooling": "mean",
+		"normalized": true,
+		"maxTokens": 512,
+		"prefix": {
+			"query": "query: ",
+			"passage": "passage: "
+		},
+		"runtime": "@huggingface/transformers@4.3.0",
+		"license": "MIT (upstream intfloat/multilingual-e5-small); ONNX conversion by Xenova",
+		"preparedAt": "2026-09-17T07:42:08.320Z",
+		"files": [
+			{
+				"path": "Xenova/multilingual-e5-small/761b726dd34fb83930e26aab4e9ac3899aa1fa78/config.json",
+				"sha256": "cb99455288675345e1a4f411438d5d0adbba5fbd3a67ea4fb03c015433b996c1",
+				"bytes": 658
+			},
+			{
+				"path": "Xenova/multilingual-e5-small/761b726dd34fb83930e26aab4e9ac3899aa1fa78/onnx/model_quantized.onnx",
+				"sha256": "f80102d3f2a1229f387d3c81909990d8945513e347b0eab049f7de3c6f98c193",
+				"bytes": 118308185
+			},
+			{
+				"path": "Xenova/multilingual-e5-small/761b726dd34fb83930e26aab4e9ac3899aa1fa78/tokenizer.json",
+				"sha256": "0b44a9d7b51c3c62626640cda0e2c2f70fdacdc25bbbd68038369d14ebdf4c39",
+				"bytes": 17082730
+			},
+			{
+				"path": "Xenova/multilingual-e5-small/761b726dd34fb83930e26aab4e9ac3899aa1fa78/tokenizer_config.json",
+				"sha256": "a1d6bc8734a6f635dc158508bef000f8e2e5a759c7d92f984b2c86e5ff53425b",
+				"bytes": 443
+			},
+			{
+				"path": "Xenova/multilingual-e5-small/config.json",
+				"sha256": "cb99455288675345e1a4f411438d5d0adbba5fbd3a67ea4fb03c015433b996c1",
+				"bytes": 658
+			}
+		]
+	},
+	"reranker": {
+		"model": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1",
+		"revision": "1427fd652930e4ba29e8149678df786c240d8825",
+		"license": "Apache-2.0",
+		"source": "https://huggingface.co/cross-encoder/mmarco-mMiniLMv2-L12-H384-v1/tree/1427fd652930e4ba29e8149678df786c240d8825",
+		"preparedAt": "2026-09-18T02:29:01.662Z",
+		"quantization": "qint8_arm64",
+		"runtime": "@huggingface/transformers@4.3.0",
+		"files": [
+			{
+				"path": "README.md",
+				"bytes": 2278,
+				"sha256": "474736a65d6393a060119a8dc304563af67af4d8d86ccfee4a05dd0df107fc11"
+			},
+			{
+				"path": "config.json",
+				"bytes": 891,
+				"sha256": "cc2cfe51aa3fd759d21d21acf5dfd6994aa67a3c9210636d22e143699d336c77"
+			},
+			{
+				"path": "tokenizer.json",
+				"bytes": 17082660,
+				"sha256": "62c24cdc13d4c9952d63718d6c9fa4c287974249e16b7ade6d5a85e7bbb75626"
+			},
+			{
+				"path": "tokenizer_config.json",
+				"bytes": 435,
+				"sha256": "e7fbfbfa6347b4e414c1cee50d142e2c2f9a895dad68b068ae83a8b564c3837e"
+			},
+			{
+				"path": "special_tokens_map.json",
+				"bytes": 239,
+				"sha256": "378eb3bf733eb16e65792d7e3fda5b8a4631387ca04d2015199c4d4f22ae554d"
+			},
+			{
+				"path": "onnx/model_qint8_arm64.onnx",
+				"bytes": 118620017,
+				"sha256": "1825907d6c1a9001ff78124780bbde20a614a8c3df3b63409cf3c72c6fe5c8b4"
+			}
+		]
+	},
+	"node": "v24.14.0",
+	"icu": "78.2",
+	"sourceHashes": {
+		"eval/knowledgeOverlap.ts": "ba3cf4641132de8097a25cb5e06d3896a099344fb273a1ad2cc05a4038a404a7",
+		"eval/knowledgeOverlapCases.ts": "e53a2c7a69161d159b29bc9c6e7562fabf35a99a2f5c430889e4946040156285",
+		"eval/knowledgeOverlapSupport.ts": "7960fcf7ff4d8bce2b5c3b1a7c7b52276a71564cf0b8026c03d691c6ae5ede6d",
+		"eval/knowledgeSentenceSupport.ts": "9f6847ca87c2e2edfe7bdff384231c5060a6414ed831c37637c0362f1c851b0b",
+		"eval/knowledgeChunkingSupport.ts": "72a2dbec8429f1d3a2ad0f7366c6083bf4d2ab905431fe3950df1274517d009f",
+		"server/knowledge/store.ts": "e49b27a66ea605ecee9ea328ffb88949cd60c64a573c89800b51190611469f32",
+		"server/knowledge/ranking.ts": "a902f2419639e0ab4c4f7fd979b9965be83118b0aab320c7adc34da2192390c0",
+		"server/knowledge/reranking.ts": "f0e5b2406f67b7f5721a8b54b91c0c1b9a30c489970f722ab4a80e43187f0b66",
+		"server/knowledge/onnxReranker.ts": "c0c36291fb3f28a8256de978ddd04a9b19877c607a05376cd2ab9f1cdd26d452",
+		"server/knowledge/onnxEmbedding.ts": "bf8e9c2a84f8b4557a5d50e0b4710f054314ea27704b9d359345427503fc1728",
+		"server/knowledge/validation.ts": "a40b8a7113973b96cd05917047a71c552b79feee704206c84758b801c8038f1a",
+		"server/knowledge/jats.ts": "964e448e6ff17a2a45faacca627d990e2e156f243e361ac918e1cbdc6d7349e4",
+		"server/manufacturing/coffeeSupplement.ts": "50ff1aa9e552ab0efb9183641a24cbdc79523419c6b311dcf2046596babc3435",
+		"src/manufacturing/knowledgeRetrieval.ts": "331d8745a6cdd524cab80899930f180774b004aeb4bfb43466bc6ee063d10242"
+	},
+	"labels": "64 previously observed questions plus 16 new bilingual source-checked questions from two independent new families; new questions frozen before V3 execution. No expert gold. All paths use exactly the same seven documents and 80 cases; not directly comparable to V2's five-document totals.",
+	"decisionRule": "Primary metric: complete source bundle at 1024 tokens for hybrid and reranked hybrid. Report wins/losses and new-family slice. Prefer no overlap on ties; do not claim generalization from 2 families/16 provisional questions. Reranker latency/cost separately measured. No generation."
+}

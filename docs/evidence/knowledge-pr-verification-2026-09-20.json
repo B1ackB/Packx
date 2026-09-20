@@ -1,0 +1,104 @@
+{
+	"schemaVersion": "knowledge-pr-verification.v1",
+	"verifiedAt": "2026-09-20T04:40:10.940Z",
+	"branch": "codex/packaging-knowledge-rag",
+	"baseCommit": "a0a78fb06dddfd319ee5c8e257a2be70d701438d",
+	"environment": {
+		"node": "v24.14.0",
+		"platform": "darwin",
+		"architecture": "arm64"
+	},
+	"checks": [
+		{
+			"command": "npm run check",
+			"passed": true,
+			"testFiles": 65,
+			"testsPassed": 366,
+			"testsSkipped": 20,
+			"clientTypecheck": true,
+			"clientBuild": true
+		},
+		{
+			"command": "npx tsc -p tsconfig.server.json",
+			"passed": true
+		},
+		{
+			"command": "npm run eval:knowledge",
+			"passed": true,
+			"kind": "synthetic lexical baseline; not semantic model quality"
+		},
+		{
+			"command": "npm run demo:knowledge",
+			"passed": true,
+			"kind": "scripted generation through actual Tool/ContextEngine/Requirement Brief",
+			"fabricatedDimensionRejected": true,
+			"parameterState": "unverified"
+		},
+		{
+			"command": "npm run eval:m2",
+			"passed": true,
+			"fixtures": 10
+		},
+		{
+			"command": "npm run eval:knowledge-replay -- v1",
+			"passed": true,
+			"kind": "frozen source hash and cached result replay; not fresh model inference",
+			"sourceSnapshotVerified": true,
+			"currentSourcesUnchanged": true,
+			"originalReportsUnchanged": true
+		},
+		{
+			"command": "npm run eval:knowledge-replay -- v2",
+			"passed": true,
+			"kind": "frozen source hash and cached result replay; not fresh model inference",
+			"sourceSnapshotVerified": true,
+			"currentSourcesUnchanged": true,
+			"originalReportsUnchanged": true
+		},
+		{
+			"command": "npm run eval:knowledge-overlap",
+			"passed": true,
+			"kind": "frozen source hash and cached result replay; not fresh model inference",
+			"sourceSnapshotVerified": true,
+			"currentSourcesUnchanged": true,
+			"originalReportsUnchanged": true
+		}
+	],
+	"publicationScope": {
+		"licensedResearchFulltexts": 7,
+		"license": "CC BY 4.0; source attribution and unchanged original snapshots retained",
+		"excludedRestrictedFulltexts": 1,
+		"excludedRestrictedFile": "PMC11031754; metadata only",
+		"supplierDirectoryRecords": 6,
+		"supplierTechnicalFulltexts": 0,
+		"privateData": false,
+		"modelWeights": false,
+		"environmentFiles": false,
+		"localBusinessDatabase": false
+	},
+	"paidModelCalls": 0,
+	"priorLiveConnectionEvidence": "knowledge-overlap-rerank-verification-v3.json",
+	"limitations": [
+		"Current tests are local/offline; no new real-user or paid-generation validation.",
+		"Frozen research evaluation labels remain provisional and do not establish supplier-product suitability.",
+		"Local business connection was verified on 2026-09-18; this PR check did not modify the live business database."
+	],
+	"artifactHashes": [
+		{
+			"path": "docs/evidence/knowledge-overlap-rerank-v3.json",
+			"byteSha256": "f9c0e728f710579463195bef70e333cb690f609a870220cb8f1d5c0097cd9390"
+		},
+		{
+			"path": "docs/evidence/knowledge-overlap-analysis-v3.json",
+			"byteSha256": "93907257bbe58601b70025020a6d02d45c4e142337ddba3950d4aa0e146f1ca3"
+		},
+		{
+			"path": "docs/evidence/knowledge-reranker-lock.json",
+			"byteSha256": "b3bd54740fdb6dc30fe755703a2faff3eb094574a66c21c90267f76ed638e878"
+		},
+		{
+			"path": "data/knowledge/chunking-v3/protocol.json",
+			"byteSha256": "17034e4a34a6d6184b4013a283f1b336da29757c702c507e2975162211a435f5"
+		}
+	]
+}
