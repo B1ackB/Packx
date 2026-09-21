@@ -1,5 +1,7 @@
 # ADR-0012：真实本地文件与全写入审批
 
+> 后续修订：[ADR-0025](0025-evidence-bound-recovery-and-explicit-degradation.md) 增加有证据的文件结果对账，以及通过新审批恢复历史版本的补偿操作。
+
 > 历史记录：目录预授权交互已由 [ADR-0013](../adr/0013-just-in-time-file-approval.md) 替代。当前使用 Agent 发起的单次文件操作审批。
 
 - 状态：Accepted；2026-09-05。

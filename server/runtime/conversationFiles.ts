@@ -2,7 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { constants, closeSync, existsSync, fsyncSync, lstatSync, mkdirSync, openSync, readFileSync, realpathSync, renameSync, unlinkSync, writeFileSync } from "node:fs";
 import { isAbsolute, join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
-import type { AgentHostTool, AgentToolApprovalPort, AgentToolExecutionContext } from "../../src/agent/contracts";
+import type { AgentHostTool, AgentToolApprovalPort, AgentToolExecutionContext, AgentToolExecutionRecord } from "../../src/agent/contracts";
 import type { ConversationFilesView, FileApprovalView, TaskFileVersion } from "../../src/runtime/conversationFiles";
 
 export const conversationFileToolNames = ["file_list", "file_read", "file_write", "file_delete"] as const;
@@ -10,8 +10,8 @@ export { maxTaskFileBytes, TaskFileError } from "./localFileAccess";
 import { LocalFileAccess, maxTaskFileBytes, TaskFileError, validLocalPath } from "./localFileAccess";
 type Scope = { tenantId: string; workspaceId: string; runId: string; actorId: string };
 type ApprovalRequest = Parameters<AgentToolApprovalPort["authorize"]>[0];
-type Mutation = { path: string; expectedVersion?: number | null; expectedSha256?: string | null; content?: string };
-type Approval = FileApprovalView & { idempotencyKey: string; inputDigest: string; actorId: string; executionId: string; toolCallId: string; parentIdentity?: string; fileIdentity?: string; decidedBy?: string; decidedAt?: string; result?: TaskFileVersion };
+type Mutation = { path: string; expectedVersion?: number | null; expectedSha256?: string | null; content?: string; sourceVersion?: number };
+type Approval = FileApprovalView & { idempotencyKey: string; inputDigest: string; requestDigest?: string; actorId: string; executionId: string; toolCallId: string; parentIdentity?: string; fileIdentity?: string; decidedBy?: string; decidedAt?: string; result?: TaskFileVersion; plannedResult?: TaskFileVersion; reconciledAt?: string };
 type Manifest = { schemaVersion: "task-files.v1"; tenantId: string; workspaceId: string; runId: string; versions: TaskFileVersion[]; approvals: Approval[] };
 
 const hash = (value: string) => createHash("sha256").update(value).digest("hex");
@@ -23,11 +23,12 @@ function validPath(path: unknown): path is string {
 		/\.(txt|md|csv|json|html|svg)$/i.test(path);
 }
 function validMutation(value: unknown, operation: "write" | "delete"): value is Mutation {
-	return record(value) && (validPath(value.path) || validLocalPath(value.path)) && Object.keys(value).every((key) => ["path", "expectedVersion", "expectedSha256", ...(operation === "write" ? ["content"] : [])].includes(key)) &&
+	return record(value) && (validPath(value.path) || validLocalPath(value.path)) && Object.keys(value).every((key) => ["path", "expectedVersion", "expectedSha256", ...(operation === "write" ? ["content", "sourceVersion"] : [])].includes(key)) &&
 		(operation !== "write" || !/\.(pdf|docx?|xlsx?|pptx?|zip|png|jpe?g|gif|webp|heic|psd|ai|exe|dmg|sqlite|db)$/i.test(value.path)) &&
 		(validLocalPath(value.path) ? ((operation === "write" && value.expectedSha256 === null) || (typeof value.expectedSha256 === "string" && /^[a-f0-9]{64}$/.test(value.expectedSha256))) && value.expectedVersion === undefined : ((operation === "write" && value.expectedVersion === null) || (Number.isSafeInteger(value.expectedVersion) && Number(value.expectedVersion) > 0)) && value.expectedSha256 === undefined) &&
-		(operation !== "write" || (typeof value.content === "string" && Buffer.byteLength(value.content) <= maxTaskFileBytes && !value.content.includes("\0")));
+		(operation !== "write" || (value.sourceVersion === undefined ? typeof value.content === "string" && Buffer.byteLength(value.content) <= maxTaskFileBytes && !value.content.includes("\0") : value.content === undefined && Number.isSafeInteger(value.sourceVersion) && Number(value.sourceVersion) > 0));
 }
+const mutationDigest = (operation: "write" | "delete", input: Mutation) => hash(JSON.stringify([operation, input.path, input.expectedVersion ?? input.expectedSha256 ?? null, input.content ?? null, ...(input.sourceVersion === undefined ? [] : [input.sourceVersion])]));
 
 /** Enterprise adapter: approved local file access with immutable history and per-operation user consent. */
 export class ConversationFileService implements AgentToolApprovalPort {
@@ -83,6 +84,9 @@ export class ConversationFileService implements AgentToolApprovalPort {
 	}
 
 	private current(state: Manifest, path: string) { return [...state.versions].reverse().find((file) => file.path === path); }
+	private resolveMutation(scope: Scope, input: Mutation): Mutation {
+		return input.sourceVersion === undefined ? input : { ...input, content: this.read(scope, input.path, input.sourceVersion).content };
+	}
 	browse(scope: Scope, path?: string) {
 		this.load(scope);
 		return path ? this.local.list(path) : { locations: this.local.locations(), files: this.list(scope).files };
@@ -112,9 +116,10 @@ export class ConversationFileService implements AgentToolApprovalPort {
 			saveContent(before, disk.content); state.versions.push(before);
 		}
 		if (state.versions.reduce((sum, v) => sum + v.size, 0) + Buffer.byteLength(input.content ?? "") > 20 * 1024 * 1024) fail("file_quota_exceeded", "历史备份已达配额，未修改磁盘文件", 413);
-		const version: TaskFileVersion = { ...base, version: ++number, sha256: hash(input.content ?? ""), size: Buffer.byteLength(input.content ?? ""), status: operation === "delete" ? "deleted" : "draft" };
+		const version: TaskFileVersion = { ...base, version: ++number, sha256: hash(input.content ?? ""), size: Buffer.byteLength(input.content ?? ""), status: operation === "delete" ? "deleted" : "draft", ...(input.sourceVersion ? { restoredFromVersion: input.sourceVersion } : {}) };
 		if (operation === "write") saveContent(version, input.content!);
 		approval.status = "executing";
+		approval.plannedResult = version;
 		this.save(context, state); // Durable preimage + intent before touching a user's file.
 		context.signal.throwIfAborted();
 		this.checkParent(approval);
@@ -122,6 +127,35 @@ export class ConversationFileService implements AgentToolApprovalPort {
 		state.versions.push(version); approval.status = "applied"; approval.result = version;
 		this.save(context, state);
 		return version;
+	}
+
+	/** Reconcile an approved outcome using stored receipts or the exact durable intended postcondition. Never writes the user's file. */
+	async reconcile(record: AgentToolExecutionRecord, signal: AbortSignal): Promise<{ result: string; evidenceRef: string } | undefined> {
+		signal.throwIfAborted();
+		if (record.status === "succeeded" || !["file_write", "file_delete"].includes(record.tool)) return;
+		const state = this.load(record);
+		const approval = state.approvals.find((item) => item.id === record.approvalId);
+		if (!approval || approval.actorId !== record.actorId || approval.idempotencyKey !== record.idempotencyKey || approval.requestDigest !== record.inputDigest || !approval.decidedBy || approval.decidedBy.startsWith("policy:") || approval.operation !== (record.tool === "file_write" ? "write" : "delete")) return;
+		if (approval.status !== "applied" && approval.status !== "executing") return;
+		this.checkParent(approval);
+		let result = approval.result;
+		if (approval.status === "executing") {
+			result = approval.plannedResult;
+			if (!result || !isAbsolute(approval.path) || result.actorId !== record.actorId || result.executionId !== record.executionId || result.approvalId !== approval.id || result.path !== approval.path || result.sha256 !== hash(approval.content ?? "") || result.version !== (this.current(state, approval.path)?.version ?? 0) + 1) return;
+			if (state.approvals.some((item) => item.path === approval.path && item.id !== approval.id && ["executing", "applied"].includes(item.status) && state.approvals.indexOf(item) > state.approvals.indexOf(approval))) return;
+			const disk = this.local.inspect(approval.path);
+			if (approval.operation === "delete" ? disk !== undefined : disk?.sha256 !== result.sha256 || disk?.size !== result.size) return;
+			const previous = this.current(state, approval.path);
+			if (approval.before !== undefined && (!previous || previous.status === "deleted" || this.content(record, previous) !== approval.before)) return;
+			if (result.status !== "deleted") this.content(record, result);
+			signal.throwIfAborted();
+			state.versions.push(result); approval.result = result; approval.status = "applied"; approval.reconciledAt = new Date(this.now()).toISOString();
+			this.save(record, state);
+		}
+		if (!result || result.approvalId !== approval.id || result.actorId !== record.actorId || !state.versions.some((version) => version.path === result!.path && version.version === result!.version && version.sha256 === result!.sha256 && version.approvalId === approval.id)) return;
+		if (result.status !== "deleted") this.content(record, result);
+		signal.throwIfAborted();
+		return { result: JSON.stringify({ ...result, storagePath: result.status === "deleted" ? undefined : join(this.directory(record), `${result.artifactId}-v${result.version}.txt`) }), evidenceRef: `file-approval:${approval.id}` };
 	}
 	private checkVersion(state: Manifest, input: Mutation): void {
 		if (isAbsolute(input.path)) {
@@ -143,7 +177,7 @@ export class ConversationFileService implements AgentToolApprovalPort {
 		let changed = false;
 		for (const approval of state.approvals) if (["pending", "approved"].includes(approval.status) && (this.now() >= Date.parse(approval.expiresAt) || (isAbsolute(approval.path) && !approval.parentIdentity))) { approval.status = "cancelled"; changed = true; }
 		if (changed) this.save(scope, state);
-		return { files: state.versions.map((v) => ({ ...v, storagePath: v.status === "deleted" ? undefined : join(this.directory(scope), `${v.artifactId}-v${v.version}.txt`) })), approvals: state.approvals.filter((a) => a.status === "pending").map((a) => ({ id: a.id, operation: a.operation, path: a.path, expectedVersion: a.expectedVersion, expectedSha256: a.expectedSha256, content: a.content, before: a.before, status: a.status, createdAt: a.createdAt, expiresAt: a.expiresAt })) };
+		return { files: state.versions.map((v) => ({ ...v, storagePath: v.status === "deleted" ? undefined : join(this.directory(scope), `${v.artifactId}-v${v.version}.txt`) })), approvals: state.approvals.filter((a) => a.status === "pending").map((a) => ({ id: a.id, operation: a.operation, path: a.path, expectedVersion: a.expectedVersion, expectedSha256: a.expectedSha256, content: a.content, sourceVersion: a.sourceVersion, before: a.before, status: a.status, createdAt: a.createdAt, expiresAt: a.expiresAt })) };
 	}
 	read(scope: Scope, path: string, version?: number): { file: TaskFileVersion; content: string } {
 		if ((!validPath(path) && !validLocalPath(path)) || (version !== undefined && (!Number.isSafeInteger(version) || version < 1))) fail("file_input_invalid", "文件路径或版本无效", 400);
@@ -158,8 +192,8 @@ export class ConversationFileService implements AgentToolApprovalPort {
 		signal?.throwIfAborted();
 		const operation = request.tool === "file_write" ? "write" : "delete";
 		if (!validMutation(request.input, operation)) return { approved: false };
-		const input = request.input;
-		const inputDigest = hash(JSON.stringify([operation, input.path, input.expectedVersion ?? input.expectedSha256 ?? null, input.content ?? null]));
+		const input = this.resolveMutation(request, request.input);
+		const inputDigest = mutationDigest(operation, input);
 		const state = this.load(request);
 		let approval = state.approvals.find((a) => a.idempotencyKey === request.idempotencyKey);
 		if (approval && (approval.inputDigest !== inputDigest || approval.actorId !== request.actorId)) fail("file_idempotency_conflict", "操作请求与原始授权不匹配");
@@ -168,7 +202,7 @@ export class ConversationFileService implements AgentToolApprovalPort {
 			const previous = this.current(state, input.path);
 			if (!isAbsolute(input.path) && operation === "delete" && (!previous || previous.status === "deleted")) fail("file_not_found", "文件不存在", 404);
 			if (state.approvals.length >= 512 || state.versions.reduce((sum, v) => sum + v.size, 0) + Buffer.byteLength(input.content ?? "") > 20 * 1024 * 1024) fail("file_quota_exceeded", "当前会话文件区已达到配额", 413);
-			approval = { id: randomUUID(), operation, ...input, inputDigest, idempotencyKey: request.idempotencyKey, actorId: request.actorId, executionId: request.executionId, toolCallId: request.toolCallId, status: "pending", createdAt: new Date(this.now()).toISOString(), expiresAt: new Date(this.now() + 120_000).toISOString(), before: !isAbsolute(input.path) && previous && previous.status !== "deleted" ? this.content(request, previous) : undefined };
+			approval = { id: randomUUID(), operation, ...input, inputDigest, requestDigest: `sha256:${hash(JSON.stringify(request.input))}`, idempotencyKey: request.idempotencyKey, actorId: request.actorId, executionId: request.executionId, toolCallId: request.toolCallId, status: "pending", createdAt: new Date(this.now()).toISOString(), expiresAt: new Date(this.now() + 120_000).toISOString(), before: !isAbsolute(input.path) && previous && previous.status !== "deleted" ? this.content(request, previous) : undefined };
 			if (isAbsolute(input.path)) {
 				const disk = this.local.inspect(input.path);
 				approval.parentIdentity = this.local.check(input.path);
@@ -212,12 +246,13 @@ export class ConversationFileService implements AgentToolApprovalPort {
 		this.save(scope, state);
 	}
 
-	apply(operation: "write" | "delete", input: unknown, context: AgentToolExecutionContext): TaskFileVersion {
+	apply(operation: "write" | "delete", value: unknown, context: AgentToolExecutionContext): TaskFileVersion {
 		context.signal.throwIfAborted();
-		if (!validMutation(input, operation)) fail("file_input_invalid", "文件操作参数无效", 400);
+		if (!validMutation(value, operation)) fail("file_input_invalid", "文件操作参数无效", 400);
+		const input = this.resolveMutation(context, value);
 		const state = this.load(context);
 		const approval = state.approvals.find((a) => a.id === context.approvalId);
-		if (!approval || approval.idempotencyKey !== context.idempotencyKey || approval.actorId !== context.actorId || approval.inputDigest !== hash(JSON.stringify([operation, input.path, input.expectedVersion ?? input.expectedSha256 ?? null, input.content ?? null]))) fail("file_approval_required", "文件操作缺少匹配的审批", 403);
+		if (!approval || approval.idempotencyKey !== context.idempotencyKey || approval.actorId !== context.actorId || approval.inputDigest !== mutationDigest(operation, input)) fail("file_approval_required", "文件操作缺少匹配的审批", 403);
 		if (approval.status === "applied" && approval.result) return { ...approval.result, storagePath: approval.result.status === "deleted" ? undefined : join(this.directory(context), `${approval.result.artifactId}-v${approval.result.version}.txt`) };
 		if (approval.status !== "approved" || !approval.decidedBy || approval.decidedBy.startsWith("policy:") || this.now() >= Date.parse(approval.expiresAt)) fail("file_approval_required", "文件审批无效或已过期", 403);
 		this.checkVersion(state, input);
@@ -226,7 +261,7 @@ export class ConversationFileService implements AgentToolApprovalPort {
 		const previous = this.current(state, input.path);
 		if (state.versions.reduce((sum, v) => sum + v.size, 0) + Buffer.byteLength(input.content ?? "") > 20 * 1024 * 1024) fail("file_quota_exceeded", "当前会话文件区已达到配额", 413);
 		if (previous && previous.status !== "deleted") this.content(context, previous); // Detect disk changes after review.
-		const version: TaskFileVersion = { artifactId: `file-${hash(input.path)}`, path: input.path, version: (previous?.version ?? 0) + 1, sha256: hash(input.content ?? ""), size: Buffer.byteLength(input.content ?? ""), status: operation === "delete" ? "deleted" : "draft", createdAt: new Date(this.now()).toISOString(), actorId: context.actorId, executionId: context.executionId, approvalId: approval.id };
+		const version: TaskFileVersion = { artifactId: `file-${hash(input.path)}`, path: input.path, version: (previous?.version ?? 0) + 1, sha256: hash(input.content ?? ""), size: Buffer.byteLength(input.content ?? ""), status: operation === "delete" ? "deleted" : "draft", createdAt: new Date(this.now()).toISOString(), actorId: context.actorId, executionId: context.executionId, approvalId: approval.id, ...(input.sourceVersion ? { restoredFromVersion: input.sourceVersion } : {}) };
 		if (operation === "write") {
 			const path = join(this.directory(context), `${version.artifactId}-v${version.version}.txt`);
 			// A crash before manifest publication may leave this immutable, unreferenced blob.
@@ -245,12 +280,12 @@ export class ConversationFileService implements AgentToolApprovalPort {
 		return conversationFileToolNames.map((name): AgentHostTool => {
 			const write = name === "file_write"; const remove = name === "file_delete"; const list = name === "file_list";
 			return { name, execution: "host", risk: write || remove ? "write" : "read", idempotent: true, timeoutMs: 5_000, maxResultChars: 150_000,
-				description: list ? "不传 path 返回本机真实 homeDirectory、workingDirectory 等位置和会话历史。指定绝对目录 path 列出磁盘目录，无需预授权。" : name === "file_read" ? "读取本机真实 UTF-8 文件，返回 absolutePath 与 sha256。相对路径读取旧会话文件；指定 version 读取历史备份。" : write ? "在真实绝对路径新建或修改文本文件，调用即发起显示路径和内容的单次审批，批准后执行，无需用户提前授权目录。先读取 sha256 作为 expectedSha256，新建使用 null。相对路径仅用于会话存储，使用 expectedVersion。最多128 KiB。" : "审批后删除真实绝对路径文件；先读取 sha256 作为 expectedSha256。保留内容备份，不支持删除目录。相对路径使用旧会话 expectedVersion。",
-				inputSchema: { type: "object", properties: list ? { path: { type: "string" } } : { path: { type: "string" }, ...(write || remove ? { expectedVersion: { type: ["integer", "null"], minimum: 1 }, expectedSha256: { type: ["string", "null"] } } : { version: { type: "integer", minimum: 1 } }), ...(write ? { content: { type: "string" } } : {}) }, required: list ? [] : ["path", ...(write ? ["content"] : [])], additionalProperties: false },
+				description: list ? "不传 path 返回本机真实 homeDirectory、workingDirectory 等位置和会话历史。指定绝对目录 path 列出磁盘目录，无需预授权。" : name === "file_read" ? "读取本机真实 UTF-8 文件，返回 absolutePath 与 sha256。相对路径读取旧会话文件；指定 version 读取历史备份。" : write ? "在真实绝对路径新建或修改文本文件，调用即发起显示路径和内容的单次审批，批准后执行，无需用户提前授权目录。先读取 sha256 作为 expectedSha256，新建使用 null。相对路径仅用于会话存储，使用 expectedVersion。恢复历史版本时传 sourceVersion 代替 content，由 Host 读取同一路径的不可变备份并展示新的写入审批；旧版本和审批不被覆盖。最多128 KiB。" : "审批后删除真实绝对路径文件；先读取 sha256 作为 expectedSha256。保留内容备份，不支持删除目录。相对路径使用旧会话 expectedVersion。",
+				inputSchema: { type: "object", properties: list ? { path: { type: "string" } } : { path: { type: "string" }, ...(write || remove ? { expectedVersion: { type: ["integer", "null"], minimum: 1 }, expectedSha256: { type: ["string", "null"] } } : { version: { type: "integer", minimum: 1 } }), ...(write ? { content: { type: "string" }, sourceVersion: { type: "integer", minimum: 1 } } : {}) }, required: list ? [] : ["path"], ...(write ? { oneOf: [{ required: ["content"] }, { required: ["sourceVersion"] }] } : {}), additionalProperties: false },
 				validate: (input) => write || remove ? validMutation(input, write ? "write" : "delete") : record(input) && (list ? Object.keys(input).every((key) => key === "path") && (input.path === undefined || validLocalPath(input.path)) : (validPath(input.path) || validLocalPath(input.path)) && Object.keys(input).every((key) => ["path", "version"].includes(key)) && (input.version === undefined || (Number.isSafeInteger(input.version) && Number(input.version) > 0))),
 				createIdempotencyKey: (input, turnKey, scope) => {
 					const value = input as Mutation;
-					return `file:${hash(JSON.stringify([scope?.tenantId, scope?.workspaceId, scope?.runId, name, turnKey, value.path, value.expectedVersion ?? value.expectedSha256 ?? null, value.content ?? null]))}`;
+					return `file:${hash(JSON.stringify([scope?.tenantId, scope?.workspaceId, scope?.runId, name, turnKey, value.path, value.expectedVersion ?? value.expectedSha256 ?? null, value.content ?? null, ...(value.sourceVersion === undefined ? [] : [value.sourceVersion])]))}`;
 				},
 				execute: async (input, context) => {
 					context.signal.throwIfAborted();

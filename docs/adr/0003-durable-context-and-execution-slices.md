@@ -1,5 +1,7 @@
 # ADR-0003：可续跑 Execution Slice 与持久化 Tool 幂等账本
 
+> 后续修订：[ADR-0025](0025-evidence-bound-recovery-and-explicit-degradation.md) 允许 Host 根据权威执行证据修复 started/unknown；证据不足仍禁止重放。
+
 状态：Accepted
 日期：2026-09-02
 决策者：产品负责人

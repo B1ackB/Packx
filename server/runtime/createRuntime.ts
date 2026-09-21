@@ -24,6 +24,7 @@ export interface RuntimeServices {
 
 export interface RuntimeServicesOptions {
 	readTaskContext?: BlackxAgentRuntimeOptions["readTaskContext"];
+	recoverToolExecution?: BlackxAgentRuntimeOptions["recoverToolExecution"];
 	tools?: readonly AgentTool[];
 	approval?: AgentToolApprovalPort;
 	sandboxedToolExecutor?: SandboxedToolExecutorPort;
@@ -74,6 +75,7 @@ export function createRuntime(
 				sandboxedToolExecutor,
 				resolveImageAttachment: options.resolveImageAttachment,
 				readTaskContext: options.readTaskContext,
+				recoverToolExecution: options.recoverToolExecution,
 			}),
 			state,
 			activity,
@@ -109,6 +111,7 @@ export function createRuntime(
 				sandboxedToolExecutor,
 				resolveImageAttachment: options.resolveImageAttachment,
 				readTaskContext: options.readTaskContext,
+				recoverToolExecution: options.recoverToolExecution,
 				approval: {
 					authorize: async (request, signal) => options.autonomouslyApprovedTools?.has(request.tool)
 						? { approved: true, approvalId: `policy:${request.tool}:v1` }

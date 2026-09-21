@@ -49,6 +49,7 @@ export function ConversationFiles({ conversationId, language }: { conversationId
 		{view.approvals.map((approval, index) => <article ref={index === 0 ? approvalCard : undefined} className="file-approval" key={approval.id} aria-live="polite" aria-label={`${en ? "File approval" : "文件审批"} ${approval.path}`}>
 			<strong>{en ? `Allow ${approval.operation === "delete" ? "deletion" : approval.before === undefined ? "creation" : "changes"} to this file?` : `是否允许${approval.operation === "delete" ? "删除" : approval.before === undefined ? "新建" : "修改"}此文件？`}</strong>
 			<p className="local-path"><strong>{approval.path}</strong></p>
+			{approval.sourceVersion !== undefined && <p>{en ? `Restore the content of version ${approval.sourceVersion} as a new version. Current content will be backed up.` : `将历史版本 ${approval.sourceVersion} 的内容恢复为新版本，并保留当前内容备份。`}</p>}
 			<p>{approval.path.startsWith("/") ? en ? "This directly operates on the file at this absolute disk path" : "将直接操作此绝对路径的磁盘文件" : en ? "This writes to local conversation storage" : "将写入本机的会话存储"} · {en ? "one-time approval for this change · retain a backup before changes and deletion" : "仅授权本次改动 · 修改和删除前保留备份"}</p>
 			<details><summary>{en ? "Review this change" : "查看本次修改内容"}</summary><div className="file-review">
 				<div><b>{en ? "Before" : "原内容"}</b><pre>{approval.before ?? (en ? "(File does not exist; it will be created)" : "（文件不存在，将新建）")}</pre></div>

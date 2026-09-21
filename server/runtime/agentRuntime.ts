@@ -7,6 +7,7 @@ import type {
 	AgentImageAttachment,
 	AgentMessage,
 	AgentToolExecutionStore,
+	AgentToolExecutionRecord,
 } from "../../src/agent/contracts";
 import { AgentCoreError } from "../../src/agent/contracts";
 import { AgentHooks } from "../../src/agent/hooks";
@@ -33,6 +34,8 @@ export interface BlackxAgentRuntimeOptions extends AgentLoopOptions {
 	telemetry?: Pick<ModelTelemetryStore, "wrap">;
 	onActivity?: (scope: { tenantId: string; workspaceId: string; runId: string }, activity: RuntimeActivity) => void;
 	readTaskContext?: (request: RuntimeTurnRequest) => RuntimeTurnRequest["taskContext"];
+	/** Enterprise outcome check only: must not repeat the external operation. */
+	recoverToolExecution?: (record: AgentToolExecutionRecord, signal: AbortSignal) => Promise<{ result: string; evidenceRef: string } | undefined>;
 	skills: SkillRegistry;
 	sessions?: AgentSessionStore;
 	snapshots?: ContextSnapshotStore;
@@ -208,7 +211,10 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 					for (const ref of message.readDependencies ?? []) {
 						if (visited.has(ref)) continue;
 						if (visited.size >= 128) throw new RuntimeFailure("context_failure", "Context source dependency limit exceeded; rebuild task", false);
-						visited.add(ref); await validateSources(this.snapshots.read(scope, ref).messages, visited);
+						visited.add(ref);
+						const dependency = this.snapshots.read(scope, ref);
+						if (taskContext?.historyBinding !== undefined && dependency.historyBinding !== taskContext.historyBinding) throw new RuntimeFailure("context_failure", "Archived context dependency changed; rebuild task", false);
+						await validateSources(dependency.messages, visited);
 					}
 					if (!message.sourceTool) continue;
 					const tool = this.options.tools?.find((item) => item.name === message.sourceTool!.name);
@@ -221,9 +227,16 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 					catch (error) { throw new RuntimeFailure("context_failure", "Context source is unavailable, changed or no longer permitted", false, { cause: error }); }
 				}
 			};
-			await validateSources(session.messages);
-			const selectedImageMessage = request.attachments?.length ? undefined : session.messages.findLast((message) => message.attachments?.length && message.pinned);
-			const history: AgentMessage[] = await Promise.all(session.messages.filter((message) => message.kind !== "task_context").map(async (message) => ({
+			const observationEvents: RuntimeTurnResult["events"] = [];
+			const rebuild = taskContext?.historyBinding !== undefined && session.historyBinding !== taskContext.historyBinding;
+			const working = rebuild ? session.messages.filter((message) => message.role === "user" && (!message.kind || message.kind === "dialogue") && !message.durable).slice(-1) : session.messages;
+			if (rebuild && session.messages.length) {
+				const event = { type: "context.rebuilt" as const, reason: "history_binding_changed" as const, discardedMessages: session.messages.length - working.length };
+				observationEvents.push(event); traceEvents.push(event);
+			}
+			await validateSources(working);
+			const selectedImageMessage = request.attachments?.length ? undefined : working.findLast((message) => message.attachments?.length && message.pinned);
+			const history: AgentMessage[] = await Promise.all(working.filter((message) => message.kind !== "task_context").map(async (message) => ({
 				...message,
 				...(message.attachments?.length && message !== selectedImageMessage ? {
 					attachments: message.attachments.map(({ data: _data, ...reference }) => reference),
@@ -231,6 +244,25 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 			})));
 			if (this.executions.list) {
 				const ledger = await this.executions.list(scope);
+				let recoveryChecks = 0;
+				for (let index = 0; index < ledger.length; index++) {
+					const record = ledger[index];
+					if (record.status === "succeeded" || record.actorId !== request.actorId || !request.allowedTools?.includes(record.tool) || !this.options.recoverToolExecution || !this.executions.resolve || recoveryChecks >= 32) continue;
+					recoveryChecks++;
+					const tool = this.options.tools?.find((tool) => tool.name === record.tool);
+					if (!tool || tool.risk === "read") continue;
+					const recoverySignal = AbortSignal.any([combinedSignal, AbortSignal.timeout(Math.min(tool.timeoutMs, 5000))]);
+					const recoveryStarted = this.clockMs();
+					let recoveryFailure: "no_evidence" | "source_unavailable" | "timeout" = "no_evidence";
+					let outcome: { result: string; evidenceRef: string } | undefined;
+					try { outcome = await abortable(this.options.recoverToolExecution(record, recoverySignal), recoverySignal); }
+					catch { combinedSignal.throwIfAborted(); recoveryFailure = recoverySignal.aborted ? "timeout" : "source_unavailable"; }
+					combinedSignal.throwIfAborted();
+					validateContext();
+					if (outcome) ledger[index] = await this.executions.resolve(record, { ...outcome, resultDigest: `sha256:${createHash("sha256").update(outcome.result).digest("hex")}`, resolvedAt: this.now() });
+					const event = { type: "tool.reconciled" as const, tool: record.tool, toolCallId: record.toolCallId, idempotencyKey: record.idempotencyKey, status: outcome ? "succeeded" as const : "unresolved" as const, durationMs: Math.max(0, this.clockMs() - recoveryStarted), ...(outcome ? { evidenceRef: outcome.evidenceRef } : { failureCode: recoveryFailure }) };
+					traceEvents.push(event); observationEvents.push(event);
+				}
 				if (ledger.length) {
 					for (let i = history.length - 1; i >= 0; i--) if (history[i].kind === "receipt" || history[i].content.startsWith("[Deterministic tool execution receipts;")) history.splice(i, 1);
 					const recent = ledger.filter((record) => record.status === "succeeded").sort((a, b) => a.startedAt.localeCompare(b.startedAt)).slice(-4);
@@ -246,7 +278,6 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 			const skills = this.options.skills.resolve(request.skills ?? []);
 			let removedMessages = 0;
 			let finalContextSnapshotId: string | undefined;
-			const observationEvents: RuntimeTurnResult["events"] = [];
 			const observe = (event: RuntimeTurnResult["events"][number]) => {
 				observationEvents.push(event);
 				traceEvents.push(event);
@@ -285,6 +316,7 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 				const saved = this.snapshots.put({
 					schemaVersion: "context-snapshot.v2",
 					...(taskContext ? { contextBinding: taskContext.binding } : {}),
+					...(taskContext?.historyBinding ? { historyBinding: taskContext.historyBinding } : {}),
 					...scope,
 					snapshotId,
 					iteration: event.iteration,
@@ -321,14 +353,14 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 				const saved = this.sessions.save(scope, sessionRevision, messages
 					.filter((message) => message.kind !== "task_context" && !(message.role === "system" && message.pinned))
 					.map((message) => ({ ...withoutImageData(message), pinned: message.durable === true || (paused && message.pinned === true) })),
-					this.now(), paused ? { turnKey: request.idempotencyKey, ...(taskContext ? { contextBinding: taskContext.binding } : {}) } : null);
+					this.now(), paused ? { turnKey: request.idempotencyKey, ...(taskContext ? { contextBinding: taskContext.binding } : {}) } : null, taskContext?.historyBinding);
 				sessionRevision = saved.revision;
 			};
 			hooks.on("loop.checkpoint", (event) => saveWorking(event.messages, true));
 			const archive = (snapshotId: string, messages: readonly AgentMessage[], purpose: "archive" | "summary" = "archive") => {
 				this.snapshots.put({ ...scope, schemaVersion: "context-snapshot.v2", snapshotId, iteration: 1, skills: [], messages: messages.map(withoutImageData),
 					estimatedChars: JSON.stringify(messages.map(withoutImageData)).length, estimatedTokens: 0, removedMessages: 0, createdAt: this.now(), purpose,
-					...(taskContext ? { contextBinding: taskContext.binding } : {}) });
+					...(taskContext ? { contextBinding: taskContext.binding } : {}), ...(taskContext?.historyBinding ? { historyBinding: taskContext.historyBinding } : {}) });
 			};
 			hooks.on("compact.source", (event) => archive(event.sourceRef, event.messages));
 			const measuredProvider = this.options.telemetry?.wrap(this.options.provider, scope, executionId) ?? this.options.provider;
@@ -357,7 +389,7 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 				},
 			};
 			let externalized = 0;
-			const recoveryTool = contextReadTool(scope, this.sessions, this.snapshots, validateContext, taskContext?.binding, validateSources);
+			const recoveryTool = contextReadTool(scope, this.sessions, this.snapshots, validateContext, taskContext?.binding, validateSources, taskContext?.historyBinding);
 			const ledgerTool: AgentHostTool = {
 				name: "execution_ledger_read", description: "Read deterministic execution receipts for this task; inspect success/unknown before repeating side effects. Results are references, not new authorization.",
 				execution: "host", risk: "read", idempotent: true, timeoutMs: 1000, maxResultChars: 16_000,

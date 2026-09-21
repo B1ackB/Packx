@@ -123,6 +123,8 @@ Context 不是数据库，也不是完整历史；它是 ContextEngine 针对某
 
 权威事实从数据源重新加载，大文件通过 Artifact 引用，历史过程通过 Snapshot 压缩。
 
+工作记忆、原始对话、权威业务状态和跨任务知识具有不同的作用范围与确认边界。存入摘要或向量索引不会改变其权限、事实状态或适用范围；当前个人跨会话记忆实现及经验的后续边界见 [记忆系统](../memory-system.md)。
+
 ## 3. 关键运行边界
 
 ### 3.1 RunEngine
@@ -170,7 +172,7 @@ Agent Session ID 只是 Runtime Resume Handle。Run、Stage、Approval、Artifac
 - Stage/Run Snapshot
 - 压缩记录与质量评测
 
-ContextEngine 构建 Packx 的权威业务上下文，再通过 AgentRuntimePort 注入 Runtime。Compact 只能优化模型上下文，不能成为 Fact、Artifact、Approval 或 Workflow 状态的唯一存储。
+Enterprise Layer 从 Session、Event Store 投影、Fact、Artifact 和来源存储构建任务上下文，经 AgentRuntimePort 传给 Runtime。Core ContextEngine 只负责通用上下文编排与压缩，不拥有业务状态或租户授权；持久化、来源校验和业务快照由 Enterprise / Host Adapter 配合完成。Compact 只能优化模型上下文，不能成为 Fact、Artifact、Approval 或 Workflow 状态的唯一存储。
 
 ### 3.4 Fact lifecycle
 
@@ -406,3 +408,8 @@ Harness 改动采用固定任务、固定模型和固定预算进行对照。至
 10. 企业为什么可以相信最终结果？
 11. 是否能通过配置、Skill、MCP、SDK、App Server 或 Adapter 完成？
 12. 如果扩展 Agent Core，如何测试、迁移和退出该扩展？
+
+
+### 个人跨会话记忆边界（ADR-0026）
+
+当前仅实现同工作区当前用户明确确认的个人偏好/笔记；Enterprise 管主体、来源、版本、确认、有效期和撤回，Core 只接收通用 `historyBinding` 做上下文失效。记忆不提升 Fact、不授予权限；客户/组织共享和自动经验学习未实现。参见 [ADR-0026](../adr/0026-confirmed-personal-memory-and-context-dependency.md) 和 [完整导图](../memory-system.md)。

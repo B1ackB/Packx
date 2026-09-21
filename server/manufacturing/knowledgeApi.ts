@@ -1,3 +1,4 @@
+import { packagingExpansionManifests } from "./packagingExpansion";
 import { randomUUID } from "node:crypto";
 import { loadCoffeeCorpus } from "./coffeeOpenCorpus";
 import { coffeeProductManifests, findCoffeeProducts } from "./coffeeProductDirectory";
@@ -37,8 +38,8 @@ export class KnowledgeApi {
 			if (action === "search") { const result = await store.search(scope, payload); return { status: 200, body: { result, review: coffeeEvidenceReview(result.hits) } }; }
 			if (action === "products") { const response = await findCoffeeProducts(store, scope, payload); return { status: 200, body: { ...response, review: coffeeEvidenceReview(response.result.hits) } }; }
 			if (action === "open-products") {
-				const docs = coffeeProductManifests().map((manifest) => store.import(scope, manifest, actor));
-				this.knowledge.reconcile(scope); return { status: 202, body: { documents: docs, warning: "Product discovery metadata only; no vendor full text or verified order specifications" } };
+				const docs = [...coffeeProductManifests(), ...packagingExpansionManifests()].map((manifest) => store.import(scope, manifest, actor));
+				this.knowledge.reconcile(scope); return { status: 202, body: { documents: docs, warning: "Packx directory metadata plus a US FDA PCR process snapshot; no vendor TDS or verified order specifications. Query FDA with region US and recheck current source limitations." } };
 			}
 			if (action === "compare") return { status: 200, body: compareEvidence(store, scope, payload) };
 			if (action === "demo") {

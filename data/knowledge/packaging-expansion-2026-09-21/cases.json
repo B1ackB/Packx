@@ -1,0 +1,21 @@
+{
+	"schemaVersion": "packaging-expansion-probes.v1",
+	"frozenAt": "2026-09-21",
+	"labelStatus": "Agent source-bound engineering probes; not expert-reviewed or an independent blind test",
+	"cases": [
+		{"id":"pcr-11", "query":"Repak PCR PET short term food contact two weeks virgin layer", "anchor":"fda-pcr-11"},
+		{"id":"pcr-12", "query":"Ultra Pac 1992 nonfood contact layer 1 mil PET", "anchor":"fda-pcr-12"},
+		{"id":"pcr-456", "query":"Starlinger 2026 recycled content 50% 100% conditions C E F G", "anchor":"fda-pcr-456"},
+		{"id":"pcr-460", "query":"Thai Plastic Recycling Group effective barrier multilayer packaging", "anchor":"fda-pcr-460"},
+		{"id":"pcr-455", "query":"Jiangxi Neway Polymer 2026 HDPE Food Type VIII", "anchor":"fda-pcr-455"},
+		{"id":"pcr-454", "query":"GMR Circular 聚丙烯 PP 食品接触 使用条件", "anchor":"fda-pcr-454"},
+		{"id":"pcr-459", "query":"ALPLA Mexico 2026 食品接触 回收 PET 限制", "anchor":"fda-pcr-459"},
+		{"id":"pcr-458", "query":"Baoding Haorui Machinery PET raw fruits vegetables shell eggs", "anchor":"fda-pcr-458"},
+		{"id":"bpi", "query":"BPI 产品 SKU 商业堆肥 家庭堆肥 证书查询", "model":"catalog:source-bpi-products"},
+		{"id":"fsc", "query":"FSC 纸板 供应商 许可码 证书码 产销监管链", "model":"catalog:source-fsc-search"},
+		{"id":"ink", "query":"Siegwerk 包装油墨 技术资料 成分声明 客户门户", "model":"catalog:source-siegwerk-finder"},
+		{"id":"paperboard", "query":"Metsä Board FBB FSB WKL 纸板产品目录", "model":"catalog:source-metsaboard-portfolio"},
+		{"id":"old-ecolam", "query":"EcoLamHighPlus 咖啡袋 资料目录", "model":"catalog:cflex-ecolamhighplus", "control":true},
+		{"id":"old-rec", "query":"REC 膜 克重 81 g/m2", "model":"study:PMC11243642", "contains":"81", "control":true}
+	]
+}

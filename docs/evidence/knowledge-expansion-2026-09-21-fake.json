@@ -1,0 +1,1271 @@
+{
+	"schemaVersion": "packaging-enrichment-eval.v1",
+	"generatedAt": "2026-09-21T06:01:12.879Z",
+	"execution": "fake-mechanism-only",
+	"fixtureHash": "bc75cb04820ed16cb7160c454a8009d3784f3c7751aa790d44a67126c446eb5d",
+	"baselineManifestHash": "549012e554f3955fffdb5b86fa4a2d6195439218c07e5638148d97a1ae8fefed",
+	"expansionManifestHash": "76540cef2d1c4d288b49a7df6ede58560d7d17697a0b5bf3ea860d120fb36362",
+	"embedding": {
+		"signature": "fake-embedding-contract-only-v1:4",
+		"dimensions": 4
+	},
+	"reranker": null,
+	"strategy": {
+		"research": "existing JATS paragraphs ~1000 characters and complete table rows; unchanged",
+		"directory": "one complete authored record",
+		"fda": "one complete original data row with all 7 fields; long cells preserved in text",
+		"overlap": 0,
+		"embeddingChanged": false,
+		"runtimeChanged": false
+	},
+	"corpus": {
+		"beforeDocuments": 11,
+		"beforeBlocks": 574,
+		"addedDocuments": 11,
+		"addedBlocks": 470,
+		"afterDocuments": 22,
+		"afterBlocks": 1044,
+		"officialDataRows": 460,
+		"newDatabaseEntrypoints": 8,
+		"newSupplierEntrypoints": 2,
+		"newSupplierTechnicalFulltexts": 0
+	},
+	"verification": {
+		"sourceRowsReadBackExactly": 460,
+		"duplicateImportSameVersions": true,
+		"restartedSelectionReadable": true,
+		"withdrawnSelectionUnavailable": true
+	},
+	"baseline": {
+		"summary": {
+			"newSourceProbes": 12,
+			"newSourceHitsAt5": 0,
+			"controlProbes": 2,
+			"controlHitsAt5": 1,
+			"completeSourceTextOnHits": 1,
+			"embeddingCalls": 14,
+			"queryInputTokens": 0,
+			"rerankingCalls": 0,
+			"rerankingInputTokens": 0,
+			"meanDurationMs": 15.964696357142847
+		},
+		"rows": [
+			{
+				"id": "pcr-11",
+				"control": false,
+				"foundAt": null,
+				"completeSourceText": false,
+				"durationMs": 22.89050000000003,
+				"usage": {
+					"inputTokens": 0,
+					"modelDurationMs": 0,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": 0
+				},
+				"hits": [
+					{
+						"model": "study:PMC10670670",
+						"evidenceId": "kb-ee750761001b164cbcca3fb099eb4b69809ed7c554c92b37e5c7f66b493288e3:1"
+					},
+					{
+						"model": "study:PMC10670670",
+						"anchor": "sec1-foods-12-04167",
+						"evidenceId": "kb-ee750761001b164cbcca3fb099eb4b69809ed7c554c92b37e5c7f66b493288e3:3"
+					},
+					{
+						"model": "study:PMC10670670",
+						"anchor": "sec2dot7dot2-foods-12-04167",
+						"evidenceId": "kb-ee750761001b164cbcca3fb099eb4b69809ed7c554c92b37e5c7f66b493288e3:33"
+					},
+					{
+						"model": "study:PMC10670670",
+						"anchor": "sec2dot5-foods-12-04167",
+						"evidenceId": "kb-ee750761001b164cbcca3fb099eb4b69809ed7c554c92b37e5c7f66b493288e3:25"
+					},
+					{
+						"model": "study:PMC10670670",
+						"anchor": "sec2dot7dot4-foods-12-04167",
+						"evidenceId": "kb-ee750761001b164cbcca3fb099eb4b69809ed7c554c92b37e5c7f66b493288e3:44"
+					}
+				]
+			},
+			{
+				"id": "pcr-12",
+				"control": false,
+				"foundAt": null,
+				"completeSourceText": false,
+				"durationMs": 16.68391600000001,
+				"usage": {
+					"inputTokens": 0,
+					"modelDurationMs": 0,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": 0
+				},
+				"hits": [
+					{
+						"model": "study:PMC10670670",
+						"anchor": "sec1-foods-12-04167",
+						"evidenceId": "kb-ee750761001b164cbcca3fb099eb4b69809ed7c554c92b37e5c7f66b493288e3:3"
+					},
+					{
+						"model": "study:PMC10670670",
+						"anchor": "sec1-foods-12-04167",
+						"evidenceId": "kb-ee750761001b164cbcca3fb099eb4b69809ed7c554c92b37e5c7f66b493288e3:7"
+					},
+					{
+						"model": "study:PMC10670670",
+						"anchor": "sec1-foods-12-04167",
+						"evidenceId": "kb-ee750761001b164cbcca3fb099eb4b69809ed7c554c92b37e5c7f66b493288e3:10"
+					},
+					{
+						"model": "study:PMC10670670",
+						"anchor": "sec2dot7dot3-foods-12-04167",
+						"evidenceId": "kb-ee750761001b164cbcca3fb099eb4b69809ed7c554c92b37e5c7f66b493288e3:36"
+					},
+					{
+						"model": "study:PMC10670670",
+						"anchor": "sec2dot7dot2-foods-12-04167",
+						"evidenceId": "kb-ee750761001b164cbcca3fb099eb4b69809ed7c554c92b37e5c7f66b493288e3:33"
+					}
+				]
+			},
+			{
+				"id": "pcr-456",
+				"control": false,
+				"foundAt": null,
+				"completeSourceText": false,
+				"durationMs": 14.683540999999991,
+				"usage": {
+					"inputTokens": 0,
+					"modelDurationMs": 0,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": 0
+				},
+				"hits": [
+					{
+						"model": "study:PMC10670670",
+						"anchor": "sec2dot5-foods-12-04167",
+						"evidenceId": "kb-ee750761001b164cbcca3fb099eb4b69809ed7c554c92b37e5c7f66b493288e3:25"
+					},
+					{
+						"model": "study:PMC10931445",
+						"anchor": "sec2dot2-foods-13-00759",
+						"evidenceId": "kb-13d46e7adc866ca6e329285bdd913b0487cc9e5c7a1c2c265d02947a651d3f1f:14"
+					},
+					{
+						"model": "study:PMC10670670",
+						"anchor": "sec3dot3-foods-12-04167",
+						"evidenceId": "kb-ee750761001b164cbcca3fb099eb4b69809ed7c554c92b37e5c7f66b493288e3:53"
+					},
+					{
+						"model": "study:PMC10670670",
+						"anchor": "sec2dot1-foods-12-04167",
+						"evidenceId": "kb-ee750761001b164cbcca3fb099eb4b69809ed7c554c92b37e5c7f66b493288e3:14"
+					},
+					{
+						"model": "study:PMC10931445",
+						"anchor": "sec2dot5-foods-13-00759",
+						"evidenceId": "kb-13d46e7adc866ca6e329285bdd913b0487cc9e5c7a1c2c265d02947a651d3f1f:24"
+					}
+				]
+			},
+			{
+				"id": "pcr-460",
+				"control": false,
+				"foundAt": null,
+				"completeSourceText": false,
+				"durationMs": 15.928666000000021,
+				"usage": {
+					"inputTokens": 0,
+					"modelDurationMs": 0,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": 0
+				},
+				"hits": [
+					{
+						"model": "study:PMC10670670",
+						"anchor": "sec1-foods-12-04167",
+						"evidenceId": "kb-ee750761001b164cbcca3fb099eb4b69809ed7c554c92b37e5c7f66b493288e3:7"
+					},
+					{
+						"model": "study:PMC10670670",
+						"evidenceId": "kb-ee750761001b164cbcca3fb099eb4b69809ed7c554c92b37e5c7f66b493288e3:2"
+					},
+					{
+						"model": "study:PMC10670670",
+						"anchor": "sec1-foods-12-04167",
+						"evidenceId": "kb-ee750761001b164cbcca3fb099eb4b69809ed7c554c92b37e5c7f66b493288e3:10"
+					},
+					{
+						"model": "study:PMC10670670",
+						"anchor": "sec1-foods-12-04167",
+						"evidenceId": "kb-ee750761001b164cbcca3fb099eb4b69809ed7c554c92b37e5c7f66b493288e3:11"
+					},
+					{
+						"model": "study:PMC10931445",
+						"evidenceId": "kb-13d46e7adc866ca6e329285bdd913b0487cc9e5c7a1c2c265d02947a651d3f1f:1"
+					}
+				]
+			},
+			{
+				"id": "pcr-455",
+				"control": false,
+				"foundAt": null,
+				"completeSourceText": false,
+				"durationMs": 13.77412499999997,
+				"usage": {
+					"inputTokens": 0,
+					"modelDurationMs": 0,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": 0
+				},
+				"hits": [
+					{
+						"model": "study:PMC10670670",
+						"anchor": "sec1-foods-12-04167",
+						"evidenceId": "kb-ee750761001b164cbcca3fb099eb4b69809ed7c554c92b37e5c7f66b493288e3:9"
+					},
+					{
+						"model": "study:PMC10670670",
+						"anchor": "sec1-foods-12-04167",
+						"evidenceId": "kb-ee750761001b164cbcca3fb099eb4b69809ed7c554c92b37e5c7f66b493288e3:12"
+					},
+					{
+						"model": "study:PMC10670670",
+						"evidenceId": "kb-ee750761001b164cbcca3fb099eb4b69809ed7c554c92b37e5c7f66b493288e3:1"
+					},
+					{
+						"model": "study:PMC10670670",
+						"evidenceId": "kb-ee750761001b164cbcca3fb099eb4b69809ed7c554c92b37e5c7f66b493288e3:2"
+					},
+					{
+						"model": "study:PMC10670670",
+						"anchor": "sec1-foods-12-04167",
+						"evidenceId": "kb-ee750761001b164cbcca3fb099eb4b69809ed7c554c92b37e5c7f66b493288e3:4"
+					}
+				]
+			},
+			{
+				"id": "pcr-454",
+				"control": false,
+				"foundAt": null,
+				"completeSourceText": false,
+				"durationMs": 16.506583000000035,
+				"usage": {
+					"inputTokens": 0,
+					"modelDurationMs": 0,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": 0
+				},
+				"hits": [
+					{
+						"model": "catalog:cflex-ecoverhighplus",
+						"evidenceId": "kb-a8fc9dd18027ae206acae01a1a5b3fdc90f0359d71514ef997a1fbe3a34e0099:1"
+					},
+					{
+						"model": "catalog:amcor-amfiber-coffee",
+						"evidenceId": "kb-18e251bf41f99d61d402b658d3805bd054095796b05c29501134359351f1b3ba:1"
+					},
+					{
+						"model": "catalog:amcor-amprima-coffee",
+						"evidenceId": "kb-a60b523c63dd227bc902884e4b972d2b27dc7a1ce357de27a666e9508ec85fb4:1"
+					},
+					{
+						"model": "catalog:cflex-ecolamhighplus",
+						"evidenceId": "kb-e7fa4ae355ee59df63da3cf5a8b3f2f3d355965aab51d85d5955daa38820287b:1"
+					},
+					{
+						"model": "catalog:huhtamaki-bluelite",
+						"evidenceId": "kb-256867ea87a98678a7daad35625e8ff0a46a8a339b0f4043d94063a959280f4c:1"
+					}
+				]
+			},
+			{
+				"id": "pcr-459",
+				"control": false,
+				"foundAt": null,
+				"completeSourceText": false,
+				"durationMs": 16.07637500000004,
+				"usage": {
+					"inputTokens": 0,
+					"modelDurationMs": 0,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": 0
+				},
+				"hits": [
+					{
+						"model": "study:PMC10931445",
+						"anchor": "sec1-foods-13-00759",
+						"evidenceId": "kb-13d46e7adc866ca6e329285bdd913b0487cc9e5c7a1c2c265d02947a651d3f1f:5"
+					},
+					{
+						"model": "study:PMC10931445",
+						"anchor": "sec2dot2-foods-13-00759",
+						"evidenceId": "kb-13d46e7adc866ca6e329285bdd913b0487cc9e5c7a1c2c265d02947a651d3f1f:18"
+					},
+					{
+						"model": "study:PMC11243642",
+						"anchor": "sec1-molecules-29-03006",
+						"evidenceId": "kb-19d4250fd68eb964694845a0a97f5583635b5225c966bec32202f98d391e1c3d:5"
+					},
+					{
+						"model": "study:PMC11243642",
+						"anchor": "sec1-molecules-29-03006",
+						"evidenceId": "kb-19d4250fd68eb964694845a0a97f5583635b5225c966bec32202f98d391e1c3d:10"
+					},
+					{
+						"model": "study:PMC11243642",
+						"anchor": "sec2dot3-molecules-29-03006",
+						"evidenceId": "kb-19d4250fd68eb964694845a0a97f5583635b5225c966bec32202f98d391e1c3d:20"
+					}
+				]
+			},
+			{
+				"id": "pcr-458",
+				"control": false,
+				"foundAt": null,
+				"completeSourceText": false,
+				"durationMs": 13.910083999999983,
+				"usage": {
+					"inputTokens": 0,
+					"modelDurationMs": 0,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": 0
+				},
+				"hits": [
+					{
+						"model": "study:PMC10670670",
+						"anchor": "sec1-foods-12-04167",
+						"evidenceId": "kb-ee750761001b164cbcca3fb099eb4b69809ed7c554c92b37e5c7f66b493288e3:3"
+					},
+					{
+						"model": "study:PMC10931445",
+						"anchor": "sec1-foods-13-00759",
+						"evidenceId": "kb-13d46e7adc866ca6e329285bdd913b0487cc9e5c7a1c2c265d02947a651d3f1f:5"
+					},
+					{
+						"model": "study:PMC10931445",
+						"anchor": "sec2dot2-foods-13-00759",
+						"evidenceId": "kb-13d46e7adc866ca6e329285bdd913b0487cc9e5c7a1c2c265d02947a651d3f1f:18"
+					},
+					{
+						"model": "study:PMC11243642",
+						"anchor": "sec1-molecules-29-03006",
+						"evidenceId": "kb-19d4250fd68eb964694845a0a97f5583635b5225c966bec32202f98d391e1c3d:10"
+					},
+					{
+						"model": "study:PMC11243642",
+						"anchor": "sec1-molecules-29-03006",
+						"evidenceId": "kb-19d4250fd68eb964694845a0a97f5583635b5225c966bec32202f98d391e1c3d:5"
+					}
+				]
+			},
+			{
+				"id": "bpi",
+				"control": false,
+				"foundAt": null,
+				"completeSourceText": false,
+				"durationMs": 16.075124999999957,
+				"usage": {
+					"inputTokens": 0,
+					"modelDurationMs": 0,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": 0
+				},
+				"hits": [
+					{
+						"model": "catalog:amcor-amprima-coffee",
+						"evidenceId": "kb-a60b523c63dd227bc902884e4b972d2b27dc7a1ce357de27a666e9508ec85fb4:1"
+					},
+					{
+						"model": "catalog:amcor-amfiber-coffee",
+						"evidenceId": "kb-18e251bf41f99d61d402b658d3805bd054095796b05c29501134359351f1b3ba:1"
+					},
+					{
+						"model": "catalog:cflex-ecolamhighplus",
+						"evidenceId": "kb-e7fa4ae355ee59df63da3cf5a8b3f2f3d355965aab51d85d5955daa38820287b:1"
+					},
+					{
+						"model": "catalog:huhtamaki-bluelite",
+						"evidenceId": "kb-256867ea87a98678a7daad35625e8ff0a46a8a339b0f4043d94063a959280f4c:1"
+					},
+					{
+						"model": "catalog:cflex-ecoverhighplus",
+						"evidenceId": "kb-a8fc9dd18027ae206acae01a1a5b3fdc90f0359d71514ef997a1fbe3a34e0099:1"
+					}
+				]
+			},
+			{
+				"id": "fsc",
+				"control": false,
+				"foundAt": null,
+				"completeSourceText": false,
+				"durationMs": 14.093541999999957,
+				"usage": {
+					"inputTokens": 0,
+					"modelDurationMs": 0,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": 0
+				},
+				"hits": [
+					{
+						"model": "catalog:amcor-amfiber-coffee",
+						"evidenceId": "kb-18e251bf41f99d61d402b658d3805bd054095796b05c29501134359351f1b3ba:1"
+					},
+					{
+						"model": "catalog:amcor-amprima-coffee",
+						"evidenceId": "kb-a60b523c63dd227bc902884e4b972d2b27dc7a1ce357de27a666e9508ec85fb4:1"
+					},
+					{
+						"model": "catalog:huhtamaki-bluelite",
+						"evidenceId": "kb-256867ea87a98678a7daad35625e8ff0a46a8a339b0f4043d94063a959280f4c:1"
+					},
+					{
+						"model": "catalog:cflex-ecolamhighplus",
+						"evidenceId": "kb-e7fa4ae355ee59df63da3cf5a8b3f2f3d355965aab51d85d5955daa38820287b:1"
+					},
+					{
+						"model": "catalog:cflex-ecoverhighplus",
+						"evidenceId": "kb-a8fc9dd18027ae206acae01a1a5b3fdc90f0359d71514ef997a1fbe3a34e0099:1"
+					}
+				]
+			},
+			{
+				"id": "ink",
+				"control": false,
+				"foundAt": null,
+				"completeSourceText": false,
+				"durationMs": 16.511167,
+				"usage": {
+					"inputTokens": 0,
+					"modelDurationMs": 0,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": 0
+				},
+				"hits": [
+					{
+						"model": "catalog:amcor-amfiber-coffee",
+						"evidenceId": "kb-18e251bf41f99d61d402b658d3805bd054095796b05c29501134359351f1b3ba:1"
+					},
+					{
+						"model": "catalog:amcor-amprima-coffee",
+						"evidenceId": "kb-a60b523c63dd227bc902884e4b972d2b27dc7a1ce357de27a666e9508ec85fb4:1"
+					},
+					{
+						"model": "catalog:huhtamaki-blueloop-pe",
+						"evidenceId": "kb-cf430d7ad2e1dcea3de7aac2af35c2fa434285630893985b50abc4de83412407:1"
+					},
+					{
+						"model": "catalog:cflex-ecolamhighplus",
+						"evidenceId": "kb-e7fa4ae355ee59df63da3cf5a8b3f2f3d355965aab51d85d5955daa38820287b:1"
+					},
+					{
+						"model": "catalog:cflex-ecoverhighplus",
+						"evidenceId": "kb-a8fc9dd18027ae206acae01a1a5b3fdc90f0359d71514ef997a1fbe3a34e0099:1"
+					}
+				]
+			},
+			{
+				"id": "paperboard",
+				"control": false,
+				"foundAt": null,
+				"completeSourceText": false,
+				"durationMs": 13.816666999999939,
+				"usage": {
+					"inputTokens": 0,
+					"modelDurationMs": 0,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": 0
+				},
+				"hits": [
+					{
+						"model": "catalog:amcor-amprima-coffee",
+						"evidenceId": "kb-a60b523c63dd227bc902884e4b972d2b27dc7a1ce357de27a666e9508ec85fb4:1"
+					},
+					{
+						"model": "catalog:amcor-amfiber-coffee",
+						"evidenceId": "kb-18e251bf41f99d61d402b658d3805bd054095796b05c29501134359351f1b3ba:1"
+					},
+					{
+						"model": "catalog:cflex-ecolamhighplus",
+						"evidenceId": "kb-e7fa4ae355ee59df63da3cf5a8b3f2f3d355965aab51d85d5955daa38820287b:1"
+					},
+					{
+						"model": "catalog:huhtamaki-bluelite",
+						"evidenceId": "kb-256867ea87a98678a7daad35625e8ff0a46a8a339b0f4043d94063a959280f4c:1"
+					},
+					{
+						"model": "catalog:cflex-ecoverhighplus",
+						"evidenceId": "kb-a8fc9dd18027ae206acae01a1a5b3fdc90f0359d71514ef997a1fbe3a34e0099:1"
+					}
+				]
+			},
+			{
+				"id": "old-ecolam",
+				"control": true,
+				"foundAt": 2,
+				"completeSourceText": true,
+				"durationMs": 16.41837499999997,
+				"usage": {
+					"inputTokens": 0,
+					"modelDurationMs": 0,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": 0
+				},
+				"hits": [
+					{
+						"model": "catalog:amcor-amfiber-coffee",
+						"evidenceId": "kb-18e251bf41f99d61d402b658d3805bd054095796b05c29501134359351f1b3ba:1"
+					},
+					{
+						"model": "catalog:cflex-ecolamhighplus",
+						"evidenceId": "kb-e7fa4ae355ee59df63da3cf5a8b3f2f3d355965aab51d85d5955daa38820287b:1"
+					},
+					{
+						"model": "catalog:amcor-amprima-coffee",
+						"evidenceId": "kb-a60b523c63dd227bc902884e4b972d2b27dc7a1ce357de27a666e9508ec85fb4:1"
+					},
+					{
+						"model": "catalog:cflex-ecoverhighplus",
+						"evidenceId": "kb-a8fc9dd18027ae206acae01a1a5b3fdc90f0359d71514ef997a1fbe3a34e0099:1"
+					},
+					{
+						"model": "catalog:huhtamaki-bluelite",
+						"evidenceId": "kb-256867ea87a98678a7daad35625e8ff0a46a8a339b0f4043d94063a959280f4c:1"
+					}
+				]
+			},
+			{
+				"id": "old-rec",
+				"control": true,
+				"foundAt": null,
+				"completeSourceText": false,
+				"durationMs": 16.13708299999996,
+				"usage": {
+					"inputTokens": 0,
+					"modelDurationMs": 0,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": 0
+				},
+				"hits": [
+					{
+						"model": "catalog:cflex-ecolamhighplus",
+						"evidenceId": "kb-e7fa4ae355ee59df63da3cf5a8b3f2f3d355965aab51d85d5955daa38820287b:1"
+					},
+					{
+						"model": "catalog:cflex-ecoverhighplus",
+						"evidenceId": "kb-a8fc9dd18027ae206acae01a1a5b3fdc90f0359d71514ef997a1fbe3a34e0099:1"
+					},
+					{
+						"model": "study:PMC10670670",
+						"evidenceId": "kb-ee750761001b164cbcca3fb099eb4b69809ed7c554c92b37e5c7f66b493288e3:2"
+					},
+					{
+						"model": "study:PMC10670670",
+						"anchor": "sec2dot3-foods-12-04167",
+						"evidenceId": "kb-ee750761001b164cbcca3fb099eb4b69809ed7c554c92b37e5c7f66b493288e3:17"
+					},
+					{
+						"model": "study:PMC10670670",
+						"anchor": "sec2dot3-foods-12-04167",
+						"evidenceId": "kb-ee750761001b164cbcca3fb099eb4b69809ed7c554c92b37e5c7f66b493288e3:19"
+					}
+				]
+			}
+		]
+	},
+	"expanded": {
+		"summary": {
+			"newSourceProbes": 12,
+			"newSourceHitsAt5": 2,
+			"controlProbes": 2,
+			"controlHitsAt5": 2,
+			"completeSourceTextOnHits": 4,
+			"embeddingCalls": 14,
+			"queryInputTokens": 0,
+			"rerankingCalls": 0,
+			"rerankingInputTokens": 0,
+			"meanDurationMs": 33.08250885714288
+		},
+		"rows": [
+			{
+				"id": "pcr-11",
+				"control": false,
+				"foundAt": 2,
+				"completeSourceText": true,
+				"durationMs": 32.5897920000001,
+				"usage": {
+					"inputTokens": 0,
+					"modelDurationMs": 0,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": 0
+				},
+				"hits": [
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-12",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:12"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-11",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:11"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-21",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:21"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-15",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:15"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-20",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:20"
+					}
+				]
+			},
+			{
+				"id": "pcr-12",
+				"control": false,
+				"foundAt": 2,
+				"completeSourceText": true,
+				"durationMs": 35.974000000000046,
+				"usage": {
+					"inputTokens": 0,
+					"modelDurationMs": 0,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": 0
+				},
+				"hits": [
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-5",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:5"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-12",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:12"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-8",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:8"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-11",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:11"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-17",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:17"
+					}
+				]
+			},
+			{
+				"id": "pcr-456",
+				"control": false,
+				"foundAt": null,
+				"completeSourceText": false,
+				"durationMs": 34.465832999999975,
+				"usage": {
+					"inputTokens": 0,
+					"modelDurationMs": 0,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": 0
+				},
+				"hits": [
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-23",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:23"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-27",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:27"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-44",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:44"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-34",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:34"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-86",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:86"
+					}
+				]
+			},
+			{
+				"id": "pcr-460",
+				"control": false,
+				"foundAt": null,
+				"completeSourceText": false,
+				"durationMs": 31.371124999999893,
+				"usage": {
+					"inputTokens": 0,
+					"modelDurationMs": 0,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": 0
+				},
+				"hits": [
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-1",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:1"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-2",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:2"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-3",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:3"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-4",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:4"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-5",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:5"
+					}
+				]
+			},
+			{
+				"id": "pcr-455",
+				"control": false,
+				"foundAt": null,
+				"completeSourceText": false,
+				"durationMs": 30.87270799999999,
+				"usage": {
+					"inputTokens": 0,
+					"modelDurationMs": 0,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": 0
+				},
+				"hits": [
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-1",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:1"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-2",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:2"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-3",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:3"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-4",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:4"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-5",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:5"
+					}
+				]
+			},
+			{
+				"id": "pcr-454",
+				"control": false,
+				"foundAt": null,
+				"completeSourceText": false,
+				"durationMs": 31.528500000000008,
+				"usage": {
+					"inputTokens": 0,
+					"modelDurationMs": 0,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": 0
+				},
+				"hits": [
+					{
+						"model": "catalog:amcor-amfiber-coffee",
+						"evidenceId": "kb-18e251bf41f99d61d402b658d3805bd054095796b05c29501134359351f1b3ba:1"
+					},
+					{
+						"model": "catalog:cflex-ecoverhighplus",
+						"evidenceId": "kb-a8fc9dd18027ae206acae01a1a5b3fdc90f0359d71514ef997a1fbe3a34e0099:1"
+					},
+					{
+						"model": "catalog:amcor-amprima-coffee",
+						"evidenceId": "kb-a60b523c63dd227bc902884e4b972d2b27dc7a1ce357de27a666e9508ec85fb4:1"
+					},
+					{
+						"model": "catalog:cflex-ecolamhighplus",
+						"evidenceId": "kb-e7fa4ae355ee59df63da3cf5a8b3f2f3d355965aab51d85d5955daa38820287b:1"
+					},
+					{
+						"model": "catalog:huhtamaki-bluelite",
+						"evidenceId": "kb-256867ea87a98678a7daad35625e8ff0a46a8a339b0f4043d94063a959280f4c:1"
+					}
+				]
+			},
+			{
+				"id": "pcr-459",
+				"control": false,
+				"foundAt": null,
+				"completeSourceText": false,
+				"durationMs": 33.28358300000002,
+				"usage": {
+					"inputTokens": 0,
+					"modelDurationMs": 0,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": 0
+				},
+				"hits": [
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-3",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:3"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-5",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:5"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-7",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:7"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-8",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:8"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-9",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:9"
+					}
+				]
+			},
+			{
+				"id": "pcr-458",
+				"control": false,
+				"foundAt": null,
+				"completeSourceText": false,
+				"durationMs": 30.92783399999996,
+				"usage": {
+					"inputTokens": 0,
+					"modelDurationMs": 0,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": 0
+				},
+				"hits": [
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-105",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:105"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-109",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:109"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-5",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:5"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-4",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:4"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-3",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:3"
+					}
+				]
+			},
+			{
+				"id": "bpi",
+				"control": false,
+				"foundAt": null,
+				"completeSourceText": false,
+				"durationMs": 31.678959000000077,
+				"usage": {
+					"inputTokens": 0,
+					"modelDurationMs": 0,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": 0
+				},
+				"hits": [
+					{
+						"model": "catalog:amcor-amprima-coffee",
+						"evidenceId": "kb-a60b523c63dd227bc902884e4b972d2b27dc7a1ce357de27a666e9508ec85fb4:1"
+					},
+					{
+						"model": "catalog:amcor-amfiber-coffee",
+						"evidenceId": "kb-18e251bf41f99d61d402b658d3805bd054095796b05c29501134359351f1b3ba:1"
+					},
+					{
+						"model": "catalog:cflex-ecolamhighplus",
+						"evidenceId": "kb-e7fa4ae355ee59df63da3cf5a8b3f2f3d355965aab51d85d5955daa38820287b:1"
+					},
+					{
+						"model": "catalog:huhtamaki-bluelite",
+						"evidenceId": "kb-256867ea87a98678a7daad35625e8ff0a46a8a339b0f4043d94063a959280f4c:1"
+					},
+					{
+						"model": "catalog:cflex-ecoverhighplus",
+						"evidenceId": "kb-a8fc9dd18027ae206acae01a1a5b3fdc90f0359d71514ef997a1fbe3a34e0099:1"
+					}
+				]
+			},
+			{
+				"id": "fsc",
+				"control": false,
+				"foundAt": null,
+				"completeSourceText": false,
+				"durationMs": 33.920667000000094,
+				"usage": {
+					"inputTokens": 0,
+					"modelDurationMs": 0,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": 0
+				},
+				"hits": [
+					{
+						"model": "catalog:amcor-amfiber-coffee",
+						"evidenceId": "kb-18e251bf41f99d61d402b658d3805bd054095796b05c29501134359351f1b3ba:1"
+					},
+					{
+						"model": "catalog:amcor-amprima-coffee",
+						"evidenceId": "kb-a60b523c63dd227bc902884e4b972d2b27dc7a1ce357de27a666e9508ec85fb4:1"
+					},
+					{
+						"model": "catalog:huhtamaki-bluelite",
+						"evidenceId": "kb-256867ea87a98678a7daad35625e8ff0a46a8a339b0f4043d94063a959280f4c:1"
+					},
+					{
+						"model": "catalog:cflex-ecolamhighplus",
+						"evidenceId": "kb-e7fa4ae355ee59df63da3cf5a8b3f2f3d355965aab51d85d5955daa38820287b:1"
+					},
+					{
+						"model": "catalog:cflex-ecoverhighplus",
+						"evidenceId": "kb-a8fc9dd18027ae206acae01a1a5b3fdc90f0359d71514ef997a1fbe3a34e0099:1"
+					}
+				]
+			},
+			{
+				"id": "ink",
+				"control": false,
+				"foundAt": null,
+				"completeSourceText": false,
+				"durationMs": 31.658915999999977,
+				"usage": {
+					"inputTokens": 0,
+					"modelDurationMs": 0,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": 0
+				},
+				"hits": [
+					{
+						"model": "catalog:amcor-amfiber-coffee",
+						"evidenceId": "kb-18e251bf41f99d61d402b658d3805bd054095796b05c29501134359351f1b3ba:1"
+					},
+					{
+						"model": "catalog:huhtamaki-blueloop-pe",
+						"evidenceId": "kb-cf430d7ad2e1dcea3de7aac2af35c2fa434285630893985b50abc4de83412407:1"
+					},
+					{
+						"model": "catalog:amcor-amprima-coffee",
+						"evidenceId": "kb-a60b523c63dd227bc902884e4b972d2b27dc7a1ce357de27a666e9508ec85fb4:1"
+					},
+					{
+						"model": "catalog:cflex-ecolamhighplus",
+						"evidenceId": "kb-e7fa4ae355ee59df63da3cf5a8b3f2f3d355965aab51d85d5955daa38820287b:1"
+					},
+					{
+						"model": "catalog:cflex-ecoverhighplus",
+						"evidenceId": "kb-a8fc9dd18027ae206acae01a1a5b3fdc90f0359d71514ef997a1fbe3a34e0099:1"
+					}
+				]
+			},
+			{
+				"id": "paperboard",
+				"control": false,
+				"foundAt": null,
+				"completeSourceText": false,
+				"durationMs": 31.509083000000146,
+				"usage": {
+					"inputTokens": 0,
+					"modelDurationMs": 0,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": 0
+				},
+				"hits": [
+					{
+						"model": "catalog:amcor-amprima-coffee",
+						"evidenceId": "kb-a60b523c63dd227bc902884e4b972d2b27dc7a1ce357de27a666e9508ec85fb4:1"
+					},
+					{
+						"model": "catalog:cflex-ecolamhighplus",
+						"evidenceId": "kb-e7fa4ae355ee59df63da3cf5a8b3f2f3d355965aab51d85d5955daa38820287b:1"
+					},
+					{
+						"model": "catalog:huhtamaki-bluelite",
+						"evidenceId": "kb-256867ea87a98678a7daad35625e8ff0a46a8a339b0f4043d94063a959280f4c:1"
+					},
+					{
+						"model": "catalog:amcor-amfiber-coffee",
+						"evidenceId": "kb-18e251bf41f99d61d402b658d3805bd054095796b05c29501134359351f1b3ba:1"
+					},
+					{
+						"model": "catalog:cflex-ecoverhighplus",
+						"evidenceId": "kb-a8fc9dd18027ae206acae01a1a5b3fdc90f0359d71514ef997a1fbe3a34e0099:1"
+					}
+				]
+			},
+			{
+				"id": "old-ecolam",
+				"control": true,
+				"foundAt": 1,
+				"completeSourceText": true,
+				"durationMs": 35.959957999999915,
+				"usage": {
+					"inputTokens": 0,
+					"modelDurationMs": 0,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": 0
+				},
+				"hits": [
+					{
+						"model": "catalog:cflex-ecolamhighplus",
+						"evidenceId": "kb-e7fa4ae355ee59df63da3cf5a8b3f2f3d355965aab51d85d5955daa38820287b:1"
+					},
+					{
+						"model": "catalog:amcor-amfiber-coffee",
+						"evidenceId": "kb-18e251bf41f99d61d402b658d3805bd054095796b05c29501134359351f1b3ba:1"
+					},
+					{
+						"model": "catalog:amcor-amprima-coffee",
+						"evidenceId": "kb-a60b523c63dd227bc902884e4b972d2b27dc7a1ce357de27a666e9508ec85fb4:1"
+					},
+					{
+						"model": "catalog:cflex-ecoverhighplus",
+						"evidenceId": "kb-a8fc9dd18027ae206acae01a1a5b3fdc90f0359d71514ef997a1fbe3a34e0099:1"
+					},
+					{
+						"model": "catalog:huhtamaki-bluelite",
+						"evidenceId": "kb-256867ea87a98678a7daad35625e8ff0a46a8a339b0f4043d94063a959280f4c:1"
+					}
+				]
+			},
+			{
+				"id": "old-rec",
+				"control": true,
+				"foundAt": 4,
+				"completeSourceText": true,
+				"durationMs": 37.41416600000002,
+				"usage": {
+					"inputTokens": 0,
+					"modelDurationMs": 0,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": 0
+				},
+				"hits": [
+					{
+						"model": "catalog:cflex-ecolamhighplus",
+						"evidenceId": "kb-e7fa4ae355ee59df63da3cf5a8b3f2f3d355965aab51d85d5955daa38820287b:1"
+					},
+					{
+						"model": "catalog:cflex-ecoverhighplus",
+						"evidenceId": "kb-a8fc9dd18027ae206acae01a1a5b3fdc90f0359d71514ef997a1fbe3a34e0099:1"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-81",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:81"
+					},
+					{
+						"model": "study:PMC11243642",
+						"anchor": "sec3dot2-molecules-29-03006",
+						"evidenceId": "kb-19d4250fd68eb964694845a0a97f5583635b5225c966bec32202f98d391e1c3d:37"
+					},
+					{
+						"model": "study:PMC10931445",
+						"anchor": "sec2dot2-foods-13-00759",
+						"evidenceId": "kb-13d46e7adc866ca6e329285bdd913b0487cc9e5c7a1c2c265d02947a651d3f1f:17"
+					}
+				]
+			}
+		]
+	},
+	"index": [
+		{
+			"documentId": "PMC11243642",
+			"blocks": 158,
+			"durationMs": 9.920208000000002
+		},
+		{
+			"documentId": "PMC10931445",
+			"blocks": 161,
+			"durationMs": 8.14425
+		},
+		{
+			"documentId": "PMC9563479",
+			"blocks": 76,
+			"durationMs": 4.7581670000000145
+		},
+		{
+			"documentId": "PMC10670670",
+			"blocks": 89,
+			"durationMs": 4.258790999999974
+		},
+		{
+			"documentId": "PMC11944891",
+			"blocks": 84,
+			"durationMs": 4.511000000000024
+		},
+		{
+			"documentId": "catalog-cflex-ecolamhighplus",
+			"blocks": 1,
+			"durationMs": 0.8357920000000263
+		},
+		{
+			"documentId": "catalog-cflex-ecoverhighplus",
+			"blocks": 1,
+			"durationMs": 0.6797909999999661
+		},
+		{
+			"documentId": "catalog-huhtamaki-bluelite",
+			"blocks": 1,
+			"durationMs": 0.7359589999999798
+		},
+		{
+			"documentId": "catalog-huhtamaki-blueloop-pe",
+			"blocks": 1,
+			"durationMs": 0.6789590000000203
+		},
+		{
+			"documentId": "catalog-amcor-amprima-coffee",
+			"blocks": 1,
+			"durationMs": 0.6528339999999844
+		},
+		{
+			"documentId": "catalog-amcor-amfiber-coffee",
+			"blocks": 1,
+			"durationMs": 0.5985829999999623
+		},
+		{
+			"documentId": "packaging-source-fda-fcn",
+			"blocks": 1,
+			"durationMs": 1.0405420000000731
+		},
+		{
+			"documentId": "packaging-source-fda-pcr",
+			"blocks": 1,
+			"durationMs": 2.2612080000000105
+		},
+		{
+			"documentId": "packaging-source-bpi-products",
+			"blocks": 1,
+			"durationMs": 0.75587500000006
+		},
+		{
+			"documentId": "packaging-source-recyclass-certificates",
+			"blocks": 1,
+			"durationMs": 0.6209579999999733
+		},
+		{
+			"documentId": "packaging-source-fsc-search",
+			"blocks": 1,
+			"durationMs": 0.6647090000000162
+		},
+		{
+			"documentId": "packaging-source-siegwerk-finder",
+			"blocks": 1,
+			"durationMs": 0.6064580000000888
+		},
+		{
+			"documentId": "packaging-source-metsaboard-portfolio",
+			"blocks": 1,
+			"durationMs": 0.6306670000000167
+		},
+		{
+			"documentId": "packaging-source-upm-paper-catalogue",
+			"blocks": 1,
+			"durationMs": 0.6682080000000497
+		},
+		{
+			"documentId": "packaging-source-goglio-cofres",
+			"blocks": 1,
+			"durationMs": 0.6237090000000762
+		},
+		{
+			"documentId": "packaging-source-tricorbraun-flex",
+			"blocks": 1,
+			"durationMs": 0.5944590000000289
+		},
+		{
+			"documentId": "fda-pcr-nol",
+			"blocks": 460,
+			"durationMs": 25.388874999999985
+		}
+	],
+	"elapsedMs": 778.276625,
+	"paidCalls": 0,
+	"generationCalls": 0,
+	"limitations": [
+		"Source-bound probes prepared before this run; Agent labels, no human expert review or independent blind test.",
+		"Coverage increase on new-source probes is caused by adding previously absent data; it is not a retrieval-algorithm or end-to-end answer-quality gain.",
+		"FDA snapshot is a US process/conditions source, not a current order or product compliance determination.",
+		"Directory records are not vendor technical fulltexts. Real generation quality NOT_EVALUATED.",
+		"Local timings include the selected runtime and corpus; not production latency claims. Fake runs prove mechanism only."
+	]
+}

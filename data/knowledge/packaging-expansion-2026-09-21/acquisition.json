@@ -1,0 +1,29 @@
+{
+	"schemaVersion": "packaging-expansion-acquisition.v1",
+	"checkedAt": "2026-09-21T00:00:00.000Z",
+	"sourceUrl": "https://www.fda.gov/food/packaging-food-contact-substances-fcs/recycled-plastics-food-packaging",
+	"downloadUrl": "https://www.hfpappexternal.fda.gov/scripts/fdcc/cfc/XMLService.cfm?method=downloadxls&set=RecycledPlastics",
+	"databaseUrl": "https://www.hfpappexternal.fda.gov/scripts/fdcc/index.cfm?set=RecycledPlastics",
+	"policyUrl": "https://www.fda.gov/about-fda/about-website/website-policies",
+	"sourceUpdatedAt": "2026-09-04",
+	"rows": 460,
+	"license": "FDA website public-domain default; no separate copyright notice in this official data export. No logos, vendor attachments or third-party articles included.",
+	"transform": "Windows-1252 CSV despite .xls suffix; preserve all 7 fields and source row order, decode HTML entities and list markup, ISO-format NOL dates. No translation, parameter inference or truncation.",
+	"files": [
+		{
+			"file": "fda-recycled-plastics.xls",
+			"sha256": "3405e4766bfcf50e993bde2d2ce5242fb27ce53240014b984ea5f997c383577a",
+			"bytes": 162430
+		},
+		{
+			"file": "fda-recycled-plastics.json",
+			"sha256": "f66d052961c844f87f336de2683623d7646b5ae7599b8d424f84e9206e6a7474",
+			"bytes": 226416
+		},
+		{
+			"file": "fda-reuse-policy.txt",
+			"sha256": "885c5306b9bd26ef39da00c9f5b0e17385a18ffc9d7af5446db3b691464f4acc",
+			"bytes": 1525
+		}
+	]
+}

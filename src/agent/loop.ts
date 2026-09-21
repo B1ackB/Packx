@@ -44,11 +44,12 @@ function addUsage(total: AgentUsage, next: AgentUsage): void {
 }
 
 export async function abortable<Value>(promise: Promise<Value>, signal: AbortSignal): Promise<Value> {
-	if (signal.aborted) throw signal.reason;
 	return new Promise<Value>((resolve, reject) => {
 		const aborted = () => reject(signal.reason);
 		signal.addEventListener("abort", aborted, { once: true });
 		promise.then(resolve, reject).finally(() => signal.removeEventListener("abort", aborted));
+		// The operation may have aborted synchronously while creating its promise. Still observe its rejection.
+		if (signal.aborted) { signal.removeEventListener("abort", aborted); aborted(); }
 	});
 }
 

@@ -10,7 +10,9 @@ import { terms, validateVector, type EmbeddingPort } from "./embedding";
 import { assertImport, assertQuery, knowledgeId } from "./validation";
 import { diverseTables, fieldRanking, sourceOrder } from "./ranking";
 import { rerankCandidates, type RerankPort } from "./reranking";
+import { abortable } from "../../src/agent/loop";
 
+export const knowledgeSearchTimeoutMs = 35_000;
 export const knowledgeIndexVersion = "knowledge-blocks.v1";
 export const digest = (value: unknown) => createHash("sha256").update(JSON.stringify(value, (_key, item) => item && typeof item === "object" && !Array.isArray(item) ? Object.fromEntries(Object.keys(item).sort().map((key) => [key, item[key]])) : item)).digest("hex");
 type TaskScope = KnowledgeScope & { runId: string };
@@ -28,7 +30,7 @@ const transitions: Record<KnowledgeStatus, KnowledgeStatus[]> = {
 export class KnowledgeStore {
 	private readonly db: DatabaseSync;
 	private readonly raw: ArtifactContentStore;
-	constructor(root: string, readonly embedding: EmbeddingPort, private readonly normalizeBlock: (block: EvidenceBlock) => EvidenceBlock = (b) => b, private readonly now: () => string = () => new Date().toISOString(), private readonly retrieval?: KnowledgeRetrievalPolicy, private readonly reranker?: RerankPort) {
+	constructor(root: string, readonly embedding: EmbeddingPort, private readonly normalizeBlock: (block: EvidenceBlock) => EvidenceBlock = (b) => b, private readonly now: () => string = () => new Date().toISOString(), private readonly retrieval?: KnowledgeRetrievalPolicy, private readonly reranker?: RerankPort, private readonly failurePolicy: "strict" | "degrade" = "degrade") {
 		mkdirSync(root, { recursive: true, mode: 0o700 });
 		const path = join(root, "knowledge.sqlite");
 		this.db = new DatabaseSync(path);
@@ -199,20 +201,34 @@ export class KnowledgeStore {
 		const queryTerms = terms(prepared.lexicalQuery);
 		const lexical = query.mode === "vector" ? [] : this.retrieval?.lexical === "field_idf" ? fieldRanking(rows, prepared.lexicalQuery) : rows.map((r) => ({ row: r, score: queryTerms.reduce((sum, term) => sum + (r.terms.includes(term) ? 1 : 0), 0) + (r.doc.manifest.model.toLowerCase() === query.query.toLowerCase() ? 10 : 0) })).filter((r) => r.score > 0).sort((a, b) => b.score - a.score || a.row.id.localeCompare(b.row.id));
 		let ranking = lexical; let unavailable = false;
+		let degradation: EvidenceResult["degradation"], embeddingCalls = 0;
 		let usage: { inputTokens: number | null; modelDurationMs: number | null } = { inputTokens: 0, modelDurationMs: 0 };
 		if (query.mode !== "keyword") {
 			if (rows.some((r) => r.space !== this.embedding.signature || r.index !== knowledgeIndexVersion)) unavailable = true;
 			else {
-				const batch = await this.embedding.embed([prepared.vectorQuery], signal, "query");
-				usage = batch.usage;
-				const [rawVector] = batch.vectors;
-				const vector = validateVector(rawVector, this.embedding.dimensions);
-				const semantic = rows.map((r) => ({ row: r, score: validateVector(JSON.parse(r.vector), this.embedding.dimensions).reduce((sum, v, i) => sum + v * vector[i], 0) })).filter((r) => r.score >= 0.12).sort((a, b) => b.score - a.score || (this.retrieval ? sourceOrder(a.row, b.row) : a.row.id.localeCompare(b.row.id)));
-				if (query.mode === "vector") ranking = semantic;
-				else {
-					const scores = new Map<string, { row: typeof rows[number]; score: number }>();
-					for (const list of [lexical, semantic]) list.forEach((hit, rank) => { const value = scores.get(hit.row.id) ?? { row: hit.row, score: 0 }; value.score += 1 / (60 + rank + 1); scores.set(hit.row.id, value); });
-					ranking = [...scores.values()].sort((a, b) => b.score - a.score || (this.retrieval ? sourceOrder(a.row, b.row) : a.row.id.localeCompare(b.row.id)));
+				let batch: Awaited<ReturnType<EmbeddingPort["embed"]>> | undefined;
+				try {
+					embeddingCalls++;
+					const deadline = AbortSignal.timeout(30_000), combined = signal ? AbortSignal.any([signal, deadline]) : deadline;
+					batch = await abortable(this.embedding.embed([prepared.vectorQuery], combined, "query"), combined);
+				} catch (error) {
+					signal?.throwIfAborted();
+					const transient = error instanceof KnowledgeError ? error.code === "local_embedding_unavailable" : error instanceof TypeError || error instanceof Error && error.name === "TimeoutError";
+					if (this.failurePolicy !== "degrade" || query.mode !== "hybrid" || !transient) throw error;
+					usage = { inputTokens: null, modelDurationMs: null };
+					degradation = { requestedMode: query.mode, effectiveMode: "keyword", reason: "embedding_unavailable" };
+				}
+				if (!degradation) {
+					if (!batch || !Array.isArray(batch.vectors) || batch.vectors.length !== 1) throw new KnowledgeError("embedding_response_invalid");
+					usage = batch.usage;
+					const vector = validateVector(batch.vectors[0], this.embedding.dimensions);
+					const semantic = rows.map((r) => ({ row: r, score: validateVector(JSON.parse(r.vector), this.embedding.dimensions).reduce((sum, v, i) => sum + v * vector[i], 0) })).filter((r) => r.score >= 0.12).sort((a, b) => b.score - a.score || (this.retrieval ? sourceOrder(a.row, b.row) : a.row.id.localeCompare(b.row.id)));
+					if (query.mode === "vector") ranking = semantic;
+					else {
+						const scores = new Map<string, { row: typeof rows[number]; score: number }>();
+						for (const list of [lexical, semantic]) list.forEach((hit, rank) => { const value = scores.get(hit.row.id) ?? { row: hit.row, score: 0 }; value.score += 1 / (60 + rank + 1); scores.set(hit.row.id, value); });
+						ranking = [...scores.values()].sort((a, b) => b.score - a.score || (this.retrieval ? sourceOrder(a.row, b.row) : a.row.id.localeCompare(b.row.id)));
+					}
 				}
 			}
 		}
@@ -223,25 +239,33 @@ export class KnowledgeStore {
 		let hits = unavailable ? [] : (candidateOnly || this.reranker && query.mode === "hybrid" ? visible.slice(0, 20) : this.retrieval?.diversifyTables ? diverseTables(visible, query.limit ?? 5, query.query) : visible.slice(0, query.limit ?? 5)).map((r) => this.hit(r.row, r.score));
 		let reranking: EvidenceResult["reranking"];
 		const candidateIds = hits.map((h) => h.evidenceId);
-		if (!candidateOnly && this.reranker && query.mode === "hybrid" && hits.length) {
+		if (!candidateOnly && this.reranker && query.mode === "hybrid" && !degradation && hits.length) {
 			const at = performance.now(), candidateCount = hits.length;
 			try {
-				const deadline = AbortSignal.timeout(25_000), combined = signal ? AbortSignal.any([signal, deadline]) : deadline;
-				const ranked = await rerankCandidates(this.reranker, query.query, hits, combined);
+				// Reserve one second of the Tool deadline for permission rechecks and a bounded response.
+				const deadline = AbortSignal.timeout(Math.max(1, Math.min(25_000, Math.floor(knowledgeSearchTimeoutMs - 1000 - (performance.now() - started))))), combined = signal ? AbortSignal.any([signal, deadline]) : deadline;
+				const ranked = await abortable(rerankCandidates(this.reranker, query.query, hits, combined), combined);
 				const current = new Set(this.rows(scope, query).map((r) => r.id));
 				hits = ranked.hits.filter((h) => current.has(h.evidenceId)).slice(0, query.limit ?? 5);
 				reranking = { status: "completed", model: this.reranker.signature, candidateCount, durationMs: performance.now() - at, inputTokens: ranked.usage.inputTokens, forwardPasses: ranked.usage.forwardPasses };
-			} catch {
+			} catch (error) {
 				signal?.throwIfAborted();
-				hits = [];
+				if (this.failurePolicy === "degrade" && !(error instanceof KnowledgeError)) degradation = { requestedMode: query.mode, effectiveMode: "hybrid", reason: "rerank_unavailable" };
+				else hits = [];
 				reranking = { status: "failed", model: this.reranker.signature, candidateCount, durationMs: performance.now() - at, inputTokens: null, forwardPasses: null, failure: "rerank_failed_or_timed_out" };
 			}
 		}
-		const result: EvidenceResult = { schemaVersion: "evidence-result.v1", status: unavailable || reranking?.status === "failed" ? "unavailable" : hits.length ? "candidates" : "no_evidence", correlationId, indexVersion: knowledgeIndexVersion, corpusVersion, embedding: this.embedding.signature, retrievalVersion: this.retrieval?.version ?? "legacy-overlap.v1", assessment: this.assess(query.query, hits), hits,
+		if (degradation) {
+			const current = new Set(this.rows(scope, query).map((row) => row.id));
+			const eligible = ranking.filter((entry) => current.has(entry.row.id));
+			hits = (this.retrieval?.diversifyTables ? diverseTables(eligible, query.limit ?? 5, query.query) : eligible.slice(0, query.limit ?? 5)).map((entry) => this.hit(entry.row, entry.score));
+		}
+		const result: EvidenceResult = { schemaVersion: "evidence-result.v1", status: unavailable || reranking?.status === "failed" && !degradation ? "unavailable" : hits.length ? "candidates" : "no_evidence", correlationId, indexVersion: knowledgeIndexVersion, corpusVersion, embedding: this.embedding.signature, retrievalVersion: this.retrieval?.version ?? "legacy-overlap.v1", assessment: this.assess(query.query, hits), hits,
 			...(reranking ? { reranking } : {}),
-			gaps: [...(reranking?.status === "failed" ? ["rerank_unavailable"] : []), ...(unavailable ? ["index_rebuild_required"] : []), ...(!hits.length ? ["no_supported_answer"] : []), ...(!query.region || !query.asOf ? ["order_applicability_required"] : []), "retrieval_is_not_entailment"],
-			durationMs: performance.now() - started, usage: { ...usage, embeddingCalls: query.mode === "keyword" || unavailable ? 0 : 1, generationCalls: 0, costUsd: this.embedding.kind === "local_model" ? null : 0 } };
-		this.event(scope, "knowledge.queried", correlationId, { queryHash: digest(query), preparedQueryHash: digest(prepared), retrievalVersion: result.retrievalVersion, assessment: result.assessment, filters: { model: query.model ?? null, region: query.region ?? null, asOf: query.asOf ?? null, provenance: query.provenance ?? null }, mode: query.mode, candidateOnly, candidateIds, reranking, hits: hits.map((h) => h.evidenceId), corpusVersion, indexVersion: knowledgeIndexVersion, embedding: this.embedding.signature, durationMs: result.durationMs, usage: result.usage });
+			...(degradation ? { degradation } : {}),
+			gaps: [...(degradation ? ["retrieval_degraded", degradation.reason] : reranking?.status === "failed" ? ["rerank_unavailable"] : []), ...(unavailable ? ["index_rebuild_required"] : []), ...(!hits.length ? ["no_supported_answer"] : []), ...(!query.region || !query.asOf ? ["order_applicability_required"] : []), "retrieval_is_not_entailment"],
+			durationMs: performance.now() - started, usage: { ...usage, embeddingCalls, generationCalls: 0, costUsd: this.embedding.kind === "local_model" ? null : 0 } };
+		this.event(scope, "knowledge.queried", correlationId, { queryHash: digest(query), preparedQueryHash: digest(prepared), retrievalVersion: result.retrievalVersion, assessment: result.assessment, filters: { model: query.model ?? null, region: query.region ?? null, asOf: query.asOf ?? null, provenance: query.provenance ?? null }, mode: query.mode, candidateOnly, candidateIds, reranking, degradation, hits: hits.map((h) => h.evidenceId), corpusVersion, indexVersion: knowledgeIndexVersion, embedding: this.embedding.signature, durationMs: result.durationMs, usage: result.usage });
 		return result;
 	}
 	selection(scope: TaskScope): EvidenceSelection | undefined {
