@@ -13,8 +13,21 @@ export interface AgentSessionScope {
 	sessionId: string;
 }
 
+/** Compare-and-swap a previously uncertain outcome using evidence supplied by the Host. */
+export function resolveExecution(existing: AgentToolExecutionRecord, expected: AgentToolExecutionRecord, outcome: { result: string; resultDigest: string; evidenceRef: string; resolvedAt: string }): AgentToolExecutionRecord {
+	const identity = (value: AgentToolExecutionRecord) => JSON.stringify([value.tenantId, value.workspaceId, value.runId, value.actorId, value.tool, value.idempotencyKey, value.approvalId, value.executionId, value.inputDigest]);
+	if (identity(existing) !== identity(expected)) throw new AgentStateStoreError("conflict", "Execution reconciliation scope changed");
+	if (existing.status === "succeeded") return structuredClone(existing);
+	if (existing.status !== expected.status || existing.resultDigest !== expected.resultDigest) throw new AgentStateStoreError("conflict", "Execution reconciliation state changed");
+	if (!outcome.evidenceRef || outcome.evidenceRef.length > 256 || !outcome.resultDigest || !Number.isFinite(Date.parse(outcome.resolvedAt))) throw new AgentStateStoreError("unavailable", "Execution reconciliation requires valid evidence");
+	const { failureCode: _failureCode, ...record } = existing;
+	return { ...record, status: "succeeded", result: outcome.result, resultDigest: outcome.resultDigest, completedAt: outcome.resolvedAt,
+		reconciliation: { evidenceRef: outcome.evidenceRef, previousStatus: existing.status, ...(existing.failureCode ? { previousFailureCode: existing.failureCode } : {}), ...(existing.resultDigest ? { previousResultDigest: existing.resultDigest } : {}), resolvedAt: outcome.resolvedAt } };
+}
+
 export interface AgentSessionState {
 	revision: number;
+	historyBinding?: string;
 	checkpoint?: { turnKey: string; contextBinding?: string };
 	messages: AgentMessage[];
 	/** Append-only visible dialogue, independent of the replaceable working messages. */
@@ -48,6 +61,7 @@ export function appendTranscript(current: readonly AgentMessage[], candidates: r
 
 export interface ContextSnapshotRecord extends AgentSessionScope {
 	contextBinding?: string;
+	historyBinding?: string;
 	purpose?: "turn" | "summary" | "archive";
 	schemaVersion: "context-snapshot.v2";
 	snapshotId: string;
@@ -68,6 +82,7 @@ export interface AgentSessionStore {
 		messages: readonly AgentMessage[],
 		updatedAt: string,
 		checkpoint?: AgentSessionState["checkpoint"] | null,
+		historyBinding?: string,
 	): AgentSessionState;
 }
 
@@ -153,13 +168,14 @@ export class InMemoryAgentStateStore implements AgentSessionStore, ContextSnapsh
 		messages: readonly AgentMessage[],
 		_updatedAt: string,
 		checkpoint?: AgentSessionState["checkpoint"] | null,
+		historyBinding?: string,
 	): AgentSessionState {
 		const current = this.load(scope);
 		if (current.revision !== expectedRevision) {
 			throw new AgentStateStoreError("conflict", "Agent Session revision changed");
 		}
 		const identified = messages.map((message, index) => visibleDialogue(message) && !message.messageId ? { ...message, messageId: `legacy-${expectedRevision}-${index}` } : message);
-		const next = { checkpoint: checkpoint === null ? undefined : checkpoint ?? current.checkpoint, revision: expectedRevision + 1, messages: cloneMessages(identified),
+		const next = { checkpoint: checkpoint === null ? undefined : checkpoint ?? current.checkpoint, historyBinding: historyBinding ?? current.historyBinding, revision: expectedRevision + 1, messages: cloneMessages(identified),
 			transcript: appendTranscript(current.transcript ?? [], identified, scope.sessionId), historyStatus: current.historyStatus ?? "complete" as const };
 		this.sessions.set(key(scope), next);
 		return this.load(scope);
@@ -212,5 +228,13 @@ export class InMemoryAgentStateStore implements AgentSessionStore, ContextSnapsh
 	async find(key: AgentToolExecutionKey): Promise<AgentToolExecutionRecord | undefined> {
 		const record = this.toolExecutions.get(toolExecutionKey(key));
 		return record ? structuredClone(record) : undefined;
+	}
+
+	async resolve(expected: AgentToolExecutionRecord, outcome: Parameters<typeof resolveExecution>[2]) {
+		const key = toolExecutionKey(expected), existing = this.toolExecutions.get(key);
+		if (!existing) throw new AgentStateStoreError("not_found", "Tool execution reservation does not exist");
+		const resolved = resolveExecution(existing, expected, outcome);
+		this.toolExecutions.set(key, structuredClone(resolved));
+		return structuredClone(resolved);
 	}
 }

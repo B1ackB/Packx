@@ -11,6 +11,7 @@ export interface TaskFileVersion {
 	actorId: string;
 	executionId: string;
 	approvalId: string;
+	restoredFromVersion?: number;
 }
 
 export interface FileApprovalView {
@@ -20,6 +21,7 @@ export interface FileApprovalView {
 	expectedVersion?: number | null;
 	expectedSha256?: string | null;
 	content?: string;
+	sourceVersion?: number;
 	before?: string;
 	status: "pending" | "approved" | "rejected" | "cancelled" | "executing" | "applied";
 	createdAt: string;

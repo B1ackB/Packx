@@ -1,0 +1,88 @@
+{
+	"schemaVersion": "personal-memory-delivery-validation.v1",
+	"verifiedAt": "2026-09-21T06:24:30.133Z",
+	"checks": {
+		"check:local": {
+			"passed": true,
+			"testFiles": 73,
+			"passedTests": 476,
+			"skippedTests": 21,
+			"nativeTests": 30,
+			"nativeCountsOverlapRegularTests": true,
+			"stages": [
+				"typecheck",
+				"vite build",
+				"offline",
+				"M1",
+				"M2",
+				"Plan",
+				"Loop Guard",
+				"context",
+				"recovery",
+				"personal memory",
+				"native",
+				"product"
+			]
+		},
+		"final eval:product": {
+			"passed": true,
+			"personalMemoryApi": true,
+			"memoryProposeToolThroughHost": true,
+			"candidatesNotAutomaticallyConfirmed": true,
+			"actorSpoofBlocked": true
+		},
+		"browser": {
+			"environment": "isolated offline product fixture",
+			"passed": true,
+			"steps": [
+				"candidate displayed without activation",
+				"explicit confirmation v1",
+				"same confirmed item visible in a newly created task",
+				"pending revision v2 retains confirmed v1",
+				"explicit confirmation v2",
+				"forget makes active count zero"
+			],
+			"screenshotVisuallyInspected": true,
+			"temporaryServerStopped": true
+		},
+		"release": {
+			"buildPassed": true,
+			"newlyPackagedManifests": 11,
+			"newlyPackagedBlocks": 470,
+			"manifestLoaderValidatedFromReleaseWorkingDirectory": true
+		}
+	},
+	"businessKnowledge": {
+		"documents": 22,
+		"chunks": 1044,
+		"allDocumentsIndexed": true,
+		"embeddingSpaces": [
+			{
+				"space": "onnx:Xenova/multilingual-e5-small@761b726dd34fb83930e26aab4e9ac3899aa1fa78:q8:384:mean:l2:512:prefix-e5:windows-480-v1:transformers-4.3.0",
+				"chunks": 1044
+			}
+		],
+		"importDocumentsIncludingSixExistingProducts": 17,
+		"importChunksIncludingSixExistingProducts": 476,
+		"idempotent": true,
+		"restarted": true,
+		"fixtureGenerationCalls": 8,
+		"paidCalls": 0
+	},
+	"artifacts": [
+		{
+			"path": "docs/evidence/personal-memory-eval.json",
+			"sha256": "7eead59102de90e9de3201cd3921c522294af512031c788fe0ce4f7e29fa0810"
+		},
+		{
+			"path": "docs/evidence/knowledge-expansion-2026-09-21-local.json",
+			"sha256": "54528e69beaedd38a652142d01d3af364d1b1515e251477c6bb611c19726aac7"
+		}
+	],
+	"limits": [
+		"Real generation-model semantic quality not evaluated",
+		"Real local retrieval probes are source-bound coverage tests, not a blind quality benchmark",
+		"No whole-system physical erasure or multi-user production RBAC",
+		"Existing uncommitted changes preserved; no commit/push in this delivery"
+	]
+}

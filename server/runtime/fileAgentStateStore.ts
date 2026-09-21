@@ -23,6 +23,7 @@ import {
 	AgentStateStoreError,
 	appendTranscript,
 	visibleDialogue,
+	resolveExecution,
 	type AgentSessionScope,
 	type AgentSessionState,
 	type AgentSessionStore,
@@ -37,6 +38,7 @@ interface SessionFile extends AgentSessionScope {
 	transcript?: AgentMessage[];
 	checkpoint?: AgentSessionState["checkpoint"];
 	historyStatus?: "complete" | "legacy_partial";
+	historyBinding?: string;
 	revision: number;
 	messages: AgentMessage[];
 	updatedAt: string;
@@ -106,6 +108,7 @@ function toolExecutionRecord(value: unknown): value is AgentToolExecutionRecord 
 		(value.failureCode === undefined || typeof value.failureCode === "string") &&
 		(value.completedAt === undefined || typeof value.completedAt === "string");
 	if (!fieldsValid) return false;
+	if (value.reconciliation !== undefined && (!record(value.reconciliation) || value.status !== "succeeded" || typeof value.reconciliation.evidenceRef !== "string" || !value.reconciliation.evidenceRef || value.reconciliation.evidenceRef.length > 256 || !["started", "unknown"].includes(String(value.reconciliation.previousStatus)) || value.reconciliation.resolvedAt !== value.completedAt || !Number.isFinite(Date.parse(String(value.reconciliation.resolvedAt))))) return false;
 	return value.status === "started" || (
 		typeof value.result === "string" &&
 		typeof value.resultDigest === "string" &&
@@ -173,7 +176,7 @@ export class FileAgentStateStore implements AgentSessionStore, ContextSnapshotSt
 		const session = this.readSession(scope);
 		if (session?.deletion) throw new AgentStateStoreError("not_found", "Agent Session was deleted");
 		return session
-			? { revision: session.revision, messages: structuredClone(session.messages), transcript: structuredClone(session.transcript), checkpoint: session.checkpoint, historyStatus: session.historyStatus }
+			? { revision: session.revision, messages: structuredClone(session.messages), transcript: structuredClone(session.transcript), checkpoint: session.checkpoint, historyStatus: session.historyStatus, historyBinding: session.historyBinding }
 			: { revision: 0, messages: [] };
 	}
 
@@ -230,6 +233,7 @@ export class FileAgentStateStore implements AgentSessionStore, ContextSnapshotSt
 		value: readonly AgentMessage[],
 		updatedAt: string,
 		checkpoint?: AgentSessionState["checkpoint"] | null,
+		historyBinding?: string,
 	): AgentSessionState {
 		if (!Number.isInteger(expectedRevision) || expectedRevision < 0 || !messages(value)) {
 			throw new AgentStateStoreError("unavailable", "Agent Session update is invalid");
@@ -249,6 +253,7 @@ export class FileAgentStateStore implements AgentSessionStore, ContextSnapshotSt
 			};
 			next.transcript = appendTranscript(current.transcript ?? [], next.messages, scope.sessionId);
 			next.historyStatus = current.historyStatus ?? "complete";
+			if (historyBinding ?? current.historyBinding) next.historyBinding = historyBinding ?? current.historyBinding;
 			if (checkpoint !== null && (checkpoint ?? current.checkpoint)) next.checkpoint = checkpoint ?? current.checkpoint;
 			if (existsSync(path)) {
 				const original = this.readFile(path);
@@ -331,6 +336,16 @@ export class FileAgentStateStore implements AgentSessionStore, ContextSnapshotSt
 		return existsSync(path) ? this.parseToolExecution(this.readFile(path), key) : undefined;
 	}
 
+	async resolve(expected: AgentToolExecutionRecord, outcome: Parameters<typeof resolveExecution>[2]) {
+		const path = this.toolExecutionPath(expected);
+		return this.locked(path, () => {
+			if (!existsSync(path)) throw new AgentStateStoreError("not_found", "Tool execution reservation does not exist");
+			const resolved = resolveExecution(this.parseToolExecution(this.readFile(path), expected), expected, outcome);
+			this.write(path, resolved);
+			return structuredClone(resolved);
+		});
+	}
+
 	append(event: AgentToolAuditEvent): void {
 		const path = this.toolAuditPath(event);
 		const persisted = JSON.parse(JSON.stringify(event)) as AgentToolAuditEvent;
@@ -383,6 +398,7 @@ export class FileAgentStateStore implements AgentSessionStore, ContextSnapshotSt
 		if (
 			!record(value) ||
 			value.schemaVersion !== "context-snapshot.v2" ||
+			(value.historyBinding !== undefined && typeof value.historyBinding !== "string") ||
 			!sameScope(value, scope) ||
 			value.snapshotId !== snapshotId ||
 			!Number.isInteger(value.iteration) ||
@@ -428,6 +444,7 @@ export class FileAgentStateStore implements AgentSessionStore, ContextSnapshotSt
 			!Number.isInteger(value.revision) ||
 			Number(value.revision) < 1 ||
 			!messages(value.messages) ||
+			(value.historyBinding !== undefined && typeof value.historyBinding !== "string") ||
 			(value.checkpoint !== undefined && (!record(value.checkpoint) || typeof value.checkpoint.turnKey !== "string" || (value.checkpoint.contextBinding !== undefined && typeof value.checkpoint.contextBinding !== "string"))) ||
 			typeof value.updatedAt !== "string" ||
 			!Number.isFinite(Date.parse(value.updatedAt)) ||
@@ -443,6 +460,7 @@ export class FileAgentStateStore implements AgentSessionStore, ContextSnapshotSt
 			runId: value.runId as string,
 			sessionId: value.sessionId as string,
 			revision: Number(value.revision),
+			...(typeof value.historyBinding === "string" ? { historyBinding: value.historyBinding } : {}),
 			...(value.checkpoint ? { checkpoint: structuredClone(value.checkpoint) as AgentSessionState["checkpoint"] } : {}),
 			messages: structuredClone(value.messages).map((message, index) => visibleDialogue(message) && !message.messageId ? { ...message, messageId: `legacy-${value.revision}-${index}` } : message)
 				.filter((message) => value.schemaVersion === "agent-session.v2" || visibleDialogue(message) || message.durable),

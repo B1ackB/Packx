@@ -1,5 +1,7 @@
 import { workspaceRunId } from "./enterprise/proposalWorkspaceApi";
 import { buildTaskContext } from "./enterprise/taskContext";
+import { PersonalMemoryStore } from "./enterprise/personalMemoryStore";
+import { PersonalMemoryService, memorySourceAvailable } from "./enterprise/personalMemoryService";
 import { KnowledgeStore } from "./knowledge/store";
 import { createCoffeeProductTool } from "./manufacturing/coffeeProductDirectory";
 import { KnowledgeService } from "./knowledge/service";
@@ -114,10 +116,20 @@ const knowledgeStore = new KnowledgeStore(resolve(localData.root, "knowledge"), 
 	? new LocalEmbedding(JSON.parse(process.env.PACKX_EMBEDDING_CONFIG)) : new LexicalEmbedding(packagingTerms),
 	(block) => ({ ...block, parameters: block.parameters.map(normalizeParameter) }), undefined, packagingRetrievalPolicy, knowledgeReranker);
 const knowledge = new KnowledgeService(knowledgeStore, stageJobQueue);
+const memorySessions = { getSession: (scope: Parameters<typeof agentState.getSession>[0]) => agentState.getSession(scope) };
+const personalMemoryStore = new PersonalMemoryStore(resolve(localData.root, "personal-memory.sqlite"), (scope, source) => memorySourceAvailable(memorySessions, scope, source));
+const personalMemory = new PersonalMemoryService(personalMemoryStore, memorySessions);
 const services = createRuntime(process.env, {
-	readTaskContext: (request) => request.stageId === "conversation" ? conversationTaskContext(request) : request.taskContext,
+	recoverToolExecution: (record, signal) => conversationFiles.reconcile(record, signal),
+	readTaskContext: (request) => {
+		const base = request.stageId === "conversation" ? conversationTaskContext(request) : request.taskContext;
+		// Explicit local Host delegation: the requirement worker acts for this Host owner.
+		const owner = request.tenantId === localAccess.identity.tenantId && request.workspaceId === localAccess.identity.workspaceId && (request.actorId === localAccess.identity.actorId || request.actorId === "blackx-worker" && request.stageId === "requirement-brief");
+		return owner ? personalMemory.context(localAccess.identity, base) : base;
+	},
 	sandboxedToolExecutor: assetInspection,
 	tools: [
+		personalMemory.tool(),
 		...conversationFiles.tools(),
 		...knowledge.tools(requirementBriefEngine),
 		createCoffeeProductTool(knowledgeStore),
@@ -134,7 +146,7 @@ const services = createRuntime(process.env, {
 		assetInspection.documentTool((context, path) => conversationFiles.readDocument(context, path)),
 		createProjectSourceReadTool(requirementBriefEngine, conversationAttachments),
 	],
-	autonomouslyApprovedTools: automationWriteToolNames,
+	autonomouslyApprovedTools: new Set([...automationWriteToolNames, "memory_propose"]),
 	approval: conversationFiles,
 	resolveImageAttachment: async (scope, attachment) => conversationAttachments.resolveImage(scope, attachment),
 });
@@ -145,7 +157,7 @@ const conversationApi = new ConversationApiController(
 	agentState,
 	undefined,
 	undefined,
-	[...automationToolNames, ...conversationFileToolNames, "document_read", "knowledge_search", "knowledge_selected", "knowledge_read", "packaging_compare_evidence", "packaging_find_products"],
+	[...automationToolNames, ...conversationFileToolNames, "document_read", "knowledge_search", "knowledge_selected", "knowledge_read", "packaging_compare_evidence", "packaging_find_products", "memory_propose"],
 	conversationAttachments,
 	(scope) => planWorkflow.assertChatAllowed(scope),
 	taskNames,
@@ -153,6 +165,7 @@ const conversationApi = new ConversationApiController(
 );
 const planStore = new AgentPlanStore(resolve(process.env.BLACKX_AGENT_STATE_PATH ?? ".blackx-data/agent", "plans.sqlite"));
 function conversationTaskContext(scope: { tenantId: string; workspaceId: string; runId: string }) {
+	if (scope.tenantId !== localAccess.identity.tenantId || scope.workspaceId !== localAccess.identity.workspaceId) throw new RuntimeFailure("permission_denied", "Task context owner mismatch", false);
 	const session = agentState.getSession({ ...scope, sessionId: scope.runId });
 	if (!session) throw new PlanError("conversation_not_found", 404);
 	const selected = knowledgeStore.selected(scope);
@@ -160,10 +173,10 @@ function conversationTaskContext(scope: { tenantId: string; workspaceId: string;
 	const runScope = { ...scope, runId: workspaceRunId(scope, scope.runId, "requirement") };
 	const state = requirementBriefEngine.load(runScope);
 	const transcript = session.transcript ?? session.messages;
-	return buildTaskContext({ scope, objective: transcript.findLast((message) => message.role === "user")?.content ?? "Clarify current packaging task",
+	return personalMemory.context(localAccess.identity, buildTaskContext({ scope, objective: transcript.findLast((message) => message.role === "user")?.content ?? "Clarify current packaging task",
 		transcript, relatedRunId: runScope.runId, state: state.aggregateVersion ? state : undefined,
 		unavailable: state.facts.customer_attachments && state.facts.customer_attachments.value !== conversationAttachments.digest({ ...scope, conversationId: scope.runId }) ? Object.values(state.facts).filter((fact) => fact.sourceRef.startsWith("attachment://") || fact.key === "customer_attachments").map((fact) => fact.sourceRef) : [], events: requirementBriefEngine.readEvents(runScope),
-		references: conversationAttachments.list({ ...scope, conversationId: scope.runId }).map(({ name, sourceRef, sha256 }) => ({ name, sourceRef, sha256 })), knowledge: selected.selection });
+		references: conversationAttachments.list({ ...scope, conversationId: scope.runId }).map(({ name, sourceRef, sha256 }) => ({ name, sourceRef, sha256 })), knowledge: selected.selection }));
 }
 const planWorkflow = new AgentPlanWorkflow(planStore, stageJobQueue, runtime, {
 	readInput: (scope) => {
@@ -416,6 +429,14 @@ server.on("request", async (request, response) => {
 	}
 
 	const knowledgeMatch = url.pathname.match(/^\/api\/conversations\/([^/]+)\/knowledge(?:\/([a-z-]+))?$/);
+	const memoryMatch = url.pathname.match(/^\/api\/conversations\/([^/]+)\/memory$/);
+	if (memoryMatch && ["GET", "POST"].includes(request.method ?? "")) {
+		try {
+			const result = personalMemory.handle(localAccess.identity, decodeURIComponent(memoryMatch[1]), request.method === "POST" ? await readJson(request) : undefined);
+			json(response, result.status, result.body);
+		} catch { json(response, 400, { code: "invalid_memory_request" }); }
+		return;
+	}
 	if (knowledgeMatch && (request.method === "GET" && !knowledgeMatch[2] || request.method === "POST" && knowledgeMatch[2])) {
 		try {
 			const result = await knowledgeApi.handle(conversationApiContext(request), decodeURIComponent(knowledgeMatch[1]), knowledgeMatch[2] ?? "view", request.method === "POST" ? await readJson(request) : {});
@@ -1142,5 +1163,6 @@ for (const signal of ["SIGINT", "SIGTERM"] as const) process.once(signal, () => 
 	stopStageJobScheduler();
 	planStore.close();
 	taskNames.close();
+	personalMemoryStore.close();
 	process.exit(0);
 });

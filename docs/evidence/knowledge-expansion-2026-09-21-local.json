@@ -1,0 +1,1572 @@
+{
+	"schemaVersion": "packaging-enrichment-eval.v1",
+	"generatedAt": "2026-09-21T06:02:17.557Z",
+	"execution": "pinned-local-e5-and-mmarco",
+	"fixtureHash": "bc75cb04820ed16cb7160c454a8009d3784f3c7751aa790d44a67126c446eb5d",
+	"baselineManifestHash": "549012e554f3955fffdb5b86fa4a2d6195439218c07e5638148d97a1ae8fefed",
+	"expansionManifestHash": "76540cef2d1c4d288b49a7df6ede58560d7d17697a0b5bf3ea860d120fb36362",
+	"embedding": {
+		"signature": "onnx:Xenova/multilingual-e5-small@761b726dd34fb83930e26aab4e9ac3899aa1fa78:q8:384:mean:l2:512:prefix-e5:windows-480-v1:transformers-4.3.0",
+		"dimensions": 384
+	},
+	"reranker": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1@1427fd652930e4ba29e8149678df786c240d8825:qint8_arm64:pair-480:max-window:transformers-4.3.0",
+	"strategy": {
+		"research": "existing JATS paragraphs ~1000 characters and complete table rows; unchanged",
+		"directory": "one complete authored record",
+		"fda": "one complete original data row with all 7 fields; long cells preserved in text",
+		"overlap": 0,
+		"embeddingChanged": false,
+		"runtimeChanged": false
+	},
+	"corpus": {
+		"beforeDocuments": 11,
+		"beforeBlocks": 574,
+		"addedDocuments": 11,
+		"addedBlocks": 470,
+		"afterDocuments": 22,
+		"afterBlocks": 1044,
+		"officialDataRows": 460,
+		"newDatabaseEntrypoints": 8,
+		"newSupplierEntrypoints": 2,
+		"newSupplierTechnicalFulltexts": 0
+	},
+	"verification": {
+		"sourceRowsReadBackExactly": 460,
+		"duplicateImportSameVersions": true,
+		"restartedSelectionReadable": true,
+		"withdrawnSelectionUnavailable": true
+	},
+	"baseline": {
+		"summary": {
+			"newSourceProbes": 12,
+			"newSourceHitsAt5": 0,
+			"controlProbes": 2,
+			"controlHitsAt5": 2,
+			"completeSourceTextOnHits": 2,
+			"embeddingCalls": 14,
+			"queryInputTokens": 270,
+			"rerankingCalls": 14,
+			"rerankingInputTokens": 99312,
+			"meanDurationMs": 735.133800714286
+		},
+		"rows": [
+			{
+				"id": "pcr-11",
+				"control": false,
+				"foundAt": null,
+				"completeSourceText": false,
+				"durationMs": 653.6734170000018,
+				"usage": {
+					"inputTokens": 18,
+					"modelDurationMs": 2.682333999997354,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				},
+				"reranking": {
+					"status": "completed",
+					"model": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1@1427fd652930e4ba29e8149678df786c240d8825:qint8_arm64:pair-480:max-window:transformers-4.3.0",
+					"candidateCount": 20,
+					"durationMs": 615.020542000002,
+					"inputTokens": 6100,
+					"forwardPasses": 23
+				},
+				"hits": [
+					{
+						"model": "study:PMC10931445",
+						"anchor": "sec1-foods-13-00759",
+						"evidenceId": "kb-13d46e7adc866ca6e329285bdd913b0487cc9e5c7a1c2c265d02947a651d3f1f:5"
+					},
+					{
+						"model": "study:PMC11243642",
+						"anchor": "sec1-molecules-29-03006",
+						"evidenceId": "kb-19d4250fd68eb964694845a0a97f5583635b5225c966bec32202f98d391e1c3d:5"
+					},
+					{
+						"model": "study:PMC9563479",
+						"anchor": "foods-11-03040-t002",
+						"evidenceId": "kb-ae8e04f9cabbcbe8fe704e6dda9bdd9ed82023152558d0aceb3541327eb90182:75"
+					},
+					{
+						"model": "study:PMC9563479",
+						"anchor": "foods-11-03040-t002",
+						"evidenceId": "kb-ae8e04f9cabbcbe8fe704e6dda9bdd9ed82023152558d0aceb3541327eb90182:74"
+					},
+					{
+						"model": "study:PMC9563479",
+						"anchor": "foods-11-03040-t002",
+						"evidenceId": "kb-ae8e04f9cabbcbe8fe704e6dda9bdd9ed82023152558d0aceb3541327eb90182:76"
+					}
+				]
+			},
+			{
+				"id": "pcr-12",
+				"control": false,
+				"foundAt": null,
+				"completeSourceText": false,
+				"durationMs": 587.4791670000013,
+				"usage": {
+					"inputTokens": 15,
+					"modelDurationMs": 2.387417000001733,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				},
+				"reranking": {
+					"status": "completed",
+					"model": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1@1427fd652930e4ba29e8149678df786c240d8825:qint8_arm64:pair-480:max-window:transformers-4.3.0",
+					"candidateCount": 20,
+					"durationMs": 554.7748750000028,
+					"inputTokens": 5460,
+					"forwardPasses": 20
+				},
+				"hits": [
+					{
+						"model": "study:PMC10931445",
+						"anchor": "sec1-foods-13-00759",
+						"evidenceId": "kb-13d46e7adc866ca6e329285bdd913b0487cc9e5c7a1c2c265d02947a651d3f1f:5"
+					},
+					{
+						"model": "study:PMC10931445",
+						"anchor": "sec2dot2-foods-13-00759",
+						"evidenceId": "kb-13d46e7adc866ca6e329285bdd913b0487cc9e5c7a1c2c265d02947a651d3f1f:18"
+					},
+					{
+						"model": "study:PMC11243642",
+						"anchor": "sec3dot2-molecules-29-03006",
+						"evidenceId": "kb-19d4250fd68eb964694845a0a97f5583635b5225c966bec32202f98d391e1c3d:36"
+					},
+					{
+						"model": "study:PMC10670670",
+						"anchor": "sec2dot7dot4-foods-12-04167",
+						"evidenceId": "kb-ee750761001b164cbcca3fb099eb4b69809ed7c554c92b37e5c7f66b493288e3:44"
+					},
+					{
+						"model": "study:PMC10670670",
+						"anchor": "sec2dot7dot3-foods-12-04167",
+						"evidenceId": "kb-ee750761001b164cbcca3fb099eb4b69809ed7c554c92b37e5c7f66b493288e3:36"
+					}
+				]
+			},
+			{
+				"id": "pcr-456",
+				"control": false,
+				"foundAt": null,
+				"completeSourceText": false,
+				"durationMs": 575.2852089999978,
+				"usage": {
+					"inputTokens": 20,
+					"modelDurationMs": 2.802083999999013,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				},
+				"reranking": {
+					"status": "completed",
+					"model": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1@1427fd652930e4ba29e8149678df786c240d8825:qint8_arm64:pair-480:max-window:transformers-4.3.0",
+					"candidateCount": 20,
+					"durationMs": 543.5925839999982,
+					"inputTokens": 5608,
+					"forwardPasses": 20
+				},
+				"hits": [
+					{
+						"model": "study:PMC10670670",
+						"anchor": "sec3dot3-foods-12-04167",
+						"evidenceId": "kb-ee750761001b164cbcca3fb099eb4b69809ed7c554c92b37e5c7f66b493288e3:53"
+					},
+					{
+						"model": "study:PMC10931445",
+						"anchor": "sec2dot2-foods-13-00759",
+						"evidenceId": "kb-13d46e7adc866ca6e329285bdd913b0487cc9e5c7a1c2c265d02947a651d3f1f:14"
+					},
+					{
+						"model": "study:PMC11243642",
+						"anchor": "sec1-molecules-29-03006",
+						"evidenceId": "kb-19d4250fd68eb964694845a0a97f5583635b5225c966bec32202f98d391e1c3d:15"
+					},
+					{
+						"model": "study:PMC11243642",
+						"anchor": "molecules-29-03006-t002",
+						"evidenceId": "kb-19d4250fd68eb964694845a0a97f5583635b5225c966bec32202f98d391e1c3d:68"
+					},
+					{
+						"model": "study:PMC9563479",
+						"evidenceId": "kb-ae8e04f9cabbcbe8fe704e6dda9bdd9ed82023152558d0aceb3541327eb90182:1"
+					}
+				]
+			},
+			{
+				"id": "pcr-460",
+				"control": false,
+				"foundAt": null,
+				"completeSourceText": false,
+				"durationMs": 568.780791000001,
+				"usage": {
+					"inputTokens": 16,
+					"modelDurationMs": 2.339750000002823,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				},
+				"reranking": {
+					"status": "completed",
+					"model": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1@1427fd652930e4ba29e8149678df786c240d8825:qint8_arm64:pair-480:max-window:transformers-4.3.0",
+					"candidateCount": 20,
+					"durationMs": 537.6300409999967,
+					"inputTokens": 5523,
+					"forwardPasses": 20
+				},
+				"hits": [
+					{
+						"model": "study:PMC11243642",
+						"anchor": "sec1-molecules-29-03006",
+						"evidenceId": "kb-19d4250fd68eb964694845a0a97f5583635b5225c966bec32202f98d391e1c3d:15"
+					},
+					{
+						"model": "study:PMC11243642",
+						"anchor": "sec4-molecules-29-03006",
+						"evidenceId": "kb-19d4250fd68eb964694845a0a97f5583635b5225c966bec32202f98d391e1c3d:48"
+					},
+					{
+						"model": "study:PMC11243642",
+						"anchor": "sec1-molecules-29-03006",
+						"evidenceId": "kb-19d4250fd68eb964694845a0a97f5583635b5225c966bec32202f98d391e1c3d:10"
+					},
+					{
+						"model": "study:PMC10931445",
+						"anchor": "sec1-foods-13-00759",
+						"evidenceId": "kb-13d46e7adc866ca6e329285bdd913b0487cc9e5c7a1c2c265d02947a651d3f1f:5"
+					},
+					{
+						"model": "study:PMC11243642",
+						"anchor": "sec1-molecules-29-03006",
+						"evidenceId": "kb-19d4250fd68eb964694845a0a97f5583635b5225c966bec32202f98d391e1c3d:6"
+					}
+				]
+			},
+			{
+				"id": "pcr-455",
+				"control": false,
+				"foundAt": null,
+				"completeSourceText": false,
+				"durationMs": 675.3817500000005,
+				"usage": {
+					"inputTokens": 19,
+					"modelDurationMs": 2.7561660000028496,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				},
+				"reranking": {
+					"status": "completed",
+					"model": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1@1427fd652930e4ba29e8149678df786c240d8825:qint8_arm64:pair-480:max-window:transformers-4.3.0",
+					"candidateCount": 20,
+					"durationMs": 644.3730409999989,
+					"inputTokens": 6595,
+					"forwardPasses": 23
+				},
+				"hits": [
+					{
+						"model": "study:PMC11944891",
+						"anchor": "sec1-molecules-30-01383",
+						"evidenceId": "kb-0d419d21fd00f7ce6239230d40b6c98d6f81d7f55367c2c1a4640188e40c745b:5"
+					},
+					{
+						"model": "study:PMC9563479",
+						"anchor": "foods-11-03040-t002",
+						"evidenceId": "kb-ae8e04f9cabbcbe8fe704e6dda9bdd9ed82023152558d0aceb3541327eb90182:56"
+					},
+					{
+						"model": "study:PMC10670670",
+						"anchor": "sec1-foods-12-04167",
+						"evidenceId": "kb-ee750761001b164cbcca3fb099eb4b69809ed7c554c92b37e5c7f66b493288e3:10"
+					},
+					{
+						"model": "study:PMC9563479",
+						"anchor": "foods-11-03040-t002",
+						"evidenceId": "kb-ae8e04f9cabbcbe8fe704e6dda9bdd9ed82023152558d0aceb3541327eb90182:55"
+					},
+					{
+						"model": "study:PMC9563479",
+						"anchor": "foods-11-03040-t002",
+						"evidenceId": "kb-ae8e04f9cabbcbe8fe704e6dda9bdd9ed82023152558d0aceb3541327eb90182:54"
+					}
+				]
+			},
+			{
+				"id": "pcr-454",
+				"control": false,
+				"foundAt": null,
+				"completeSourceText": false,
+				"durationMs": 514.9220000000023,
+				"usage": {
+					"inputTokens": 23,
+					"modelDurationMs": 2.98725000000195,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				},
+				"reranking": {
+					"status": "completed",
+					"model": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1@1427fd652930e4ba29e8149678df786c240d8825:qint8_arm64:pair-480:max-window:transformers-4.3.0",
+					"candidateCount": 20,
+					"durationMs": 481.82195800000045,
+					"inputTokens": 5051,
+					"forwardPasses": 20
+				},
+				"hits": [
+					{
+						"model": "study:PMC11243642",
+						"anchor": "sec1-molecules-29-03006",
+						"evidenceId": "kb-19d4250fd68eb964694845a0a97f5583635b5225c966bec32202f98d391e1c3d:5"
+					},
+					{
+						"model": "study:PMC11243642",
+						"anchor": "sec1-molecules-29-03006",
+						"evidenceId": "kb-19d4250fd68eb964694845a0a97f5583635b5225c966bec32202f98d391e1c3d:10"
+					},
+					{
+						"model": "study:PMC11243642",
+						"anchor": "sec4-molecules-29-03006",
+						"evidenceId": "kb-19d4250fd68eb964694845a0a97f5583635b5225c966bec32202f98d391e1c3d:48"
+					},
+					{
+						"model": "study:PMC11243642",
+						"anchor": "sec1-molecules-29-03006",
+						"evidenceId": "kb-19d4250fd68eb964694845a0a97f5583635b5225c966bec32202f98d391e1c3d:15"
+					},
+					{
+						"model": "study:PMC11243642",
+						"anchor": "molecules-29-03006-t002",
+						"evidenceId": "kb-19d4250fd68eb964694845a0a97f5583635b5225c966bec32202f98d391e1c3d:71"
+					}
+				]
+			},
+			{
+				"id": "pcr-459",
+				"control": false,
+				"foundAt": null,
+				"completeSourceText": false,
+				"durationMs": 691.2727090000008,
+				"usage": {
+					"inputTokens": 18,
+					"modelDurationMs": 2.463958000000275,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				},
+				"reranking": {
+					"status": "completed",
+					"model": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1@1427fd652930e4ba29e8149678df786c240d8825:qint8_arm64:pair-480:max-window:transformers-4.3.0",
+					"candidateCount": 20,
+					"durationMs": 658.7643339999995,
+					"inputTokens": 6827,
+					"forwardPasses": 27
+				},
+				"hits": [
+					{
+						"model": "study:PMC9563479",
+						"anchor": "foods-11-03040-t002",
+						"evidenceId": "kb-ae8e04f9cabbcbe8fe704e6dda9bdd9ed82023152558d0aceb3541327eb90182:65"
+					},
+					{
+						"model": "study:PMC9563479",
+						"anchor": "foods-11-03040-t002",
+						"evidenceId": "kb-ae8e04f9cabbcbe8fe704e6dda9bdd9ed82023152558d0aceb3541327eb90182:75"
+					},
+					{
+						"model": "study:PMC9563479",
+						"anchor": "foods-11-03040-t002",
+						"evidenceId": "kb-ae8e04f9cabbcbe8fe704e6dda9bdd9ed82023152558d0aceb3541327eb90182:74"
+					},
+					{
+						"model": "study:PMC9563479",
+						"anchor": "foods-11-03040-t002",
+						"evidenceId": "kb-ae8e04f9cabbcbe8fe704e6dda9bdd9ed82023152558d0aceb3541327eb90182:59"
+					},
+					{
+						"model": "study:PMC9563479",
+						"anchor": "foods-11-03040-t002",
+						"evidenceId": "kb-ae8e04f9cabbcbe8fe704e6dda9bdd9ed82023152558d0aceb3541327eb90182:60"
+					}
+				]
+			},
+			{
+				"id": "pcr-458",
+				"control": false,
+				"foundAt": null,
+				"completeSourceText": false,
+				"durationMs": 935.2854169999991,
+				"usage": {
+					"inputTokens": 21,
+					"modelDurationMs": 4.1290829999998095,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				},
+				"reranking": {
+					"status": "completed",
+					"model": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1@1427fd652930e4ba29e8149678df786c240d8825:qint8_arm64:pair-480:max-window:transformers-4.3.0",
+					"candidateCount": 20,
+					"durationMs": 903.9902500000026,
+					"inputTokens": 8970,
+					"forwardPasses": 32
+				},
+				"hits": [
+					{
+						"model": "study:PMC11243642",
+						"anchor": "sec1-molecules-29-03006",
+						"evidenceId": "kb-19d4250fd68eb964694845a0a97f5583635b5225c966bec32202f98d391e1c3d:5"
+					},
+					{
+						"model": "study:PMC9563479",
+						"anchor": "foods-11-03040-t002",
+						"evidenceId": "kb-ae8e04f9cabbcbe8fe704e6dda9bdd9ed82023152558d0aceb3541327eb90182:67"
+					},
+					{
+						"model": "study:PMC9563479",
+						"anchor": "foods-11-03040-t002",
+						"evidenceId": "kb-ae8e04f9cabbcbe8fe704e6dda9bdd9ed82023152558d0aceb3541327eb90182:58"
+					},
+					{
+						"model": "study:PMC10931445",
+						"anchor": "sec1-foods-13-00759",
+						"evidenceId": "kb-13d46e7adc866ca6e329285bdd913b0487cc9e5c7a1c2c265d02947a651d3f1f:5"
+					},
+					{
+						"model": "study:PMC9563479",
+						"anchor": "foods-11-03040-t002",
+						"evidenceId": "kb-ae8e04f9cabbcbe8fe704e6dda9bdd9ed82023152558d0aceb3541327eb90182:65"
+					}
+				]
+			},
+			{
+				"id": "bpi",
+				"control": false,
+				"foundAt": null,
+				"completeSourceText": false,
+				"durationMs": 974.4112499999974,
+				"usage": {
+					"inputTokens": 22,
+					"modelDurationMs": 2.8516249999993306,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				},
+				"reranking": {
+					"status": "completed",
+					"model": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1@1427fd652930e4ba29e8149678df786c240d8825:qint8_arm64:pair-480:max-window:transformers-4.3.0",
+					"candidateCount": 20,
+					"durationMs": 940.7306669999998,
+					"inputTokens": 9607,
+					"forwardPasses": 34
+				},
+				"hits": [
+					{
+						"model": "study:PMC9563479",
+						"anchor": "foods-11-03040-t002",
+						"evidenceId": "kb-ae8e04f9cabbcbe8fe704e6dda9bdd9ed82023152558d0aceb3541327eb90182:56"
+					},
+					{
+						"model": "study:PMC9563479",
+						"anchor": "foods-11-03040-t002",
+						"evidenceId": "kb-ae8e04f9cabbcbe8fe704e6dda9bdd9ed82023152558d0aceb3541327eb90182:76"
+					},
+					{
+						"model": "study:PMC9563479",
+						"anchor": "foods-11-03040-t002",
+						"evidenceId": "kb-ae8e04f9cabbcbe8fe704e6dda9bdd9ed82023152558d0aceb3541327eb90182:65"
+					},
+					{
+						"model": "study:PMC9563479",
+						"anchor": "foods-11-03040-t002",
+						"evidenceId": "kb-ae8e04f9cabbcbe8fe704e6dda9bdd9ed82023152558d0aceb3541327eb90182:74"
+					},
+					{
+						"model": "study:PMC9563479",
+						"anchor": "foods-11-03040-t002",
+						"evidenceId": "kb-ae8e04f9cabbcbe8fe704e6dda9bdd9ed82023152558d0aceb3541327eb90182:61"
+					}
+				]
+			},
+			{
+				"id": "fsc",
+				"control": false,
+				"foundAt": null,
+				"completeSourceText": false,
+				"durationMs": 980.4793329999993,
+				"usage": {
+					"inputTokens": 23,
+					"modelDurationMs": 2.849291999998968,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				},
+				"reranking": {
+					"status": "completed",
+					"model": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1@1427fd652930e4ba29e8149678df786c240d8825:qint8_arm64:pair-480:max-window:transformers-4.3.0",
+					"candidateCount": 20,
+					"durationMs": 946.8600000000006,
+					"inputTokens": 9650,
+					"forwardPasses": 34
+				},
+				"hits": [
+					{
+						"model": "study:PMC9563479",
+						"anchor": "foods-11-03040-t002",
+						"evidenceId": "kb-ae8e04f9cabbcbe8fe704e6dda9bdd9ed82023152558d0aceb3541327eb90182:65"
+					},
+					{
+						"model": "study:PMC9563479",
+						"anchor": "foods-11-03040-t002",
+						"evidenceId": "kb-ae8e04f9cabbcbe8fe704e6dda9bdd9ed82023152558d0aceb3541327eb90182:56"
+					},
+					{
+						"model": "study:PMC9563479",
+						"anchor": "foods-11-03040-t002",
+						"evidenceId": "kb-ae8e04f9cabbcbe8fe704e6dda9bdd9ed82023152558d0aceb3541327eb90182:61"
+					},
+					{
+						"model": "study:PMC9563479",
+						"anchor": "foods-11-03040-t002",
+						"evidenceId": "kb-ae8e04f9cabbcbe8fe704e6dda9bdd9ed82023152558d0aceb3541327eb90182:63"
+					},
+					{
+						"model": "study:PMC9563479",
+						"anchor": "foods-11-03040-t002",
+						"evidenceId": "kb-ae8e04f9cabbcbe8fe704e6dda9bdd9ed82023152558d0aceb3541327eb90182:74"
+					}
+				]
+			},
+			{
+				"id": "ink",
+				"control": false,
+				"foundAt": null,
+				"completeSourceText": false,
+				"durationMs": 970.6558750000004,
+				"usage": {
+					"inputTokens": 22,
+					"modelDurationMs": 2.736124999999447,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				},
+				"reranking": {
+					"status": "completed",
+					"model": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1@1427fd652930e4ba29e8149678df786c240d8825:qint8_arm64:pair-480:max-window:transformers-4.3.0",
+					"candidateCount": 20,
+					"durationMs": 937.7179579999975,
+					"inputTokens": 9584,
+					"forwardPasses": 34
+				},
+				"hits": [
+					{
+						"model": "study:PMC9563479",
+						"anchor": "foods-11-03040-t002",
+						"evidenceId": "kb-ae8e04f9cabbcbe8fe704e6dda9bdd9ed82023152558d0aceb3541327eb90182:65"
+					},
+					{
+						"model": "study:PMC9563479",
+						"anchor": "foods-11-03040-t002",
+						"evidenceId": "kb-ae8e04f9cabbcbe8fe704e6dda9bdd9ed82023152558d0aceb3541327eb90182:56"
+					},
+					{
+						"model": "study:PMC9563479",
+						"anchor": "foods-11-03040-t002",
+						"evidenceId": "kb-ae8e04f9cabbcbe8fe704e6dda9bdd9ed82023152558d0aceb3541327eb90182:67"
+					},
+					{
+						"model": "study:PMC9563479",
+						"anchor": "foods-11-03040-t002",
+						"evidenceId": "kb-ae8e04f9cabbcbe8fe704e6dda9bdd9ed82023152558d0aceb3541327eb90182:71"
+					},
+					{
+						"model": "study:PMC9563479",
+						"anchor": "foods-11-03040-t002",
+						"evidenceId": "kb-ae8e04f9cabbcbe8fe704e6dda9bdd9ed82023152558d0aceb3541327eb90182:73"
+					}
+				]
+			},
+			{
+				"id": "paperboard",
+				"control": false,
+				"foundAt": null,
+				"completeSourceText": false,
+				"durationMs": 972.4967919999981,
+				"usage": {
+					"inputTokens": 18,
+					"modelDurationMs": 3.5679999999993015,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				},
+				"reranking": {
+					"status": "completed",
+					"model": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1@1427fd652930e4ba29e8149678df786c240d8825:qint8_arm64:pair-480:max-window:transformers-4.3.0",
+					"candidateCount": 20,
+					"durationMs": 930.5503749999989,
+					"inputTokens": 9458,
+					"forwardPasses": 34
+				},
+				"hits": [
+					{
+						"model": "study:PMC9563479",
+						"anchor": "foods-11-03040-t002",
+						"evidenceId": "kb-ae8e04f9cabbcbe8fe704e6dda9bdd9ed82023152558d0aceb3541327eb90182:67"
+					},
+					{
+						"model": "study:PMC9563479",
+						"anchor": "foods-11-03040-t002",
+						"evidenceId": "kb-ae8e04f9cabbcbe8fe704e6dda9bdd9ed82023152558d0aceb3541327eb90182:56"
+					},
+					{
+						"model": "study:PMC9563479",
+						"anchor": "foods-11-03040-t002",
+						"evidenceId": "kb-ae8e04f9cabbcbe8fe704e6dda9bdd9ed82023152558d0aceb3541327eb90182:65"
+					},
+					{
+						"model": "study:PMC9563479",
+						"anchor": "foods-11-03040-t002",
+						"evidenceId": "kb-ae8e04f9cabbcbe8fe704e6dda9bdd9ed82023152558d0aceb3541327eb90182:73"
+					},
+					{
+						"model": "study:PMC9563479",
+						"anchor": "foods-11-03040-t002",
+						"evidenceId": "kb-ae8e04f9cabbcbe8fe704e6dda9bdd9ed82023152558d0aceb3541327eb90182:72"
+					}
+				]
+			},
+			{
+				"id": "old-ecolam",
+				"control": true,
+				"foundAt": 1,
+				"completeSourceText": true,
+				"durationMs": 698.5201670000024,
+				"usage": {
+					"inputTokens": 17,
+					"modelDurationMs": 3.1813750000001164,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				},
+				"reranking": {
+					"status": "completed",
+					"model": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1@1427fd652930e4ba29e8149678df786c240d8825:qint8_arm64:pair-480:max-window:transformers-4.3.0",
+					"candidateCount": 20,
+					"durationMs": 666.3207089999996,
+					"inputTokens": 6215,
+					"forwardPasses": 25
+				},
+				"hits": [
+					{
+						"model": "catalog:cflex-ecolamhighplus",
+						"evidenceId": "kb-e7fa4ae355ee59df63da3cf5a8b3f2f3d355965aab51d85d5955daa38820287b:1"
+					},
+					{
+						"model": "catalog:cflex-ecoverhighplus",
+						"evidenceId": "kb-a8fc9dd18027ae206acae01a1a5b3fdc90f0359d71514ef997a1fbe3a34e0099:1"
+					},
+					{
+						"model": "catalog:amcor-amprima-coffee",
+						"evidenceId": "kb-a60b523c63dd227bc902884e4b972d2b27dc7a1ce357de27a666e9508ec85fb4:1"
+					},
+					{
+						"model": "catalog:huhtamaki-blueloop-pe",
+						"evidenceId": "kb-cf430d7ad2e1dcea3de7aac2af35c2fa434285630893985b50abc4de83412407:1"
+					},
+					{
+						"model": "catalog:amcor-amfiber-coffee",
+						"evidenceId": "kb-18e251bf41f99d61d402b658d3805bd054095796b05c29501134359351f1b3ba:1"
+					}
+				]
+			},
+			{
+				"id": "old-rec",
+				"control": true,
+				"foundAt": 1,
+				"completeSourceText": true,
+				"durationMs": 493.22933300000295,
+				"usage": {
+					"inputTokens": 18,
+					"modelDurationMs": 2.4348339999996824,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				},
+				"reranking": {
+					"status": "completed",
+					"model": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1@1427fd652930e4ba29e8149678df786c240d8825:qint8_arm64:pair-480:max-window:transformers-4.3.0",
+					"candidateCount": 20,
+					"durationMs": 461.325541000002,
+					"inputTokens": 4664,
+					"forwardPasses": 20
+				},
+				"hits": [
+					{
+						"model": "study:PMC11243642",
+						"anchor": "sec3dot2-molecules-29-03006",
+						"evidenceId": "kb-19d4250fd68eb964694845a0a97f5583635b5225c966bec32202f98d391e1c3d:37"
+					},
+					{
+						"model": "study:PMC11243642",
+						"anchor": "sec4-molecules-29-03006",
+						"evidenceId": "kb-19d4250fd68eb964694845a0a97f5583635b5225c966bec32202f98d391e1c3d:48"
+					},
+					{
+						"model": "study:PMC10670670",
+						"anchor": "foods-12-04167-t002",
+						"evidenceId": "kb-ee750761001b164cbcca3fb099eb4b69809ed7c554c92b37e5c7f66b493288e3:86"
+					},
+					{
+						"model": "study:PMC10931445",
+						"anchor": "sec2dot2-foods-13-00759",
+						"evidenceId": "kb-13d46e7adc866ca6e329285bdd913b0487cc9e5c7a1c2c265d02947a651d3f1f:19"
+					},
+					{
+						"model": "study:PMC11243642",
+						"anchor": "molecules-29-03006-t002",
+						"evidenceId": "kb-19d4250fd68eb964694845a0a97f5583635b5225c966bec32202f98d391e1c3d:67"
+					}
+				]
+			}
+		]
+	},
+	"expanded": {
+		"summary": {
+			"newSourceProbes": 12,
+			"newSourceHitsAt5": 12,
+			"controlProbes": 2,
+			"controlHitsAt5": 2,
+			"completeSourceTextOnHits": 14,
+			"embeddingCalls": 14,
+			"queryInputTokens": 270,
+			"rerankingCalls": 14,
+			"rerankingInputTokens": 78668,
+			"meanDurationMs": 618.8866873571444
+		},
+		"rows": [
+			{
+				"id": "pcr-11",
+				"control": false,
+				"foundAt": 1,
+				"completeSourceText": true,
+				"durationMs": 708.7598750000034,
+				"usage": {
+					"inputTokens": 18,
+					"modelDurationMs": 3.688833000000159,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				},
+				"reranking": {
+					"status": "completed",
+					"model": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1@1427fd652930e4ba29e8149678df786c240d8825:qint8_arm64:pair-480:max-window:transformers-4.3.0",
+					"candidateCount": 20,
+					"durationMs": 645.7791660000003,
+					"inputTokens": 6432,
+					"forwardPasses": 20
+				},
+				"hits": [
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-11",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:11"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-12",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:12"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-21",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:21"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-32",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:32"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-35",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:35"
+					}
+				]
+			},
+			{
+				"id": "pcr-12",
+				"control": false,
+				"foundAt": 1,
+				"completeSourceText": true,
+				"durationMs": 691.8037910000057,
+				"usage": {
+					"inputTokens": 15,
+					"modelDurationMs": 2.2570419999974547,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				},
+				"reranking": {
+					"status": "completed",
+					"model": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1@1427fd652930e4ba29e8149678df786c240d8825:qint8_arm64:pair-480:max-window:transformers-4.3.0",
+					"candidateCount": 20,
+					"durationMs": 632.8682919999992,
+					"inputTokens": 6206,
+					"forwardPasses": 20
+				},
+				"hits": [
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-12",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:12"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-21",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:21"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-17",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:17"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-44",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:44"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-61",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:61"
+					}
+				]
+			},
+			{
+				"id": "pcr-456",
+				"control": false,
+				"foundAt": 1,
+				"completeSourceText": true,
+				"durationMs": 725.9802920000002,
+				"usage": {
+					"inputTokens": 20,
+					"modelDurationMs": 3.762249999999767,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				},
+				"reranking": {
+					"status": "completed",
+					"model": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1@1427fd652930e4ba29e8149678df786c240d8825:qint8_arm64:pair-480:max-window:transformers-4.3.0",
+					"candidateCount": 20,
+					"durationMs": 664.5679170000003,
+					"inputTokens": 6625,
+					"forwardPasses": 20
+				},
+				"hits": [
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-456",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:456"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-160",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:160"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-424",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:424"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-375",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:375"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-425",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:425"
+					}
+				]
+			},
+			{
+				"id": "pcr-460",
+				"control": false,
+				"foundAt": 1,
+				"completeSourceText": true,
+				"durationMs": 783.916333000001,
+				"usage": {
+					"inputTokens": 16,
+					"modelDurationMs": 2.2975420000002487,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				},
+				"reranking": {
+					"status": "completed",
+					"model": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1@1427fd652930e4ba29e8149678df786c240d8825:qint8_arm64:pair-480:max-window:transformers-4.3.0",
+					"candidateCount": 20,
+					"durationMs": 721.3546669999996,
+					"inputTokens": 6899,
+					"forwardPasses": 20
+				},
+				"hits": [
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-460",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:460"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-296",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:296"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-408",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:408"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-422",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:422"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-449",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:449"
+					}
+				]
+			},
+			{
+				"id": "pcr-455",
+				"control": false,
+				"foundAt": 1,
+				"completeSourceText": true,
+				"durationMs": 752.7380409999969,
+				"usage": {
+					"inputTokens": 19,
+					"modelDurationMs": 2.5660419999985606,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				},
+				"reranking": {
+					"status": "completed",
+					"model": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1@1427fd652930e4ba29e8149678df786c240d8825:qint8_arm64:pair-480:max-window:transformers-4.3.0",
+					"candidateCount": 20,
+					"durationMs": 691.2934580000001,
+					"inputTokens": 6618,
+					"forwardPasses": 20
+				},
+				"hits": [
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-455",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:455"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-370",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:370"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-304",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:304"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-386",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:386"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-404",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:404"
+					}
+				]
+			},
+			{
+				"id": "pcr-454",
+				"control": false,
+				"foundAt": 1,
+				"completeSourceText": true,
+				"durationMs": 660.622083000002,
+				"usage": {
+					"inputTokens": 23,
+					"modelDurationMs": 2.8879589999996824,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				},
+				"reranking": {
+					"status": "completed",
+					"model": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1@1427fd652930e4ba29e8149678df786c240d8825:qint8_arm64:pair-480:max-window:transformers-4.3.0",
+					"candidateCount": 20,
+					"durationMs": 599.3659170000028,
+					"inputTokens": 6035,
+					"forwardPasses": 20
+				},
+				"hits": [
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-454",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:454"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-136",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:136"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-270",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:270"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-226",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:226"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-279",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:279"
+					}
+				]
+			},
+			{
+				"id": "pcr-459",
+				"control": false,
+				"foundAt": 1,
+				"completeSourceText": true,
+				"durationMs": 626.2056250000023,
+				"usage": {
+					"inputTokens": 18,
+					"modelDurationMs": 2.462042000006477,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				},
+				"reranking": {
+					"status": "completed",
+					"model": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1@1427fd652930e4ba29e8149678df786c240d8825:qint8_arm64:pair-480:max-window:transformers-4.3.0",
+					"candidateCount": 20,
+					"durationMs": 566.7980830000015,
+					"inputTokens": 5776,
+					"forwardPasses": 20
+				},
+				"hits": [
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-459",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:459"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-251",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:251"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-21",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:21"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-23",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:23"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-53",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:53"
+					}
+				]
+			},
+			{
+				"id": "pcr-458",
+				"control": false,
+				"foundAt": 1,
+				"completeSourceText": true,
+				"durationMs": 721.0793750000012,
+				"usage": {
+					"inputTokens": 21,
+					"modelDurationMs": 2.781875000000582,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				},
+				"reranking": {
+					"status": "completed",
+					"model": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1@1427fd652930e4ba29e8149678df786c240d8825:qint8_arm64:pair-480:max-window:transformers-4.3.0",
+					"candidateCount": 20,
+					"durationMs": 661.5519579999964,
+					"inputTokens": 6478,
+					"forwardPasses": 20
+				},
+				"hits": [
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-458",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:458"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-253",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:253"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-417",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:417"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-249",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:249"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-415",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:415"
+					}
+				]
+			},
+			{
+				"id": "bpi",
+				"control": false,
+				"foundAt": 1,
+				"completeSourceText": true,
+				"durationMs": 513.445249999997,
+				"usage": {
+					"inputTokens": 22,
+					"modelDurationMs": 2.6884589999972377,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				},
+				"reranking": {
+					"status": "completed",
+					"model": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1@1427fd652930e4ba29e8149678df786c240d8825:qint8_arm64:pair-480:max-window:transformers-4.3.0",
+					"candidateCount": 20,
+					"durationMs": 452.75179200000275,
+					"inputTokens": 4732,
+					"forwardPasses": 20
+				},
+				"hits": [
+					{
+						"model": "catalog:source-bpi-products",
+						"evidenceId": "kb-5589c40898a4fa77035503106f068cf7de09b24a0f875cbc636a193b9c0505a5:1"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-424",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:424"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-375",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:375"
+					},
+					{
+						"model": "catalog:source-recyclass-certificates",
+						"evidenceId": "kb-9cc9df6b9aa9c705a801999bf96f915b5b4da4873ae9658cb871e7fe85f15798:1"
+					},
+					{
+						"model": "catalog:source-fsc-search",
+						"evidenceId": "kb-06ee91a4d9f5126e420804322127e506d89668e3d400ecafd1df39fcaabccf75:1"
+					}
+				]
+			},
+			{
+				"id": "fsc",
+				"control": false,
+				"foundAt": 1,
+				"completeSourceText": true,
+				"durationMs": 534.5549580000006,
+				"usage": {
+					"inputTokens": 23,
+					"modelDurationMs": 2.7800829999978305,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				},
+				"reranking": {
+					"status": "completed",
+					"model": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1@1427fd652930e4ba29e8149678df786c240d8825:qint8_arm64:pair-480:max-window:transformers-4.3.0",
+					"candidateCount": 20,
+					"durationMs": 474.1714159999974,
+					"inputTokens": 4888,
+					"forwardPasses": 20
+				},
+				"hits": [
+					{
+						"model": "catalog:source-fsc-search",
+						"evidenceId": "kb-06ee91a4d9f5126e420804322127e506d89668e3d400ecafd1df39fcaabccf75:1"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-424",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:424"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-443",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:443"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-440",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:440"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-248",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:248"
+					}
+				]
+			},
+			{
+				"id": "ink",
+				"control": false,
+				"foundAt": 1,
+				"completeSourceText": true,
+				"durationMs": 474.36266700000124,
+				"usage": {
+					"inputTokens": 22,
+					"modelDurationMs": 3.83262499999546,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				},
+				"reranking": {
+					"status": "completed",
+					"model": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1@1427fd652930e4ba29e8149678df786c240d8825:qint8_arm64:pair-480:max-window:transformers-4.3.0",
+					"candidateCount": 20,
+					"durationMs": 417.7802079999965,
+					"inputTokens": 4434,
+					"forwardPasses": 20
+				},
+				"hits": [
+					{
+						"model": "catalog:source-siegwerk-finder",
+						"evidenceId": "kb-f59ec402f294d5950b1eb9d1175cf4c8156b0ee3d3aba0aee611c9d1bb02b7ee:1"
+					},
+					{
+						"model": "catalog:source-upm-paper-catalogue",
+						"evidenceId": "kb-1e852b85e3c6a0b0515e663b7829a8f7c756a6ce3c773aa5fefa3e67aa521c4a:1"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-88",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:88"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-161",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:161"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-173",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:173"
+					}
+				]
+			},
+			{
+				"id": "paperboard",
+				"control": false,
+				"foundAt": 1,
+				"completeSourceText": true,
+				"durationMs": 485.411500000002,
+				"usage": {
+					"inputTokens": 18,
+					"modelDurationMs": 2.3913329999995767,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				},
+				"reranking": {
+					"status": "completed",
+					"model": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1@1427fd652930e4ba29e8149678df786c240d8825:qint8_arm64:pair-480:max-window:transformers-4.3.0",
+					"candidateCount": 20,
+					"durationMs": 427.77037500000006,
+					"inputTokens": 4510,
+					"forwardPasses": 20
+				},
+				"hits": [
+					{
+						"model": "catalog:source-metsaboard-portfolio",
+						"evidenceId": "kb-637d6cec2636a8cd0552ca9c0c70fb95e7dace79c3722642c58c3efc38e519fc:1"
+					},
+					{
+						"model": "catalog:source-fsc-search",
+						"evidenceId": "kb-06ee91a4d9f5126e420804322127e506d89668e3d400ecafd1df39fcaabccf75:1"
+					},
+					{
+						"model": "database:fda-pcr-nol",
+						"anchor": "fda-pcr-440",
+						"evidenceId": "kb-f892e55ec1fc4baca061d6e1b2403b26df04aaf44d7da5d6f03ab41c947b3b34:440"
+					},
+					{
+						"model": "catalog:source-upm-paper-catalogue",
+						"evidenceId": "kb-1e852b85e3c6a0b0515e663b7829a8f7c756a6ce3c773aa5fefa3e67aa521c4a:1"
+					},
+					{
+						"model": "catalog:source-bpi-products",
+						"evidenceId": "kb-5589c40898a4fa77035503106f068cf7de09b24a0f875cbc636a193b9c0505a5:1"
+					}
+				]
+			},
+			{
+				"id": "old-ecolam",
+				"control": true,
+				"foundAt": 1,
+				"completeSourceText": true,
+				"durationMs": 455.4079170000041,
+				"usage": {
+					"inputTokens": 17,
+					"modelDurationMs": 2.362541999995301,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				},
+				"reranking": {
+					"status": "completed",
+					"model": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1@1427fd652930e4ba29e8149678df786c240d8825:qint8_arm64:pair-480:max-window:transformers-4.3.0",
+					"candidateCount": 20,
+					"durationMs": 394.82966699999815,
+					"inputTokens": 4197,
+					"forwardPasses": 20
+				},
+				"hits": [
+					{
+						"model": "catalog:cflex-ecolamhighplus",
+						"evidenceId": "kb-e7fa4ae355ee59df63da3cf5a8b3f2f3d355965aab51d85d5955daa38820287b:1"
+					},
+					{
+						"model": "catalog:cflex-ecoverhighplus",
+						"evidenceId": "kb-a8fc9dd18027ae206acae01a1a5b3fdc90f0359d71514ef997a1fbe3a34e0099:1"
+					},
+					{
+						"model": "catalog:amcor-amprima-coffee",
+						"evidenceId": "kb-a60b523c63dd227bc902884e4b972d2b27dc7a1ce357de27a666e9508ec85fb4:1"
+					},
+					{
+						"model": "catalog:source-goglio-cofres",
+						"evidenceId": "kb-4598961695092c08fda14ab681fbca7fff8f2689143dde75be4a8e0589571b76:1"
+					},
+					{
+						"model": "catalog:huhtamaki-blueloop-pe",
+						"evidenceId": "kb-cf430d7ad2e1dcea3de7aac2af35c2fa434285630893985b50abc4de83412407:1"
+					}
+				]
+			},
+			{
+				"id": "old-rec",
+				"control": true,
+				"foundAt": 1,
+				"completeSourceText": true,
+				"durationMs": 530.1259160000045,
+				"usage": {
+					"inputTokens": 18,
+					"modelDurationMs": 2.4329169999982696,
+					"forwardPasses": 1,
+					"embeddingCalls": 1,
+					"generationCalls": 0,
+					"costUsd": null
+				},
+				"reranking": {
+					"status": "completed",
+					"model": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1@1427fd652930e4ba29e8149678df786c240d8825:qint8_arm64:pair-480:max-window:transformers-4.3.0",
+					"candidateCount": 20,
+					"durationMs": 471.7831670000014,
+					"inputTokens": 4838,
+					"forwardPasses": 20
+				},
+				"hits": [
+					{
+						"model": "study:PMC11243642",
+						"anchor": "sec3dot2-molecules-29-03006",
+						"evidenceId": "kb-19d4250fd68eb964694845a0a97f5583635b5225c966bec32202f98d391e1c3d:37"
+					},
+					{
+						"model": "study:PMC11243642",
+						"anchor": "sec4-molecules-29-03006",
+						"evidenceId": "kb-19d4250fd68eb964694845a0a97f5583635b5225c966bec32202f98d391e1c3d:48"
+					},
+					{
+						"model": "study:PMC11243642",
+						"anchor": "sec3dot2-molecules-29-03006",
+						"evidenceId": "kb-19d4250fd68eb964694845a0a97f5583635b5225c966bec32202f98d391e1c3d:36"
+					},
+					{
+						"model": "study:PMC10931445",
+						"anchor": "sec2dot2-foods-13-00759",
+						"evidenceId": "kb-13d46e7adc866ca6e329285bdd913b0487cc9e5c7a1c2c265d02947a651d3f1f:19"
+					},
+					{
+						"model": "study:PMC10931445",
+						"anchor": "sec2dot2-foods-13-00759",
+						"evidenceId": "kb-13d46e7adc866ca6e329285bdd913b0487cc9e5c7a1c2c265d02947a651d3f1f:18"
+					}
+				]
+			}
+		]
+	},
+	"index": [
+		{
+			"documentId": "PMC11243642",
+			"blocks": 158,
+			"durationMs": 4484.068292
+		},
+		{
+			"documentId": "PMC10931445",
+			"blocks": 161,
+			"durationMs": 5056.989374999999
+		},
+		{
+			"documentId": "PMC9563479",
+			"blocks": 76,
+			"durationMs": 2680.0890409999993
+		},
+		{
+			"documentId": "PMC10670670",
+			"blocks": 89,
+			"durationMs": 2007.1653339999993
+		},
+		{
+			"documentId": "PMC11944891",
+			"blocks": 84,
+			"durationMs": 1897.543625000002
+		},
+		{
+			"documentId": "catalog-cflex-ecolamhighplus",
+			"blocks": 1,
+			"durationMs": 16.920084000001225
+		},
+		{
+			"documentId": "catalog-cflex-ecoverhighplus",
+			"blocks": 1,
+			"durationMs": 16.72925000000032
+		},
+		{
+			"documentId": "catalog-huhtamaki-bluelite",
+			"blocks": 1,
+			"durationMs": 14.801665999999386
+		},
+		{
+			"documentId": "catalog-huhtamaki-blueloop-pe",
+			"blocks": 1,
+			"durationMs": 14.22845800000141
+		},
+		{
+			"documentId": "catalog-amcor-amprima-coffee",
+			"blocks": 1,
+			"durationMs": 16.11399999999776
+		},
+		{
+			"documentId": "catalog-amcor-amfiber-coffee",
+			"blocks": 1,
+			"durationMs": 17.401291999998648
+		},
+		{
+			"documentId": "packaging-source-fda-fcn",
+			"blocks": 1,
+			"durationMs": 24.925875000000815
+		},
+		{
+			"documentId": "packaging-source-fda-pcr",
+			"blocks": 1,
+			"durationMs": 25.79387499999939
+		},
+		{
+			"documentId": "packaging-source-bpi-products",
+			"blocks": 1,
+			"durationMs": 19.693834000001516
+		},
+		{
+			"documentId": "packaging-source-recyclass-certificates",
+			"blocks": 1,
+			"durationMs": 21.013041999998677
+		},
+		{
+			"documentId": "packaging-source-fsc-search",
+			"blocks": 1,
+			"durationMs": 19.406458000001294
+		},
+		{
+			"documentId": "packaging-source-siegwerk-finder",
+			"blocks": 1,
+			"durationMs": 19.320708999999624
+		},
+		{
+			"documentId": "packaging-source-metsaboard-portfolio",
+			"blocks": 1,
+			"durationMs": 21.315833000000566
+		},
+		{
+			"documentId": "packaging-source-upm-paper-catalogue",
+			"blocks": 1,
+			"durationMs": 21.221583000002283
+		},
+		{
+			"documentId": "packaging-source-goglio-cofres",
+			"blocks": 1,
+			"durationMs": 19.65754200000083
+		},
+		{
+			"documentId": "packaging-source-tricorbraun-flex",
+			"blocks": 1,
+			"durationMs": 20.41150000000198
+		},
+		{
+			"documentId": "fda-pcr-nol",
+			"blocks": 460,
+			"durationMs": 14203.702999999998
+		}
+	],
+	"elapsedMs": 50377.341125,
+	"paidCalls": 0,
+	"generationCalls": 0,
+	"limitations": [
+		"Source-bound probes prepared before this run; Agent labels, no human expert review or independent blind test.",
+		"Coverage increase on new-source probes is caused by adding previously absent data; it is not a retrieval-algorithm or end-to-end answer-quality gain.",
+		"FDA snapshot is a US process/conditions source, not a current order or product compliance determination.",
+		"Directory records are not vendor technical fulltexts. Real generation quality NOT_EVALUATED.",
+		"Local timings include the selected runtime and corpus; not production latency claims. Fake runs prove mechanism only."
+	]
+}

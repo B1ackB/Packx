@@ -93,6 +93,7 @@ export interface EvidenceResult {
 	retrievalVersion?: string;
 	assessment?: EvidenceAssessment;
 	reranking?: { status: "completed" | "failed"; model: string; candidateCount: number; durationMs: number; inputTokens: number | null; forwardPasses: number | null; failure?: string };
+	degradation?: { requestedMode: KnowledgeQuery["mode"]; effectiveMode: "keyword" | "hybrid"; reason: "embedding_unavailable" | "rerank_unavailable" };
 	hits: EvidenceHit[];
 	gaps: string[];
 	durationMs: number;

@@ -28,6 +28,7 @@ export interface RuntimeUsage {
 }
 
 export type RuntimeExecutionEvent =
+	| { type: "context.rebuilt"; reason: "history_binding_changed"; discardedMessages: number }
 	| { type: "session.started"; sessionId: string }
 	| { type: "turn.started" }
 	| { type: "model.started"; iteration: number; attempt: number }
@@ -38,6 +39,7 @@ export type RuntimeExecutionEvent =
 	| { type: "input.attachments.resolved"; count: number }
 	| { type: "message.completed"; text: string }
 	| { type: "tool.started"; tool: string; toolCallId: string; risk: "read" | "write" | "publish"; idempotencyKey: string }
+	| { type: "tool.reconciled"; tool: string; toolCallId: string; idempotencyKey: string; status: "succeeded" | "unresolved"; durationMs: number; evidenceRef?: string; failureCode?: "no_evidence" | "source_unavailable" | "timeout" }
 	| {
 		type: "tool.completed";
 		tool: string;
@@ -55,7 +57,7 @@ export type RuntimeExecutionEvent =
   | { type: "turn.failed"; message: string };
 
 export interface RuntimeTurnRequest {
-	taskContext?: { content: string; binding: string };
+	taskContext?: { content: string; binding: string; historyBinding?: string };
   tenantId: string;
   workspaceId: string;
   runId: string;

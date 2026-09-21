@@ -1,3 +1,4 @@
+import type { MemoryView } from "../src/enterprise/personalMemory";
 import type { PlanWorkspace } from "../src/enterprise/agentPlan";
 import type { KnowledgeView, PackagingComparisonResult } from "../src/runtime/knowledgeView";
 import { readEvents } from "../src/runtime/eventStream";
@@ -51,6 +52,10 @@ const provider = createServer(async (request, response) => {
 		content = [{ type: "tool_use", id: "plan-list", name: "file_list", input: {} }];
 	} else if (instructions.includes("Execute ONLY this approved subtask")) {
 		content = [{ type: "text", text: JSON.stringify({ summary: "已完成本子任务的固定演示输出。数量、尺寸与交期仍待用户确认。", evidence: ["local-fixture：此响应只验证编排链路，不代表真实模型核验。"], limitations: ["未验证生产参数；未写入文件。"], assessment: { decision: "continue", reason: "已完成固定演示任务，业务事实仍待确认。" } }) }];
+	} else if (JSON.stringify(last).includes("memory-propose-fixture") && !last.some((block) => block.type === "tool_result")) {
+		content = [{ type: "tool_use", id: "memory-candidate", name: "memory_propose", input: { sourceMessageId: "memory-propose-source", topic: "报告偏好", content: "请用简洁中文列出未解决问题。" } }];
+	} else if (last.some((block) => block.type === "tool_result" && block.tool_use_id === "memory-candidate")) {
+		content = [{ type: "text", text: "候选已提交，请到个人记忆面板确认。" }];
 	} else if (requirement && !last.some((block) => block.type === "tool_result")) {
 		const system = JSON.stringify(body.system);
 		const ids = [...new Set(system.match(/attachment-[a-f0-9]+/g) ?? [])];
@@ -145,6 +150,26 @@ try {
 		const value = await response.json(); assert(response.ok, `${path}: ${JSON.stringify(value)}`); return value as T;
 	}
 	const planId = (await api("/api/conversations", {})).conversation.conversationId;
+	const memoryPath = `/api/conversations/${planId}/memory`;
+	const proposedMemory = await api<MemoryView>(memoryPath, { action: "propose", requestId: "memory-smoke-propose", draft: { topic: "报告语言", content: "请使用简洁中文。" } });
+	const memoryItem = proposedMemory.items[0];
+	assert.equal(memoryItem.status, "proposed");
+	const memoryConfirm = { action: "confirm", requestId: "memory-smoke-confirm", memoryId: memoryItem.id, revision: memoryItem.revision, confirmed: true };
+	const confirmedMemory = await api<MemoryView>(memoryPath, memoryConfirm);
+	assert.equal(confirmedMemory.items[0].activeVersion, 1);
+	assert.deepEqual(await api<MemoryView>(memoryPath, memoryConfirm), confirmedMemory);
+	const memoryTask = (await api("/api/conversations", {})).conversation.conversationId;
+	assert.deepEqual(await api<MemoryView>(`/api/conversations/${memoryTask}/memory`), confirmedMemory);
+	for (const extra of [{ "x-blackx-actor-id": "other" }, { "x-blackx-workspace-id": "other" }]) assert.equal((await fetch(`${baseUrl}${memoryPath}`, { headers: { ...headers, ...extra } })).status, 403);
+	await api<MemoryView>(memoryPath, { action: "forget", requestId: "memory-smoke-forget", memoryId: memoryItem.id, revision: confirmedMemory.items[0].revision });
+	assert.equal((await api<MemoryView>(`/api/conversations/${memoryTask}/memory`)).items[0].status, "revoked");
+	const memoryTurn = await api(`/api/conversations/${memoryTask}/messages`, { messageId: "memory-propose-source", content: "请长期记住：报告用简洁中文列出未解决问题。memory-propose-fixture" });
+	assert(memoryTurn.conversation.messages.at(-1)?.content.includes("请到个人记忆面板确认"));
+	const toolMemory = (await api<MemoryView>(memoryPath)).items.find((item) => item.status === "proposed")!;
+	assert(toolMemory); assert.equal(toolMemory.activeVersion, undefined);
+	assert.equal(toolMemory.versions[0].source.messageId, "memory-propose-source");
+	await api<MemoryView>(memoryPath, { action: "reject", requestId: "memory-tool-reject", memoryId: toolMemory.id, revision: toolMemory.revision });
+	console.log("PASS: authenticated personal memory API, cross-task confirmation/revoke, command replay, owner spoof denial and real memory_propose Tool candidate without auto-confirmation; local fixture only.");
 	const comparisonTask = (await api("/api/conversations", {})).conversation.conversationId;
 	const knowledgePath = `/api/conversations/${comparisonTask}/knowledge`;
 	await api(`${knowledgePath}/demo`, {});

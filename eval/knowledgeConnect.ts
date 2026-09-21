@@ -1,3 +1,4 @@
+import { packagingExpansionManifests } from "../server/manufacturing/packagingExpansion";
 import assert from "node:assert/strict";
 import { spawn, type ChildProcess } from "node:child_process";
 import { randomUUID } from "node:crypto";
@@ -30,7 +31,7 @@ if (existsSync(environment.BLACKX_CRON_SCHEDULE_PATH!)) {
 }
 const productMode = process.argv.includes("--products");
 const verificationStartedAt = new Date().toISOString();
-const manifests = productMode ? coffeeProductManifests() : loadCoffeeCorpus();
+const manifests = productMode ? [...coffeeProductManifests(), ...packagingExpansionManifests()] : loadCoffeeCorpus();
 const temporary = mkdtempSync(join(tmpdir(), "packx-knowledge-connect-"));
 const receiptPath = join(data.root, "knowledge", productMode ? "product-connection.json" : "connection.json");
 const marker = productMode ? "产品目录连通验证" : "知识库连通验证";

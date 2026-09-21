@@ -174,6 +174,8 @@ export interface AgentToolExecutionRecord extends AgentToolExecutionKey {
 	failureCode?: AgentToolFailureCode;
 	startedAt: string;
 	completedAt?: string;
+	/** Host-verified outcome; never supplied by a model or ordinary completion. */
+	reconciliation?: { evidenceRef: string; previousStatus: "started" | "unknown"; previousFailureCode?: AgentToolFailureCode; previousResultDigest?: string; resolvedAt: string };
 }
 
 export interface AgentToolExecutionStore {
@@ -184,6 +186,7 @@ export interface AgentToolExecutionStore {
 		completion: Pick<AgentToolExecutionRecord, "status" | "result" | "resultDigest" | "failureCode" | "completedAt">,
 	): Promise<AgentToolExecutionRecord>;
 	find(key: AgentToolExecutionKey): Promise<AgentToolExecutionRecord | undefined>;
+	resolve?(expected: AgentToolExecutionRecord, outcome: { result: string; resultDigest: string; evidenceRef: string; resolvedAt: string }): Promise<AgentToolExecutionRecord>;
 }
 
 export interface AgentToolApprovalPort {

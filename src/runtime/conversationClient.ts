@@ -85,6 +85,8 @@ async function attachmentRequest(path: string, init?: RequestInit): Promise<Resp
 }
 
 export class ConversationClient {
+	personalMemory(conversationId: string) { return request<import("../enterprise/personalMemory").MemoryView>(`/api/conversations/${encodeURIComponent(conversationId)}/memory`); }
+	memoryCommand(conversationId: string, payload: unknown) { return request<import("../enterprise/personalMemory").MemoryView>(`/api/conversations/${encodeURIComponent(conversationId)}/memory`, { method: "POST", body: JSON.stringify(payload) }); }
 	knowledge(conversationId: string) { return request<import("./knowledgeView").KnowledgeView>(`/api/conversations/${encodeURIComponent(conversationId)}/knowledge`); }
 	searchKnowledge(conversationId: string, query: import("../enterprise/knowledge").KnowledgeQuery) { return request<import("./knowledgeView").KnowledgeSearchView>(`/api/conversations/${encodeURIComponent(conversationId)}/knowledge/search`, { method: "POST", body: JSON.stringify(query) }); }
 	findCoffeeProducts(conversationId: string, query: string) { return request<import("./knowledgeView").KnowledgeSearchView>(`/api/conversations/${encodeURIComponent(conversationId)}/knowledge/products`, { method: "POST", body: JSON.stringify({ query }) }); }

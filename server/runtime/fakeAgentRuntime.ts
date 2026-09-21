@@ -25,6 +25,7 @@ const fakeProvider: AgentModelProvider = {
 export class FakeAgentRuntime extends BlackxAgentRuntime {
 	constructor(options: {
 		readTaskContext?: BlackxAgentRuntimeOptions["readTaskContext"];
+		recoverToolExecution?: BlackxAgentRuntimeOptions["recoverToolExecution"];
 		sessions?: AgentSessionStore;
 		snapshots?: ContextSnapshotStore;
 		tools?: readonly AgentTool[];

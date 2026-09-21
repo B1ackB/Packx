@@ -62,7 +62,7 @@ export function KnowledgePanel({ conversationId, language }: { conversationId: s
 	return <section className="knowledge-panel" aria-label={en ? "Packaging evidence" : "包装数据与证据"}>
 		<p>{en ? "Select source evidence, then generate a requirement brief. Selection does not verify facts." : "选择证据后生成需求单。选入任务不等于确认事实；型号、地区与日期必须按当前订单核对。"}</p>
 		<p>{en ? "Start with supplier product leads. Papers are supplementary references." : "选材先查供应商与产品系列。论文仅作研究参考；资料目录不能替代型号技术资料。"}</p>
-		<button disabled={busy} onClick={() => void run(async () => { await client.knowledgeCommand(conversationId, "open-products", {}); setRegion("unknown"); setNotice("产品目录已提交导入，索引完成后可检索。仅包含官方入口和待核对项，不包含获授权的供应商全文或已确认生产参数。"); })}>{en ? "Import supplier product directory" : "导入供应商产品目录"}</button>
+		<button disabled={busy} onClick={() => void run(async () => { await client.knowledgeCommand(conversationId, "open-products", {}); setRegion("unknown"); setNotice("包装资料已提交导入：FDA 的 460 条美国工艺记录和资料目录。查询 FDA 时请选择 US；目录选 unknown。不是当前订单批准，不含供应商 TDS 全文。"); })}>{en ? "Import packaging sources and directory" : "导入包装资料与目录"}</button>
 		<button disabled={busy || !query.trim()} onClick={() => void run(async () => { setSearch(await client.findCoffeeProducts(conversationId, query)); setRegion("unknown"); })}>{en ? "Search product directory" : "按当前问题查产品目录"}</button>
 		{error && <p role="alert" className="knowledge-alert">{error === "start_requirement_with_selected_evidence_first" ? "先保存证据选择，再创建或重新生成需求单。" : error}</p>}
 		{notice && <p role="status">{notice}</p>}
@@ -73,6 +73,7 @@ export function KnowledgePanel({ conversationId, language }: { conversationId: s
 			<label>{en ? "Question or exact model" : "问题 / 型号 / 材料缩写"}<input value={query} maxLength={300} onChange={(e) => setQuery(e.target.value)} required /></label>
 			<div className="knowledge-fields">
 				<label>{en ? "Exact document / model" : "限定资料 / 型号（精确）"}<input list="knowledge-document-models" value={model} onChange={(e) => setModel(e.target.value)} /><datalist id="knowledge-document-models">{view?.documents.map((d) => <option key={d.versionId} value={d.manifest.model}>{d.manifest.title}</option>)}</datalist></label>
+				<button type="button" onClick={() => { setRegion("US"); setQuery("PET recycling food contact use limitations"); }}>{en ? "Query US FDA records" : "查询美国 FDA 记录"}</button>
 				<label>{en ? "Region" : "订单地区"}<input value={region} onChange={(e) => setRegion(e.target.value)} required /></label>
 				<label>{en ? "Applicable date" : "订单适用日期"}<input type="date" value={asOf} onChange={(e) => setAsOf(e.target.value)} required /></label>
 				<label>{en ? "Retrieval" : "检索路径"}<select value={mode} onChange={(e) => setMode(e.target.value as KnowledgeQuery["mode"])}><option value="keyword">{en ? "Keywords / exact fields" : "关键词 / 精确字段"}</option><option value="vector">{en ? "Vector" : "向量"}</option><option value="hybrid">{en ? "Hybrid (RRF)" : "混合（RRF）"}</option></select></label>
@@ -81,7 +82,8 @@ export function KnowledgePanel({ conversationId, language }: { conversationId: s
 		</form>
 		<small>{view?.embedding.kind === "local_model" ? "本地模型向量；以评测报告为准" : "当前为词项特征向量基线，未启用真实语义模型；不称为 BM25。"}</small>
 		{search && <p role="status">{search.result.status} · {search.result.hits.length} {en ? "hits" : "条"} · {search.result.durationMs.toFixed(1)} ms · {search.result.gaps.join(" / ")}</p>}
-		{search?.result.reranking && <p role="status">{search.result.reranking.status === "completed" ? (en ? `Locally reranked ${search.result.reranking.candidateCount} candidates` : `已对 ${search.result.reranking.candidateCount} 条候选证据进行本地重排`) : (en ? "Reranking failed; no evidence returned" : "重排失败，本次未返回证据")} · {search.result.reranking.durationMs.toFixed(0)} ms</p>}
+		{search?.result.reranking && <p role="status">{search.result.reranking.status === "completed" ? (en ? `Locally reranked ${search.result.reranking.candidateCount} candidates` : `已对 ${search.result.reranking.candidateCount} 条候选证据进行本地重排`) : search.result.degradation ? (en ? "Reranking unavailable; showing original retrieval candidates" : "重排不可用，展示原检索候选") : (en ? "Reranking failed; no evidence returned" : "重排失败，本次未返回证据")} · {search.result.reranking.durationMs.toFixed(0)} ms</p>}
+		{search?.result.degradation && <p role="status">{en ? `Reduced retrieval: ${search.result.degradation.effectiveMode}. Check source applicability before using these candidates.` : `本次已降级为${search.result.degradation.effectiveMode === "keyword" ? "关键词" : "未重排的混合"}检索；候选仍需核对原文与适用条件。`}</p>}
 		{search?.questions && <details open><summary>{en ? "Questions for the supplier" : "下一步逐项向供应商核对"}</summary>{search.questions.map((q) => <p key={q.field}>{q.question}</p>)}</details>}
 		{search?.result.assessment && <aside role="status" className="knowledge-alert">
 			<strong>{({ insufficient_evidence: en ? "Structured support is missing. Do not infer an answer." : "缺少结构化证据支持，不能据此下结论。", source_values_available: en ? "Source parameter records found; applicability and confirmation remain open." : "找到原始参数记录；不等于已回答全部问题或已确认适用。", needs_review: en ? "Read the source and resolve scope or test-condition gaps." : "需要核对原文、适用范围及测试条件。" })[search.result.assessment.status]}</strong>

@@ -1,0 +1,49 @@
+{
+	"schemaVersion": "personal-memory-eval.v1",
+	"generatedAt": "2026-09-21T06:19:09.780Z",
+	"fixtureHash": "ad2365aea13b490d397d2cb91adc13537803dd0dcdc280b0f61b8ee97a93bd4c",
+	"baseline": "No confirmed personal record; no cross-task preference in model input",
+	"execution": "deterministic Fake generation, real Enterprise SQLite, Runtime, Session and ContextEngine",
+	"checks": {
+		"baselineRecalls": 0,
+		"confirmedRecalls": 1,
+		"pendingNotRecalled": true,
+		"confirmedRevisionCorrect": true,
+		"revokedAbsentFromDerivedContext": true,
+		"uiTranscriptMessages": 8,
+		"userConstraintsRetainedPerTurn": 4,
+		"restartPassed": true,
+		"isolation": [
+			"actor",
+			"tenant",
+			"workspace"
+		]
+	},
+	"turns": [
+		{
+			"phase": "baseline",
+			"estimatedInputTokens": 2227,
+			"durationMs": 5.391833999999996
+		},
+		{
+			"phase": "confirmed-after-restart",
+			"estimatedInputTokens": 2376,
+			"durationMs": 2.881750000000004
+		},
+		{
+			"phase": "revised",
+			"estimatedInputTokens": 2422,
+			"durationMs": 2.751625000000004
+		},
+		{
+			"phase": "forgotten",
+			"estimatedInputTokens": 2366,
+			"durationMs": 2.0805830000000043
+		}
+	],
+	"generationCalls": 4,
+	"extraMemoryExtractionOrEmbeddingCalls": 0,
+	"paidCalls": 0,
+	"semanticQuality": "NOT_EVALUATED",
+	"tokenCount": "UTF-8/protocol heuristic, not provider usage; includes full Runtime instructions/tools. Fake latency is local mechanism overhead, not real model latency."
+}

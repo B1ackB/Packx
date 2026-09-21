@@ -1,0 +1,106 @@
+{
+  "schemaVersion": "reliability-recovery-eval.v1",
+  "mode": "offline-fault-injection",
+  "referenceCommit": "5842ae982e2ae34f80ba5feee3eca331ea582b34",
+  "baseline": "Same fixture with recovery disabled / strict retrieval; represents prior behavior, not a checkout replay",
+  "paidCalls": 0,
+  "semanticQuality": "NOT_EVALUATED",
+  "latencyMetric": "Local Fake and filesystem elapsed time; not real model latency",
+  "tokens": "Not measured; no real model token usage",
+  "execution": [
+    {
+      "initialStatus": "started",
+      "recoveryEnabled": false,
+      "unresolvedAfter": 1,
+      "continuationReady": false,
+      "physicalWrites": 1,
+      "duplicateWrites": 0,
+      "modelCalls": 1,
+      "recoveryEvents": 0,
+      "elapsedMs": 9.523
+    },
+    {
+      "initialStatus": "started",
+      "recoveryEnabled": true,
+      "unresolvedAfter": 0,
+      "continuationReady": true,
+      "physicalWrites": 1,
+      "duplicateWrites": 0,
+      "modelCalls": 1,
+      "recoveryEvents": 1,
+      "elapsedMs": 7.858
+    },
+    {
+      "initialStatus": "unknown",
+      "recoveryEnabled": false,
+      "unresolvedAfter": 1,
+      "continuationReady": false,
+      "physicalWrites": 1,
+      "duplicateWrites": 0,
+      "modelCalls": 1,
+      "recoveryEvents": 0,
+      "elapsedMs": 4.188
+    },
+    {
+      "initialStatus": "unknown",
+      "recoveryEnabled": true,
+      "unresolvedAfter": 0,
+      "continuationReady": true,
+      "physicalWrites": 1,
+      "duplicateWrites": 0,
+      "modelCalls": 1,
+      "recoveryEvents": 1,
+      "elapsedMs": 1.941
+    }
+  ],
+  "retrieval": [
+    {
+      "policy": "strict",
+      "failure": "reranking",
+      "status": "unavailable",
+      "candidateCount": 0,
+      "markedDegraded": false,
+      "effectiveMode": null,
+      "embeddingCalls": 1,
+      "rerankCalls": 1,
+      "generationCalls": 0,
+      "elapsedMs": 1.071
+    },
+    {
+      "policy": "degrade",
+      "failure": "reranking",
+      "status": "candidates",
+      "candidateCount": 1,
+      "markedDegraded": true,
+      "effectiveMode": "hybrid",
+      "embeddingCalls": 1,
+      "rerankCalls": 1,
+      "generationCalls": 0,
+      "elapsedMs": 0.476
+    },
+    {
+      "policy": "strict",
+      "failure": "embedding",
+      "status": "failed",
+      "candidateCount": 0,
+      "markedDegraded": false,
+      "effectiveMode": null,
+      "embeddingCalls": 1,
+      "rerankCalls": 0,
+      "generationCalls": 0,
+      "elapsedMs": 0.126
+    },
+    {
+      "policy": "degrade",
+      "failure": "embedding",
+      "status": "candidates",
+      "candidateCount": 1,
+      "markedDegraded": true,
+      "effectiveMode": "keyword",
+      "embeddingCalls": 1,
+      "rerankCalls": 0,
+      "generationCalls": 0,
+      "elapsedMs": 0.199
+    }
+  ]
+}
