@@ -1,0 +1,307 @@
+{
+	"schemaVersion": "context-threshold-eval.v1",
+	"generatedAt": "2026-09-22T09:16:52.402Z",
+	"requestedModel": "deepseek-v4-flash",
+	"officialModelAlias": "Official docs map legacy deepseek-v4-flash to DeepSeek-V4.1-Flash; response model is recorded separately",
+	"mode": "online-synthetic-runtime",
+	"baselineCommit": "da4fcd1",
+	"configurations": [
+		{
+			"name": "early-32k",
+			"trigger": 32000,
+			"target": 20000
+		},
+		{
+			"name": "current-70k",
+			"trigger": 70000,
+			"target": 45000
+		},
+		{
+			"name": "late-100k",
+			"trigger": 100000,
+			"target": 70000
+		}
+	],
+	"limits": {
+		"usd": 1,
+		"generations": 64,
+		"countedRequests": 400,
+		"inputTokens": 2000000,
+		"outputTokens": 80000
+	},
+	"rates": {
+		"uncachedInputUsdPerMillion": 0.3,
+		"outputUsdPerMillion": 1.2,
+		"basis": "DeepSeek official peak Flash prices, retrieved 2026-09-22; cache discounts ignored for conservative bounds"
+	},
+	"reservedUsd": 0.09080850000000001,
+	"reservedInput": 204391,
+	"reservedOutput": 24576,
+	"tokenCountRequests": 10,
+	"calls": [
+		{
+			"index": 1,
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2443,
+			"reservedOutput": 512,
+			"latencyMs": 2494,
+			"usage": {
+				"inputTokens": 2443,
+				"cachedInputTokens": 0,
+				"outputTokens": 312,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash"
+		},
+		{
+			"index": 2,
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2406,
+			"reservedOutput": 512,
+			"latencyMs": 1830,
+			"usage": {
+				"inputTokens": 2406,
+				"cachedInputTokens": 0,
+				"outputTokens": 194,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash"
+		},
+		{
+			"index": 3,
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2406,
+			"reservedOutput": 512,
+			"latencyMs": 2335,
+			"usage": {
+				"inputTokens": 2406,
+				"cachedInputTokens": 0,
+				"outputTokens": 352,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash"
+		},
+		{
+			"index": 4,
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2406,
+			"reservedOutput": 512,
+			"latencyMs": 2205,
+			"usage": {
+				"inputTokens": 2406,
+				"cachedInputTokens": 0,
+				"outputTokens": 197,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash"
+		},
+		{
+			"index": 5,
+			"purpose": "turn",
+			"status": "completed",
+			"countedInput": 21566,
+			"reservedOutput": 4096,
+			"latencyMs": 2477,
+			"usage": {
+				"inputTokens": 21566,
+				"cachedInputTokens": 0,
+				"outputTokens": 246,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash"
+		},
+		{
+			"index": 6,
+			"purpose": "turn",
+			"status": "completed",
+			"countedInput": 23342,
+			"reservedOutput": 4096,
+			"latencyMs": 2025,
+			"usage": {
+				"inputTokens": 1582,
+				"cachedInputTokens": 21760,
+				"outputTokens": 293,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash"
+		},
+		{
+			"index": 7,
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2443,
+			"reservedOutput": 512,
+			"latencyMs": 1792,
+			"usage": {
+				"inputTokens": 139,
+				"cachedInputTokens": 2304,
+				"outputTokens": 210,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash"
+		},
+		{
+			"index": 8,
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2406,
+			"reservedOutput": 512,
+			"latencyMs": 1992,
+			"usage": {
+				"inputTokens": 230,
+				"cachedInputTokens": 2176,
+				"outputTokens": 226,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash"
+		},
+		{
+			"index": 9,
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2406,
+			"reservedOutput": 512,
+			"latencyMs": 1650,
+			"usage": {
+				"inputTokens": 230,
+				"cachedInputTokens": 2176,
+				"outputTokens": 183,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash"
+		},
+		{
+			"index": 10,
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2406,
+			"reservedOutput": 512,
+			"latencyMs": 1843,
+			"usage": {
+				"inputTokens": 230,
+				"cachedInputTokens": 2176,
+				"outputTokens": 252,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash"
+		},
+		{
+			"index": 11,
+			"purpose": "turn",
+			"status": "completed",
+			"countedInput": 45511,
+			"reservedOutput": 4096,
+			"latencyMs": 2836,
+			"usage": {
+				"inputTokens": 44871,
+				"cachedInputTokens": 640,
+				"outputTokens": 223,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash"
+		},
+		{
+			"index": 12,
+			"purpose": "turn",
+			"status": "completed",
+			"countedInput": 45917,
+			"reservedOutput": 4096,
+			"latencyMs": 2633,
+			"usage": {
+				"inputTokens": 221,
+				"cachedInputTokens": 45696,
+				"outputTokens": 348,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash"
+		},
+		{
+			"index": 13,
+			"purpose": "turn",
+			"status": "completed",
+			"countedInput": 48733,
+			"reservedOutput": 4096,
+			"latencyMs": 2393,
+			"usage": {
+				"inputTokens": 2525,
+				"cachedInputTokens": 46208,
+				"outputTokens": 200,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash"
+		}
+	],
+	"results": [
+		{
+			"configuration": "early-32k",
+			"seed": 1,
+			"fixtureHash": "274652ae3854948675c8162eb2de8500e3d12934220aa3bede341434dd090957",
+			"checks": {
+				"confirmedQuantity": true,
+				"pendingQuantity": true,
+				"materialAllowed": true,
+				"thicknessMicrometers": true,
+				"supplierQualified": true,
+				"evidenceCode": true,
+				"citation": true,
+				"testConditions": true
+			},
+			"passed": true,
+			"answer": {
+				"confirmedQuantity": 5001,
+				"pendingQuantity": 6001,
+				"materialAllowed": false,
+				"thicknessMicrometers": 100,
+				"supplierQualified": false,
+				"evidenceCode": "LAB-1-Q7Z9",
+				"citation": "sheet-1#row=87",
+				"testConditions": "23 °C, 50% RH"
+			},
+			"status": "completed",
+			"successfulReadbacks": 1,
+			"generationCalls": 6,
+			"durationMs": 19156,
+			"usage": {
+				"inputTokens": 32809,
+				"cachedInputTokens": 21760,
+				"outputTokens": 1594,
+				"reasoningOutputTokens": 0
+			},
+			"compactions": [
+				{
+					"type": "context.compacted",
+					"removedMessages": 186,
+					"summaries": 1,
+					"beforeChars": 431299,
+					"afterChars": 72274,
+					"estimatedTokens": 21566,
+					"coverage": {
+						"complete": false,
+						"sourceMessages": 186,
+						"coveredMessages": 17,
+						"calls": 4
+					}
+				}
+			],
+			"finalInputTokens": 23342
+		},
+		{
+			"status": "experiment_stopped",
+			"failures": [
+				{
+					"name": "RuntimeFailure",
+					"code": "budget_exceeded"
+				},
+				{
+					"name": "AgentCoreError",
+					"code": "budget_exceeded"
+				}
+			],
+			"note": "No automatic retry. Inspect numeric call ledger and rerun only after review."
+		}
+	]
+}

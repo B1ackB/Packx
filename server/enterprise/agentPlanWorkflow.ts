@@ -20,6 +20,8 @@ function failPlan(state: PlanWorkspace, code: string, retryable: boolean, reason
 const json = (text: string): unknown => { try { return JSON.parse(text); } catch { throw new PlanError("invalid_plan_output", 422); } };
 export interface PlanInputSnapshot { revision: number; context: string }
 export interface PlanWorkflowOptions {
+	/** Check task ownership/existence without constructing model context for reads or stop actions. */
+	assertAvailable?(scope: PlanScope): void;
 	readInput(scope: PlanScope): PlanInputSnapshot;
 	readTools: readonly string[];
 	executionTools: readonly string[];
@@ -33,17 +35,20 @@ export class AgentPlanWorkflow {
 	constructor(readonly store: AgentPlanStore, private readonly queue: StageJobQueue, private readonly runtime: AgentRuntimePort, private readonly options: PlanWorkflowOptions) {}
 	private now() { return this.options.now?.() ?? new Date().toISOString(); }
 	private jobId(scope: PlanScope, plan: PlanVersion) { return `plan-${hash([scope, plan.version, plan.generation]).slice(0, 40)}`; }
-	read(scope: PlanScope) { this.options.readInput(scope); return this.store.read(scope); }
+	private assertAvailable(scope: PlanScope) { if (this.options.assertAvailable) this.options.assertAvailable(scope); else this.options.readInput(scope); }
+	read(scope: PlanScope) { this.assertAvailable(scope); return this.store.read(scope); }
 	assertChatAllowed(scope: PlanScope) {
 		const state = this.store.read(scope);
 		if (state.mode === "plan" || active(latest(state))) throw new PlanError("plan_mode_requires_plan_action");
 	}
 	command(scope: PlanScope, actorId: string, body: unknown): PlanWorkspace {
-		const input = this.options.readInput(scope);
-		if (input.context.length > 32_000) throw new PlanError("plan_context_too_large", 400);
+		this.assertAvailable(scope);
 		if (!body || typeof body !== "object" || Array.isArray(body)) throw new PlanError("invalid_plan_command", 400);
 		const p = body as Record<string, unknown>;
 		if (typeof p.requestId !== "string" || !/^[A-Za-z0-9._:-]{1,128}$/.test(p.requestId) || !Number.isInteger(p.revision) || !["mode", "generate", "replan", "confirm", "pause", "resume", "cancel"].includes(String(p.action))) throw new PlanError("invalid_plan_command", 400);
+		const stopping = p.action === "pause" || p.action === "cancel" || p.action === "mode" && p.mode === "execute";
+		const input = stopping ? undefined : this.options.readInput(scope);
+		if (input && input.context.length > 32_000) throw new PlanError("plan_context_too_large", 400);
 		const previous = this.store.read(scope);
 		const result = this.store.change(scope, `user:${p.requestId}`, hash(p), actorId, `plan.${p.action}`, Number(p.revision), (state) => {
 			const current = latest(state);
@@ -61,14 +66,14 @@ export class AgentPlanWorkflow {
 				if (typeof objective !== "string" || !objective.trim() || objective.length > 8000) throw new PlanError("invalid_plan_objective", 400);
 				const replanFromVersion = current && ["awaiting_confirmation", "paused", "failed"].includes(current.status) ? current.version : undefined;
 				if (current && ["awaiting_confirmation", "paused", "failed"].includes(current.status)) current.status = "superseded";
-				state.versions.push({ version: state.versions.length + 1, objective: objective.trim(), context: input.context, conversationRevision: input.revision, status: "planning", createdAt: this.now(), actorId, generation: 1, calls: 0, children: [], ...(replanFromVersion === undefined ? {} : { replanFromVersion }) });
+				state.versions.push({ version: state.versions.length + 1, objective: objective.trim(), context: input!.context, conversationRevision: input!.revision, status: "planning", createdAt: this.now(), actorId, generation: 1, calls: 0, children: [], ...(replanFromVersion === undefined ? {} : { replanFromVersion }) });
 			} else {
 				if (!current || current.version !== p.version) throw new PlanError("plan_version_conflict");
 				if (p.action === "confirm") {
 					const blocked = planBudgetBlock(state);
 					if (blocked) throw new PlanError(blocked);
 					if (state.mode !== "plan" || current.status !== "awaiting_confirmation" || !current.spec || p.confirmed !== true) throw new PlanError("plan_confirmation_required");
-					if (current.conversationRevision !== input.revision || current.context !== input.context) throw new PlanError("plan_sources_changed");
+					if (current.conversationRevision !== input!.revision || current.context !== input!.context) throw new PlanError("plan_sources_changed");
 					current.approval = { actorId, version: current.version, at: this.now() };
 					current.status = "queued";
 					current.generation++;
@@ -78,7 +83,7 @@ export class AgentPlanWorkflow {
 					if (state.mode !== "plan" || !["paused", "failed"].includes(current.status) || !current.approval || !current.spec) throw new PlanError("plan_not_resumable");
 					if (current.status === "failed" && !current.failure?.retryable) throw new PlanError("plan_requires_revision");
 					if (current.calls >= PLAN_LIMITS.calls) throw new PlanError("plan_budget_exceeded");
-					if (current.conversationRevision !== input.revision || current.context !== input.context) throw new PlanError("plan_sources_changed");
+					if (current.conversationRevision !== input!.revision || current.context !== input!.context) throw new PlanError("plan_sources_changed");
 					current.status = "queued";
 					current.generation++;
 					delete current.failure;
@@ -110,7 +115,7 @@ export class AgentPlanWorkflow {
 		const state = this.store.read(scope);
 		const plan = latest(state);
 		if (!plan) return;
-		try { this.options.readInput(scope); }
+		try { if (active(plan)) this.options.readInput(scope); else this.assertAvailable(scope); }
 		catch (error) {
 			// An unavailable context store is not evidence that the user deleted the task.
 			if (!(error instanceof PlanError) || error.code !== "conversation_not_found" || error.status !== 404) throw error;

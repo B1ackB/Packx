@@ -1,5 +1,7 @@
 import { workspaceRunId } from "./enterprise/proposalWorkspaceApi";
 import { buildTaskContext } from "./enterprise/taskContext";
+import { TaskCheckpointStore } from "./enterprise/taskCheckpointStore";
+import { TaskCheckpointError } from "../src/enterprise/taskCheckpoint";
 import { PersonalMemoryStore } from "./enterprise/personalMemoryStore";
 import { PersonalMemoryService, memorySourceAvailable } from "./enterprise/personalMemoryService";
 import { KnowledgeStore } from "./knowledge/store";
@@ -119,6 +121,7 @@ const knowledge = new KnowledgeService(knowledgeStore, stageJobQueue);
 const memorySessions = { getSession: (scope: Parameters<typeof agentState.getSession>[0]) => agentState.getSession(scope) };
 const personalMemoryStore = new PersonalMemoryStore(resolve(localData.root, "personal-memory.sqlite"), (scope, source) => memorySourceAvailable(memorySessions, scope, source));
 const personalMemory = new PersonalMemoryService(personalMemoryStore, memorySessions);
+const taskCheckpoints = new TaskCheckpointStore(resolve(localData.root, "task-checkpoints.sqlite"));
 const services = createRuntime(process.env, {
 	recoverToolExecution: (record, signal) => conversationFiles.reconcile(record, signal),
 	readTaskContext: (request) => {
@@ -162,6 +165,7 @@ const conversationApi = new ConversationApiController(
 	(scope) => planWorkflow.assertChatAllowed(scope),
 	taskNames,
 	(scope) => planStore.read(scope).versions.at(-1)?.objective,
+	(scope) => conversationTaskContext(scope),
 );
 const planStore = new AgentPlanStore(resolve(process.env.BLACKX_AGENT_STATE_PATH ?? ".blackx-data/agent", "plans.sqlite"));
 function conversationTaskContext(scope: { tenantId: string; workspaceId: string; runId: string }) {
@@ -173,16 +177,23 @@ function conversationTaskContext(scope: { tenantId: string; workspaceId: string;
 	const runScope = { ...scope, runId: workspaceRunId(scope, scope.runId, "requirement") };
 	const state = requirementBriefEngine.load(runScope);
 	const transcript = session.transcript ?? session.messages;
-	return personalMemory.context(localAccess.identity, buildTaskContext({ scope, objective: transcript.findLast((message) => message.role === "user")?.content ?? "Clarify current packaging task",
+	try { return buildTaskContext({ scope, objective: transcript.findLast((message) => message.role === "user")?.content ?? "Clarify current packaging task", checkpoint: taskCheckpoints.active(scope, transcript),
 		transcript, relatedRunId: runScope.runId, state: state.aggregateVersion ? state : undefined,
 		unavailable: state.facts.customer_attachments && state.facts.customer_attachments.value !== conversationAttachments.digest({ ...scope, conversationId: scope.runId }) ? Object.values(state.facts).filter((fact) => fact.sourceRef.startsWith("attachment://") || fact.key === "customer_attachments").map((fact) => fact.sourceRef) : [], events: requirementBriefEngine.readEvents(runScope),
-		references: conversationAttachments.list({ ...scope, conversationId: scope.runId }).map(({ name, sourceRef, sha256 }) => ({ name, sourceRef, sha256 })), knowledge: selected.selection }));
+		references: conversationAttachments.list({ ...scope, conversationId: scope.runId }).map(({ name, sourceRef, sha256 }) => ({ name, sourceRef, sha256 })), knowledge: selected.selection });
+	} catch (error) {
+		if (error instanceof TaskCheckpointError) throw new RuntimeFailure("context_failure", "Task checkpoint or its source changed; review the stored record before continuing", false, { cause: error });
+		throw error;
+	}
 }
 const planWorkflow = new AgentPlanWorkflow(planStore, stageJobQueue, runtime, {
+	assertAvailable: (scope) => {
+		if (scope.tenantId !== localAccess.identity.tenantId || scope.workspaceId !== localAccess.identity.workspaceId || !agentState.getSession({ ...scope, sessionId: scope.runId })) throw new PlanError("conversation_not_found", 404);
+	},
 	readInput: (scope) => {
 		const session = agentState.getSession({ ...scope, sessionId: scope.runId });
 		if (!session) throw new PlanError("conversation_not_found", 404);
-		const task = conversationTaskContext(scope);
+		const task = personalMemory.context(localAccess.identity, conversationTaskContext(scope));
 		return { revision: session.revision, context: task.content };
 	},
 	readTools: ["file_list", "file_read", "document_read", "knowledge_search", "knowledge_selected", "knowledge_read", "packaging_compare_evidence", "packaging_find_products"],
@@ -430,6 +441,19 @@ server.on("request", async (request, response) => {
 
 	const knowledgeMatch = url.pathname.match(/^\/api\/conversations\/([^/]+)\/knowledge(?:\/([a-z-]+))?$/);
 	const memoryMatch = url.pathname.match(/^\/api\/conversations\/([^/]+)\/memory$/);
+	const checkpointMatch = url.pathname.match(/^\/api\/conversations\/([^/]+)\/task-checkpoint$/);
+	if (checkpointMatch && ["GET", "POST"].includes(request.method ?? "")) {
+		try {
+			const payload = request.method === "POST" ? await readJson(request) : undefined;
+			const scope = { ...localAccess.identity, runId: decodeURIComponent(checkpointMatch[1]) };
+			const session = agentState.getSession({ ...scope, sessionId: scope.runId });
+			if (!session) throw new TaskCheckpointError("conversation_not_found", 404);
+			const transcript = session.transcript ?? [];
+			if (request.method === "POST") planWorkflow.assertChatAllowed(scope);
+			json(response, 200, request.method === "GET" ? taskCheckpoints.view(scope, transcript) : taskCheckpoints.command(scope, localAccess.identity.actorId, transcript, payload));
+		} catch (error) { json(response, error instanceof TaskCheckpointError || error instanceof PlanError ? error.status : error instanceof SyntaxError ? 400 : 503, { code: error instanceof TaskCheckpointError || error instanceof PlanError ? error.code : error instanceof SyntaxError ? "invalid_task_checkpoint_command" : "task_checkpoint_unavailable" }); }
+		return;
+	}
 	if (memoryMatch && ["GET", "POST"].includes(request.method ?? "")) {
 		try {
 			const result = personalMemory.handle(localAccess.identity, decodeURIComponent(memoryMatch[1]), request.method === "POST" ? await readJson(request) : undefined);
@@ -1164,5 +1188,6 @@ for (const signal of ["SIGINT", "SIGTERM"] as const) process.once(signal, () => 
 	planStore.close();
 	taskNames.close();
 	personalMemoryStore.close();
+	taskCheckpoints.close();
 	process.exit(0);
 });

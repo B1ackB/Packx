@@ -38,7 +38,7 @@ export class PersonalMemoryService {
 		// the Plan workflow separately rejects any change to its confirmed input.
 		const content = JSON.stringify({ ...task, workingNotes: [], personalMemory: memory });
 		if (content.length > 64_000) throw new RuntimeFailure("budget_exceeded", "Task and personal memory exceed the application context limit", false);
-		return { content, binding: hash(content), historyBinding: memory.binding };
+		return { content, binding: hash(content), historyBinding: task.checkpoint ? hash([task.checkpoint, memory.binding]) : memory.binding };
 	}
 	handle(scope: MemoryScope, runId: string, payload?: unknown) {
 		try {

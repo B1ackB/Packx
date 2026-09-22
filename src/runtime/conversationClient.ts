@@ -85,6 +85,8 @@ async function attachmentRequest(path: string, init?: RequestInit): Promise<Resp
 }
 
 export class ConversationClient {
+	taskCheckpoint(conversationId: string) { return request<import("../enterprise/taskCheckpoint").TaskCheckpointView>(`/api/conversations/${encodeURIComponent(conversationId)}/task-checkpoint`); }
+	taskCheckpointCommand(conversationId: string, payload: unknown) { return request<import("../enterprise/taskCheckpoint").TaskCheckpointView>(`/api/conversations/${encodeURIComponent(conversationId)}/task-checkpoint`, { method: "POST", body: JSON.stringify(payload) }); }
 	personalMemory(conversationId: string) { return request<import("../enterprise/personalMemory").MemoryView>(`/api/conversations/${encodeURIComponent(conversationId)}/memory`); }
 	memoryCommand(conversationId: string, payload: unknown) { return request<import("../enterprise/personalMemory").MemoryView>(`/api/conversations/${encodeURIComponent(conversationId)}/memory`, { method: "POST", body: JSON.stringify(payload) }); }
 	knowledge(conversationId: string) { return request<import("./knowledgeView").KnowledgeView>(`/api/conversations/${encodeURIComponent(conversationId)}/knowledge`); }
