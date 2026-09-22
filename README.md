@@ -2,7 +2,7 @@
 
 [English](README.md) · [简体中文](README.zh-CN.md)
 
-[Documentation map](docs/README.md) · [Interview preparation: architecture, context, memory, and recovery](docs/interview/README.md) (Chinese)
+[Documentation map](docs/README.md) (Chinese)
 
 Packx is a local Agent workspace for **packaging presales and order follow-up**. It combines a self-built, industry-neutral Agent Core with a workflow layer that manages sourced facts, versioned requirement briefs, approvals, and recovery.
 
