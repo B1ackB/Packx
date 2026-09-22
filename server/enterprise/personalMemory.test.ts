@@ -37,6 +37,25 @@ function confirmed(store: PersonalMemoryStore, content = draft.content, topic = 
 	return store.decide(identity, `confirm-${key}`, proposed.id, proposed.revision, "confirm");
 }
 
+it.each(["confirm", "forget"] as const)("rolls back memory state and command receipt together when the %s audit insert fails", (action) => {
+	const { store, path } = fixture(() => true);
+	const item = action === "forget" ? confirmed(store) : store.propose(identity, "proposal", draft, source);
+	const before = store.view(identity), audit = store.audit(identity);
+	const db = new DatabaseSync(path);
+	try {
+		db.exec("CREATE TRIGGER fail_memory_audit BEFORE INSERT ON personal_memory_events BEGIN SELECT RAISE(ABORT, 'injected_audit_failure'); END");
+		expect(() => store.decide(identity, "retry-same-command", item.id, item.revision, action)).toThrow("injected_audit_failure");
+		const reopened = new PersonalMemoryStore(path, () => true); stores.push(reopened);
+		expect(reopened.view(identity)).toEqual(before);
+		expect(reopened.audit(identity)).toEqual(audit);
+		db.exec("DROP TRIGGER fail_memory_audit");
+		const result = reopened.decide(identity, "retry-same-command", item.id, item.revision, action);
+		expect(result.status).toBe(action === "confirm" ? "active" : "revoked");
+		expect(reopened.decide(identity, "retry-same-command", item.id, item.revision, action)).toEqual(result);
+		expect(reopened.audit(identity)).toHaveLength(audit.length + 1);
+	} finally { db.close(); }
+});
+
 it("requires confirmation, keeps old version during review, rejects edits and persists current version", () => {
 	const { store, path } = fixture(() => true);
 	const proposal = store.propose(identity, "proposal", draft, source);

@@ -2,6 +2,8 @@
 
 [English](README.md) · [简体中文](README.zh-CN.md)
 
+[Documentation map](docs/README.md) · [Interview preparation: architecture, context, memory, and recovery](docs/interview/README.md) (Chinese)
+
 Packx is a local Agent workspace for **packaging presales and order follow-up**. It combines a self-built, industry-neutral Agent Core with a workflow layer that manages sourced facts, versioned requirement briefs, approvals, and recovery.
 
 The project is an engineering prototype you can run and inspect locally. An unsigned macOS local release is available; it is not a production SaaS or a signed desktop installer. The current product focuses on packaging; the `print` domain identifier is retained for compatibility.
@@ -164,6 +166,8 @@ The Host owns plan confirmation, subagent dispatch, permissions, workflow transi
 
 See the [Plan mode guide](docs/plan-mode.md) and [ADR-0015](docs/adr/0015-confirmed-plans-and-bounded-subagents.md) for execution limits and recovery behavior.
 
+See [error handling and recovery](docs/reliability-recovery.md) for error classification, retry budgets, cancellation, uncertain side effects, and reconciliation. The [fault-injection report](docs/harness-error-handling-tests.md) records tests and verification results. Both documents are in Chinese.
+
 | Location | Responsibility |
 | --- | --- |
 | `src/App.tsx`, `src/components/`, `src/i18n.ts` | React workspace, multifunction panel, bilingual UI |
@@ -207,7 +211,7 @@ For online evaluation, inject provider variables into the terminal environment a
 - **Local storage:** normal runs persist state under `.blackx-data/` by default. It contains conversations, events, attachments, artifacts, backups, and model request records. Keep this directory private; it is excluded from Git. Generated native tools live in `.blackx-tools/`.
 - **File access:** safe local paths can be read under Host policy. `BLACKX_WORKSPACE_ROOT` sets the default workspace location; it is not a blanket authorization or a guarantee that all reads are confined there. Hidden/system/internal paths and symlinks are restricted. Every new text file, modification, and deletion needs a specific approval. Hash/version checks reject stale operations. Text writes are limited to 128 KiB; Office/PDF write-back is not implemented.
 - **Deletion:** deleting a conversation removes access through the workspace and stops its associated work. Historical data remains for audit; this is not secure erasure. Local file deletion removes the original file after approval and retains a managed backup.
-- **Documents:** PDF text extraction has no OCR. DOCX supports paragraphs and tables; XLSX supports sheet/cell values and does not recalculate formulas. Legacy `.doc`/`.xls` and encrypted documents are unsupported. Parsing is bounded: files up to 10 MiB, PDF up to 100 pages / 8,000 Swift characters, DOCX/XLSX up to 24,000 characters, XLSX up to 20 sheets / 500 rows per sheet. Truncated output is marked.
+- **Documents:** PDF text extraction has no OCR. DOCX supports paragraphs, tables, and footnotes/endnotes; XLSX reads sheet/cell values and cached formula results without recalculation. Legacy `.doc`/`.xls` and encrypted documents are unsupported. Current parser limits include 10 MiB per input, a 1,000,000 Swift-character text budget, and up to 1,000 PDF pages or XLSX sheets; archive/resource limits also apply. Truncation is marked, and tool responses require bounded continuation reads. See [context management](docs/context-management.md).
 - **Observability:** token/cache statistics reflect fields actually returned by the provider, with retention and coverage limits. Missing data is not invented. Fixture numbers are not performance or billing evidence.
 - **Deployment:** the host binds to loopback and uses local session/Host/Origin checks. This is not a multi-user login system or proof of production tenant isolation. Fixed parsers have resource budgets and crash cleanup; arbitrary-code isolation and enterprise deployment remain unverified.
 - **Evidence:** offline, native, and local product checks are separate from real-provider and real-user validation. See the [2026-09-07 feature evidence](docs/evidence/streaming-bilingual-documents-2026-09-07.md), [streaming/document ADR](docs/adr/0014-streaming-and-document-sources.md), and [roadmap](docs/roadmap.md) for scope and remaining work.

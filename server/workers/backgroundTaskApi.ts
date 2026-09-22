@@ -76,7 +76,7 @@ export function enqueueBackgroundConversationTask(
 		expectedVersion: 0,
 		sessionId: request.conversationId,
 		maxFailures: request.requestedBy === "agent" ? 10 : 5,
-		maxSlices: 1,
+		// Use the queue's bounded continuation budget (32 slices), also for Cron deliveries.
 		availableAt: request.availableAt,
 		payload: {
 			type: "conversation.message.v1",

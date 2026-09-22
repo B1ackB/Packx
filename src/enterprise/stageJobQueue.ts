@@ -471,6 +471,9 @@ export class DurableStageJobQueue implements StageJobQueue {
 			if (job.updatedAt !== request.expectedUpdatedAt) {
 				throw new StageJobQueueError("job_conflict", "Stage Job changed before redrive");
 			}
+			if (job.sliceCount >= job.maxSlices + (request.additionalSlices ?? 0)) {
+				throw new StageJobQueueError("job_conflict", "Stage Job redrive requires additional execution slices");
+			}
 			const now = this.now().toISOString();
 			const updated: StageJob = {
 				...job,

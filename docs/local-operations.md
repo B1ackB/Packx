@@ -2,6 +2,10 @@
 
 当前提供源码开发入口和 macOS 本地发行目录，已包含图形化模型配置。发行目录生成与启动见 [发行使用指南](release-start.md)。尚未提供签名公证、自动升级或跨平台安装保证；本机复现不代表企业电脑或干净设备验收。
 
+各节点失败、后台续执行、DLQ、文件补偿和残留锁的处理边界，见 [2026-09-21 逐节点恢复审计](failure-handling-audit.md)。根目录锁恢复不是所有子存储锁的通用修复；当前关停也没有等待所有任务完成持久化的 drain 阶段，不能把进程退出或备份恢复解释为业务副作用已撤销。
+
+排查错误时先看 [错误处理与可靠性恢复](reliability-recovery.md)：包含 Runtime 错误码、retryable／HTTP 的区别、自动重试上限、工具未决副作用、取消和双重故障传播。最新固定测试及复验结果见 [Harness 错误处理测试报告](harness-error-handling-tests.md)。
+
 ## 首次使用
 
 1. 安装 README 指定的 Node 24.14.0 和 Apple Command Line Tools，在仓库执行 `npm ci`。

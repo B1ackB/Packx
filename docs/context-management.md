@@ -2,7 +2,7 @@
 
 日期：2026-09-20。决策：[ADR-0024](adr/0024-separated-dialogue-and-versioned-task-context.md)。本次基于已有未提交的 Plan、自评、replan、Loop Guard 与需求证据核对工作增量实现，未替换这些工作流。
 
-原始对话、工作上下文、业务事实、知识与跨会话偏好的范围、确认、失效和删除边界，以及当前实现导图，见 [记忆系统](memory-system.md)。跨会话偏好与经验管理仍待实现，不能用本文的上下文恢复机制代称。
+原始对话、工作上下文、业务事实、知识与跨会话偏好的范围、确认、失效和删除边界，以及当前实现导图，见 [记忆系统](memory-system.md)。2026-09-21 已实现同一工作区当前用户的显式确认个人偏好与笔记；组织／客户共享记忆和自动经验学习仍未实现，不能用上下文恢复机制代称。面试整理与深入问答见 [上下文与压缩专题](interview/02-context-and-compaction.md)。
 
 2026-09-21 补齐的执行恢复见 [可靠性恢复](reliability-recovery.md)：模型调用前先用执行证据修复未决文件账本，再重建确定性回执；这与摘要或对话恢复是独立职责。文件补偿与检索降级也在该文档中记录，下面的上下文 Baseline 数字保留原验证日期。
 
@@ -22,7 +22,7 @@ Session / Event Store / Fact / Artifact / 资料索引
 
 普通会话的 `server/index.ts:conversationTaskContext` 读取当前 Session、关联需求单 Run 的事件投影、附件和已选知识。Plan 的 `readInput` 复用此函数，保留 revision 和完整 context 的确认检查；规划和子任务以确认版本中的 taskContext 执行，各自 Session 隔离。需求单 Worker 使用同一个 Enterprise 构建器及当前业务状态。包装字段、证据核对与审批规则继续位于 Domain Pack/原有业务工作流。
 
-`buildTaskContext` 输出目标、按时间排序的完整用户原话、当前 Fact（值/单位/确认状态/版本/来源）、阶段、已完成事件、未确认事实与失效来源、待确认修改、Artifact 版本和审批、资料引用。新待确认值和旧已确认值分别呈现，不偷偷恢复旧值。最近两条正式回复只作 `unverified` 工作笔记；过长时只放 transcript 引用。
+`buildTaskContext` 输出目标、按时间排序的完整用户原话、当前 Fact（值/单位/确认状态/版本/来源）、阶段、已完成事件、未确认事实与失效来源、待确认修改、Artifact 版本和审批、资料引用。新待确认值和旧已确认值分别呈现，不偷偷恢复旧值。基础构建器将最近两条正式回复作为 `unverified` 工作笔记，过长时只放 transcript 引用；当前 Host 接入个人记忆后，`PersonalMemoryService.context` 会清空这些 workingNotes，避免旧偏好经助手笔记重新注入。
 
 原始用户消息是约束与请求来源，不能代替 Fact 的人工确认事件。自然语言冲突不会被自动判定为已解决：当前存储版本优先，用户原话保留顺序，显式后续更正优先，无法确定的矛盾需要澄清。构建器不声称已实现自然语言约束失效识别；必须内容超过 64,000 字符（Plan 仍为 32,000）或模型输入硬预算时停止并要求拆分/明确处理。
 
@@ -39,7 +39,7 @@ Session / Event Store / Fact / Artifact / 资料索引
 
 1. 大工具正文先保存为当前 Session 下的不可变 ContextSnapshot。超过工具结果上限时返回完整 JSON 引用封套，不切断 JSON；较早、可回读的完整工具组正文优先换成引用。
 2. 稳定策略、当前任务数据、pinned 消息、未完成 Tool batch 和未决执行状态必须保留。工具调用与结果成组保留或移除。必留内容本身超限时返回 `budget_exceeded`。
-3. 被移除的完整消息归档后，摘要按完整消息组批调用。摘要有非权威标记、实际覆盖范围和原文引用；超大单消息、预算耗尽或超预算输出都明确为 `INCOMPLETE`，不使用截尾输入或截断输出假装覆盖成功。
+3. 被移除的完整消息归档后，摘要按完整消息分批调用。工作历史裁剪保证工具调用／结果成组；摘要器不额外保证每个输入批次都含完整工具组。摘要有非权威标记、实际覆盖范围和原文引用；超大单消息、预算耗尽或超预算输出都明确为 `INCOMPLETE`，不使用截尾输入或截断输出假装覆盖成功。
 4. `context_read` 在当前 tenant/workspace/run/session 读取原始 transcript 或快照，按完整消息/行分页。可用 `messageIndex` 和 `jsonPointer` 选择大型 JSON 内的数组继续读取。单条仍超过页预算返回 `single_unit_exceeds_budget`，由专用源工具处理；不把半个值当完整证据。
 
 示例工具参数：

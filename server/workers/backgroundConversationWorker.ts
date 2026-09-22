@@ -42,10 +42,14 @@ function responseFailure(response: ConversationApiResponse): RuntimeFailure {
 	} else if (providerCode === "rate_limit") {
 		code = "rate_limit";
 		retryable = true;
+	} else if (providerCode === "context_failure" || providerCode === "budget_exceeded" || providerCode === "model_failure" || providerCode === "timeout" || providerCode === "cancelled" || providerCode === "permission_denied" || providerCode === "max_iterations" || providerCode === "session_conflict" || providerCode === "runtime_unavailable" || providerCode === "execution_failed") {
+		code = providerCode;
 	} else if (providerCode === "invalid_output" || response.status === 400 || response.status === 404) {
 		code = "invalid_output";
 		retryable = false;
 	}
+	// HTTP status alone cannot decide whether replaying this Runtime failure is safe.
+	if (typeof body.retryable === "boolean") retryable = body.retryable;
 	return new RuntimeFailure(
 		code,
 		`Background conversation turn failed (${response.status}:${providerCode})`,
@@ -70,6 +74,11 @@ export class BackgroundConversationWorker {
 			{ retryIncomplete: true, signal, assertActive },
 		);
 		if (response.status !== 200) throw responseFailure(response);
+		const execution = record(response.body) && record(response.body.execution) ? response.body.execution : undefined;
+		if (execution?.status === "paused") return {
+			status: "paused", sessionId: lease.runId,
+			...(typeof execution.contextSnapshotId === "string" ? { contextSnapshotId: execution.contextSnapshotId } : {}),
+		};
 		return { status: "completed" };
 	}
 }

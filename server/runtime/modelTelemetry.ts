@@ -58,6 +58,7 @@ export class ModelTelemetryStore {
 			index.calls.push(call);
 			if (index.calls.length > this.retentionLimit) { index.calls = index.calls.slice(-this.retentionLimit); index.truncated = true; }
 			this.save(scope, index); this.active.add(call.id);
+			let failure: { error: unknown } | undefined;
 			try {
 				const result = await (signal ? abortable(action(), signal) : action());
 				call.status = "succeeded";
@@ -67,6 +68,7 @@ export class ModelTelemetryStore {
 				} else if (typeof result === "number" && Number.isSafeInteger(result) && result >= 0) call.countedInputTokens = result;
 				return result;
 			} catch (error) {
+				failure = { error };
 				call.status = signal?.aborted ? "cancelled" : "failed";
 				// Upstream messages/types may contain secrets or customer text; expose a fixed category only.
 				const status = (error as { providerStatus?: number })?.providerStatus;
@@ -75,8 +77,13 @@ export class ModelTelemetryStore {
 				throw error;
 			} finally {
 				call.latencyMs = Math.max(0, this.now() - start); this.active.delete(call.id);
-				const latest = this.load(scope), position = latest.calls.findIndex((item) => item.id === call.id);
-				if (position >= 0) { latest.calls[position] = call; this.save(scope, latest); }
+				try {
+					const latest = this.load(scope), position = latest.calls.findIndex((item) => item.id === call.id);
+					if (position >= 0) { latest.calls[position] = call; this.save(scope, latest); }
+				} catch (storageError) {
+					if (!failure) throw storageError;
+					throw new AggregateError([failure.error, storageError], "Model call and telemetry persistence failed", { cause: failure.error });
+				}
 			}
 		};
 		return { generate: (request, signal) => track("generate", () => provider.generate(request, signal), signal, request.callContext),

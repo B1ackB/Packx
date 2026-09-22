@@ -7,12 +7,14 @@ import { SkillRegistry } from "../../src/agent/skills";
 import { InMemoryStageJobQueue } from "../../src/enterprise/stageJobQueue";
 import { printSkills } from "../../src/print/skills";
 import type { BackgroundTaskView, ConversationView } from "../../src/runtime/conversationContracts";
+import { RuntimeFailure } from "../../src/runtime/contracts";
 import { BlackxAgentRuntime } from "../runtime/agentRuntime";
 import { ConversationApiController } from "../runtime/conversationApi";
 import { FakeAgentRuntime } from "../runtime/fakeAgentRuntime";
 import { FileAgentStateStore } from "../runtime/fileAgentStateStore";
 import { BackgroundConversationWorker } from "./backgroundConversationWorker";
 import { BackgroundTaskApiController } from "./backgroundTaskApi";
+import { StageJobScheduler } from "./stageJobScheduler";
 
 const directories: string[] = [];
 const context = {
@@ -33,6 +35,47 @@ function body<Value>(response: { body: unknown }, key: string): Value {
 
 afterEach(() => {
 	for (const directory of directories.splice(0)) rmSync(directory, { recursive: true, force: true });
+});
+
+it("checkpoints a paused background turn and resumes without repeating its message or tool", async () => {
+	const sessions = state();
+	let calls = 0, reads = 0;
+	const runtime = new BlackxAgentRuntime({
+		skills: new SkillRegistry(), sessions, snapshots: sessions, traces: sessions, maxIterations: 1,
+		tools: [{ name: "read", description: "read", inputSchema: { type: "object" }, execution: "host", risk: "read", idempotent: true, timeoutMs: 100, maxResultChars: 100, validate: () => true, execute: async () => { reads++; return "source"; } }],
+		provider: { generate: async () => ({ text: ++calls === 1 ? "" : "complete", toolCalls: calls === 1 ? [{ id: "read-1", name: "read", input: {} }] : [], usage: { inputTokens: 1, outputTokens: 1, cachedInputTokens: 0, reasoningOutputTokens: 0 } }) },
+	});
+	const conversations = new ConversationApiController(runtime, sessions, undefined, () => "sliced", ["read"]);
+	const conversationId = body<ConversationView>(conversations.create(context), "conversation").conversationId;
+	const queue = new InMemoryStageJobQueue();
+	await new BackgroundTaskApiController(queue, conversations, runtime).create(context, conversationId, { messageId: "sliced-message", content: "read source" });
+	const worker = new BackgroundConversationWorker(conversations);
+	const scheduler = new StageJobScheduler(queue, { workerId: "worker", handlers: { "conversation-background": (lease, signal, check) => worker.execute(lease, signal, check) } });
+	expect(await scheduler.runNext()).toMatchObject({ status: "paused", job: { status: "queued", sessionId: conversationId, lastContextSnapshotId: expect.any(String) } });
+	expect(await scheduler.runNext()).toMatchObject({ status: "completed" });
+	expect(await scheduler.runNext()).toMatchObject({ status: "idle" });
+	expect({ calls, reads }).toEqual({ calls: 2, reads: 1 });
+	expect(body<ConversationView>(conversations.get(context, conversationId), "conversation").messages.map((message) => message.content)).toEqual(["read source", "complete"]);
+});
+
+it.each([
+	{ code: "context_failure", retryable: false, status: "dead_letter" },
+	{ code: "budget_exceeded", retryable: false, status: "dead_letter" },
+	{ code: "permission_denied", retryable: false, status: "dead_letter" },
+	{ code: "cancelled", retryable: false, status: "dead_letter" },
+	{ code: "model_failure", retryable: true, status: "retry_scheduled" },
+] as const)("preserves Runtime $code retry policy across the background API boundary", async ({ code, retryable, status }) => {
+	const sessions = state();
+	const runtime = new BlackxAgentRuntime({ skills: new SkillRegistry(), sessions, snapshots: sessions,
+		readTaskContext: () => { throw new RuntimeFailure(code, "fixture failure", retryable); },
+		provider: { generate: async () => { throw new Error("must stop before dispatch"); } } });
+	const conversations = new ConversationApiController(runtime, sessions, undefined, () => code);
+	const conversationId = body<ConversationView>(conversations.create(context), "conversation").conversationId;
+	const queue = new InMemoryStageJobQueue();
+	await new BackgroundTaskApiController(queue, conversations, runtime).create(context, conversationId, { messageId: "failed-message", content: "test" });
+	const worker = new BackgroundConversationWorker(conversations);
+	const scheduler = new StageJobScheduler(queue, { workerId: "worker", handlers: { "conversation-background": (lease, signal, check) => worker.execute(lease, signal, check) } });
+	expect(await scheduler.runNext()).toMatchObject({ status, job: { lastFailure: { code, retryable } } });
 });
 
 describe("BackgroundTaskApiController", () => {

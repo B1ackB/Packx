@@ -23,6 +23,26 @@ export class AnthropicCompatibilityError extends Error {
 	}
 }
 
+function record(value: unknown): value is Record<string, unknown> {
+	return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+async function readJsonResponse(response: Response): Promise<Record<string, unknown>> {
+	const body: unknown = await response.json().catch(() => undefined);
+	if (!response.ok) {
+		const error = record(body) && record(body.error) ? body.error : undefined;
+		throw new AnthropicCompatibilityError(
+			typeof error?.type === "string" ? error.type : "upstream_error",
+			typeof error?.message === "string" ? error.message : `Anthropic-compatible endpoint returned HTTP ${response.status}`,
+			{ providerStatus: response.status },
+		);
+	}
+	if (!record(body)) {
+		throw new AnthropicCompatibilityError("invalid_response", "Model response is invalid", { adapterStatus: 502 });
+	}
+	return body;
+}
+
 export interface AnthropicClientOptions {
   baseUrl: string;
   apiKey: string;
@@ -63,23 +83,18 @@ export class AnthropicMessagesClient {
 			if (!response.body) throw new AnthropicCompatibilityError("invalid_response", "Missing model stream");
 			return readAnthropicStream(response.body, onText, signal);
 		}
-    const body = (await response.json().catch(() => undefined)) as
-      | AnthropicMessageResponse
-      | { error?: { message?: string; type?: string } }
-      | undefined;
-    if (!response.ok) {
-      const message = body && "error" in body ? body.error?.message : undefined;
-      throw new AnthropicCompatibilityError(
-        body && "error" in body ? body.error?.type ?? "upstream_error" : "upstream_error",
-        message ?? `Anthropic-compatible endpoint returned HTTP ${response.status}`,
-		{ providerStatus: response.status },
-      );
-    }
-		// Some compatible endpoints return JSON even when streaming is requested.
-		if (body && "content" in body && Array.isArray(body.content)) {
-			for (const block of body.content) if (block.type === "text") await onText?.(block.text);
+		const body = await readJsonResponse(response);
+		if (!Array.isArray(body.content)) {
+			throw new AnthropicCompatibilityError("invalid_response", "Model content is invalid", { adapterStatus: 502 });
 		}
-    return body as AnthropicMessageResponse;
+		// Some compatible endpoints return JSON even when streaming is requested.
+		for (const block of body.content) {
+			if (!record(block) || (block.type === "text" && typeof block.text !== "string")) {
+				throw new AnthropicCompatibilityError("invalid_response", "Model content block is invalid", { adapterStatus: 502 });
+			}
+			if (block.type === "text") await onText?.(block.text as string);
+		}
+		return body as unknown as AnthropicMessageResponse;
   }
 
 	async countMessageTokens(
@@ -97,25 +112,14 @@ export class AnthropicMessagesClient {
 			body: JSON.stringify(body),
 			signal,
 		});
-		const result = (await response.json().catch(() => undefined)) as
-			| AnthropicTokenCountResponse
-			| { error?: { message?: string; type?: string } }
-			| undefined;
-		if (!response.ok) {
-			const message = result && "error" in result ? result.error?.message : undefined;
-			throw new AnthropicCompatibilityError(
-				result && "error" in result ? result.error?.type ?? "upstream_error" : "upstream_error",
-				message ?? `Anthropic-compatible endpoint returned HTTP ${response.status}`,
-				{ providerStatus: response.status },
-			);
-		}
-		if (!result || !("input_tokens" in result) || !Number.isInteger(result.input_tokens)) {
+		const result = await readJsonResponse(response);
+		if (typeof result.input_tokens !== "number" || !Number.isSafeInteger(result.input_tokens) || result.input_tokens < 0) {
 			throw new AnthropicCompatibilityError(
 				"invalid_response",
 				"Token Count response is invalid",
 				{ adapterStatus: 502 },
 			);
 		}
-		return result;
+		return { input_tokens: result.input_tokens };
 	}
 }

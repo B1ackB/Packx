@@ -1,0 +1,430 @@
+{
+	"schemaVersion": "interview-validation.v1",
+	"date": "2026-09-22",
+	"head": "4df7f4d0b86fdd047cb051d76cc35db84b1e07f8",
+	"scope": "Current working tree including pre-existing uncommitted implementation and audit tests; documentation task made no production-code changes.",
+	"node": "v24.14.0",
+	"check": {
+		"command": "npm run check",
+		"exitCode": 0,
+		"testFilesPassed": 77,
+		"testsPassed": 572,
+		"testsSkipped": 21,
+		"typescriptPassed": true,
+		"viteBuildPassed": true
+	},
+	"evalExitCodes": {
+		"context": 0,
+		"memory": 0,
+		"recovery": 0,
+		"plan": 0,
+		"loop": 0
+	},
+	"paidModelCalls": 0,
+	"semanticQuality": "NOT_EVALUATED",
+	"notRunThisTurn": [
+		"check:local",
+		"test:native",
+		"eval:product",
+		"browser acceptance",
+		"real RAG benchmark",
+		"online model eval"
+	],
+	"reports": {
+		"context": [
+			{
+				"schemaVersion": "context-eval.v1",
+				"mode": "offline-deterministic-fixture",
+				"paidCalls": 0,
+				"semanticQuality": "NOT_EVALUATED",
+				"tokenMetric": "Same byte-based estimator for both; no provider usage claims",
+				"latencyMetric": "Local Fake elapsed time, not network/model latency",
+				"results": [
+					{
+						"name": "frozen-baseline",
+						"constraintRetention": 0,
+						"currentFactVersionCorrect": false,
+						"referenceIntegrity": 0,
+						"protocolPaired": true,
+						"originalDialoguePreserved": false,
+						"beforeEstimatedTokens": 31470,
+						"afterEstimatedTokens": 4057,
+						"summaryInputEstimatedTokens": 24717,
+						"summaryOutputEstimatedTokens": 45,
+						"extraGenerationCalls": 3,
+						"extraTokenCountCalls": 0,
+						"removedMessages": 209,
+						"elapsedMs": 1.282,
+						"rounds": 3
+					},
+					{
+						"name": "improved",
+						"constraintRetention": 1,
+						"currentFactVersionCorrect": true,
+						"referenceIntegrity": 1,
+						"protocolPaired": true,
+						"originalDialoguePreserved": true,
+						"beforeEstimatedTokens": 34313,
+						"afterEstimatedTokens": 4355,
+						"summaryInputEstimatedTokens": 22878,
+						"summaryOutputEstimatedTokens": 77,
+						"extraGenerationCalls": 4,
+						"extraTokenCountCalls": 4,
+						"removedMessages": 219,
+						"elapsedMs": 3.453,
+						"rounds": 3
+					}
+				]
+			}
+		],
+		"memory": [
+			{
+				"schemaVersion": "personal-memory-eval.v1",
+				"generatedAt": "2026-09-22T05:53:20.180Z",
+				"fixtureHash": "ad2365aea13b490d397d2cb91adc13537803dd0dcdc280b0f61b8ee97a93bd4c",
+				"baseline": "No confirmed personal record; no cross-task preference in model input",
+				"execution": "deterministic Fake generation, real Enterprise SQLite, Runtime, Session and ContextEngine",
+				"checks": {
+					"baselineRecalls": 0,
+					"confirmedRecalls": 1,
+					"pendingNotRecalled": true,
+					"confirmedRevisionCorrect": true,
+					"revokedAbsentFromDerivedContext": true,
+					"uiTranscriptMessages": 8,
+					"userConstraintsRetainedPerTurn": 4,
+					"restartPassed": true,
+					"isolation": [
+						"actor",
+						"tenant",
+						"workspace"
+					]
+				},
+				"turns": [
+					{
+						"phase": "baseline",
+						"estimatedInputTokens": 2227,
+						"durationMs": 6.667957999999999
+					},
+					{
+						"phase": "confirmed-after-restart",
+						"estimatedInputTokens": 2376,
+						"durationMs": 2.9455000000000098
+					},
+					{
+						"phase": "revised",
+						"estimatedInputTokens": 2422,
+						"durationMs": 3.876165999999998
+					},
+					{
+						"phase": "forgotten",
+						"estimatedInputTokens": 2366,
+						"durationMs": 3.109624999999994
+					}
+				],
+				"generationCalls": 4,
+				"extraMemoryExtractionOrEmbeddingCalls": 0,
+				"paidCalls": 0,
+				"semanticQuality": "NOT_EVALUATED",
+				"tokenCount": "UTF-8/protocol heuristic, not provider usage; includes full Runtime instructions/tools. Fake latency is local mechanism overhead, not real model latency."
+			}
+		],
+		"recovery": [
+			{
+				"schemaVersion": "reliability-recovery-eval.v1",
+				"mode": "offline-fault-injection",
+				"referenceCommit": "4df7f4d0b86fdd047cb051d76cc35db84b1e07f8",
+				"baseline": "Same fixture with recovery disabled / strict retrieval; represents prior behavior, not a checkout replay",
+				"paidCalls": 0,
+				"semanticQuality": "NOT_EVALUATED",
+				"latencyMetric": "Local Fake and filesystem elapsed time; not real model latency",
+				"tokens": "Not measured; no real model token usage",
+				"execution": [
+					{
+						"initialStatus": "started",
+						"recoveryEnabled": false,
+						"unresolvedAfter": 1,
+						"continuationReady": false,
+						"physicalWrites": 1,
+						"duplicateWrites": 0,
+						"modelCalls": 1,
+						"recoveryEvents": 0,
+						"elapsedMs": 10.038
+					},
+					{
+						"initialStatus": "started",
+						"recoveryEnabled": true,
+						"unresolvedAfter": 0,
+						"continuationReady": true,
+						"physicalWrites": 1,
+						"duplicateWrites": 0,
+						"modelCalls": 1,
+						"recoveryEvents": 1,
+						"elapsedMs": 7.554
+					},
+					{
+						"initialStatus": "unknown",
+						"recoveryEnabled": false,
+						"unresolvedAfter": 1,
+						"continuationReady": false,
+						"physicalWrites": 1,
+						"duplicateWrites": 0,
+						"modelCalls": 1,
+						"recoveryEvents": 0,
+						"elapsedMs": 3.948
+					},
+					{
+						"initialStatus": "unknown",
+						"recoveryEnabled": true,
+						"unresolvedAfter": 0,
+						"continuationReady": true,
+						"physicalWrites": 1,
+						"duplicateWrites": 0,
+						"modelCalls": 1,
+						"recoveryEvents": 1,
+						"elapsedMs": 4.49
+					}
+				],
+				"retrieval": [
+					{
+						"policy": "strict",
+						"failure": "reranking",
+						"status": "unavailable",
+						"candidateCount": 0,
+						"markedDegraded": false,
+						"effectiveMode": null,
+						"embeddingCalls": 1,
+						"rerankCalls": 1,
+						"generationCalls": 0,
+						"elapsedMs": 2.657
+					},
+					{
+						"policy": "degrade",
+						"failure": "reranking",
+						"status": "candidates",
+						"candidateCount": 1,
+						"markedDegraded": true,
+						"effectiveMode": "hybrid",
+						"embeddingCalls": 1,
+						"rerankCalls": 1,
+						"generationCalls": 0,
+						"elapsedMs": 0.958
+					},
+					{
+						"policy": "strict",
+						"failure": "embedding",
+						"status": "failed",
+						"candidateCount": 0,
+						"markedDegraded": false,
+						"effectiveMode": null,
+						"embeddingCalls": 1,
+						"rerankCalls": 0,
+						"generationCalls": 0,
+						"elapsedMs": 0.226
+					},
+					{
+						"policy": "degrade",
+						"failure": "embedding",
+						"status": "candidates",
+						"candidateCount": 1,
+						"markedDegraded": true,
+						"effectiveMode": "keyword",
+						"embeddingCalls": 1,
+						"rerankCalls": 0,
+						"generationCalls": 0,
+						"elapsedMs": 0.563
+					}
+				]
+			}
+		],
+		"plan": [
+			{
+				"fixture": "packx-plan-isolation-v1",
+				"provider": "same fixed offline provider",
+				"sharedLimits": {
+					"maxIterations": 4,
+					"maxToolExecutions": 8,
+					"maxInputTokens": 12000
+				},
+				"lifetimeSliceLimit": 16,
+				"passed": true,
+				"baseline": {
+					"modelCalls": 1,
+					"independentTaskContexts": 1
+				},
+				"planSubagents": {
+					"modelCalls": 3,
+					"independentTaskContexts": 2,
+					"executedBeforeConfirmation": 0
+				},
+				"conclusion": "Independent task contexts and explicit confirmation verified at two additional model calls; no real-model quality or speed improvement claimed."
+			},
+			{
+				"fixture": "packx-plan-checkpoint-v1",
+				"passed": true,
+				"provider": "same fixed offline provider",
+				"sharedLimits": {
+					"maxIterations": 4,
+					"maxToolExecutions": 8,
+					"maxInputTokens": 12000
+				},
+				"baselineWithoutCheckpoint": {
+					"legacyResultAccepted": true
+				},
+				"checkpoint": {
+					"laterTasksExecuted": 0,
+					"automaticReplans": 0,
+					"newApprovalRequired": true,
+					"extraReviewModelCalls": 0
+				},
+				"conclusion": "A reported blocker stops advancement and manual replanning retains context behind a fresh confirmation; this fixture does not establish real-model plan quality."
+			}
+		],
+		"loop": [
+			{
+				"fixture": "packx-loop-safety-v1",
+				"provider": "same deterministic offline provider",
+				"limits": {
+					"maxIterations": 12,
+					"maxToolExecutions": 16,
+					"maxInputTokens": 12000
+				},
+				"passed": true,
+				"reports": [
+					{
+						"fixture": "repeat",
+						"baseline": {
+							"guarded": false,
+							"modelCalls": 12,
+							"toolCalls": 12,
+							"stopped": "slice_limit"
+						},
+						"guarded": {
+							"guarded": true,
+							"modelCalls": 3,
+							"toolCalls": 2,
+							"stopped": "repeated_actions"
+						}
+					},
+					{
+						"fixture": "cycle",
+						"baseline": {
+							"guarded": false,
+							"modelCalls": 12,
+							"toolCalls": 12,
+							"stopped": "slice_limit"
+						},
+						"guarded": {
+							"guarded": true,
+							"modelCalls": 6,
+							"toolCalls": 5,
+							"stopped": "repeated_actions"
+						}
+					},
+					{
+						"fixture": "failures",
+						"baseline": {
+							"guarded": false,
+							"modelCalls": 12,
+							"toolCalls": 12,
+							"stopped": "slice_limit"
+						},
+						"guarded": {
+							"guarded": true,
+							"modelCalls": 3,
+							"toolCalls": 3,
+							"stopped": "consecutive_tool_failures"
+						}
+					},
+					{
+						"fixture": "progress",
+						"baseline": {
+							"guarded": false,
+							"modelCalls": 5,
+							"toolCalls": 4,
+							"stopped": "completed"
+						},
+						"guarded": {
+							"guarded": true,
+							"modelCalls": 5,
+							"toolCalls": 4,
+							"stopped": "completed"
+						}
+					}
+				],
+				"limitation": "Measures deterministic stopping and unchanged productive fixture behavior; not real-model task quality or billing."
+			}
+		]
+	},
+	"sourceFileSha256": {
+		"AGENTS.md": "be2e0d56eda565e69e1d0c2588ab3c47186f785c15e0e9ea54fa531a36fb9b0b",
+		"eval/context.ts": "41b1f9657fd1f9d9b95c7953cdf804051b52dbfc2047a8635ee8bdc4091c6713",
+		"eval/loopSafety.ts": "15c9bb894ffa128c16cd4f20f6d08358958df75562cb1a84191d0c785b91f147",
+		"eval/memory.ts": "5ad5acd1e9e2307d2a0183a54d993f04bcf780cf4e802c39ab7071e9c516e1c9",
+		"eval/planSubagents.ts": "2114f774fc5a57c8d0db7f3e7552fbe327aee8b126ff2d1ffe8fb4d743ada498",
+		"native/AssetInspector.swift": "517730b6870150ebb28468c75b92ed1ad3626f64c63707c8c0109df3c4979953",
+		"native/OfficeReader.swift": "b0b38f36cab129ead6bf8c5c6082ba43592c90b7547178816a8d1b664d64862d",
+		"package-lock.json": "e31caa2b279c10c6029b3f3962da622817c0a5e9692de3fa8e9b9eedd4af2dc5",
+		"package.json": "f24b359a9419c5526c1e08375ffe3ef42fefac618c72e90851b6673082035e77",
+		"server/anthropic/client.ts": "0d9804b2924c5119b30d6b803bcf3ebcf8da3e1e19650bfc7d1089e93a2021b9",
+		"server/anthropic/errorHandling.audit.test.ts": "ad3cb91132cb1f07ad1fb0147078186b118db8a4e28fd328cd83e399fa97b8b2",
+		"server/enterprise/agentPlanStore.ts": "2453d0b58645eb2be0887689ef976f53d9e6d9b648a0e6fd6c9124ce8a4918a7",
+		"server/enterprise/agentPlanWorkflow.test.ts": "5b2644e81bf870120639e0edf879e1988b29aa8c6023969e71323f353c730fce",
+		"server/enterprise/agentPlanWorkflow.ts": "8b2eccf6df73b4127da27840e66623f6b9911e2162c7a2561a143938b8b719ad",
+		"server/enterprise/evidenceReviewWorkflow.test.ts": "aaa31510cf372c95a76606e726159ae3c55f24f08e5f4f3b5ad4206624be41a3",
+		"server/enterprise/evidenceReviewWorkflow.ts": "8785701376faaa897e34a20857120117db9e2668e4825d2c037fed79e8937ff6",
+		"server/enterprise/personalMemory.test.ts": "4dd0584dc94d75ea4c91efbe0b4a9b57cbca604f7bc2980b6c6e688def05cd73",
+		"server/enterprise/personalMemoryService.ts": "7b5ea9596b898989f7eb432db77606970f1a014b6511a617fc2842b2246a1e76",
+		"server/enterprise/personalMemoryStore.ts": "a0402bbb24606efffcc1fe8f627532d95163b83e1271064598e73ed7f48f8e10",
+		"server/enterprise/stageJobQueue.contract.test.ts": "ba0105fa74fb2f9f359fe01a4b61be2eb026df077c41c59db5e5869590270ed6",
+		"server/enterprise/taskContext.ts": "8dd689a66a92fcb1ade6ae86f359e0580d1bc4d806f9990bd43221fdd295da8c",
+		"server/eval/m2RequirementWorkflow.test.ts": "bc51bf62e882289192a6a9eabf7d1f3a9fbd2374d8b3feb2f26964efac6fa082",
+		"server/index.ts": "13d958c17a740019369335eaa7f9d525dc1160ef36138ca56dc1f97240f1a599",
+		"server/knowledge/errorHandling.audit.test.ts": "80053333237b535a430d6292363c55e644c72c1b58ab144297c1c28e5b797714",
+		"server/knowledge/knowledge.test.ts": "d5f63656e5ea86e4b852c538dc65688a4b162e72444736ddae9fb431c11079df",
+		"server/knowledge/recovery.test.ts": "3b0007055638753ec257353c3324011906b928b999666f6397c5df0db7b363bb",
+		"server/knowledge/service.ts": "08da51a000b4b013b9e864f9434d119c5775627d5d6a6c6012f361e08b4c1069",
+		"server/knowledge/store.ts": "8b1c4d17c7bc3c19aef9908346bb813bedd0ec20d416ee8178e4beed262d10e1",
+		"server/localBackup.test.ts": "6b95993c331de6a8a5cb6d6fdc5ac799de357fdc2ff11cfac19001a148d2958a",
+		"server/localBackup.ts": "a5ae2efcf7b75f9c115572d5f0f6a1720f420e87d6611e31fddc41e89c62d21d",
+		"server/manufacturing/knowledgeComparison.test.ts": "4d3a31e88e6ff2cd0ed03376ebf6d1943fed061e0ed9718e2360e096fc5f7b60",
+		"server/manufacturing/knowledgeComparison.ts": "aaf0e40d7e38f35cb21db2f528e7b1ff8dd87a8aadb2d4f063298c1ddbb1d1cf",
+		"server/manufacturing/requirementBriefApi.ts": "00ef3e7c33d5c38a0659d6234dc2e13692d6be8d32705927f5d7601492dffd2d",
+		"server/manufacturing/requirementBriefWorker.ts": "49c10c4fe083ee65f9cdd34a29f53a5bf2f43f0786c231de300f3b6520951d3b",
+		"server/manufacturing/requirementEvidencePolicy.ts": "1221e81f3de8fa7fc11a79fbbb354373c81c95087f0e60fb4913e3a459d380e1",
+		"server/runtime/agentRuntime.ts": "c0792d20e012739ef85cab6968b2c33aedfe927f57c4ffcb6937866ebcd3bcb6",
+		"server/runtime/assetInspection.test.ts": "23f6b20b3ac4b42339ba2a4d5836902f371521f8e6b7b88d1bf5b6f424f819bb",
+		"server/runtime/assetInspection.ts": "16250c292b1b1d9c2b2e5df36961033ad2ac21c94d7bf3d428597a71f3a3dc4f",
+		"server/runtime/contextLifecycle.test.ts": "86316b3dd8c6a885bb640811453cac7c41f7aa221cede9f70b8c80bde78f1a89",
+		"server/runtime/contextRead.ts": "acaacb488912e4aa1c6888606822c6de5451cd9af6585410bcb896105f4f4cb8",
+		"server/runtime/conversationDeletion.test.ts": "984eb97d9e94cad227f2723f39ad0a55fb21cdd6963022ec06b598ee2da92716",
+		"server/runtime/conversationDeletion.ts": "8d446c61a1ae90c851b6979b636aa790c0112ae465fb91cbf17cf2a74d2b4500",
+		"server/runtime/conversationFiles.ts": "af65d032c39a4cddb3e098d2866710a1ba60c2da537ad0c400f485ab5f8c6f00",
+		"server/runtime/createRuntime.ts": "9cff2e1141c643791f7baab2b7df2e1d0deeb53404247d36518ea3c92b8abd07",
+		"server/runtime/documentRead.test.ts": "3b1bba9c23752e3948d8ee9c2c1baaa8c0fc33afa454148ea7e3f870d7dc30cc",
+		"server/runtime/errorHandling.audit.test.ts": "2f1ce8d6e299723f077a097b05a1408865468c7a2079d0af2752087d3386780f",
+		"server/runtime/executionRecovery.test.ts": "3457588c027568d7009e90e967c35dde98472223630bc9d144354671a3894fd7",
+		"server/runtime/fileAgentStateStore.test.ts": "4b3af050ac1decbe2ca730a171d496e6bf478e99276d411765306ebd5b3f4608",
+		"server/runtime/fileAgentStateStore.ts": "f0d63cc4428046897a3fc801b448765f64af72e8045bdcb9fff2ff38e9290f41",
+		"server/runtime/loopGuard.test.ts": "63941debe5e6870b5c67c8171906bfa8d70abf0816cac645b931ff21d59bafeb",
+		"server/runtime/loopGuard.ts": "f3596c089dfc9d9f5a1283b9f2c8b5a8ee95703691c8e16bdeb9e6f70b0c8cd3",
+		"server/runtime/modelTelemetry.test.ts": "322463f02492ad6d3fd36237de03ff004d61acbfa0c4509eff70c0dc2f06a5b8",
+		"server/runtime/modelTelemetry.ts": "747271fe0bb4897ce52f1c0ae63980a69a6e7b3f04bc9402e5352dacf8f9286e",
+		"server/runtime/recoverCompletedTurn.ts": "1d72b2f098a482d675ecf502cc64b38be239df18582be579067b51fe2ff80992",
+		"server/runtime/runtime.contract.test.ts": "ae9a165aeb9207a252f9911abccb3bba2698e2f692446356a018dffa2e8baef0",
+		"server/workers/backgroundConversationWorker.ts": "b8dc8019b0179d86ed09a306bb5cebac780d8fa5c6763ccb2deca00052928af7",
+		"server/workers/errorHandling.audit.test.ts": "ee4aff3cc9d3a649378c041be907c3cbd5f6f04e22f88877c12050685966e0d3",
+		"server/workers/stageJobOutbox.ts": "d89eef623b159c1e49b85edd336cb070489e19e035ba0a2a61afd7a727d1daee",
+		"server/workers/stageJobScheduler.test.ts": "7881e8bc24ba6e9701d66902ed9a89d960182ddf0b58630d905f94826498e877",
+		"server/workers/stageJobScheduler.ts": "18c57d40041822ef4c5842293b9b87e0029ead825f872d8d875893f4d4e2d825",
+		"src/agent/context.ts": "8371c9f7355a4b84fcda25acef8a2a355f80465bcd2e1cad6a9310a1da10f53b",
+		"src/agent/loop.ts": "d65a91783397b4ffca68f17b1cc54afefd216ffd14fcde658312f5dfac2079ab",
+		"src/agent/state.ts": "060fad2a0147e2695f92310d60faaf24b3167db8310c6a4cd20ff7cead6fe790",
+		"src/agent/summarizer.ts": "a0c1664181bea775fe5a4a9c50fee021600bc71597a560d573af6559bc0bb33a",
+		"src/agent/tokenBudget.ts": "08380597a0660ed9cbd47ebcc0206411ac9968a05bc2153af112b3ddaae100f3",
+		"src/enterprise/agentPlan.ts": "0359dd34e21c3e753d6a0d4304dbc481fef63d8210a83e20eba45826c20c6acc",
+		"src/enterprise/contracts.ts": "11c78884ff1378be81fc100187681366a54c8f4a780b8475e1a73b3a9dc7d7a8",
+		"src/enterprise/proposalRunEngine.test.ts": "82362d65cbfd7391fd7f0e52e60af4a5982369c457e4f0bf3fe9e5d4a65c36e0",
+		"src/enterprise/proposalRunEngine.ts": "e72459399acfa7aa08de4a706e3c9e6beabff5309d075bdbe49dd9280999ae08",
+		"src/enterprise/stageJobQueue.ts": "625517702ece20e4892ecf9847ed0e06a97c3b1d5af52521072d326d23b9d510"
+	}
+}
