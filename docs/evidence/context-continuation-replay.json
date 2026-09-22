@@ -1,0 +1,121 @@
+{
+	"experimentSha256": "b2cd95843c72dcde2d3722797a488247bd36a09f7b9e96584deb38ec4f1f53eb",
+	"note": "Read-only post-run inspection of stored model-request snapshots; no model calls. Tool results are matched by exact call ID to this probe, excluding historical fixture calls.",
+	"phases": [
+		{
+			"phase": "after-3-unhinted",
+			"mainGenerations": 2,
+			"finalInputTokens": 49834,
+			"executedToolResultsInLastRequest": 2,
+			"requestedToolsInRejectedBatch": 10,
+			"toolBudget": 8,
+			"originalEvidenceDelivered": false,
+			"feedback": [
+				{
+					"tool": "context_read",
+					"input": {
+						"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+						"offset": 0
+					},
+					"status": "historical_unverified",
+					"error": null,
+					"nextOffset": 4,
+					"originalEvidenceDelivered": false
+				},
+				{
+					"tool": "execution_ledger_read",
+					"input": {},
+					"status": null,
+					"error": null,
+					"nextOffset": null,
+					"originalEvidenceDelivered": false
+				}
+			]
+		},
+		{
+			"phase": "after-3-exact-location",
+			"mainGenerations": 6,
+			"finalInputTokens": 53267,
+			"executedToolResultsInLastRequest": 7,
+			"requestedToolsInRejectedBatch": 4,
+			"toolBudget": 8,
+			"originalEvidenceDelivered": true,
+			"feedback": [
+				{
+					"tool": "context_read",
+					"input": {
+						"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+						"messageIndex": 71
+					},
+					"status": "historical_unverified",
+					"error": null,
+					"nextOffset": null,
+					"originalEvidenceDelivered": true
+				},
+				{
+					"tool": "context_read",
+					"input": {
+						"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+						"messageIndex": 70
+					},
+					"status": "historical_unverified",
+					"error": null,
+					"nextOffset": null,
+					"originalEvidenceDelivered": false
+				},
+				{
+					"tool": "context_read",
+					"input": {
+						"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+						"messageIndex": 60
+					},
+					"status": "historical_unverified",
+					"error": null,
+					"nextOffset": null,
+					"originalEvidenceDelivered": false
+				},
+				{
+					"tool": "context_read",
+					"input": {
+						"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+						"messageIndex": 65
+					},
+					"status": "historical_unverified",
+					"error": null,
+					"nextOffset": null,
+					"originalEvidenceDelivered": false
+				},
+				{
+					"tool": "context_read",
+					"input": {
+						"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+						"messageIndex": 0
+					},
+					"status": "historical_unverified",
+					"error": null,
+					"nextOffset": null,
+					"originalEvidenceDelivered": false
+				},
+				{
+					"tool": "context_read",
+					"input": {
+						"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+						"messageIndex": 1
+					},
+					"status": "historical_unverified",
+					"error": null,
+					"nextOffset": null,
+					"originalEvidenceDelivered": false
+				},
+				{
+					"tool": "execution_ledger_read",
+					"input": {},
+					"status": null,
+					"error": null,
+					"nextOffset": null,
+					"originalEvidenceDelivered": false
+				}
+			]
+		}
+	]
+}

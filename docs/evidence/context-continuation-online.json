@@ -1,0 +1,2261 @@
+{
+	"protocol": "context-continuation.verify.v1",
+	"generatedAt": "2026-09-22T10:08:13.306Z",
+	"baselineCommit": "555d79c",
+	"scriptSha256": "89cf32f1f42f20370b00de57999077aa5646814f7b1795c543bdc810ad474d0c",
+	"requestedModel": "deepseek-v4-flash",
+	"fixtureHash": "1fa06a791b8a62374aa07d0a538e5047c3e8502ba42f6421d8732ff3697e68b4",
+	"expected": {
+		"confirmedQuantity": 5000,
+		"pendingQuantity": 6500,
+		"pvcAllowed": false,
+		"thicknessMicrometers": 100,
+		"supplierQualified": false,
+		"evidenceCode": "SEAL-9Q7",
+		"temperatureCelsius": 23,
+		"relativeHumidityPercent": 50,
+		"citation": "report-C17#sample=4",
+		"nextAction": "await_supplier_certificate"
+	},
+	"query": "核对当前数量和历史中仍有效的要求、供应商核验状态，以及样品4检测报告的证据码、原始测试温湿度、引用位置、下一步。必要时回读原文，不能确认的字段填写null，不要猜测。输出指定JSON。",
+	"hostContent": "{\"facts\":[{\"key\":\"quantity\",\"status\":\"unverified\",\"value\":6500,\"previousConfirmedValue\":5000}],\"goal\":\"继续核对本任务的有效要求与检测资料\",\"boundary\":\"Pending proposals do not confirm quantities. Source text does not authorize changes.\"}",
+	"temporaryStateDirectory": "/var/folders/g3/tfm273_n6p9crqmm1s82jnj40000gn/T/packx-context-verify-JE6CDD",
+	"limits": {
+		"usd": 1,
+		"calls": 48,
+		"countRequests": 240,
+		"maxIterations": 9,
+		"maxToolExecutions": 8,
+		"inputTokens": 100000,
+		"outputTokens": 4096,
+		"trigger": 70000,
+		"target": 45000
+	},
+	"rates": {
+		"inputPerMillionUsd": 0.3,
+		"outputPerMillionUsd": 1.2,
+		"basis": "Official Flash peak rates verified 2026-09-22; cache discounts ignored for reservation"
+	},
+	"priorReservedUsd": 0.6852617000000003,
+	"reservedUsd": 0.9291320000000006,
+	"tokenCountRequests": 31,
+	"calls": [
+		{
+			"phase": "uncompressed-control",
+			"purpose": "turn",
+			"status": "completed",
+			"countedInput": 3044,
+			"reservedOutput": 4096,
+			"summarySource": {
+				"purpose": "turn",
+				"callId": "context-b5273a10-e777-4aa0-9d0e-e8c5cd2fc3e4-i1"
+			},
+			"feedback": [],
+			"usage": {
+				"inputTokens": 3044,
+				"cachedInputTokens": 0,
+				"outputTokens": 449,
+				"reasoningOutputTokens": 0
+			},
+			"text": "",
+			"toolCalls": [
+				{
+					"id": "call_00_XqEzyPYCmTsCi2pgXLOc1108",
+					"name": "context_read",
+					"input": {
+						"sourceRef": "report-C17"
+					}
+				},
+				{
+					"id": "call_01_66sb9IPtFMkGPlXePDfR8056",
+					"name": "execution_ledger_read",
+					"input": {}
+				}
+			],
+			"durationMs": 3350
+		},
+		{
+			"phase": "uncompressed-control",
+			"purpose": "turn",
+			"status": "completed",
+			"countedInput": 3557,
+			"reservedOutput": 4096,
+			"summarySource": {
+				"purpose": "turn",
+				"callId": "context-b5273a10-e777-4aa0-9d0e-e8c5cd2fc3e4-i2"
+			},
+			"feedback": [],
+			"usage": {
+				"inputTokens": 229,
+				"cachedInputTokens": 3328,
+				"outputTokens": 375,
+				"reasoningOutputTokens": 0
+			},
+			"text": "{\"confirmedQuantity\":5000,\"pendingQuantity\":6500,\"pvcAllowed\":false,\"thicknessMicrometers\":100,\"supplierQualified\":false,\"evidenceCode\":\"SEAL-9Q7\",\"temperatureCelsius\":23,\"relativeHumidityPercent\":50,\"citation\":\"report-C17#sample=4\",\"nextAction\":\"await_supplier_certificate\"}",
+			"toolCalls": [],
+			"durationMs": 2438
+		},
+		{
+			"phase": "compact-round-1",
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2461,
+			"reservedOutput": 512,
+			"summarySource": {
+				"purpose": "summary",
+				"callId": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1-summary-1-0",
+				"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+				"sourceRange": [
+					0,
+					5
+				]
+			},
+			"feedback": [],
+			"usage": {
+				"inputTokens": 2461,
+				"cachedInputTokens": 0,
+				"outputTokens": 204,
+				"reasoningOutputTokens": 0
+			},
+			"text": "**Summary of supplied data (3 tool results only):**\n\n- **Sources:** `fixture_read` calls `noise-0-0`, `noise-0-1`, `noise-0-2`, returning records `id: 0`, `1`, `2`.\n- **Status:** All records marked `historical_unverified`.\n- **Content:** Repeated boilerplate in zh/en: \"历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数\" / \"Candidate packaging discussion; unverified and irrelevant to current order.\"\n- **Substance:** No concrete facts, goals, constraints, units, test conditions, IDs, or references beyond the record indices.\n- **Negations/constraints:** Do not treat as verified; must not update order parameters based on this.\n- **Uncertainty/failures:** All unverified; irrelevant to current order.\n- **Unresolved:** Nothing actionable; no authentic task data present.\n\nNo other messages covered.",
+			"toolCalls": [],
+			"durationMs": 1709
+		},
+		{
+			"phase": "compact-round-1",
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2420,
+			"reservedOutput": 512,
+			"summarySource": {
+				"purpose": "summary",
+				"callId": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1-summary-2-5",
+				"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+				"sourceRange": [
+					5,
+					9
+				]
+			},
+			"feedback": [],
+			"usage": {
+				"inputTokens": 2420,
+				"cachedInputTokens": 0,
+				"outputTokens": 185,
+				"reasoningOutputTokens": 0
+			},
+			"text": "Notes on supplied conversation data (messages only; no Host state provided):\n\n- IDs referenced: fixture records id=2 and id=3, each `status: historical_unverified`.\n- Both records contain repeated bilingual notes: 历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数 / “Candidate packaging discussion; unverified and irrelevant to current order.”\n- Tool calls: `fixture_read` invoked with inputs `{\"index\":3}` (call id noise-0-3) and `{\"index\":4}` (call id noise-0-4); assistant contents empty.\n- Constraint stated in data: these historical supplier/packaging candidates are unconfirmed and must not be used to update order parameters.\n- No confirmed facts, approvals, goals, numeric/unit specs, or test conditions present. No failures or unresolved tasks stated beyond that prohibition. Nothing here covers other messages.",
+			"toolCalls": [],
+			"durationMs": 1751
+		},
+		{
+			"phase": "compact-round-1",
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2420,
+			"reservedOutput": 512,
+			"summarySource": {
+				"purpose": "summary",
+				"callId": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1-summary-3-9",
+				"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+				"sourceRange": [
+					9,
+					13
+				]
+			},
+			"feedback": [],
+			"usage": {
+				"inputTokens": 2420,
+				"cachedInputTokens": 0,
+				"outputTokens": 297,
+				"reasoningOutputTokens": 0
+			},
+			"text": "## Conversation data notes\n\n**Source:** tool results `fixture_read` IDs 4 and 5 (duplicated noise entries); no other messages summarized.\n\n**Status of all content:** `historical_unverified`. Both entries state they are historical supplier discussions and packaging-design alternatives, not confirmed.\n\n**Explicit constraints (preserve):**\n- Not confirmed / 尚未确认.\n- Must NOT update order parameters based on this content / 不得据此更新订单参数.\n- Submitted twice: Chinese original plus English gloss: \"Candidate packaging discussion; unverified and irrelevant to current order.\"\n\n**Actions observed:** `fixture_read` calls with inputs `{\"index\": 5}` and `{\"index\": 6}`; tool call IDs `noise-0-4`, `noise-0-5`, `noise-0-6`. Results `noise-0-4` and `noise-0-5`.\n\n**Facts:** No substantive data — no supplier names, designs, quantities, dates, prices, lead times, or unit specifications are present. Content is repetitive filler only.\n\n**Uncertainty/failures:** Nothing verifiable; no approvals, permissions, or confirmed state. IDs 4–6 are unverified history.\n\n**Unresolved:** No actionable order change authorized. Current order parameters must remain unchanged; any packaging proposal remains unconfirmed.\n\n**Caveat:** Coverage limited to supplied entries; no other messages claimed.",
+			"toolCalls": [],
+			"durationMs": 2329
+		},
+		{
+			"phase": "compact-round-1",
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2420,
+			"reservedOutput": 512,
+			"summarySource": {
+				"purpose": "summary",
+				"callId": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1-summary-4-13",
+				"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+				"sourceRange": [
+					13,
+					17
+				]
+			},
+			"feedback": [],
+			"usage": {
+				"inputTokens": 2420,
+				"cachedInputTokens": 0,
+				"outputTokens": 269,
+				"reasoningOutputTokens": 0
+			},
+			"text": "Notes on supplied conversation data:\n\n- Messages 6–8 are tool results / assistant tool calls only. IDs: 6 (`fixture_read` call `noise-0-6`), 7 (`noise-0-7`), 8 (`noise-0-8`).\n- All three tool results carry status `historical_unverified` and are heavily repeated filler text (Chinese + English) stating: historical supplier discussion and packaging design alternatives; not yet confirmed; must not be used to update order parameters / candidate packaging discussion, unverified and irrelevant to current order.\n- No actual order parameters, quantities, prices, versions, dates, approvals, or test conditions are present in this supplied data. No goals, constraints, units, or failures are stated, beyond the explicit prohibition against updating order parameters from this content.\n- Assistant turns (calls for indices 7 and 8) contain empty content plus a `fixture_read` tool call; no decisions or instructions.\n- Unresolved/uncertain: provenance of these fixtures and any current-order facts. Per the notes, these items remain unverified and irrelevant; the Host's separately supplied newer confirmed state governs.\n- Nothing here should be treated as an approval, permission, or confirmed fact. No coverage of messages outside the supplied set is claimed.",
+			"toolCalls": [],
+			"durationMs": 2419
+		},
+		{
+			"phase": "compact-round-1",
+			"purpose": "turn",
+			"status": "completed",
+			"countedInput": 45396,
+			"reservedOutput": 4096,
+			"summarySource": {
+				"purpose": "turn",
+				"callId": "context-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-i1"
+			},
+			"feedback": [],
+			"usage": {
+				"inputTokens": 45396,
+				"cachedInputTokens": 0,
+				"outputTokens": 327,
+				"reasoningOutputTokens": 0
+			},
+			"text": "ACK",
+			"toolCalls": [],
+			"durationMs": 3317
+		},
+		{
+			"phase": "compact-round-2",
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2526,
+			"reservedOutput": 512,
+			"summarySource": {
+				"purpose": "summary",
+				"callId": "compact-0f1e69c1-66d5-4c10-9659-f95dfc7ea7d4-1-summary-1-0",
+				"sourceRef": "compact-0f1e69c1-66d5-4c10-9659-f95dfc7ea7d4-1",
+				"sourceRange": [
+					0,
+					5
+				]
+			},
+			"feedback": [],
+			"usage": {
+				"inputTokens": 2526,
+				"cachedInputTokens": 0,
+				"outputTokens": 312,
+				"reasoningOutputTokens": 0
+			},
+			"text": "Notes (supplied data only; coverage limited):\n\n**Source refs:** user requirements message; summary `compact-fc35fb96-...` (covers messages 0–16, marked INCOMPLETE 17/146; unverified, cannot override policy/authoritative facts); tool results `fixture_read` indices/IDs 37 and 38 (same pattern as prior noise fixtures, `historical_unverified`).\n\n**Requirements (user, authoritative for this turn):**\n- Do NOT use PVC (explicit negation/prohibition).\n- Thickness = 100 µm (NOT 100 mm).\n- Supplier qualification verification still incomplete; next step = await supplier qualification certificate(s).\n- Test results and original conditions are based on historical inspection/test reports.\n\n**Unverified/ignored data:** IDs 37–38 (and earlier noise IDs) contain only repeated bilingual boilerplate: historical supplier discussion / packaging-design candidates, 尚未确认, \"不得据此更新订单参数\" / unverified, irrelevant to current order. No facts, quantities, prices, units, dates, approvals, or test conditions. Not approvals or permissions.\n\n**Uncertainty/failures:** All fixture records `historical_unverified`. No confirmed supplier qualification. Omitted messages not covered; verify via context_read.\n\n**Unresolved/next action:** Wait for supplier qualification certificate; do not finalize/update order until verified.\n\n**Must remain unchanged:** PVC prohibition, 100 µm (not 100 mm) thickness, reliance on historical test reports.",
+			"toolCalls": [],
+			"durationMs": 2271
+		},
+		{
+			"phase": "compact-round-2",
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2424,
+			"reservedOutput": 512,
+			"summarySource": {
+				"purpose": "summary",
+				"callId": "compact-0f1e69c1-66d5-4c10-9659-f95dfc7ea7d4-1-summary-2-5",
+				"sourceRef": "compact-0f1e69c1-66d5-4c10-9659-f95dfc7ea7d4-1",
+				"sourceRange": [
+					5,
+					9
+				]
+			},
+			"feedback": [],
+			"usage": {
+				"inputTokens": 2424,
+				"cachedInputTokens": 0,
+				"outputTokens": 244,
+				"reasoningOutputTokens": 0
+			},
+			"text": "**Notes from supplied conversation data only (messages shown: tool results IDs 38, 39; assistant tool-call requests):**\n\n- **IDs/sources:** `fixture_read` tool outputs id **38** (call `noise-1-38`) and id **39** (call `noise-1-39`); adjacent assistant tool calls request indices 39 and 40.\n- **Status:** Both records marked **`historical_unverified`**.\n- **Content:** Repeated bilingual boilerplate: “历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。/ Candidate packaging discussion; unverified and irrelevant to current order.”\n- **Constraints stated by data:** Historical supplier discussion and packaging-design alternatives are **unconfirmed**; must **not** be used to update order parameters. Stated irrelevant to current order.\n- **No goals, units, test conditions, failures, unresolved tasks, or approvals** appear in these messages.\n- **Uncertainty:** Since status is historical/unverified, content cannot be treated as confirmed fact.\n- No user message, newer confirmed state, or additional source context is included here; no coverage of other messages is claimed.",
+			"toolCalls": [],
+			"durationMs": 2194
+		},
+		{
+			"phase": "compact-round-2",
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2424,
+			"reservedOutput": 512,
+			"summarySource": {
+				"purpose": "summary",
+				"callId": "compact-0f1e69c1-66d5-4c10-9659-f95dfc7ea7d4-1-summary-3-9",
+				"sourceRef": "compact-0f1e69c1-66d5-4c10-9659-f95dfc7ea7d4-1",
+				"sourceRange": [
+					9,
+					13
+				]
+			},
+			"feedback": [],
+			"usage": {
+				"inputTokens": 2424,
+				"cachedInputTokens": 0,
+				"outputTokens": 225,
+				"reasoningOutputTokens": 0
+			},
+			"text": "## Notes (untrusted conversation data)\n\n**Supplied messages:** tool results with IDs 40 and 41 (via calls noise-1-40/41), plus assistant tool calls noise-1-41/42.\n\n**Content:** Both tool results (id 40, 41) are labeled `status: historical_unverified`. Notes state (repeatedly, bilingual): \"历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数\" / \"Candidate packaging discussion; unverified and irrelevant to current order.\"\n\n**Key constraints (per data):**\n- Historical supplier discussion and packaging-design alternatives.\n- NOT confirmed.\n- Must NOT be used to update order parameters.\n- Marked irrelevant to current order.\n\n**State:** No confirmed facts, decisions, order params, IDs beyond fixtures, or approvals present. No goals, units, tests, or failure details contained. Content is padded/duplicative.\n\n**Unresolved:** Nothing actionable; these are unverified historical items explicitly excluded from order updates.\n\n*No coverage claimed beyond these messages. Newer Host state not included.*",
+			"toolCalls": [],
+			"durationMs": 1828
+		},
+		{
+			"phase": "compact-round-2",
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2424,
+			"reservedOutput": 512,
+			"summarySource": {
+				"purpose": "summary",
+				"callId": "compact-0f1e69c1-66d5-4c10-9659-f95dfc7ea7d4-1-summary-4-13",
+				"sourceRef": "compact-0f1e69c1-66d5-4c10-9659-f95dfc7ea7d4-1",
+				"sourceRange": [
+					13,
+					17
+				]
+			},
+			"feedback": [],
+			"usage": {
+				"inputTokens": 2424,
+				"cachedInputTokens": 0,
+				"outputTokens": 203,
+				"reasoningOutputTokens": 0
+			},
+			"text": "Notes on supplied untrusted data only:\n\n- Messages are tool outputs / calls labeled as fixture/noise, role=tool/assistant, with toolCallIds noise-1-42, noise-1-43, noise-1-44; fixture_read calls with inputs index 42, 43, 44.\n- Both tool outputs (id 42, 43) have status \"historical_unverified\" and are self-described as historical supplier discussions and packaging design alternatives; explicitly unconfirmed and stated irrelevant to the current order.\n- Repeated constraint within the data: do not use these to update order parameters.\n- No confirmed goals, units, test conditions, approvals, permissions, decisions, deadlines, or current-order details are present.\n- No unresolved work, failures, IDs beyond those above, or source references beyond the fixture messages are supplied.\n- Repetition suggests padding; content carries no actionable or verified information. Keep as unverified/fixture-only; do not upgrade based on this data.",
+			"toolCalls": [],
+			"durationMs": 2173
+		},
+		{
+			"phase": "compact-round-2",
+			"purpose": "turn",
+			"status": "completed",
+			"countedInput": 46539,
+			"reservedOutput": 4096,
+			"summarySource": {
+				"purpose": "turn",
+				"callId": "context-0f1e69c1-66d5-4c10-9659-f95dfc7ea7d4-i1"
+			},
+			"feedback": [],
+			"usage": {
+				"inputTokens": 46155,
+				"cachedInputTokens": 384,
+				"outputTokens": 347,
+				"reasoningOutputTokens": 0
+			},
+			"text": "ACK — 已收到，本轮仅保存为待核对的历史资料；未调用工具，未确认或更新任何内容。\n\n- 数量等仍为未核实状态：以 Host 当前事实为准，历史资料不构成确认、授权或可用于更新订单参数。\n- 有效要求（如禁令与规格约束）与供应商资质核验的待办事项保持不变，仍待权威来源确认。",
+			"toolCalls": [],
+			"durationMs": 3465
+		},
+		{
+			"phase": "compact-round-3",
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2502,
+			"reservedOutput": 512,
+			"summarySource": {
+				"purpose": "summary",
+				"callId": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1-summary-1-0",
+				"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+				"sourceRange": [
+					0,
+					4
+				]
+			},
+			"feedback": [],
+			"usage": {
+				"inputTokens": 2502,
+				"cachedInputTokens": 0,
+				"outputTokens": 444,
+				"reasoningOutputTokens": 0
+			},
+			"text": "## Notes (supplied data only; no coverage of other messages)\n\n**Messages summarized:** compact summary (unverified, INCOMPLETE 17/142) + fixture tool call/result id 31 and adjacent calls 31–32 (`fixture_read`, call IDs noise-3-31/32).\n\n**Source refs / IDs:**\n- Prior summary `compact-0f1e69c1-...-1`, marked INCOMPLETE 17/142, unverified; directs use of `context_read` for omitted details.\n- `fixture_read` tool output id 31 (call noise-3-31); assistant tool calls noise-3-31, noise-3-32 requesting indices 31 and 32.\n\n**Status:** id 31 = `historical_unverified`.\n\n**Content:** id 31 is repeated bilingual boilerplate only: \"历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。/ Candidate packaging discussion; unverified and irrelevant to current order.\" No facts, quantities, prices, units, dates, approvals, test conditions, or decisions. Padding/duplicative.\n\n**Constraints attributed to data:** Historical supplier discussion / packaging-design alternatives are unconfirmed; must NOT be used to update order parameters; stated irrelevant to current order. Not approvals/permissions.\n\n**Standing requirements (from prior summary; authoritative for this turn per that message, not re-confirmed here):**\n- Do NOT use PVC (prohibition).\n- Thickness = 100 µm (NOT 100 mm).\n- Supplier qualification verification incomplete; next step = await supplier qualification certificate(s).\n- Test results/conditions based on historical inspection/test reports.\n\n**Uncertainty/failures:** All fixtures `historical_unverified`. No confirmed supplier qualification. Omitted messages not covered; verify via `context_read`.\n\n**Unresolved/next action:** Await supplier qualification certificate; do not finalize/update order until verified.\n\n**Preserve unchanged:** PVC prohibition; 100 µm not 100 mm; reliance on historical test reports.\n\n*Newer Host-confirmed state not included; no upgrade of facts/permissions/approvals.*",
+			"toolCalls": [],
+			"durationMs": 2829
+		},
+		{
+			"phase": "compact-round-3",
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2424,
+			"reservedOutput": 512,
+			"summarySource": {
+				"purpose": "summary",
+				"callId": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1-summary-2-4",
+				"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+				"sourceRange": [
+					4,
+					8
+				]
+			},
+			"feedback": [],
+			"usage": {
+				"inputTokens": 2424,
+				"cachedInputTokens": 0,
+				"outputTokens": 201,
+				"reasoningOutputTokens": 0
+			},
+			"text": "Notes on supplied conversation data (only these messages; no coverage claimed beyond them):\n\n- Messages are tool/assistant entries with fixture_read tool calls (IDs noise-3-32, noise-3-33, noise-3-34) and tool outputs for fixture IDs 32 and 33.\n- Both outputs identical in substance: status `historical_unverified`; notes label them as historical supplier discussions and packaging design alternatives, unconfirmed. Explicit constraint (negation): must not update order parameters based on this. Also stated as irrelevant to the current order.\n- No goals, units, test conditions, failures, resolutions, approvals, or permission changes appear.\n- No confirmed facts to carry forward; nothing upgrades any fact or approval.\n- Unresolved: status remains historical/unverified; no action authorized from this data.\n- Source refs: toolCallIds noise-3-32, noise-3-33, noise-3-34; fixture IDs 32, 33.",
+			"toolCalls": [],
+			"durationMs": 2071
+		},
+		{
+			"phase": "compact-round-3",
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2424,
+			"reservedOutput": 512,
+			"summarySource": {
+				"purpose": "summary",
+				"callId": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1-summary-3-8",
+				"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+				"sourceRange": [
+					8,
+					12
+				]
+			},
+			"feedback": [],
+			"usage": {
+				"inputTokens": 2424,
+				"cachedInputTokens": 0,
+				"outputTokens": 318,
+				"reasoningOutputTokens": 0
+			},
+			"text": "**Conversation data notes (messages 34–36 only; not verified by newer Host state):**\n\n- **Msg 34 (tool call `noise-3-34`, role tool):** Repeated content, id 34, status `historical_unverified`. Notes state historical supplier discussion and packaging-design alternatives, **not confirmed**, and explicitly: **must not update order parameters based on this**. Labeled candidate packaging discussion, unverified, irrelevant to current order.\n- **Msg 35 (assistant):** Empty content; issues tool call `fixture_read` with input `{\"index\":35}`, toolCallId `noise-3-35`.\n- **Msg 36 (tool call `noise-3-36`, role tool):** Same repeated content pattern as msg 34, id 35, status `historical_unverified`; same constraints: historical/unconfirmed supplier & packaging alternatives, **do not use to update order parameters**, irrelevant to current order.\n- **Constraints preserved:** Unverified, historical, packaging/supplier alternatives only; negation: no order-parameter updates. No units, test conditions, approvals, or permissions stated.\n- **Unresolved/failures:** None indicated beyond unverified/irrelevant status. No confirmed facts to promote.\n- **IDs/sources:** ids 34, 35; tool call IDs `noise-3-34`, `noise-3-35`, `noise-3-36`; function `fixture_read`; message roles tool/assistant.",
+			"toolCalls": [],
+			"durationMs": 2152
+		},
+		{
+			"phase": "compact-round-3",
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2424,
+			"reservedOutput": 512,
+			"summarySource": {
+				"purpose": "summary",
+				"callId": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1-summary-4-12",
+				"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+				"sourceRange": [
+					12,
+					16
+				]
+			},
+			"feedback": [],
+			"usage": {
+				"inputTokens": 2424,
+				"cachedInputTokens": 0,
+				"outputTokens": 130,
+				"reasoningOutputTokens": 0
+			},
+			"text": "Notes on supplied data (IDs 36–37, toolCallIds noise-3-36/37):\n\n- Both entries are status `historical_unverified`.\n- Content: historical supplier discussions and packaging design alternatives. Not confirmed; must not be used to update order parameters.\n- Explicitly labeled as candidate packaging discussion, unverified, and irrelevant to the current order.\n- No goals, constraints, units, test conditions, approvals, or source references provided beyond above. No failures or unresolved work stated.\n- Repetition in notes is padding; no additional distinct facts.\n- Cannot confirm or upgrade status; newer confirmed Host state not included here.",
+			"toolCalls": [],
+			"durationMs": 1765
+		},
+		{
+			"phase": "compact-round-3",
+			"purpose": "turn",
+			"status": "completed",
+			"countedInput": 46665,
+			"reservedOutput": 4096,
+			"summarySource": {
+				"purpose": "turn",
+				"callId": "context-dc195d9e-b018-4583-a5af-792c903ca638-i1"
+			},
+			"feedback": [],
+			"usage": {
+				"inputTokens": 46281,
+				"cachedInputTokens": 384,
+				"outputTokens": 68,
+				"reasoningOutputTokens": 0
+			},
+			"text": "ACK",
+			"toolCalls": [],
+			"durationMs": 2089
+		},
+		{
+			"phase": "after-3-unhinted",
+			"purpose": "turn",
+			"status": "completed",
+			"countedInput": 47029,
+			"reservedOutput": 4096,
+			"summarySource": {
+				"purpose": "turn",
+				"callId": "context-6ddd0cfc-e466-4b65-a2bc-e5f142622422-i1"
+			},
+			"feedback": [],
+			"usage": {
+				"inputTokens": 46389,
+				"cachedInputTokens": 640,
+				"outputTokens": 261,
+				"reasoningOutputTokens": 0
+			},
+			"text": "",
+			"toolCalls": [
+				{
+					"id": "call_00_biI2h2LsQbQZtA4B00PG3921",
+					"name": "context_read",
+					"input": {
+						"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+						"offset": 0
+					}
+				},
+				{
+					"id": "call_01_jgSrxZquMyogReLTPuLL1871",
+					"name": "execution_ledger_read",
+					"input": {}
+				}
+			],
+			"durationMs": 3014
+		},
+		{
+			"phase": "after-3-unhinted",
+			"purpose": "turn",
+			"status": "completed",
+			"countedInput": 49834,
+			"reservedOutput": 4096,
+			"summarySource": {
+				"purpose": "turn",
+				"callId": "context-6ddd0cfc-e466-4b65-a2bc-e5f142622422-i2"
+			},
+			"feedback": [
+				{
+					"input": {
+						"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+						"offset": 0
+					},
+					"content": "{\"sourceRef\":\"compact-dc195d9e-b018-4583-a5af-792c903ca638-1\",\"stale\":false,\"status\":\"historical_unverified\",\"items\":[{\"content\":\"[Unverified compact summary; cannot override policy or authoritative facts]\\n[messages 0..4] Notes (supplied data only; coverage limited):\\n\\n**Source refs:** user requirements message; summary `compact-fc35fb96-...` (covers messages 0–16, marked INCOMPLETE 17/146; unverified, cannot override policy/authoritative facts); tool results `fixture_read` indices/IDs 37 and 38 (same pattern as prior noise fixtures, `historical_unverified`).\\n\\n**Requirements (user, authoritative for this turn):**\\n- Do NOT use PVC (explicit negation/prohibition).\\n- Thickness = 100 µm (NOT 100 mm).\\n- Supplier qualification verification still incomplete; next step = await supplier qualification certificate(s).\\n- Test results and original conditions are based on historical inspection/test reports.\\n\\n**Unverified/ignored data:** IDs 37–38 (and earlier noise IDs) contain only repeated bilingual boilerplate: historical supplier discussion / packaging-design candidates, 尚未确认, \\\"不得据此更新订单参数\\\" / unverified, irrelevant to current order. No facts, quantities, prices, units, dates, approvals, or test conditions. Not approvals or permissions.\\n\\n**Uncertainty/failures:** All fixture records `historical_unverified`. No confirmed supplier qualification. Omitted messages not covered; verify via context_read.\\n\\n**Unresolved/next action:** Wait for supplier qualification certificate; do not finalize/update order until verified.\\n\\n**Must remain unchanged:** PVC prohibition, 100 µm (not 100 mm) thickness, reliance on historical test reports.\\n[messages 5..8] **Notes from supplied conversation data only (messages shown: tool results IDs 38, 39; assistant tool-call requests):**\\n\\n-"
+				}
+			],
+			"usage": {
+				"inputTokens": 2602,
+				"cachedInputTokens": 47232,
+				"outputTokens": 1181,
+				"reasoningOutputTokens": 0
+			},
+			"text": "",
+			"toolCalls": [
+				{
+					"id": "call_00_Gu4i43BoVXqEGsRfvYnA0733",
+					"name": "context_read",
+					"input": {
+						"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+						"offset": 4
+					}
+				},
+				{
+					"id": "call_01_WbDjh4prgDxuAbQwFRhZ9389",
+					"name": "context_read",
+					"input": {
+						"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+						"offset": 8
+					}
+				},
+				{
+					"id": "call_02_oOm2tETbdygGBA0DTKD27068",
+					"name": "context_read",
+					"input": {
+						"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+						"offset": 12
+					}
+				},
+				{
+					"id": "call_03_X0ucLRxb8R8bMpUfa08n7267",
+					"name": "context_read",
+					"input": {
+						"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+						"offset": 16
+					}
+				},
+				{
+					"id": "call_04_btYwPJOVTD7uKGPHIB7o3776",
+					"name": "context_read",
+					"input": {
+						"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+						"offset": 20
+					}
+				},
+				{
+					"id": "call_05_MOjBH6sQAVp6PeDDW13c4022",
+					"name": "context_read",
+					"input": {
+						"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+						"offset": 24
+					}
+				},
+				{
+					"id": "call_06_Ez8fyjt21x7WJ19ahPan9902",
+					"name": "context_read",
+					"input": {
+						"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+						"offset": 28
+					}
+				},
+				{
+					"id": "call_07_bPnGAlGPkkefuN2HGKmX2559",
+					"name": "context_read",
+					"input": {
+						"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+						"offset": 32
+					}
+				},
+				{
+					"id": "call_08_II6zqb44Eikn0bLdSpX25033",
+					"name": "context_read",
+					"input": {
+						"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+						"offset": 36
+					}
+				},
+				{
+					"id": "call_09_jzu4f3oaVqC9t1khhK4T0730",
+					"name": "context_read",
+					"input": {
+						"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+						"offset": 40
+					}
+				}
+			],
+			"durationMs": 5180
+		},
+		{
+			"phase": "after-3-exact-location",
+			"purpose": "turn",
+			"status": "completed",
+			"countedInput": 47080,
+			"reservedOutput": 4096,
+			"summarySource": {
+				"purpose": "turn",
+				"callId": "context-67b21581-ccb3-4981-acf0-824acaced88a-i1"
+			},
+			"feedback": [],
+			"usage": {
+				"inputTokens": 232,
+				"cachedInputTokens": 46848,
+				"outputTokens": 88,
+				"reasoningOutputTokens": 0
+			},
+			"text": "",
+			"toolCalls": [
+				{
+					"id": "call_00_SAPEpkzoGzWniZQqUNXl8154",
+					"name": "context_read",
+					"input": {
+						"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+						"messageIndex": 71
+					}
+				}
+			],
+			"durationMs": 2019
+		},
+		{
+			"phase": "after-3-exact-location",
+			"purpose": "turn",
+			"status": "completed",
+			"countedInput": 49334,
+			"reservedOutput": 4096,
+			"summarySource": {
+				"purpose": "turn",
+				"callId": "context-67b21581-ccb3-4981-acf0-824acaced88a-i2"
+			},
+			"feedback": [
+				{
+					"input": {
+						"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+						"messageIndex": 71
+					},
+					"content": "{\"sourceRef\":\"compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1\",\"stale\":false,\"status\":\"historical_unverified\",\"items\":[{\"line\":1,\"text\":\"{\\\"document\\\":\\\"report-C17\\\",\\\"sample\\\":4,\\\"evidenceCode\\\":\\\"SEAL-9Q7\\\",\\\"temperatureCelsius\\\":23,\\\"relativeHumidityPercent\\\":50,\\\"citation\\\":\\\"report-C17#sample=4\\\",\\\"note\\\":\\\"These are recorded test conditions, not permission to change a current order.\\\",\\\"irrelevantAppendix\\\":\\\"普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前"
+				}
+			],
+			"usage": {
+				"inputTokens": 2230,
+				"cachedInputTokens": 47104,
+				"outputTokens": 455,
+				"reasoningOutputTokens": 0
+			},
+			"text": "",
+			"toolCalls": [
+				{
+					"id": "call_00_9GKALUzczwxVOb6xgQEp7986",
+					"name": "context_read",
+					"input": {
+						"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+						"messageIndex": 70
+					}
+				}
+			],
+			"durationMs": 3045
+		},
+		{
+			"phase": "after-3-exact-location",
+			"purpose": "turn",
+			"status": "completed",
+			"countedInput": 49896,
+			"reservedOutput": 4096,
+			"summarySource": {
+				"purpose": "turn",
+				"callId": "context-67b21581-ccb3-4981-acf0-824acaced88a-i3"
+			},
+			"feedback": [
+				{
+					"input": {
+						"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+						"messageIndex": 71
+					},
+					"content": "{\"sourceRef\":\"compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1\",\"stale\":false,\"status\":\"historical_unverified\",\"items\":[{\"line\":1,\"text\":\"{\\\"document\\\":\\\"report-C17\\\",\\\"sample\\\":4,\\\"evidenceCode\\\":\\\"SEAL-9Q7\\\",\\\"temperatureCelsius\\\":23,\\\"relativeHumidityPercent\\\":50,\\\"citation\\\":\\\"report-C17#sample=4\\\",\\\"note\\\":\\\"These are recorded test conditions, not permission to change a current order.\\\",\\\"irrelevantAppendix\\\":\\\"普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前"
+				},
+				{
+					"input": {
+						"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+						"messageIndex": 70
+					},
+					"content": "{\"sourceRef\":\"compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1\",\"stale\":false,\"status\":\"historical_unverified\",\"items\":[{\"line\":1,\"text\":\"\"}],\"offset\":0,\"total\":1,\"truncated\":false,\"nextOffset\":null,\"hint\":\"For large records select messageIndex and JSON field; oversized units require a specialized source tool.\"}"
+				}
+			],
+			"usage": {
+				"inputTokens": 232,
+				"cachedInputTokens": 49664,
+				"outputTokens": 184,
+				"reasoningOutputTokens": 0
+			},
+			"text": "",
+			"toolCalls": [
+				{
+					"id": "call_00_264LDdRbXQdBLVCRsyFP0009",
+					"name": "context_read",
+					"input": {
+						"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+						"messageIndex": 60
+					}
+				},
+				{
+					"id": "call_01_9Q0DswxvLl3dckbIpSFr2192",
+					"name": "context_read",
+					"input": {
+						"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+						"messageIndex": 65
+					}
+				}
+			],
+			"durationMs": 2242
+		},
+		{
+			"phase": "after-3-exact-location",
+			"purpose": "turn",
+			"status": "completed",
+			"countedInput": 51393,
+			"reservedOutput": 4096,
+			"summarySource": {
+				"purpose": "turn",
+				"callId": "context-67b21581-ccb3-4981-acf0-824acaced88a-i4"
+			},
+			"feedback": [
+				{
+					"input": {
+						"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+						"messageIndex": 60
+					},
+					"content": "{\"sourceRef\":\"compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1\",\"stale\":false,\"status\":\"historical_unverified\",\"items\":[{\"line\":1,\"text\":\"\"}],\"offset\":0,\"total\":1,\"truncated\":false,\"nextOffset\":null,\"hint\":\"For large records select messageIndex and JSON field; oversized units require a specialized source tool.\"}"
+				},
+				{
+					"input": {
+						"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+						"messageIndex": 65
+					},
+					"content": "{\"sourceRef\":\"compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1\",\"stale\":false,\"status\":\"historical_unverified\",\"items\":[{\"line\":1,\"text\":\"{\\\"id\\\":32,\\\"status\\\":\\\"historical_unverified\\\",\\\"notes\\\":\\\"历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to current order. 历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to current order. 历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to current order. 历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to current order. 历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to current order. 历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to current order. 历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to current order. 历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to current order. 历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to current order. 历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to current order. 历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to current order. 历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to current order. 历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to current order. 历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to current order. 历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to"
+				}
+			],
+			"usage": {
+				"inputTokens": 1345,
+				"cachedInputTokens": 50048,
+				"outputTokens": 300,
+				"reasoningOutputTokens": 0
+			},
+			"text": "",
+			"toolCalls": [
+				{
+					"id": "call_00_dLXJKcoJXL4GRd0AX0rI1664",
+					"name": "context_read",
+					"input": {
+						"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+						"messageIndex": 0
+					}
+				},
+				{
+					"id": "call_01_BcTVI2WE4elkSOd7rNKZ2467",
+					"name": "context_read",
+					"input": {
+						"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+						"messageIndex": 1
+					}
+				}
+			],
+			"durationMs": 2278
+		},
+		{
+			"phase": "after-3-exact-location",
+			"purpose": "turn",
+			"status": "completed",
+			"countedInput": 53006,
+			"reservedOutput": 4096,
+			"summarySource": {
+				"purpose": "turn",
+				"callId": "context-67b21581-ccb3-4981-acf0-824acaced88a-i5"
+			},
+			"feedback": [
+				{
+					"input": {
+						"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+						"messageIndex": 0
+					},
+					"content": "{\"sourceRef\":\"compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1\",\"stale\":false,\"status\":\"historical_unverified\",\"items\":[{\"line\":1,\"text\":\"\"}],\"offset\":0,\"total\":1,\"truncated\":false,\"nextOffset\":null,\"hint\":\"For large records select messageIndex and JSON field; oversized units require a specialized source tool.\"}"
+				},
+				{
+					"input": {
+						"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+						"messageIndex": 1
+					},
+					"content": "{\"sourceRef\":\"compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1\",\"stale\":false,\"status\":\"historical_unverified\",\"items\":[{\"line\":1,\"text\":\"{\\\"id\\\":0,\\\"status\\\":\\\"historical_unverified\\\",\\\"notes\\\":\\\"历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to current order. 历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to current order. 历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to current order. 历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to current order. 历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to current order. 历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to current order. 历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to current order. 历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to current order. 历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to current order. 历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to current order. 历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to current order. 历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to current order. 历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to current order. 历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to current order. 历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to "
+				}
+			],
+			"usage": {
+				"inputTokens": 1422,
+				"cachedInputTokens": 51584,
+				"outputTokens": 226,
+				"reasoningOutputTokens": 0
+			},
+			"text": "",
+			"toolCalls": [
+				{
+					"id": "call_00_5vWypZuvsxkWyJnY2Uxb6784",
+					"name": "execution_ledger_read",
+					"input": {}
+				}
+			],
+			"durationMs": 2300
+		},
+		{
+			"phase": "after-3-exact-location",
+			"purpose": "turn",
+			"status": "completed",
+			"countedInput": 53267,
+			"reservedOutput": 4096,
+			"summarySource": {
+				"purpose": "turn",
+				"callId": "context-67b21581-ccb3-4981-acf0-824acaced88a-i6"
+			},
+			"feedback": [
+				{
+					"input": {
+						"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+						"messageIndex": 0
+					},
+					"content": "{\"sourceRef\":\"compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1\",\"stale\":false,\"status\":\"historical_unverified\",\"items\":[{\"line\":1,\"text\":\"\"}],\"offset\":0,\"total\":1,\"truncated\":false,\"nextOffset\":null,\"hint\":\"For large records select messageIndex and JSON field; oversized units require a specialized source tool.\"}"
+				},
+				{
+					"input": {
+						"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+						"messageIndex": 1
+					},
+					"content": "{\"sourceRef\":\"compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1\",\"stale\":false,\"status\":\"historical_unverified\",\"items\":[{\"line\":1,\"text\":\"{\\\"id\\\":0,\\\"status\\\":\\\"historical_unverified\\\",\\\"notes\\\":\\\"历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to current order. 历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to current order. 历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to current order. 历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to current order. 历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to current order. 历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to current order. 历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to current order. 历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to current order. 历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to current order. 历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to current order. 历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to current order. 历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to current order. 历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to current order. 历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to current order. 历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to "
+				}
+			],
+			"usage": {
+				"inputTokens": 147,
+				"cachedInputTokens": 53120,
+				"outputTokens": 460,
+				"reasoningOutputTokens": 0
+			},
+			"text": "",
+			"toolCalls": [
+				{
+					"id": "call_00_S9GnGcP7k8jxpQ5Pi7AH4246",
+					"name": "context_read",
+					"input": {
+						"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+						"messageIndex": 72
+					}
+				},
+				{
+					"id": "call_01_tIF7YtDo2CDcGs7NFJHW0859",
+					"name": "context_read",
+					"input": {
+						"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+						"messageIndex": 73
+					}
+				},
+				{
+					"id": "call_02_K85DOccGkMaYV4kphYHl0111",
+					"name": "context_read",
+					"input": {
+						"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+						"messageIndex": 74
+					}
+				},
+				{
+					"id": "call_03_bAMggLWnKBBclb4uAQhR6628",
+					"name": "context_read",
+					"input": {
+						"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+						"messageIndex": 75
+					}
+				}
+			],
+			"durationMs": 2648
+		}
+	],
+	"results": [
+		{
+			"phase": "uncompressed-control",
+			"status": "completed",
+			"calls": 2,
+			"answer": {
+				"confirmedQuantity": 5000,
+				"pendingQuantity": 6500,
+				"pvcAllowed": false,
+				"thicknessMicrometers": 100,
+				"supplierQualified": false,
+				"evidenceCode": "SEAL-9Q7",
+				"temperatureCelsius": 23,
+				"relativeHumidityPercent": 50,
+				"citation": "report-C17#sample=4",
+				"nextAction": "await_supplier_certificate"
+			},
+			"checks": {
+				"confirmedQuantity": true,
+				"pendingQuantity": true,
+				"pvcAllowed": true,
+				"thicknessMicrometers": true,
+				"supplierQualified": true,
+				"evidenceCode": true,
+				"temperatureCelsius": true,
+				"relativeHumidityPercent": true,
+				"citation": true,
+				"nextAction": true
+			},
+			"passed": true,
+			"compactions": [],
+			"reads": [
+				{
+					"type": "tool.completed",
+					"tool": "context_read",
+					"toolCallId": "call_00_XqEzyPYCmTsCi2pgXLOc1108",
+					"risk": "read",
+					"status": "failed",
+					"failureCode": "tool_execution_failed",
+					"durationMs": 1,
+					"resultTruncated": false,
+					"replayed": false
+				}
+			],
+			"finalInputTokens": 3557
+		},
+		{
+			"phase": "compact-round-1",
+			"status": "completed",
+			"calls": 5,
+			"compactions": [
+				{
+					"type": "context.compacted",
+					"removedMessages": 146,
+					"summaries": 1,
+					"beforeChars": 434916,
+					"afterChars": 153762,
+					"estimatedTokens": 45396,
+					"coverage": {
+						"complete": false,
+						"sourceMessages": 146,
+						"coveredMessages": 17,
+						"calls": 4
+					}
+				}
+			],
+			"reads": [],
+			"finalInputTokens": 45396
+		},
+		{
+			"phase": "compact-round-2",
+			"status": "completed",
+			"calls": 5,
+			"compactions": [
+				{
+					"type": "context.compacted",
+					"removedMessages": 142,
+					"summaries": 1,
+					"beforeChars": 429503,
+					"afterChars": 157869,
+					"estimatedTokens": 46539,
+					"coverage": {
+						"complete": false,
+						"sourceMessages": 142,
+						"coveredMessages": 17,
+						"calls": 4
+					}
+				}
+			],
+			"reads": [],
+			"finalInputTokens": 46539
+		},
+		{
+			"phase": "compact-round-3",
+			"status": "completed",
+			"calls": 5,
+			"compactions": [
+				{
+					"type": "context.compacted",
+					"removedMessages": 142,
+					"summaries": 1,
+					"beforeChars": 433619,
+					"afterChars": 158241,
+					"estimatedTokens": 46665,
+					"coverage": {
+						"complete": false,
+						"sourceMessages": 142,
+						"coveredMessages": 16,
+						"calls": 4
+					}
+				}
+			],
+			"reads": [],
+			"finalInputTokens": 46665
+		},
+		{
+			"phase": "pre-query-checkpoint",
+			"originalLabInWorkingContext": false,
+			"exactEvidenceInWorkingContext": false,
+			"messageCount": 82
+		},
+		{
+			"phase": "positive-control-location",
+			"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+			"messageIndex": 71
+		},
+		{
+			"phase": "after-3-unhinted",
+			"status": "failed",
+			"passed": false,
+			"code": "budget_exceeded",
+			"traces": [
+				{
+					"status": "completed",
+					"events": [
+						{
+							"sessionId": "continuation",
+							"type": "session.started"
+						},
+						{
+							"type": "turn.started"
+						},
+						{
+							"callId": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1-summary-1-0",
+							"sourceRange": [
+								0,
+								5
+							],
+							"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+							"status": "started",
+							"type": "context.summary"
+						},
+						{
+							"callId": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1-summary-1-0",
+							"durationMs": 1717,
+							"sourceRange": [
+								0,
+								5
+							],
+							"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+							"status": "completed",
+							"type": "context.summary",
+							"usage": {
+								"cachedInputTokens": 0,
+								"inputTokens": 2461,
+								"outputTokens": 204,
+								"reasoningOutputTokens": 0
+							}
+						},
+						{
+							"callId": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1-summary-2-5",
+							"sourceRange": [
+								5,
+								9
+							],
+							"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+							"status": "started",
+							"type": "context.summary"
+						},
+						{
+							"callId": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1-summary-2-5",
+							"durationMs": 1758,
+							"sourceRange": [
+								5,
+								9
+							],
+							"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+							"status": "completed",
+							"type": "context.summary",
+							"usage": {
+								"cachedInputTokens": 0,
+								"inputTokens": 2420,
+								"outputTokens": 185,
+								"reasoningOutputTokens": 0
+							}
+						},
+						{
+							"callId": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1-summary-3-9",
+							"sourceRange": [
+								9,
+								13
+							],
+							"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+							"status": "started",
+							"type": "context.summary"
+						},
+						{
+							"callId": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1-summary-3-9",
+							"durationMs": 2337,
+							"sourceRange": [
+								9,
+								13
+							],
+							"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+							"status": "completed",
+							"type": "context.summary",
+							"usage": {
+								"cachedInputTokens": 0,
+								"inputTokens": 2420,
+								"outputTokens": 297,
+								"reasoningOutputTokens": 0
+							}
+						},
+						{
+							"callId": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1-summary-4-13",
+							"sourceRange": [
+								13,
+								17
+							],
+							"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+							"status": "started",
+							"type": "context.summary"
+						},
+						{
+							"callId": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1-summary-4-13",
+							"durationMs": 2426,
+							"sourceRange": [
+								13,
+								17
+							],
+							"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+							"status": "completed",
+							"type": "context.summary",
+							"usage": {
+								"cachedInputTokens": 0,
+								"inputTokens": 2420,
+								"outputTokens": 269,
+								"reasoningOutputTokens": 0
+							}
+						},
+						{
+							"afterChars": 153762,
+							"beforeChars": 434916,
+							"coverage": {
+								"calls": 4,
+								"complete": false,
+								"coveredMessages": 17,
+								"sourceMessages": 146
+							},
+							"estimatedTokens": 45396,
+							"removedMessages": 146,
+							"summaries": 1,
+							"type": "context.compacted"
+						},
+						{
+							"iteration": 1,
+							"snapshotId": "context-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-i1",
+							"type": "context.snapshot.saved"
+						},
+						{
+							"attempt": 1,
+							"iteration": 1,
+							"type": "model.started"
+						},
+						{
+							"durationMs": 3328,
+							"iteration": 1,
+							"type": "model.completed",
+							"usage": {
+								"cachedInputTokens": 0,
+								"inputTokens": 45396,
+								"outputTokens": 327,
+								"reasoningOutputTokens": 0
+							}
+						},
+						{
+							"text": "[stored in session]",
+							"type": "message.completed"
+						},
+						{
+							"iterations": 1,
+							"type": "turn.completed",
+							"usage": {
+								"cachedInputTokens": 0,
+								"inputTokens": 55117,
+								"outputTokens": 1282,
+								"reasoningOutputTokens": 0
+							}
+						}
+					]
+				},
+				{
+					"status": "completed",
+					"events": [
+						{
+							"sessionId": "continuation",
+							"type": "session.started"
+						},
+						{
+							"type": "turn.started"
+						},
+						{
+							"callId": "compact-0f1e69c1-66d5-4c10-9659-f95dfc7ea7d4-1-summary-1-0",
+							"sourceRange": [
+								0,
+								5
+							],
+							"sourceRef": "compact-0f1e69c1-66d5-4c10-9659-f95dfc7ea7d4-1",
+							"status": "started",
+							"type": "context.summary"
+						},
+						{
+							"callId": "compact-0f1e69c1-66d5-4c10-9659-f95dfc7ea7d4-1-summary-1-0",
+							"durationMs": 2279,
+							"sourceRange": [
+								0,
+								5
+							],
+							"sourceRef": "compact-0f1e69c1-66d5-4c10-9659-f95dfc7ea7d4-1",
+							"status": "completed",
+							"type": "context.summary",
+							"usage": {
+								"cachedInputTokens": 0,
+								"inputTokens": 2526,
+								"outputTokens": 312,
+								"reasoningOutputTokens": 0
+							}
+						},
+						{
+							"callId": "compact-0f1e69c1-66d5-4c10-9659-f95dfc7ea7d4-1-summary-2-5",
+							"sourceRange": [
+								5,
+								9
+							],
+							"sourceRef": "compact-0f1e69c1-66d5-4c10-9659-f95dfc7ea7d4-1",
+							"status": "started",
+							"type": "context.summary"
+						},
+						{
+							"callId": "compact-0f1e69c1-66d5-4c10-9659-f95dfc7ea7d4-1-summary-2-5",
+							"durationMs": 2200,
+							"sourceRange": [
+								5,
+								9
+							],
+							"sourceRef": "compact-0f1e69c1-66d5-4c10-9659-f95dfc7ea7d4-1",
+							"status": "completed",
+							"type": "context.summary",
+							"usage": {
+								"cachedInputTokens": 0,
+								"inputTokens": 2424,
+								"outputTokens": 244,
+								"reasoningOutputTokens": 0
+							}
+						},
+						{
+							"callId": "compact-0f1e69c1-66d5-4c10-9659-f95dfc7ea7d4-1-summary-3-9",
+							"sourceRange": [
+								9,
+								13
+							],
+							"sourceRef": "compact-0f1e69c1-66d5-4c10-9659-f95dfc7ea7d4-1",
+							"status": "started",
+							"type": "context.summary"
+						},
+						{
+							"callId": "compact-0f1e69c1-66d5-4c10-9659-f95dfc7ea7d4-1-summary-3-9",
+							"durationMs": 1835,
+							"sourceRange": [
+								9,
+								13
+							],
+							"sourceRef": "compact-0f1e69c1-66d5-4c10-9659-f95dfc7ea7d4-1",
+							"status": "completed",
+							"type": "context.summary",
+							"usage": {
+								"cachedInputTokens": 0,
+								"inputTokens": 2424,
+								"outputTokens": 225,
+								"reasoningOutputTokens": 0
+							}
+						},
+						{
+							"callId": "compact-0f1e69c1-66d5-4c10-9659-f95dfc7ea7d4-1-summary-4-13",
+							"sourceRange": [
+								13,
+								17
+							],
+							"sourceRef": "compact-0f1e69c1-66d5-4c10-9659-f95dfc7ea7d4-1",
+							"status": "started",
+							"type": "context.summary"
+						},
+						{
+							"callId": "compact-0f1e69c1-66d5-4c10-9659-f95dfc7ea7d4-1-summary-4-13",
+							"durationMs": 2179,
+							"sourceRange": [
+								13,
+								17
+							],
+							"sourceRef": "compact-0f1e69c1-66d5-4c10-9659-f95dfc7ea7d4-1",
+							"status": "completed",
+							"type": "context.summary",
+							"usage": {
+								"cachedInputTokens": 0,
+								"inputTokens": 2424,
+								"outputTokens": 203,
+								"reasoningOutputTokens": 0
+							}
+						},
+						{
+							"afterChars": 157869,
+							"beforeChars": 429503,
+							"coverage": {
+								"calls": 4,
+								"complete": false,
+								"coveredMessages": 17,
+								"sourceMessages": 142
+							},
+							"estimatedTokens": 46539,
+							"removedMessages": 142,
+							"summaries": 1,
+							"type": "context.compacted"
+						},
+						{
+							"iteration": 1,
+							"snapshotId": "context-0f1e69c1-66d5-4c10-9659-f95dfc7ea7d4-i1",
+							"type": "context.snapshot.saved"
+						},
+						{
+							"attempt": 1,
+							"iteration": 1,
+							"type": "model.started"
+						},
+						{
+							"durationMs": 3476,
+							"iteration": 1,
+							"type": "model.completed",
+							"usage": {
+								"cachedInputTokens": 384,
+								"inputTokens": 46155,
+								"outputTokens": 347,
+								"reasoningOutputTokens": 0
+							}
+						},
+						{
+							"text": "[stored in session]",
+							"type": "message.completed"
+						},
+						{
+							"iterations": 1,
+							"type": "turn.completed",
+							"usage": {
+								"cachedInputTokens": 384,
+								"inputTokens": 55953,
+								"outputTokens": 1331,
+								"reasoningOutputTokens": 0
+							}
+						}
+					]
+				},
+				{
+					"status": "completed",
+					"events": [
+						{
+							"sessionId": "continuation",
+							"type": "session.started"
+						},
+						{
+							"type": "turn.started"
+						},
+						{
+							"callId": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1-summary-1-0",
+							"sourceRange": [
+								0,
+								4
+							],
+							"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+							"status": "started",
+							"type": "context.summary"
+						},
+						{
+							"callId": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1-summary-1-0",
+							"durationMs": 2836,
+							"sourceRange": [
+								0,
+								4
+							],
+							"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+							"status": "completed",
+							"type": "context.summary",
+							"usage": {
+								"cachedInputTokens": 0,
+								"inputTokens": 2502,
+								"outputTokens": 444,
+								"reasoningOutputTokens": 0
+							}
+						},
+						{
+							"callId": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1-summary-2-4",
+							"sourceRange": [
+								4,
+								8
+							],
+							"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+							"status": "started",
+							"type": "context.summary"
+						},
+						{
+							"callId": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1-summary-2-4",
+							"durationMs": 2079,
+							"sourceRange": [
+								4,
+								8
+							],
+							"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+							"status": "completed",
+							"type": "context.summary",
+							"usage": {
+								"cachedInputTokens": 0,
+								"inputTokens": 2424,
+								"outputTokens": 201,
+								"reasoningOutputTokens": 0
+							}
+						},
+						{
+							"callId": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1-summary-3-8",
+							"sourceRange": [
+								8,
+								12
+							],
+							"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+							"status": "started",
+							"type": "context.summary"
+						},
+						{
+							"callId": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1-summary-3-8",
+							"durationMs": 2160,
+							"sourceRange": [
+								8,
+								12
+							],
+							"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+							"status": "completed",
+							"type": "context.summary",
+							"usage": {
+								"cachedInputTokens": 0,
+								"inputTokens": 2424,
+								"outputTokens": 318,
+								"reasoningOutputTokens": 0
+							}
+						},
+						{
+							"callId": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1-summary-4-12",
+							"sourceRange": [
+								12,
+								16
+							],
+							"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+							"status": "started",
+							"type": "context.summary"
+						},
+						{
+							"callId": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1-summary-4-12",
+							"durationMs": 1772,
+							"sourceRange": [
+								12,
+								16
+							],
+							"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+							"status": "completed",
+							"type": "context.summary",
+							"usage": {
+								"cachedInputTokens": 0,
+								"inputTokens": 2424,
+								"outputTokens": 130,
+								"reasoningOutputTokens": 0
+							}
+						},
+						{
+							"afterChars": 158241,
+							"beforeChars": 433619,
+							"coverage": {
+								"calls": 4,
+								"complete": false,
+								"coveredMessages": 16,
+								"sourceMessages": 142
+							},
+							"estimatedTokens": 46665,
+							"removedMessages": 142,
+							"summaries": 1,
+							"type": "context.compacted"
+						},
+						{
+							"iteration": 1,
+							"snapshotId": "context-dc195d9e-b018-4583-a5af-792c903ca638-i1",
+							"type": "context.snapshot.saved"
+						},
+						{
+							"attempt": 1,
+							"iteration": 1,
+							"type": "model.started"
+						},
+						{
+							"durationMs": 2104,
+							"iteration": 1,
+							"type": "model.completed",
+							"usage": {
+								"cachedInputTokens": 384,
+								"inputTokens": 46281,
+								"outputTokens": 68,
+								"reasoningOutputTokens": 0
+							}
+						},
+						{
+							"text": "[stored in session]",
+							"type": "message.completed"
+						},
+						{
+							"iterations": 1,
+							"type": "turn.completed",
+							"usage": {
+								"cachedInputTokens": 384,
+								"inputTokens": 56055,
+								"outputTokens": 1161,
+								"reasoningOutputTokens": 0
+							}
+						}
+					]
+				},
+				{
+					"status": "failed",
+					"events": [
+						{
+							"sessionId": "continuation",
+							"type": "session.started"
+						},
+						{
+							"type": "turn.started"
+						},
+						{
+							"iteration": 1,
+							"snapshotId": "context-6ddd0cfc-e466-4b65-a2bc-e5f142622422-i1",
+							"type": "context.snapshot.saved"
+						},
+						{
+							"attempt": 1,
+							"iteration": 1,
+							"type": "model.started"
+						},
+						{
+							"durationMs": 3037,
+							"iteration": 1,
+							"type": "model.completed",
+							"usage": {
+								"cachedInputTokens": 640,
+								"inputTokens": 46389,
+								"outputTokens": 261,
+								"reasoningOutputTokens": 0
+							}
+						},
+						{
+							"iteration": 2,
+							"snapshotId": "context-6ddd0cfc-e466-4b65-a2bc-e5f142622422-i2",
+							"type": "context.snapshot.saved"
+						},
+						{
+							"attempt": 1,
+							"iteration": 2,
+							"type": "model.started"
+						},
+						{
+							"durationMs": 5193,
+							"iteration": 2,
+							"type": "model.completed",
+							"usage": {
+								"cachedInputTokens": 47232,
+								"inputTokens": 2602,
+								"outputTokens": 1181,
+								"reasoningOutputTokens": 0
+							}
+						},
+						{
+							"message": "Agent loop exceeded 8 Tool executions",
+							"type": "turn.failed"
+						}
+					]
+				}
+			]
+		},
+		{
+			"phase": "after-3-exact-location",
+			"status": "failed",
+			"passed": false,
+			"code": "budget_exceeded",
+			"traces": [
+				{
+					"status": "completed",
+					"events": [
+						{
+							"sessionId": "continuation",
+							"type": "session.started"
+						},
+						{
+							"type": "turn.started"
+						},
+						{
+							"callId": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1-summary-1-0",
+							"sourceRange": [
+								0,
+								5
+							],
+							"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+							"status": "started",
+							"type": "context.summary"
+						},
+						{
+							"callId": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1-summary-1-0",
+							"durationMs": 1717,
+							"sourceRange": [
+								0,
+								5
+							],
+							"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+							"status": "completed",
+							"type": "context.summary",
+							"usage": {
+								"cachedInputTokens": 0,
+								"inputTokens": 2461,
+								"outputTokens": 204,
+								"reasoningOutputTokens": 0
+							}
+						},
+						{
+							"callId": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1-summary-2-5",
+							"sourceRange": [
+								5,
+								9
+							],
+							"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+							"status": "started",
+							"type": "context.summary"
+						},
+						{
+							"callId": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1-summary-2-5",
+							"durationMs": 1758,
+							"sourceRange": [
+								5,
+								9
+							],
+							"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+							"status": "completed",
+							"type": "context.summary",
+							"usage": {
+								"cachedInputTokens": 0,
+								"inputTokens": 2420,
+								"outputTokens": 185,
+								"reasoningOutputTokens": 0
+							}
+						},
+						{
+							"callId": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1-summary-3-9",
+							"sourceRange": [
+								9,
+								13
+							],
+							"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+							"status": "started",
+							"type": "context.summary"
+						},
+						{
+							"callId": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1-summary-3-9",
+							"durationMs": 2337,
+							"sourceRange": [
+								9,
+								13
+							],
+							"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+							"status": "completed",
+							"type": "context.summary",
+							"usage": {
+								"cachedInputTokens": 0,
+								"inputTokens": 2420,
+								"outputTokens": 297,
+								"reasoningOutputTokens": 0
+							}
+						},
+						{
+							"callId": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1-summary-4-13",
+							"sourceRange": [
+								13,
+								17
+							],
+							"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+							"status": "started",
+							"type": "context.summary"
+						},
+						{
+							"callId": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1-summary-4-13",
+							"durationMs": 2426,
+							"sourceRange": [
+								13,
+								17
+							],
+							"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+							"status": "completed",
+							"type": "context.summary",
+							"usage": {
+								"cachedInputTokens": 0,
+								"inputTokens": 2420,
+								"outputTokens": 269,
+								"reasoningOutputTokens": 0
+							}
+						},
+						{
+							"afterChars": 153762,
+							"beforeChars": 434916,
+							"coverage": {
+								"calls": 4,
+								"complete": false,
+								"coveredMessages": 17,
+								"sourceMessages": 146
+							},
+							"estimatedTokens": 45396,
+							"removedMessages": 146,
+							"summaries": 1,
+							"type": "context.compacted"
+						},
+						{
+							"iteration": 1,
+							"snapshotId": "context-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-i1",
+							"type": "context.snapshot.saved"
+						},
+						{
+							"attempt": 1,
+							"iteration": 1,
+							"type": "model.started"
+						},
+						{
+							"durationMs": 3328,
+							"iteration": 1,
+							"type": "model.completed",
+							"usage": {
+								"cachedInputTokens": 0,
+								"inputTokens": 45396,
+								"outputTokens": 327,
+								"reasoningOutputTokens": 0
+							}
+						},
+						{
+							"text": "[stored in session]",
+							"type": "message.completed"
+						},
+						{
+							"iterations": 1,
+							"type": "turn.completed",
+							"usage": {
+								"cachedInputTokens": 0,
+								"inputTokens": 55117,
+								"outputTokens": 1282,
+								"reasoningOutputTokens": 0
+							}
+						}
+					]
+				},
+				{
+					"status": "completed",
+					"events": [
+						{
+							"sessionId": "continuation",
+							"type": "session.started"
+						},
+						{
+							"type": "turn.started"
+						},
+						{
+							"callId": "compact-0f1e69c1-66d5-4c10-9659-f95dfc7ea7d4-1-summary-1-0",
+							"sourceRange": [
+								0,
+								5
+							],
+							"sourceRef": "compact-0f1e69c1-66d5-4c10-9659-f95dfc7ea7d4-1",
+							"status": "started",
+							"type": "context.summary"
+						},
+						{
+							"callId": "compact-0f1e69c1-66d5-4c10-9659-f95dfc7ea7d4-1-summary-1-0",
+							"durationMs": 2279,
+							"sourceRange": [
+								0,
+								5
+							],
+							"sourceRef": "compact-0f1e69c1-66d5-4c10-9659-f95dfc7ea7d4-1",
+							"status": "completed",
+							"type": "context.summary",
+							"usage": {
+								"cachedInputTokens": 0,
+								"inputTokens": 2526,
+								"outputTokens": 312,
+								"reasoningOutputTokens": 0
+							}
+						},
+						{
+							"callId": "compact-0f1e69c1-66d5-4c10-9659-f95dfc7ea7d4-1-summary-2-5",
+							"sourceRange": [
+								5,
+								9
+							],
+							"sourceRef": "compact-0f1e69c1-66d5-4c10-9659-f95dfc7ea7d4-1",
+							"status": "started",
+							"type": "context.summary"
+						},
+						{
+							"callId": "compact-0f1e69c1-66d5-4c10-9659-f95dfc7ea7d4-1-summary-2-5",
+							"durationMs": 2200,
+							"sourceRange": [
+								5,
+								9
+							],
+							"sourceRef": "compact-0f1e69c1-66d5-4c10-9659-f95dfc7ea7d4-1",
+							"status": "completed",
+							"type": "context.summary",
+							"usage": {
+								"cachedInputTokens": 0,
+								"inputTokens": 2424,
+								"outputTokens": 244,
+								"reasoningOutputTokens": 0
+							}
+						},
+						{
+							"callId": "compact-0f1e69c1-66d5-4c10-9659-f95dfc7ea7d4-1-summary-3-9",
+							"sourceRange": [
+								9,
+								13
+							],
+							"sourceRef": "compact-0f1e69c1-66d5-4c10-9659-f95dfc7ea7d4-1",
+							"status": "started",
+							"type": "context.summary"
+						},
+						{
+							"callId": "compact-0f1e69c1-66d5-4c10-9659-f95dfc7ea7d4-1-summary-3-9",
+							"durationMs": 1835,
+							"sourceRange": [
+								9,
+								13
+							],
+							"sourceRef": "compact-0f1e69c1-66d5-4c10-9659-f95dfc7ea7d4-1",
+							"status": "completed",
+							"type": "context.summary",
+							"usage": {
+								"cachedInputTokens": 0,
+								"inputTokens": 2424,
+								"outputTokens": 225,
+								"reasoningOutputTokens": 0
+							}
+						},
+						{
+							"callId": "compact-0f1e69c1-66d5-4c10-9659-f95dfc7ea7d4-1-summary-4-13",
+							"sourceRange": [
+								13,
+								17
+							],
+							"sourceRef": "compact-0f1e69c1-66d5-4c10-9659-f95dfc7ea7d4-1",
+							"status": "started",
+							"type": "context.summary"
+						},
+						{
+							"callId": "compact-0f1e69c1-66d5-4c10-9659-f95dfc7ea7d4-1-summary-4-13",
+							"durationMs": 2179,
+							"sourceRange": [
+								13,
+								17
+							],
+							"sourceRef": "compact-0f1e69c1-66d5-4c10-9659-f95dfc7ea7d4-1",
+							"status": "completed",
+							"type": "context.summary",
+							"usage": {
+								"cachedInputTokens": 0,
+								"inputTokens": 2424,
+								"outputTokens": 203,
+								"reasoningOutputTokens": 0
+							}
+						},
+						{
+							"afterChars": 157869,
+							"beforeChars": 429503,
+							"coverage": {
+								"calls": 4,
+								"complete": false,
+								"coveredMessages": 17,
+								"sourceMessages": 142
+							},
+							"estimatedTokens": 46539,
+							"removedMessages": 142,
+							"summaries": 1,
+							"type": "context.compacted"
+						},
+						{
+							"iteration": 1,
+							"snapshotId": "context-0f1e69c1-66d5-4c10-9659-f95dfc7ea7d4-i1",
+							"type": "context.snapshot.saved"
+						},
+						{
+							"attempt": 1,
+							"iteration": 1,
+							"type": "model.started"
+						},
+						{
+							"durationMs": 3476,
+							"iteration": 1,
+							"type": "model.completed",
+							"usage": {
+								"cachedInputTokens": 384,
+								"inputTokens": 46155,
+								"outputTokens": 347,
+								"reasoningOutputTokens": 0
+							}
+						},
+						{
+							"text": "[stored in session]",
+							"type": "message.completed"
+						},
+						{
+							"iterations": 1,
+							"type": "turn.completed",
+							"usage": {
+								"cachedInputTokens": 384,
+								"inputTokens": 55953,
+								"outputTokens": 1331,
+								"reasoningOutputTokens": 0
+							}
+						}
+					]
+				},
+				{
+					"status": "completed",
+					"events": [
+						{
+							"sessionId": "continuation",
+							"type": "session.started"
+						},
+						{
+							"type": "turn.started"
+						},
+						{
+							"callId": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1-summary-1-0",
+							"sourceRange": [
+								0,
+								4
+							],
+							"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+							"status": "started",
+							"type": "context.summary"
+						},
+						{
+							"callId": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1-summary-1-0",
+							"durationMs": 2836,
+							"sourceRange": [
+								0,
+								4
+							],
+							"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+							"status": "completed",
+							"type": "context.summary",
+							"usage": {
+								"cachedInputTokens": 0,
+								"inputTokens": 2502,
+								"outputTokens": 444,
+								"reasoningOutputTokens": 0
+							}
+						},
+						{
+							"callId": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1-summary-2-4",
+							"sourceRange": [
+								4,
+								8
+							],
+							"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+							"status": "started",
+							"type": "context.summary"
+						},
+						{
+							"callId": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1-summary-2-4",
+							"durationMs": 2079,
+							"sourceRange": [
+								4,
+								8
+							],
+							"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+							"status": "completed",
+							"type": "context.summary",
+							"usage": {
+								"cachedInputTokens": 0,
+								"inputTokens": 2424,
+								"outputTokens": 201,
+								"reasoningOutputTokens": 0
+							}
+						},
+						{
+							"callId": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1-summary-3-8",
+							"sourceRange": [
+								8,
+								12
+							],
+							"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+							"status": "started",
+							"type": "context.summary"
+						},
+						{
+							"callId": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1-summary-3-8",
+							"durationMs": 2160,
+							"sourceRange": [
+								8,
+								12
+							],
+							"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+							"status": "completed",
+							"type": "context.summary",
+							"usage": {
+								"cachedInputTokens": 0,
+								"inputTokens": 2424,
+								"outputTokens": 318,
+								"reasoningOutputTokens": 0
+							}
+						},
+						{
+							"callId": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1-summary-4-12",
+							"sourceRange": [
+								12,
+								16
+							],
+							"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+							"status": "started",
+							"type": "context.summary"
+						},
+						{
+							"callId": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1-summary-4-12",
+							"durationMs": 1772,
+							"sourceRange": [
+								12,
+								16
+							],
+							"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+							"status": "completed",
+							"type": "context.summary",
+							"usage": {
+								"cachedInputTokens": 0,
+								"inputTokens": 2424,
+								"outputTokens": 130,
+								"reasoningOutputTokens": 0
+							}
+						},
+						{
+							"afterChars": 158241,
+							"beforeChars": 433619,
+							"coverage": {
+								"calls": 4,
+								"complete": false,
+								"coveredMessages": 16,
+								"sourceMessages": 142
+							},
+							"estimatedTokens": 46665,
+							"removedMessages": 142,
+							"summaries": 1,
+							"type": "context.compacted"
+						},
+						{
+							"iteration": 1,
+							"snapshotId": "context-dc195d9e-b018-4583-a5af-792c903ca638-i1",
+							"type": "context.snapshot.saved"
+						},
+						{
+							"attempt": 1,
+							"iteration": 1,
+							"type": "model.started"
+						},
+						{
+							"durationMs": 2104,
+							"iteration": 1,
+							"type": "model.completed",
+							"usage": {
+								"cachedInputTokens": 384,
+								"inputTokens": 46281,
+								"outputTokens": 68,
+								"reasoningOutputTokens": 0
+							}
+						},
+						{
+							"text": "[stored in session]",
+							"type": "message.completed"
+						},
+						{
+							"iterations": 1,
+							"type": "turn.completed",
+							"usage": {
+								"cachedInputTokens": 384,
+								"inputTokens": 56055,
+								"outputTokens": 1161,
+								"reasoningOutputTokens": 0
+							}
+						}
+					]
+				},
+				{
+					"status": "failed",
+					"events": [
+						{
+							"sessionId": "continuation",
+							"type": "session.started"
+						},
+						{
+							"type": "turn.started"
+						},
+						{
+							"iteration": 1,
+							"snapshotId": "context-67b21581-ccb3-4981-acf0-824acaced88a-i1",
+							"type": "context.snapshot.saved"
+						},
+						{
+							"attempt": 1,
+							"iteration": 1,
+							"type": "model.started"
+						},
+						{
+							"durationMs": 2034,
+							"iteration": 1,
+							"type": "model.completed",
+							"usage": {
+								"cachedInputTokens": 46848,
+								"inputTokens": 232,
+								"outputTokens": 88,
+								"reasoningOutputTokens": 0
+							}
+						},
+						{
+							"iteration": 2,
+							"snapshotId": "context-67b21581-ccb3-4981-acf0-824acaced88a-i2",
+							"type": "context.snapshot.saved"
+						},
+						{
+							"attempt": 1,
+							"iteration": 2,
+							"type": "model.started"
+						},
+						{
+							"durationMs": 3066,
+							"iteration": 2,
+							"type": "model.completed",
+							"usage": {
+								"cachedInputTokens": 47104,
+								"inputTokens": 2230,
+								"outputTokens": 455,
+								"reasoningOutputTokens": 0
+							}
+						},
+						{
+							"iteration": 3,
+							"snapshotId": "context-67b21581-ccb3-4981-acf0-824acaced88a-i3",
+							"type": "context.snapshot.saved"
+						},
+						{
+							"attempt": 1,
+							"iteration": 3,
+							"type": "model.started"
+						},
+						{
+							"durationMs": 2260,
+							"iteration": 3,
+							"type": "model.completed",
+							"usage": {
+								"cachedInputTokens": 49664,
+								"inputTokens": 232,
+								"outputTokens": 184,
+								"reasoningOutputTokens": 0
+							}
+						},
+						{
+							"iteration": 4,
+							"snapshotId": "context-67b21581-ccb3-4981-acf0-824acaced88a-i4",
+							"type": "context.snapshot.saved"
+						},
+						{
+							"attempt": 1,
+							"iteration": 4,
+							"type": "model.started"
+						},
+						{
+							"durationMs": 2290,
+							"iteration": 4,
+							"type": "model.completed",
+							"usage": {
+								"cachedInputTokens": 50048,
+								"inputTokens": 1345,
+								"outputTokens": 300,
+								"reasoningOutputTokens": 0
+							}
+						},
+						{
+							"iteration": 5,
+							"snapshotId": "context-67b21581-ccb3-4981-acf0-824acaced88a-i5",
+							"type": "context.snapshot.saved"
+						},
+						{
+							"attempt": 1,
+							"iteration": 5,
+							"type": "model.started"
+						},
+						{
+							"durationMs": 2319,
+							"iteration": 5,
+							"type": "model.completed",
+							"usage": {
+								"cachedInputTokens": 51584,
+								"inputTokens": 1422,
+								"outputTokens": 226,
+								"reasoningOutputTokens": 0
+							}
+						},
+						{
+							"iteration": 6,
+							"snapshotId": "context-67b21581-ccb3-4981-acf0-824acaced88a-i6",
+							"type": "context.snapshot.saved"
+						},
+						{
+							"attempt": 1,
+							"iteration": 6,
+							"type": "model.started"
+						},
+						{
+							"durationMs": 2658,
+							"iteration": 6,
+							"type": "model.completed",
+							"usage": {
+								"cachedInputTokens": 53120,
+								"inputTokens": 147,
+								"outputTokens": 460,
+								"reasoningOutputTokens": 0
+							}
+						},
+						{
+							"message": "Agent loop exceeded 8 Tool executions",
+							"type": "turn.failed"
+						}
+					]
+				}
+			]
+		}
+	]
+}
