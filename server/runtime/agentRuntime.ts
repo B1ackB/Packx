@@ -335,6 +335,9 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 				observe({ type: "input.attachments.resolved", count: resolvedAttachmentCount });
 			}
 			const modelStarted = new Map<number, number>();
+			const maxIterations = Math.min(request.limits?.maxIterations ?? Infinity, this.options.maxIterations ?? 32);
+			const maxToolExecutions = Math.min(request.limits?.maxToolExecutions ?? Infinity, this.options.maxToolExecutions ?? 64);
+			let attemptedTools = 0, currentIteration = 0, pendingBatchTools = 0;
 			const hooks = new AgentHooks(this.options.hooks);
 			guard.attach(hooks, combinedSignal);
 			hooks.on("compact.after", (event) => {
@@ -352,9 +355,10 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 				partialText = (partialText + event.text).slice(0, 128_000);
 				progress("model", { iteration: event.iteration, partialText });
 			});
-			hooks.on("tool.before", (event) => { progress("tool", { tool: event.call.name, iteration: event.iteration }); });
+			hooks.on("tool.before", (event) => { attemptedTools++; pendingBatchTools--; progress("tool", { tool: event.call.name, iteration: event.iteration }); });
 			hooks.on("model.before", (event) => {
 				combinedSignal.throwIfAborted();
+				currentIteration = event.iteration;
 				partialText = "";
 				progress("model", { iteration: event.iteration, partialText });
 				const snapshotId = `${snapshotBaseId}-i${event.iteration}${event.attempt > 1 ? `-retry${event.attempt}` : ""}`;
@@ -385,6 +389,7 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 				observe({ type: "model.started", iteration: event.iteration, attempt: event.attempt });
 			});
 			hooks.on("model.after", (event) => {
+				pendingBatchTools = event.response.toolCalls.length;
 				const completedAt = this.clockMs();
 				observe({
 					type: "model.completed",
@@ -439,7 +444,7 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 				},
 			};
 			let externalized = 0;
-			const recoveryTool = contextReadTool(scope, this.sessions, this.snapshots, validateContext, taskContext?.binding, validateSources, taskContext?.historyBinding);
+			const recoveryTool = contextReadTool(scope, this.sessions, this.snapshots, validateContext, taskContext?.binding, validateSources, taskContext?.historyBinding, () => ({ remainingTools: Math.max(0, maxToolExecutions - attemptedTools - pendingBatchTools), remainingIterations: Math.max(0, maxIterations - currentIteration) }));
 			const ledgerTool: AgentHostTool = {
 				name: "execution_ledger_read", description: "Read deterministic execution receipts for this task; inspect success/unknown before repeating side effects. Results are references, not new authorization.",
 				execution: "host", risk: "read", idempotent: true, timeoutMs: 1000, maxResultChars: 16_000,
@@ -469,8 +474,8 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 				audit: this.options.audit,
 				executions: this.executions,
 				sandboxedToolExecutor: this.options.sandboxedToolExecutor,
-				maxIterations: request.limits ? Math.min(request.limits.maxIterations, this.options.maxIterations ?? 32) : this.options.maxIterations,
-				maxToolExecutions: request.limits ? Math.min(request.limits.maxToolExecutions, this.options.maxToolExecutions ?? 64) : this.options.maxToolExecutions,
+				maxIterations,
+				maxToolExecutions,
 				maxInputTokens: request.limits ? Math.min(request.limits.maxInputTokens, this.options.maxInputTokens ?? 100_000) : this.options.maxInputTokens,
 				compactTriggerTokens: this.options.compactTriggerTokens,
 				compactTargetTokens: this.options.compactTargetTokens,

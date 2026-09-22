@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
 import { cpSync, existsSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -37,7 +38,7 @@ const fixtureHash = createHash("sha256").update(JSON.stringify({ original, hostC
 const canonical = (value: unknown): string => JSON.stringify(value, (_key, item: unknown) => item && typeof item === "object" && !Array.isArray(item) ? Object.fromEntries(Object.entries(item).sort(([a], [b]) => a.localeCompare(b))) : item);
 const digest = (value: unknown) => createHash("sha256").update(canonical(value)).digest("hex");
 if (process.argv.includes("--plan")) {
-	console.log(JSON.stringify({ protocol, scope, expected, stages: budgetMatrix ? configurations : ["uncompressed-control", "3 real compaction rounds with store recreation", "unhinted query", "same-checkpoint query with exact source location"], originalMessages: original.length, originalChars: JSON.stringify(original).length, thresholds: { trigger: 70_000, target: 45_000, input: 100_000 }, maxIterations: budgetMatrix ? 32 : 9, timeoutMs: 180_000, additionalUsdCap: budgetMatrix ? 2 : undefined, syntheticOnly: true }, null, "\t"));
+	console.log(JSON.stringify({ protocol, scope, expected, stages: budgetMatrix ? configurations : ["uncompressed-control", "3 real compaction rounds with store recreation", "unhinted query", "same-checkpoint query with exact source location"], originalMessages: original.length, originalChars: JSON.stringify(original).length, thresholds: { trigger: 70_000, target: 45_000, input: 100_000 }, maxIterations: budgetMatrix ? 32 : 9, timeoutMs: 180_000, spending: process.argv.some((arg) => arg.startsWith("--source-report=")) ? "inherit latest prior-report cap, no top-up" : "original protocol cap", syntheticOnly: true }, null, "\t"));
 } else {
 	if (!process.argv.includes("--online")) throw new Error("Use --plan, or --online only with authorization for the bounded experiment.");
 	const environment = { ...process.env };
@@ -48,11 +49,16 @@ if (process.argv.includes("--plan")) {
 	const priorPath = process.argv.find((arg) => arg.startsWith("--prior-report="))?.slice(15);
 	if (!priorPath) throw new Error("An explicitly reviewed cumulative --prior-report ledger is required; changing only --report must not reset spending.");
 	const priorBytes = readFileSync(resolve(priorPath), "utf8");
-	const prior = JSON.parse(priorBytes) as { protocol?: string; fixtureHash?: string; temporaryStateDirectory?: string; requestedModel?: string; results?: Array<{ phase: string; sourceRef?: string; messageIndex?: number }>; reservedUsd: number; calls: Array<{ status: string; phase?: string; purpose?: string; summarySource?: { callId: string } }> };
+	const prior = JSON.parse(priorBytes) as { protocol?: string; limits?: { usd: number }; fixtureHash?: string; temporaryStateDirectory?: string; requestedModel?: string; results?: Array<{ phase: string; sourceRef?: string; messageIndex?: number }>; reservedUsd: number; calls: Array<{ status: string; phase?: string; purpose?: string; summarySource?: { callId: string } }> };
+	const sourcePath = process.argv.find((arg) => arg.startsWith("--source-report="))?.slice(16);
+	const sourceBytes = sourcePath ? readFileSync(resolve(sourcePath), "utf8") : priorBytes;
+	const source = JSON.parse(sourceBytes) as typeof prior;
 	if (!Number.isFinite(prior.reservedUsd) || prior.reservedUsd < 0 || !budgetMatrix && prior.reservedUsd >= 1 || prior.calls.some((call) => call.status !== "completed")) throw new Error("Invalid prior ledger");
-	if (budgetMatrix && (prior.protocol !== "context-continuation.verify.v1" || prior.fixtureHash !== fixtureHash || prior.requestedModel !== environment.ANTHROPIC_MODEL || !prior.temporaryStateDirectory)) throw new Error("source_fixture_or_model_mismatch");
-	const usdLimit = budgetMatrix ? prior.reservedUsd + 2 : 1, generationLimit = budgetMatrix ? 128 : 48, countLimit = budgetMatrix ? 480 : 240;
-	const sourceDirectory = budgetMatrix ? join(prior.temporaryStateDirectory!, "evolving") : undefined;
+	if (budgetMatrix && (source.protocol !== "context-continuation.verify.v1" || source.fixtureHash !== fixtureHash || source.requestedModel !== environment.ANTHROPIC_MODEL || !source.temporaryStateDirectory)) throw new Error("source_fixture_or_model_mismatch");
+	// A checkpoint is not a spending ledger: subsequent comparisons inherit the latest cap.
+	const usdLimit = budgetMatrix ? sourcePath ? prior.limits?.usd ?? NaN : prior.reservedUsd + 2 : 1, generationLimit = budgetMatrix ? 128 : 48, countLimit = budgetMatrix ? 480 : 240;
+	if (!Number.isFinite(usdLimit) || usdLimit <= prior.reservedUsd) throw new Error("invalid_remaining_budget");
+	const sourceDirectory = budgetMatrix ? join(source.temporaryStateDirectory!, "evolving") : undefined;
 	const sourceCheckpoint = sourceDirectory ? new FileAgentStateStore(sourceDirectory).load(scope) : undefined;
 	if (budgetMatrix && (!sourceCheckpoint?.revision || sourceCheckpoint.messages.some((message) => message.content.includes(expected.evidenceCode)))) throw new Error("invalid_source_checkpoint");
 	const root = mkdtempSync(join(tmpdir(), "packx-context-verify-"));
@@ -62,7 +68,9 @@ if (process.argv.includes("--plan")) {
 	let reservedUsd = prior.reservedUsd, counts = 0, phase = "initial", unresolved = false, firstRequestDigest: string | undefined, expectedFirstMessages: string | undefined;
 	const cache = new Map<string, number>();
 	const scriptSha256 = createHash("sha256").update(readFileSync(new URL(import.meta.url))).digest("hex");
-	const save = () => writeFileSync(output, JSON.stringify({ protocol, generatedAt: new Date().toISOString(), baselineCommit: budgetMatrix ? "6b4bcfd" : "555d79c", scriptSha256, requestedModel: environment.ANTHROPIC_MODEL, fixtureHash, ...(budgetMatrix ? { configurations, priorReportSha256: createHash("sha256").update(priorBytes).digest("hex"), sourceCheckpointDigest: digest(sourceCheckpoint) } : {}), expected, query, hostContent, temporaryStateDirectory: root, limits: { usd: usdLimit, calls: generationLimit, countRequests: countLimit, maxIterations: budgetMatrix ? 32 : 9, maxToolExecutions: budgetMatrix ? [16, 64] : 8, inputTokens: 100_000, outputTokens: 4096, trigger: 70_000, target: 45_000, timeoutMs: 180_000 }, rates: { inputPerMillionUsd: 0.3, outputPerMillionUsd: 1.2, basis: "Official Flash peak rates verified 2026-09-22; cache discounts ignored for reservation" }, priorReservedUsd: prior.reservedUsd, reservedUsd, tokenCountRequests: counts, calls, results }, null, "\t") + "\n", { mode: 0o600 });
+	const baselineCommit = execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim();
+	const runtimeSourceHashes = Object.fromEntries(["server/runtime/contextRead.ts", "server/runtime/agentRuntime.ts"].map((path) => [path, createHash("sha256").update(readFileSync(resolve(path))).digest("hex")]));
+	const save = () => writeFileSync(output, JSON.stringify({ protocol, generatedAt: new Date().toISOString(), baselineCommit, scriptSha256, runtimeSourceHashes, requestedModel: environment.ANTHROPIC_MODEL, fixtureHash, ...(budgetMatrix ? { configurations, priorReportSha256: createHash("sha256").update(priorBytes).digest("hex"), sourceReportSha256: createHash("sha256").update(sourceBytes).digest("hex"), sourceCheckpointDigest: digest(sourceCheckpoint) } : {}), expected, query, hostContent, temporaryStateDirectory: root, limits: { usd: usdLimit, calls: generationLimit, countRequests: countLimit, maxIterations: budgetMatrix ? 32 : 9, maxToolExecutions: budgetMatrix ? [16, 64] : 8, inputTokens: 100_000, outputTokens: 4096, trigger: 70_000, target: 45_000, timeoutMs: 180_000 }, rates: { inputPerMillionUsd: 0.3, outputPerMillionUsd: 1.2, basis: "Official Flash peak rates verified 2026-09-22; cache discounts ignored for reservation" }, priorReservedUsd: prior.reservedUsd, reservedUsd, tokenCountRequests: counts, calls, results }, null, "\t") + "\n", { mode: 0o600 });
 	const count = async (request: AgentModelRequest, signal?: AbortSignal) => {
 		const key = createHash("sha256").update(JSON.stringify({ messages: request.messages, tools: request.tools, outputSchema: request.outputSchema, reasoning: request.reasoning })).digest("hex");
 		if (cache.has(key)) return cache.get(key)!;
@@ -101,13 +109,13 @@ if (process.argv.includes("--plan")) {
 	save();
 	try {
 		if (budgetMatrix) {
-			const location = prior.results?.find((result) => result.phase === "positive-control-location");
+			const location = source.results?.find((result) => result.phase === "positive-control-location");
 			if (!location?.sourceRef || !Number.isSafeInteger(location.messageIndex)) throw new Error("missing_control_source_location");
 			for (const config of configurations) {
 				const branch = config.hinted ? "hinted" : "unhinted", turnKey = config.hinted ? "after-3-exact-location" : "after-3-unhinted";
-				const firstCall = prior.calls.find((call) => call.phase === turnKey && call.purpose === "turn");
+				const firstCall = source.calls.find((call) => call.phase === turnKey && call.purpose === "turn");
 				if (!firstCall?.summarySource?.callId) throw new Error("missing_baseline_request_snapshot");
-				expectedFirstMessages = digest(new FileAgentStateStore(join(prior.temporaryStateDirectory!, branch)).read(scope, firstCall.summarySource.callId).messages);
+				expectedFirstMessages = digest(new FileAgentStateStore(join(source.temporaryStateDirectory!, branch)).read(scope, firstCall.summarySource.callId).messages);
 				const name = `tools-${config.tools}-${branch}`, path = join(root, name);
 				cpSync(sourceDirectory!, path, { recursive: true });
 				if (digest(new FileAgentStateStore(path).load(scope)) !== digest(sourceCheckpoint)) throw new Error("checkpoint_copy_mismatch");
