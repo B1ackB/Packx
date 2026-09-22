@@ -1,0 +1,782 @@
+{
+	"protocol": "context-readback-optimization.inspection.v1",
+	"sourceReportSha256": "b2cd95843c72dcde2d3722797a488247bd36a09f7b9e96584deb38ec4f1f53eb",
+	"pricingSource": "https://api-docs.deepseek.com/quick_start/pricing/",
+	"ratesPerMillionUsd": {
+		"input": 0.3,
+		"cachedInput": 0.006,
+		"output": 1.2
+	},
+	"method": "Read-only reconstruction from source report, saved request snapshots and current-query Runtime traces. Costs use returned usage, not output reservation or account invoices.",
+	"runs": [
+		{
+			"report": "context-readback-optimization-online.json",
+			"reportSha256": "56729830f67ec3221fb70e394d83fa496e638006f6e99b119273910b6be9ea2d",
+			"cases": [
+				{
+					"phase": "tools-16-unhinted",
+					"firstMessagesEqualBaseline": true,
+					"firstMessageCount": 85,
+					"firstInputTokens": 47277,
+					"status": "completed",
+					"correctFields": 6,
+					"answer": {
+						"confirmedQuantity": 5000,
+						"pendingQuantity": 6500,
+						"pvcAllowed": false,
+						"thicknessMicrometers": 100,
+						"supplierQualified": false,
+						"evidenceCode": null,
+						"temperatureCelsius": null,
+						"relativeHumidityPercent": null,
+						"citation": null,
+						"nextAction": "await_supplier_certificate"
+					},
+					"toolsRequested": 14,
+					"toolsExecuted": 14,
+					"toolsFailed": 0,
+					"contextReadsExecuted": 13,
+					"ledgerReadsExecuted": 1,
+					"mainCalls": 5,
+					"summaryCalls": 0,
+					"exactLabReadDeliveredToMainCalls": [],
+					"liveBudgetObserved": true,
+					"durationMs": 42054,
+					"compactions": [],
+					"usage": {
+						"inputTokens": 50566,
+						"cachedInputTokens": 199040,
+						"outputTokens": 5830,
+						"reasoningOutputTokens": 0
+					},
+					"estimatedPeakUsd": 0.023360040000000002
+				},
+				{
+					"phase": "tools-64-hinted",
+					"firstMessagesEqualBaseline": true,
+					"firstMessageCount": 85,
+					"firstInputTokens": 47328,
+					"status": "completed",
+					"correctFields": 9,
+					"answer": {
+						"confirmedQuantity": 5000,
+						"pendingQuantity": 6500,
+						"pvcAllowed": false,
+						"thicknessMicrometers": 100,
+						"supplierQualified": null,
+						"evidenceCode": "SEAL-9Q7",
+						"temperatureCelsius": 23,
+						"relativeHumidityPercent": 50,
+						"citation": "report-C17#sample=4",
+						"nextAction": "await_supplier_certificate"
+					},
+					"toolsRequested": 15,
+					"toolsExecuted": 15,
+					"toolsFailed": 0,
+					"contextReadsExecuted": 15,
+					"ledgerReadsExecuted": 0,
+					"mainCalls": 10,
+					"summaryCalls": 0,
+					"exactLabReadDeliveredToMainCalls": [
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10
+					],
+					"liveBudgetObserved": true,
+					"durationMs": 46632,
+					"compactions": [],
+					"usage": {
+						"inputTokens": 11063,
+						"cachedInputTokens": 542080,
+						"outputTokens": 3915,
+						"reasoningOutputTokens": 0
+					},
+					"estimatedPeakUsd": 0.01126938
+				},
+				{
+					"phase": "tools-64-unhinted",
+					"firstMessagesEqualBaseline": true,
+					"firstMessageCount": 85,
+					"firstInputTokens": 47277,
+					"status": "completed",
+					"correctFields": 10,
+					"answer": {
+						"confirmedQuantity": 5000,
+						"pendingQuantity": 6500,
+						"pvcAllowed": false,
+						"thicknessMicrometers": 100,
+						"supplierQualified": false,
+						"evidenceCode": "SEAL-9Q7",
+						"temperatureCelsius": 23,
+						"relativeHumidityPercent": 50,
+						"citation": "report-C17#sample=4",
+						"nextAction": "await_supplier_certificate"
+					},
+					"toolsRequested": 46,
+					"toolsExecuted": 46,
+					"toolsFailed": 1,
+					"contextReadsExecuted": 45,
+					"ledgerReadsExecuted": 1,
+					"mainCalls": 12,
+					"summaryCalls": 0,
+					"exactLabReadDeliveredToMainCalls": [
+						10,
+						11,
+						12
+					],
+					"liveBudgetObserved": true,
+					"durationMs": 59824,
+					"compactions": [],
+					"usage": {
+						"inputTokens": 15282,
+						"cachedInputTokens": 642432,
+						"outputTokens": 6592,
+						"reasoningOutputTokens": 0
+					},
+					"estimatedPeakUsd": 0.016349592
+				},
+				{
+					"phase": "tools-16-hinted",
+					"firstMessagesEqualBaseline": true,
+					"firstMessageCount": 85,
+					"firstInputTokens": 47328,
+					"status": "completed",
+					"correctFields": 10,
+					"answer": {
+						"confirmedQuantity": 5000,
+						"pendingQuantity": 6500,
+						"pvcAllowed": false,
+						"thicknessMicrometers": 100,
+						"supplierQualified": false,
+						"evidenceCode": "SEAL-9Q7",
+						"temperatureCelsius": 23,
+						"relativeHumidityPercent": 50,
+						"citation": "report-C17#sample=4",
+						"nextAction": "await_supplier_certificate"
+					},
+					"toolsRequested": 12,
+					"toolsExecuted": 12,
+					"toolsFailed": 0,
+					"contextReadsExecuted": 12,
+					"ledgerReadsExecuted": 0,
+					"mainCalls": 6,
+					"summaryCalls": 0,
+					"exactLabReadDeliveredToMainCalls": [
+						2,
+						3,
+						4,
+						5,
+						6
+					],
+					"liveBudgetObserved": true,
+					"durationMs": 25313,
+					"compactions": [],
+					"usage": {
+						"inputTokens": 4525,
+						"cachedInputTokens": 302336,
+						"outputTokens": 2570,
+						"reasoningOutputTokens": 0
+					},
+					"estimatedPeakUsd": 0.006255516
+				}
+			],
+			"generationCalls": 33,
+			"tokenCountRequests": 31,
+			"allGenerationsCompleted": true,
+			"usage": {
+				"inputTokens": 81436,
+				"cachedInputTokens": 1685888,
+				"outputTokens": 18907,
+				"reasoningOutputTokens": 0
+			},
+			"estimatedPeakUsd": 0.05723452799999999,
+			"additionalReservedUsd": 0.6923987999999999
+		},
+		{
+			"report": "context-readback-optimization-v2-online.json",
+			"reportSha256": "169610f3326c1f641fbad31b2a2f91e4b0f862eff40da2bb6c8e0426a4fc2e0a",
+			"cases": [
+				{
+					"phase": "tools-16-unhinted",
+					"firstMessagesEqualBaseline": true,
+					"firstMessageCount": 85,
+					"firstInputTokens": 47301,
+					"status": "completed",
+					"correctFields": 10,
+					"answer": {
+						"confirmedQuantity": 5000,
+						"pendingQuantity": 6500,
+						"pvcAllowed": false,
+						"thicknessMicrometers": 100,
+						"supplierQualified": false,
+						"evidenceCode": "SEAL-9Q7",
+						"temperatureCelsius": 23,
+						"relativeHumidityPercent": 50,
+						"citation": "report-C17#sample=4",
+						"nextAction": "await_supplier_certificate"
+					},
+					"toolsRequested": 16,
+					"toolsExecuted": 16,
+					"toolsFailed": 0,
+					"contextReadsExecuted": 16,
+					"ledgerReadsExecuted": 0,
+					"mainCalls": 8,
+					"summaryCalls": 0,
+					"exactLabReadDeliveredToMainCalls": [
+						7,
+						8
+					],
+					"liveBudgetObserved": true,
+					"durationMs": 35004,
+					"compactions": [],
+					"usage": {
+						"inputTokens": 53765,
+						"cachedInputTokens": 356096,
+						"outputTokens": 3476,
+						"reasoningOutputTokens": 0
+					},
+					"estimatedPeakUsd": 0.022437276000000003
+				},
+				{
+					"phase": "tools-64-hinted",
+					"firstMessagesEqualBaseline": true,
+					"firstMessageCount": 85,
+					"firstInputTokens": 47352,
+					"status": "completed",
+					"correctFields": 10,
+					"answer": {
+						"confirmedQuantity": 5000,
+						"pendingQuantity": 6500,
+						"pvcAllowed": false,
+						"thicknessMicrometers": 100,
+						"supplierQualified": false,
+						"evidenceCode": "SEAL-9Q7",
+						"temperatureCelsius": 23,
+						"relativeHumidityPercent": 50,
+						"citation": "report-C17#sample=4",
+						"nextAction": "await_supplier_certificate"
+					},
+					"toolsRequested": 10,
+					"toolsExecuted": 10,
+					"toolsFailed": 0,
+					"contextReadsExecuted": 10,
+					"ledgerReadsExecuted": 0,
+					"mainCalls": 5,
+					"summaryCalls": 0,
+					"exactLabReadDeliveredToMainCalls": [
+						2,
+						3,
+						4,
+						5
+					],
+					"liveBudgetObserved": true,
+					"durationMs": 23758,
+					"compactions": [],
+					"usage": {
+						"inputTokens": 6396,
+						"cachedInputTokens": 250112,
+						"outputTokens": 2455,
+						"reasoningOutputTokens": 0
+					},
+					"estimatedPeakUsd": 0.006365472
+				},
+				{
+					"phase": "tools-64-unhinted",
+					"firstMessagesEqualBaseline": true,
+					"firstMessageCount": 85,
+					"firstInputTokens": 47301,
+					"status": "completed",
+					"correctFields": 9,
+					"answer": {
+						"confirmedQuantity": 5000,
+						"pendingQuantity": 6500,
+						"pvcAllowed": false,
+						"thicknessMicrometers": 100,
+						"supplierQualified": null,
+						"evidenceCode": "SEAL-9Q7",
+						"temperatureCelsius": 23,
+						"relativeHumidityPercent": 50,
+						"citation": "report-C17#sample=4",
+						"nextAction": "await_supplier_certificate"
+					},
+					"toolsRequested": 42,
+					"toolsExecuted": 42,
+					"toolsFailed": 0,
+					"contextReadsExecuted": 41,
+					"ledgerReadsExecuted": 1,
+					"mainCalls": 13,
+					"summaryCalls": 4,
+					"exactLabReadDeliveredToMainCalls": [
+						5,
+						6,
+						7,
+						8,
+						10,
+						11,
+						12,
+						13
+					],
+					"liveBudgetObserved": true,
+					"durationMs": 69575,
+					"compactions": [
+						{
+							"type": "context.compacted",
+							"removedMessages": 35,
+							"summaries": 1,
+							"beforeChars": 236332,
+							"afterChars": 154136,
+							"estimatedTokens": 45151,
+							"coverage": {
+								"complete": false,
+								"sourceMessages": 35,
+								"coveredMessages": 16,
+								"calls": 4
+							}
+						}
+					],
+					"usage": {
+						"inputTokens": 64574,
+						"cachedInputTokens": 625152,
+						"outputTokens": 7088,
+						"reasoningOutputTokens": 0
+					},
+					"estimatedPeakUsd": 0.031628711999999996
+				},
+				{
+					"phase": "tools-16-hinted",
+					"firstMessagesEqualBaseline": true,
+					"firstMessageCount": 85,
+					"firstInputTokens": 47352,
+					"status": "completed",
+					"correctFields": 9,
+					"answer": {
+						"confirmedQuantity": 5000,
+						"pendingQuantity": 6500,
+						"pvcAllowed": false,
+						"thicknessMicrometers": 100,
+						"supplierQualified": null,
+						"evidenceCode": "SEAL-9Q7",
+						"temperatureCelsius": 23,
+						"relativeHumidityPercent": 50,
+						"citation": "report-C17#sample=4",
+						"nextAction": "await_supplier_certificate"
+					},
+					"toolsRequested": 5,
+					"toolsExecuted": 5,
+					"toolsFailed": 0,
+					"contextReadsExecuted": 5,
+					"ledgerReadsExecuted": 0,
+					"mainCalls": 4,
+					"summaryCalls": 0,
+					"exactLabReadDeliveredToMainCalls": [
+						2,
+						3,
+						4
+					],
+					"liveBudgetObserved": true,
+					"durationMs": 18826,
+					"compactions": [],
+					"usage": {
+						"inputTokens": 3998,
+						"cachedInputTokens": 196608,
+						"outputTokens": 1973,
+						"reasoningOutputTokens": 0
+					},
+					"estimatedPeakUsd": 0.004746647999999999
+				}
+			],
+			"generationCalls": 34,
+			"tokenCountRequests": 33,
+			"allGenerationsCompleted": true,
+			"usage": {
+				"inputTokens": 128733,
+				"cachedInputTokens": 1427968,
+				"outputTokens": 14992,
+				"reasoningOutputTokens": 0
+			},
+			"estimatedPeakUsd": 0.065178108,
+			"additionalReservedUsd": 0.6169239000000011
+		}
+	],
+	"summaryExperiment": {
+		"report": "context-summary-budget-online.json",
+		"reportSha256": "a1c963964725b77c8a2b82027286b60f09790e9ada7cf416536acbc75fed0ee6",
+		"cases": [
+			{
+				"phase": "summary-calls-4",
+				"correctFields": 6,
+				"labDeliveredToSummary": false,
+				"durationMs": 20895,
+				"summaryChars": 4038,
+				"answerInputChars": 4646,
+				"generationCalls": 5,
+				"reservedUsd": 0.010722599999999805,
+				"coverage": {
+					"complete": false,
+					"sourceMessages": 146,
+					"coveredMessages": 17,
+					"calls": 4
+				},
+				"sourceRanges": [
+					[
+						0,
+						5
+					],
+					[
+						5,
+						9
+					],
+					[
+						9,
+						13
+					],
+					[
+						13,
+						17
+					]
+				],
+				"answerInputTokens": 1428,
+				"usage": {
+					"inputTokens": 7966,
+					"cachedInputTokens": 3200,
+					"outputTokens": 2800,
+					"reasoningOutputTokens": 0
+				},
+				"estimatedPeakUsd": 0.005769
+			},
+			{
+				"phase": "summary-calls-8",
+				"correctFields": 6,
+				"labDeliveredToSummary": false,
+				"durationMs": 31186,
+				"summaryChars": 8314,
+				"answerInputChars": 8922,
+				"generationCalls": 9,
+				"reservedUsd": 0.01641239999999966,
+				"coverage": {
+					"complete": false,
+					"sourceMessages": 146,
+					"coveredMessages": 33,
+					"calls": 8
+				},
+				"sourceRanges": [
+					[
+						0,
+						5
+					],
+					[
+						5,
+						9
+					],
+					[
+						9,
+						13
+					],
+					[
+						13,
+						17
+					],
+					[
+						17,
+						21
+					],
+					[
+						21,
+						25
+					],
+					[
+						25,
+						29
+					],
+					[
+						29,
+						33
+					]
+				],
+				"answerInputTokens": 2506,
+				"usage": {
+					"inputTokens": 12852,
+					"cachedInputTokens": 9088,
+					"outputTokens": 4375,
+					"reasoningOutputTokens": 0
+				},
+				"estimatedPeakUsd": 0.009160128
+			},
+			{
+				"phase": "summary-calls-16",
+				"correctFields": 6,
+				"labDeliveredToSummary": false,
+				"durationMs": 45883,
+				"summaryChars": 14011,
+				"answerInputChars": 14619,
+				"generationCalls": 17,
+				"reservedUsd": 0.02759219999999951,
+				"coverage": {
+					"complete": false,
+					"sourceMessages": 146,
+					"coveredMessages": 65,
+					"calls": 16
+				},
+				"sourceRanges": [
+					[
+						0,
+						5
+					],
+					[
+						5,
+						9
+					],
+					[
+						9,
+						13
+					],
+					[
+						13,
+						17
+					],
+					[
+						17,
+						21
+					],
+					[
+						21,
+						25
+					],
+					[
+						25,
+						29
+					],
+					[
+						29,
+						33
+					],
+					[
+						33,
+						37
+					],
+					[
+						37,
+						41
+					],
+					[
+						41,
+						45
+					],
+					[
+						45,
+						49
+					],
+					[
+						49,
+						53
+					],
+					[
+						53,
+						57
+					],
+					[
+						57,
+						61
+					],
+					[
+						61,
+						65
+					]
+				],
+				"answerInputTokens": 3996,
+				"usage": {
+					"inputTokens": 25030,
+					"cachedInputTokens": 17792,
+					"outputTokens": 4392,
+					"reasoningOutputTokens": 0
+				},
+				"estimatedPeakUsd": 0.012886152
+			},
+			{
+				"phase": "summary-calls-32",
+				"correctFields": 10,
+				"labDeliveredToSummary": true,
+				"durationMs": 81612,
+				"summaryChars": 32029,
+				"answerInputChars": 32637,
+				"generationCalls": 33,
+				"reservedUsd": 0.050541899999998474,
+				"coverage": {
+					"complete": false,
+					"sourceMessages": 146,
+					"coveredMessages": 129,
+					"calls": 32
+				},
+				"sourceRanges": [
+					[
+						0,
+						5
+					],
+					[
+						5,
+						9
+					],
+					[
+						9,
+						13
+					],
+					[
+						13,
+						17
+					],
+					[
+						17,
+						21
+					],
+					[
+						21,
+						25
+					],
+					[
+						25,
+						29
+					],
+					[
+						29,
+						33
+					],
+					[
+						33,
+						37
+					],
+					[
+						37,
+						41
+					],
+					[
+						41,
+						45
+					],
+					[
+						45,
+						49
+					],
+					[
+						49,
+						53
+					],
+					[
+						53,
+						57
+					],
+					[
+						57,
+						61
+					],
+					[
+						61,
+						65
+					],
+					[
+						65,
+						69
+					],
+					[
+						69,
+						73
+					],
+					[
+						73,
+						77
+					],
+					[
+						77,
+						81
+					],
+					[
+						81,
+						85
+					],
+					[
+						85,
+						89
+					],
+					[
+						89,
+						93
+					],
+					[
+						93,
+						97
+					],
+					[
+						97,
+						101
+					],
+					[
+						101,
+						105
+					],
+					[
+						105,
+						109
+					],
+					[
+						109,
+						113
+					],
+					[
+						113,
+						117
+					],
+					[
+						117,
+						121
+					],
+					[
+						121,
+						125
+					],
+					[
+						125,
+						129
+					]
+				],
+				"answerInputTokens": 7991,
+				"usage": {
+					"inputTokens": 35993,
+					"cachedInputTokens": 50560,
+					"outputTokens": 8563,
+					"reasoningOutputTokens": 0
+				},
+				"estimatedPeakUsd": 0.02137686
+			}
+		],
+		"generationCalls": 64,
+		"tokenCountRequests": 36,
+		"allGenerationsAndCountsCompleted": true,
+		"usage": {
+			"inputTokens": 81841,
+			"cachedInputTokens": 80640,
+			"outputTokens": 20130,
+			"reasoningOutputTokens": 0
+		},
+		"estimatedPeakUsd": 0.04919214,
+		"additionalReservedUsd": 0.10526909999999745
+	},
+	"totals": {
+		"newGenerationCalls": 131,
+		"estimatedPeakUsd": 0.171604776,
+		"additionalReservedUsd": 1.4145917999999984,
+		"cumulativeReservedUsd": 2.821484899999998,
+		"capUsd": 2.9291320000000005,
+		"remainingReservedUsd": 0.10764710000000255
+	},
+	"limitations": [
+		"One synthetic fixture, one fresh sample per case; not a population success rate or isolated causality estimate.",
+		"Summary experiment omits Runtime and retrieval; compare its four arms only.",
+		"Pre-registered supplierQualified=false remains the score; null is not promoted to a pass. Unknown qualification and confirmed failure need distinct business states.",
+		"Temporary request stores remain local; report hashes and numeric inspection are saved here, not a portable full checkpoint archive."
+	]
+}

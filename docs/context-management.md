@@ -40,7 +40,8 @@ Session / Event Store / Fact / Artifact / 资料索引
 1. 大工具正文先保存为当前 Session 下的不可变 ContextSnapshot。超过工具结果上限时返回完整 JSON 引用封套，不切断 JSON；较早、可回读的完整工具组正文优先换成引用。
 2. 稳定策略、当前任务数据、pinned 消息、未完成 Tool batch 和未决执行状态必须保留。工具调用与结果成组保留或移除。必留内容本身超限时返回 `budget_exceeded`。
 3. 被移除的完整消息归档后，摘要按完整消息分批调用。工作历史裁剪保证工具调用／结果成组；摘要器不额外保证每个输入批次都含完整工具组。摘要有非权威标记、实际覆盖范围和原文引用；超大单消息、预算耗尽或超预算输出都明确为 `INCOMPLETE`，不使用截尾输入或截断输出假装覆盖成功。
-4. `context_read` 在当前 tenant/workspace/run/session 读取原始 transcript 或快照，按完整消息/行分页。可用 `messageIndex` 和 `jsonPointer` 选择大型 JSON 内的数组继续读取。单条仍超过页预算返回 `single_unit_exceeds_budget`，由专用源工具处理；不把半个值当完整证据。
+4. `context_read` 在当前 tenant/workspace/run/session 读取原始 transcript 或快照，按完整消息/行分页。`messageIndex` 已选择消息正文；`jsonPointer` 只选择正文 JSON 内的字段，不要加包装层 `/content`。默认仍按完整单元分页，单条超过页预算返回 `single_unit_exceeds_budget`；显式提供 `characterOffset:0` 可读取有分片标记的精确文本，并沿 `nextCharacterOffset` 拼接，不能把半个值当完整证据。
+5. 不知道原文位置时，用 `query` 在指定来源及其 Host 声明的归档依赖内搜索字面关键词，得到可直接读取的 `sourceRef/messageIndex` 和非权威片段。导航区分只含原话／正式回复的 `transcript` 与保存工具结果的 `archiveRoots`；后者来自当前 Session 的来源依赖，并逐个复查权限和历史绑定。正文自行声称的来源不进入导航或遍历。
 
 示例工具参数：
 
@@ -48,7 +49,9 @@ Session / Event Store / Fact / Artifact / 资料索引
 {"sourceRef":"tool-result-<executionId>-1","messageIndex":0,"jsonPointer":"/rows","offset":0}
 ```
 
-正文返回 `nextOffset` 时以同一 sourceRef/选择参数继续。`sourceRef=transcript` 可回看原始对话。快照绑定和当前任务不同会标记 `stale`，不能覆盖当前确认状态。
+正文返回 `nextOffset` 时以同一 sourceRef/选择参数继续。文本分片返回 `nextCharacterOffset`，与完整单元分页独立；按 UTF-16 字符位置续读，避免切断合法代理对。`sourceRef=transcript` 可回看原始对话，其中不含工具结果。快照绑定和当前任务不同会标记 `stale`，不能覆盖当前确认状态。
+
+关键词搜索每次最多扫描 32 个来源、2,000,000 字符或 10,000 条消息，超限明确返回 `searchComplete:false`。`offset` 只翻命中页；当前没有单个归档内部的扫描续读游标。导航最多给出 8 个根并标记截断，也没有根列表下一页。该能力是有边界的本地定位，不能据空结果断定全历史没有证据。每次结果附本执行片在整批工具扣额后的剩余工具／迭代数；提示模型证据足够后完成回答，硬预算和停止保护仍由 Host 执行。
 
 `document_read` 返回完整行、页码/行号、源哈希、截断状态与 `sha256:offset` 游标；每次读取重新检查附件或本地路径权限和哈希。Native parser 1.2.0 的提取结果进入既有 inspection Artifact cache；重启后可继续读取，缓存键含 parser 版本。目前每次续读仍重新运行源解析，缓存用于受控留存，尚未优化为直接分页读缓存。表格保留整行，DOCX 表格及 footnotes/endnotes 纳入提取。扫描件仍不提供 OCR；提取仍受 10 MiB 输入、1,000 页/表、1,000,000 Swift 字符限制，并显式标记 sourceTruncated。
 
@@ -78,6 +81,8 @@ min(应用输入上限, 模型上下文容量 - 输出预留 - 安全余量)
 优先 Provider Token Count；不提供该能力时使用 UTF-8 字节/3、每消息协议余量、工具定义、输出 Schema 和每张已加载图片 4,096 Token 的回退估算。估算不是 tokenizer，没有已验证误差上界，多模态误差依模型变化，不能当真实计费数。
 
 默认每执行片最多 4 次摘要生成、16 次摘要 Token Count；单次输入最多 6,000、输出最多 512，累计输入加预留输出分配不超过 26,048。摘要还受该任务更低的输入/输出预算约束；同一片内多次压缩不重置计数。预算不够保留引用并标记未覆盖。摘要失败返回可追踪的 `context_failure`，原始历史与归档仍存在。
+
+2026-09-22 增加摘要 4／8／16／32 次调用的隔离对照，以及回读定位和完成行为的同起点实测。默认预算与 70k／45k 阈值没有随实验上调；覆盖范围、模型实际保留的信息、主任务答案分别评分，见[回读优化与摘要预算报告](evidence/context-readback-optimization.md)。
 
 主请求和摘要生成保存对应快照；摘要计数请求失败也保留输入快照。`context.summary`、`context.compacted`、RuntimeTrace 和 ModelTelemetry 记录调用/执行 ID、来源范围、快照、覆盖量、输入/输出 Token、计数结果、耗时和失败类别。Telemetry 只持久数值与标识，不保存 prompt、正文或原始错误；业务正文仅在受控 Session/Snapshot/Artifact 中。遥测最多保留最近 200 条并显式标记截断，完整长期趋势/存储归档尚未实现。缓存读取/写入统计沿用 Provider 响应，未知保持未知；没有实现新的 Prompt Cache 优化或缓存系统。
 

@@ -49,11 +49,11 @@ if (process.argv.includes("--plan")) {
 	const priorPath = process.argv.find((arg) => arg.startsWith("--prior-report="))?.slice(15);
 	if (!priorPath) throw new Error("An explicitly reviewed cumulative --prior-report ledger is required; changing only --report must not reset spending.");
 	const priorBytes = readFileSync(resolve(priorPath), "utf8");
-	const prior = JSON.parse(priorBytes) as { protocol?: string; limits?: { usd: number }; fixtureHash?: string; temporaryStateDirectory?: string; requestedModel?: string; results?: Array<{ phase: string; sourceRef?: string; messageIndex?: number }>; reservedUsd: number; calls: Array<{ status: string; phase?: string; purpose?: string; summarySource?: { callId: string } }> };
+	const prior = JSON.parse(priorBytes) as { protocol?: string; limits?: { usd: number }; fixtureHash?: string; temporaryStateDirectory?: string; requestedModel?: string; unresolved?: boolean; countRequests?: Array<{ status: string }>; results?: Array<{ phase: string; sourceRef?: string; messageIndex?: number }>; reservedUsd: number; calls: Array<{ status: string; phase?: string; purpose?: string; summarySource?: { callId: string } }> };
 	const sourcePath = process.argv.find((arg) => arg.startsWith("--source-report="))?.slice(16);
 	const sourceBytes = sourcePath ? readFileSync(resolve(sourcePath), "utf8") : priorBytes;
 	const source = JSON.parse(sourceBytes) as typeof prior;
-	if (!Number.isFinite(prior.reservedUsd) || prior.reservedUsd < 0 || !budgetMatrix && prior.reservedUsd >= 1 || prior.calls.some((call) => call.status !== "completed")) throw new Error("Invalid prior ledger");
+	if (!Number.isFinite(prior.reservedUsd) || prior.reservedUsd < 0 || !budgetMatrix && prior.reservedUsd >= 1 || prior.unresolved || !Array.isArray(prior.calls) || prior.calls.some((call) => call.status !== "completed") || prior.countRequests?.some((call) => call.status !== "completed")) throw new Error("Invalid prior ledger");
 	if (budgetMatrix && (source.protocol !== "context-continuation.verify.v1" || source.fixtureHash !== fixtureHash || source.requestedModel !== environment.ANTHROPIC_MODEL || !source.temporaryStateDirectory)) throw new Error("source_fixture_or_model_mismatch");
 	// A checkpoint is not a spending ledger: subsequent comparisons inherit the latest cap.
 	const usdLimit = budgetMatrix ? sourcePath ? prior.limits?.usd ?? NaN : prior.reservedUsd + 2 : 1, generationLimit = budgetMatrix ? 128 : 48, countLimit = budgetMatrix ? 480 : 240;

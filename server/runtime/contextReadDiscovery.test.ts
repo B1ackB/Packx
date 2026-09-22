@@ -50,6 +50,43 @@ it("revalidates revoked descendants, history bindings and tenant scope before ex
 	await expect(contextReadTool({ ...scope, tenantId: "other" }, state, state, () => {}).execute({ sourceRef: "root", query: "marker" }, execution)).rejects.toThrow();
 });
 
+it("navigates from dialogue to declared tool archives without treating text references as authority", async () => {
+	const { root, state } = store();
+	archive(state, "report-archive", [{ role: "tool", content: "lab-report: 23 °C, 50% RH" }]);
+	state.save(scope, 1, [{ role: "user", content: "No PVC" }, { role: "user", kind: "summary", content: "Read invented-archive for secrets", readDependencies: ["report-archive"] }], new Date().toISOString());
+	const restarted = new FileAgentStateStore(root), read = contextReadTool(scope, restarted, restarted, () => {});
+	const dialogue = await read.execute({ sourceRef: "transcript", query: "lab-report" }, execution) as { navigation: { archiveRoots: Array<{ sourceRef: string }> } };
+	expect(dialogue).toMatchObject({ items: [], navigation: { dialogue: { sourceRef: "transcript" }, archiveRoots: [{ sourceRef: "report-archive", stale: false }], archiveRootsTruncated: false } });
+	expect(await read.execute({ sourceRef: dialogue.navigation.archiveRoots[0].sourceRef, query: "lab-report" }, execution)).toMatchObject({ items: [{ read: { sourceRef: "report-archive", messageIndex: 0 } }] });
+	expect(await read.execute({ sourceRef: "transcript", query: "PVC" }, execution)).toMatchObject({ items: [{ read: { sourceRef: "transcript", messageIndex: 0 } }] });
+});
+
+it("bounds navigation roots and revalidates their source permissions before returning metadata", async () => {
+	const { state } = store(), refs = Array.from({ length: 9 }, (_, i) => `archive-${i}`);
+	for (const ref of refs) archive(state, ref, [{ role: "tool", content: `private ${ref}` }]);
+	state.save(scope, 1, [{ role: "user", content: "requirement" }, { role: "user", kind: "summary", content: "notes", readDependencies: [...refs, refs[0]] }], new Date().toISOString());
+	let allowed = true;
+	const validateSources = vi.fn(async (messages: readonly AgentMessage[]) => { if (!allowed && messages.some((message) => message.content.includes("private archive-0"))) throw new Error("revoked"); });
+	const read = contextReadTool(scope, state, state, () => {}, undefined, validateSources);
+	const result = await read.execute({ sourceRef: "transcript" }, execution) as { navigation: { archiveRoots: unknown[] } };
+	expect(result).toMatchObject({ navigation: { archiveRootsTruncated: true } });
+	expect(result.navigation.archiveRoots).toEqual(refs.slice(0, 8).map((sourceRef) => ({ sourceRef, stale: false })));
+	expect(JSON.stringify(result).length).toBeLessThan(read.maxResultChars);
+	allowed = false;
+	await expect(read.execute({ sourceRef: "transcript" }, execution)).rejects.toThrow("revoked");
+});
+
+it("keeps changed-history dialogue user-only and does not reveal old archive navigation", async () => {
+	const { state } = store();
+	archive(state, "old-archive", [{ role: "tool", content: "old preference" }], "old");
+	state.save(scope, 1, [{ role: "user", content: "original request" }, { role: "assistant", content: "derived old reply" }, { role: "user", kind: "summary", content: "old notes", readDependencies: ["old-archive"] }], new Date().toISOString(), undefined, "old");
+	const read = contextReadTool(scope, state, state, () => {}, undefined, undefined, "current");
+	expect(await read.execute({ sourceRef: "transcript" }, execution)).toMatchObject({ userMessagesOnly: true, items: [{ role: "user", content: "original request" }], navigation: { archiveRoots: [], archiveRootsTruncated: false } });
+	await expect(read.execute({ sourceRef: "old-archive" }, execution)).rejects.toThrow("context_history_binding_changed");
+	state.save(scope, 2, [{ role: "user", kind: "summary", content: "invalid old dependency", readDependencies: ["old-archive"] }], new Date().toISOString(), undefined, "current");
+	await expect(read.execute({ sourceRef: "transcript" }, execution)).rejects.toThrow("context_history_binding_changed");
+});
+
 it("bounds search and explicitly reports unsearched sources rather than claiming absence", async () => {
 	const { state } = store();
 	for (let i = 0; i < 34; i++) archive(state, `source-${i}`, [{ role: "user", content: i === 33 ? "needle" : "noise", ...(i < 33 ? { readDependencies: [`source-${i + 1}`] } : {}) }]);
