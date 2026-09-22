@@ -14,3 +14,6 @@
 
 /.packx-settings.json*
 /releases/
+
+# Local interview preparation
+/docs/interview/

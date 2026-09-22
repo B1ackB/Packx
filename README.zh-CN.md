@@ -2,7 +2,7 @@
 
 [English](README.md) · [简体中文](README.zh-CN.md)
 
-[文档导航](docs/README.md) · [面试资料：架构、上下文、记忆与恢复](docs/interview/README.md)
+[文档导航](docs/README.md)
 
 Packx 是面向**包装企业售前与跟单人员**的本地 Agent 工作台。项目使用自研、行业无关的 Agent Core，通过工作流层管理有来源的事实、版本化需求单、审批和中断恢复。
 
