@@ -1,0 +1,230 @@
+{
+	"protocol": "context-budget-inspection.v1",
+	"onlineReportSha256": "576e24a4fe81b39bb167cc29daca10748d2db277fdc123732a61ad26babfc046",
+	"baselineReportSha256": "b2cd95843c72dcde2d3722797a488247bd36a09f7b9e96584deb38ec4f1f53eb",
+	"method": "Read-only inspection of saved requests, session/compact snapshots, current-turn traces and loop guard; no additional model calls. Read-only tools do not write the side-effect execution ledger. For the final unhinted 64-tool batch, three executions are inferred from matching action hashes plus persisted consecutiveFailures=3, not from missing tool.completed events.",
+	"cases": [
+		{
+			"phase": "tools-16-unhinted",
+			"firstMessagesEqualBaseline": true,
+			"firstMessageCount": 85,
+			"firstInputTokens": 47029,
+			"status": "completed",
+			"failureCode": null,
+			"fieldsCorrect": 6,
+			"toolsRequested": 10,
+			"toolResultsPersisted": 10,
+			"lastBatchVerifiedViaGuard": [],
+			"toolsExecuted": 10,
+			"toolsFailed": 0,
+			"budgetRejectedBeforeExecution": 0,
+			"contextReadsExecuted": 9,
+			"ledgerReadsExecuted": 1,
+			"mainCalls": 6,
+			"summaryCalls": 4,
+			"labOriginalDeliveredToMainCalls": [],
+			"durationMs": 42408,
+			"compactions": [
+				{
+					"afterChars": 160017,
+					"beforeChars": 258037,
+					"coverage": {
+						"calls": 4,
+						"complete": false,
+						"coveredMessages": 16,
+						"sourceMessages": 27
+					},
+					"estimatedTokens": 46363,
+					"removedMessages": 27,
+					"summaries": 1,
+					"type": "context.compacted"
+				}
+			],
+			"usage": {
+				"inputTokens": 71658,
+				"cachedInputTokens": 266240,
+				"outputTokens": 4296,
+				"reasoningOutputTokens": 0
+			},
+			"estimatedPeakUsd": 0.02825004
+		},
+		{
+			"phase": "tools-64-hinted",
+			"firstMessagesEqualBaseline": true,
+			"firstMessageCount": 85,
+			"firstInputTokens": 47080,
+			"status": "completed",
+			"failureCode": null,
+			"fieldsCorrect": 10,
+			"toolsRequested": 7,
+			"toolResultsPersisted": 7,
+			"lastBatchVerifiedViaGuard": [],
+			"toolsExecuted": 7,
+			"toolsFailed": 1,
+			"budgetRejectedBeforeExecution": 0,
+			"contextReadsExecuted": 6,
+			"ledgerReadsExecuted": 1,
+			"mainCalls": 5,
+			"summaryCalls": 0,
+			"labOriginalDeliveredToMainCalls": [
+				2,
+				3,
+				4,
+				5
+			],
+			"durationMs": 28167,
+			"compactions": [],
+			"usage": {
+				"inputTokens": 11386,
+				"cachedInputTokens": 254080,
+				"outputTokens": 2617,
+				"reasoningOutputTokens": 0
+			},
+			"estimatedPeakUsd": 0.00808068
+		},
+		{
+			"phase": "tools-64-unhinted",
+			"firstMessagesEqualBaseline": true,
+			"firstMessageCount": 85,
+			"firstInputTokens": 47029,
+			"status": "failed",
+			"failureCode": "consecutive_tool_failures",
+			"fieldsCorrect": null,
+			"toolsRequested": 15,
+			"toolResultsPersisted": 12,
+			"lastBatchVerifiedViaGuard": [
+				{
+					"id": "call_00_O7sAwPhb6xcINbMeYBQa0886",
+					"name": "context_read",
+					"input": {
+						"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+						"messageIndex": 0,
+						"jsonPointer": "/content"
+					}
+				},
+				{
+					"id": "call_01_UWedayCEMErVfl6iD1dE2406",
+					"name": "context_read",
+					"input": {
+						"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+						"messageIndex": 1,
+						"jsonPointer": "/content"
+					}
+				},
+				{
+					"id": "call_02_WPrQJATURHBrOSjgCYL60503",
+					"name": "context_read",
+					"input": {
+						"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+						"messageIndex": 2,
+						"jsonPointer": "/content"
+					}
+				}
+			],
+			"toolsExecuted": 15,
+			"toolsFailed": 5,
+			"budgetRejectedBeforeExecution": 0,
+			"contextReadsExecuted": 14,
+			"ledgerReadsExecuted": 1,
+			"mainCalls": 6,
+			"summaryCalls": 4,
+			"labOriginalDeliveredToMainCalls": [],
+			"durationMs": 41709,
+			"compactions": [
+				{
+					"afterChars": 159551,
+					"beforeChars": 264731,
+					"coverage": {
+						"calls": 4,
+						"complete": false,
+						"coveredMessages": 16,
+						"sourceMessages": 39
+					},
+					"estimatedTokens": 46142,
+					"removedMessages": 39,
+					"summaries": 1,
+					"type": "context.compacted"
+				}
+			],
+			"usage": {
+				"inputTokens": 64191,
+				"cachedInputTokens": 269568,
+				"outputTokens": 4614,
+				"reasoningOutputTokens": 0
+			},
+			"estimatedPeakUsd": 0.026411508
+		},
+		{
+			"phase": "tools-16-hinted",
+			"firstMessagesEqualBaseline": true,
+			"firstMessageCount": 85,
+			"firstInputTokens": 47080,
+			"status": "failed",
+			"failureCode": "budget_exceeded",
+			"fieldsCorrect": null,
+			"toolsRequested": 18,
+			"toolResultsPersisted": 13,
+			"lastBatchVerifiedViaGuard": [],
+			"toolsExecuted": 13,
+			"toolsFailed": 0,
+			"budgetRejectedBeforeExecution": 5,
+			"contextReadsExecuted": 12,
+			"ledgerReadsExecuted": 1,
+			"mainCalls": 5,
+			"summaryCalls": 4,
+			"labOriginalDeliveredToMainCalls": [
+				2,
+				3,
+				4,
+				5
+			],
+			"durationMs": 39896,
+			"compactions": [
+				{
+					"afterChars": 150046,
+					"beforeChars": 283090,
+					"coverage": {
+						"calls": 4,
+						"complete": false,
+						"coveredMessages": 16,
+						"sourceMessages": 63
+					},
+					"estimatedTokens": 46136,
+					"removedMessages": 63,
+					"summaries": 1,
+					"type": "context.compacted"
+				}
+			],
+			"usage": {
+				"inputTokens": 61494,
+				"cachedInputTokens": 208896,
+				"outputTokens": 5400,
+				"reasoningOutputTokens": 0
+			},
+			"estimatedPeakUsd": 0.026181576
+		}
+	],
+	"usage": {
+		"inputTokens": 208729,
+		"cachedInputTokens": 998784,
+		"outputTokens": 16927,
+		"reasoningOutputTokens": 0
+	},
+	"generationCalls": 34,
+	"tokenCountRequests": 27,
+	"additionalReservedUsd": 0.4777611,
+	"estimatedPeakUsd": 0.088923804,
+	"pricingSource": "https://api-docs.deepseek.com/quick_start/pricing/",
+	"ratesPerMillionUsd": {
+		"input": 0.3,
+		"cachedInput": 0.006,
+		"output": 1.2
+	},
+	"limitations": [
+		"One fresh model trajectory per cell; no estimated success rate or isolated causal effect.",
+		"9 to 32 iterations changed alongside tool limits; 180 second timeout unchanged, versus ordinary conversation timeout 120 seconds.",
+		"The successful 64-tool trajectory used only 7 tools and 5 iterations, both within the original limits.",
+		"Fixed order and provider caching prevent interpreting latency/cost differences as causal budget effects.",
+		"Temporary request stores are local evidence; only their derived inspection and synthetic model receipts are committed."
+	]
+}
