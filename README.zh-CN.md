@@ -185,7 +185,7 @@ Host 负责计划确认、子 Agent 派发、权限、工作流状态转换、�
 
 本次补全范围与状态见[本地产品工作单](docs/local-product-completion.md)。启动诊断、备份和恢复见[本地操作指南](docs/local-operations.md)，可从明确标注的[模拟咖啡袋任务](examples/coffee-pouch-intake.md)体验交接流程；真实用户验证仍待补。
 
-[包装数据与证据检索切片](docs/knowledge/README.md)提供资料版本治理、关键词/向量/RRF 基线，并将选中证据接入 Plan 和需求单来源链。无需模型 Key 即可运行 `npm run demo:knowledge`。见[数据源登记](docs/knowledge/sources.md)和[验证记录及简历证据](docs/knowledge/evidence.md)：另有 [5 篇 CC BY 真实研究全文与本地 E5 实验](docs/knowledge/real-experiment.md)，含 64 道暂定标注题及拆问对照。供应商资料、专家黄金标签和 PostgreSQL 部署仍待验证。
+[包装数据与证据检索切片](docs/knowledge/README.md)提供资料版本治理、关键词/向量/RRF 基线，并将选中证据接入 Plan 和需求单来源链。无需模型 Key 即可运行 `npm run demo:knowledge`。见[数据源登记](docs/knowledge/sources.md)和[验证记录](docs/knowledge/evidence.md)：另有 [5 篇 CC BY 真实研究全文与本地 E5 实验](docs/knowledge/real-experiment.md)，含 64 道暂定标注题及拆问对照。供应商资料、专家黄金标签和 PostgreSQL 部署仍待验证。
 
 [最新检索优化报告](docs/knowledge/optimization.md)提供开发消融、64 题已观察回归、逐字段缺口提示及 `npm run eval:knowledge-optimize` 复现入口。召回指标衡量暂定出处锚点，不等于回答正确率或独立泛化成绩。
 
