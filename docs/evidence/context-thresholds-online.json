@@ -1,0 +1,49 @@
+{
+	"schemaVersion": "context-threshold-eval.v1",
+	"generatedAt": "2026-09-22T09:15:23.385Z",
+	"requestedModel": "deepseek-v4-flash",
+	"officialModelAlias": "Official docs map legacy deepseek-v4-flash to DeepSeek-V4.1-Flash; response model is recorded separately",
+	"mode": "online-synthetic-runtime",
+	"baselineCommit": "da4fcd1",
+	"configurations": [
+		{
+			"name": "early-32k",
+			"trigger": 32000,
+			"target": 20000
+		},
+		{
+			"name": "current-70k",
+			"trigger": 70000,
+			"target": 45000
+		},
+		{
+			"name": "late-100k",
+			"trigger": 100000,
+			"target": 70000
+		}
+	],
+	"limits": {
+		"usd": 1,
+		"generations": 64,
+		"countedRequests": 400,
+		"inputTokens": 2000000,
+		"outputTokens": 80000
+	},
+	"rates": {
+		"uncachedInputUsdPerMillion": 0.3,
+		"outputUsdPerMillion": 1.2,
+		"basis": "DeepSeek official peak Flash prices, retrieved 2026-09-22; cache discounts ignored for conservative bounds"
+	},
+	"reservedUsd": 0,
+	"reservedInput": 0,
+	"reservedOutput": 0,
+	"tokenCountRequests": 1,
+	"calls": [],
+	"results": [
+		{
+			"status": "experiment_stopped",
+			"failureCode": "model_failure",
+			"note": "No automatic retry. Inspect numeric call ledger and rerun only after review."
+		}
+	]
+}

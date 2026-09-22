@@ -22,6 +22,12 @@ const identity = { tenantId: "t", workspaceId: "w", actorId: "user" };
 const scope = { ...identity, runId: "run", sessionId: "session" };
 const request = { ...scope, stageId: "conversation", idempotencyKey: "turn", input: "Keep 100 µm; no PVC; source: sheet-A; unresolved: supplier test conditions", fallbackOutput: "done", policy: { sandboxMode: "read-only" as const, approvalPolicy: "never" as const, timeoutMs: 5000 } };
 const execution = { ...scope, stageId: "conversation", executionId: "e", toolCallId: "c", idempotencyKey: "k", signal: new AbortController().signal };
+it("rejects ambiguous JSON reads instead of silently paging unrelated messages", async () => {
+	const { state } = store(); state.save(scope, 0, [], new Date().toISOString());
+	const read = contextReadTool(scope, state, state, () => {});
+	await expect(read.execute({ sourceRef: "transcript", jsonPointer: "/rows", offset: 86 }, execution)).rejects.toThrow("context_json_pointer_requires_message_index");
+	await expect(read.execute({ sourceRef: "transcript", messageIndex: 0, jsonPointer: "rows" }, execution)).rejects.toThrow("context_json_pointer_invalid");
+});
 function store() {
 	const root = mkdtempSync(join(tmpdir(), "packx-context-")); roots.push(root);
 	return { root, state: new FileAgentStateStore(root) };

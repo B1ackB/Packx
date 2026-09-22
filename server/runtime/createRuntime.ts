@@ -53,6 +53,20 @@ function positiveSetting(environment: NodeJS.ProcessEnv, key: string, fallback: 
 	return value;
 }
 
+/** Host configuration; model capacities and operator limits do not belong in Core. */
+export function runtimeContextSettings(environment: NodeJS.ProcessEnv) {
+	const officialFlash = environment.ANTHROPIC_BASE_URL?.replace(/\/$/, "") === "https://api.deepseek.com/anthropic" && ["deepseek-v4-flash", "deepseek-flash"].includes(environment.ANTHROPIC_MODEL ?? "");
+	const contextWindowTokens = positiveSetting(environment, "PACKX_MODEL_CONTEXT_TOKENS", officialFlash ? 1_000_000 : defaultContextBudget.contextWindowTokens);
+	const reservedOutputTokens = positiveSetting(environment, "PACKX_MODEL_MAX_OUTPUT_TOKENS", defaultContextBudget.reservedOutputTokens);
+	const safetyMarginTokens = positiveSetting(environment, "PACKX_CONTEXT_SAFETY_TOKENS", defaultContextBudget.safetyMarginTokens);
+	const maxInputTokens = positiveSetting(environment, "PACKX_MAX_INPUT_TOKENS", defaultContextBudget.applicationInputTokens);
+	const effectiveInput = Math.min(maxInputTokens, contextWindowTokens - reservedOutputTokens - safetyMarginTokens);
+	const compactTriggerTokens = positiveSetting(environment, "PACKX_COMPACT_TRIGGER_TOKENS", Math.floor(effectiveInput * 0.7));
+	const compactTargetTokens = positiveSetting(environment, "PACKX_COMPACT_TARGET_TOKENS", Math.floor(effectiveInput * 0.45));
+	if (compactTargetTokens >= compactTriggerTokens || compactTriggerTokens > effectiveInput) throw new Error("Context budgets require 0 < compact target < compact trigger <= available input tokens");
+	return { contextWindowTokens, reservedOutputTokens, safetyMarginTokens, maxInputTokens, compactTriggerTokens, compactTargetTokens };
+}
+
 export function createRuntime(
 	environment: NodeJS.ProcessEnv,
 	options: RuntimeServicesOptions = {},
@@ -97,10 +111,7 @@ export function createRuntime(
 			runtime: new BlackxAgentRuntime({
 				telemetry,
 				onActivity: (scope, event) => activity.observe(scope, event),
-				contextWindowTokens: positiveSetting(environment, "PACKX_MODEL_CONTEXT_TOKENS", defaultContextBudget.contextWindowTokens),
-				reservedOutputTokens: positiveSetting(environment, "PACKX_MODEL_MAX_OUTPUT_TOKENS", defaultContextBudget.reservedOutputTokens),
-				safetyMarginTokens: positiveSetting(environment, "PACKX_CONTEXT_SAFETY_TOKENS", defaultContextBudget.safetyMarginTokens),
-				maxInputTokens: positiveSetting(environment, "PACKX_MAX_INPUT_TOKENS", defaultContextBudget.applicationInputTokens),
+				...runtimeContextSettings(environment),
 				provider: new AnthropicModelProvider(
 					new AnthropicMessagesClient({ baseUrl, apiKey }),
 					model,

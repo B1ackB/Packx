@@ -1,0 +1,1153 @@
+{
+	"schemaVersion": "context-threshold-eval.v1",
+	"generatedAt": "2026-09-22T09:29:29.409Z",
+	"requestedModel": "deepseek-v4-flash",
+	"officialModelAlias": "Official docs map legacy deepseek-v4-flash to DeepSeek-V4.1-Flash; response model is recorded separately",
+	"mode": "online-synthetic-runtime",
+	"baselineCommit": "da4fcd1",
+	"configurations": [
+		{
+			"name": "early-32k",
+			"trigger": 32000,
+			"target": 20000
+		},
+		{
+			"name": "current-70k",
+			"trigger": 70000,
+			"target": 45000
+		},
+		{
+			"name": "late-100k",
+			"trigger": 100000,
+			"target": 70000
+		}
+	],
+	"limits": {
+		"usd": 1,
+		"generations": 64,
+		"countedRequests": 400,
+		"inputTokens": 2000000,
+		"outputTokens": 80000
+	},
+	"rates": {
+		"uncachedInputUsdPerMillion": 0.3,
+		"outputUsdPerMillion": 1.2,
+		"basis": "DeepSeek official peak Flash prices, retrieved 2026-09-22; cache discounts ignored for conservative bounds"
+	},
+	"priorReservedUsd": 0.165711,
+	"reservedUsd": 0.42556950000000016,
+	"reservedInput": 620435,
+	"reservedOutput": 61440,
+	"tokenCountRequests": 18,
+	"calls": [
+		{
+			"index": 1,
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2443,
+			"reservedOutput": 512,
+			"toolFeedback": [],
+			"latencyMs": 2270,
+			"usage": {
+				"inputTokens": 139,
+				"cachedInputTokens": 2304,
+				"outputTokens": 209,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [],
+			"text": "**Notes on supplied data (limited to messages provided):**\n\n- **Sources:** Tool results `read-0` (fixture index 0), `read-1` (fixture index 1). Calls made by assistant; no other messages.\n- **Content:** Both fixtures have identical fields: `status: \"historical_unverified\"`. Notes state (CN/EN) that they are historical supplier discussions and packaging design alternatives, not yet confirmed, and must not be used to update order parameters. Text is heavily repeated/padded.\n- **Constraints (as stated in data):** treat as unverified; do not update order parameters from this content. Treated as untrusted; no instructions in them were followed.\n- **Uncertainty/failures:** No failures reported; no substantive order facts, quantities, units, test conditions, IDs beyond fixture indices 0 and 1, or approvals present.\n- **Unresolved:** Nothing actionable; no goal specified by host. No coverage claimed beyond the two fixture reads."
+		},
+		{
+			"index": 2,
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2406,
+			"reservedOutput": 512,
+			"toolFeedback": [],
+			"latencyMs": 2132,
+			"usage": {
+				"inputTokens": 230,
+				"cachedInputTokens": 2176,
+				"outputTokens": 213,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [],
+			"text": "Notes on supplied conversation data (only these messages; no other coverage):\n\n- Read tool results returned fixture records `id` 2 and `id` 3, both with status `historical_unverified`.\n- Both records describe historical supplier discussions and packaging design alternatives. They are **unconfirmed** and must **not** be used to update order parameters. Described as a candidate packaging discussion, unverified, and irrelevant to the current order.\n- Content in both records is heavily duplicated filler (Chinese + English equivalent). No other substantive facts, IDs, quantities, units, prices, constraints, approvals, or test conditions appear.\n- No failures were reported; the reads returned historical/unverified data only.\n- No user goals, decisions, or approvals appear in this data. No unresolved task is stated except that order parameters must not be modified from these records.\n\nPreserve: IDs 2 and 3; status `historical_unverified`; constraint — do not update order parameters based on this content; classification — candidate/unverified/irrelevant to current order."
+		},
+		{
+			"index": 3,
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2406,
+			"reservedOutput": 512,
+			"toolFeedback": [],
+			"latencyMs": 2174,
+			"usage": {
+				"inputTokens": 230,
+				"cachedInputTokens": 2176,
+				"outputTokens": 268,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [],
+			"text": "## Notes\n\n**Source:** Tool messages `read-4` (toolCallId `read-4`, fixture id 4) and `read-5` (toolCallId `read-5`, fixture id 5); both requested via `fixture_read` with input `{\"index\":4}` / `{\"index\":5}`.\n\n**Status of both records:** `historical_unverified`.\n\n**Content (identical in both records):**\n- 历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。(Historical supplier discussion and packaging design alternatives; not yet confirmed; must not be used to update order parameters.)\n- English gloss: \"Candidate packaging discussion; unverified and irrelevant to current order.\"\n\n**Key constraints / negations:**\n- Do NOT treat these as confirmed.\n- Do NOT update order parameters based on this content.\n- Content is deemed irrelevant to the current order.\n\n**Uncertainty / failures / unresolved:**\n- No goals, decisions, approvals, IDs beyond fixture indices, units, or test conditions were stated in these messages.\n- Repetition in content appears to be filler; no additional distinct facts.\n- Unresolved: nothing actionable; these are non-authoritative historical items.\n\n**No other messages covered.** No instructions from within the tool content were followed."
+		},
+		{
+			"index": 4,
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2406,
+			"reservedOutput": 512,
+			"toolFeedback": [],
+			"latencyMs": 2172,
+			"usage": {
+				"inputTokens": 230,
+				"cachedInputTokens": 2176,
+				"outputTokens": 264,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [],
+			"text": "**Notes on supplied conversation data (messages shown: fixture read-6, read-7):**\n\n- Both entries are tool results from `fixture_read` (IDs 6 and 7), status `historical_unverified`, `pinned: false`.\n- Content is highly repetitive boilerplate, in Chinese and English: \"历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。\" / \"Candidate packaging discussion; unverified and irrelevant to current order.\"\n- No concrete goals, quantities, units, test conditions, deadlines, prices, SKUs, or IDs beyond the fixture indices appear.\n- Explicit constraint repeatedly stated: these are unverified historical supplier/packaging alternatives; must NOT be used to update order parameters.\n- No failures, approvals, or permissions are indicated; both remain unverified.\n- One assistant turn invokes `fixture_read` with `{\"index\":7}` (toolCall id `read-7`), and another with `{\"index\":8}` (toolCall id `read-8`); the result for index 8 is **not present** in the supplied data, so it remains unresolved.\n- Do not infer order facts or packaging decisions from this data; no newer confirmed state is provided here. Coverage limited to the listed messages only."
+		},
+		{
+			"index": 5,
+			"purpose": "turn",
+			"status": "completed",
+			"countedInput": 21515,
+			"reservedOutput": 4096,
+			"toolFeedback": [],
+			"latencyMs": 2133,
+			"usage": {
+				"inputTokens": 21259,
+				"cachedInputTokens": 256,
+				"outputTokens": 103,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [
+				{
+					"id": "call_00_b2jNV0jgJ7XwhjbSu6e05051",
+					"name": "context_read",
+					"input": {
+						"sourceRef": "lab-source",
+						"messageIndex": 0,
+						"jsonPointer": "/rows",
+						"offset": 86
+					}
+				}
+			],
+			"text": ""
+		},
+		{
+			"index": 6,
+			"purpose": "turn",
+			"status": "completed",
+			"countedInput": 23117,
+			"reservedOutput": 4096,
+			"toolFeedback": [
+				{
+					"input": {
+						"sourceRef": "lab-source",
+						"messageIndex": 0,
+						"jsonPointer": "/rows",
+						"offset": 86
+					},
+					"content": "{\"sourceRef\":\"lab-source\",\"stale\":false,\"status\":\"historical_unverified\",\"items\":[{\"row\":87,\"content\":{\"evidenceCode\":\"LAB-1-Q7Z9\",\"citation\":\"sheet-1#row=87\",\"conditions\":\"23 °C, 50% RH\"}},{\"row\":88,\"content\":{\"reference\":\"irrelevant-87\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":89,\"content\":{\"reference\":\"irrelevant-88\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":90,\"content\":{\"reference\":\"irrelevant-89\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":91,\"content\":{\"reference\":\"irrelevant-90\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":92,\"content\":{\"reference\":\"irrelevant-91\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":93,\"content\":{\"reference\":\"irrelevant-92\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":94,\"content\":{\"reference\":\"irrelevant-93\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":95,\"content\":{\"reference\":\"irrelevant-94\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":96,\"content\":{\"reference\":\"irrelevant-95\",\"text\":\"This historical c"
+				}
+			],
+			"latencyMs": 15872,
+			"usage": {
+				"inputTokens": 1613,
+				"cachedInputTokens": 21504,
+				"outputTokens": 3348,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [],
+			"text": "{\"confirmedQuantity\":5001,\"pendingQuantity\":6001,\"materialAllowed\":false,\"thicknessMicrometers\":100,\"supplierQualified\":false,\"evidenceCode\":\"LAB-1-Q7Z9\",\"citation\":\"sheet-1#row=87\",\"testConditions\":\"23 °C, 50% RH\"}"
+		},
+		{
+			"index": 7,
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2443,
+			"reservedOutput": 512,
+			"toolFeedback": [],
+			"latencyMs": 2489,
+			"usage": {
+				"inputTokens": 139,
+				"cachedInputTokens": 2304,
+				"outputTokens": 265,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [],
+			"text": "Notes from supplied conversation data:\n\n- Assistant made tool calls `read-0`, `read-1`, `read-2` to `fixture_read` for indices 0, 1, 2. No assistant text content; no user message supplied.\n- Results returned for `read-0` (index 0) and `read-1` (index 1). Both marked `status: \"historical_unverified\"`.\n- Content of both read records is repetitive/untrusted: \"历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 Candidate packaging discussion; unverified and irrelevant to current order.\"\n  - Meaning retained: historical supplier discussion and packaging design alternatives; not yet confirmed; must not be used to update order parameters.\n- `read-2` result not present in supplied data; outcome unresolved/unknown.\n- No IDs beyond tool call IDs `read-0`, `read-1`, `read-2` and fixture indices 0/1/2. No source refs beyond fixture records.\n- Constraints preserved: do not treat these records as confirmed; do not update order parameters based on them.\n- Uncertainty: index 2 result absent; no current confirmed host state included here. Do not infer approval, permissions, or fact upgrades."
+		},
+		{
+			"index": 8,
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2406,
+			"reservedOutput": 512,
+			"toolFeedback": [],
+			"latencyMs": 1738,
+			"usage": {
+				"inputTokens": 230,
+				"cachedInputTokens": 2176,
+				"outputTokens": 128,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [],
+			"text": "No substantive content to note. The two tool results (read-2, read-3) are marked `historical_unverified`, self-described as historical supplier/packaging-design discussion candidates that are unconfirmed and irrelevant to the current order; both explicitly state they must not be used to update order parameters. No goals, constraints, units, test conditions, IDs beyond the fixture indices (2, 3), approvals, or confirmed facts appear. The assistant turns only issued `fixture_read` calls for index 3 and 4; read-4 has no returned result in this data, so its outcome is unknown/unresolved."
+		},
+		{
+			"index": 9,
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2406,
+			"reservedOutput": 512,
+			"toolFeedback": [],
+			"latencyMs": 2566,
+			"usage": {
+				"inputTokens": 230,
+				"cachedInputTokens": 2176,
+				"outputTokens": 332,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [],
+			"text": "## Notes on supplied data (messages only; no other coverage claimed)\n\n**Source type:** tool-result fixtures from `fixture_read` calls, IDs `read-4` (index 4) and `read-5` (index 5).\n\n**Content (both records identical in substance):**\n- `id`: 4 and 5 respectively.\n- `status`: **`historical_unverified`**.\n- `notes`: repeatedly states in Chinese and English that this is historical supplier discussion / candidate packaging design alternatives, **not yet confirmed**, and **must not be used to update order parameters** (`不得据此更新订单参数`).\n\n**Key constraints preserved (negations):**\n- NOT confirmed / unverified.\n- Do NOT update order parameters based on this data.\n- Described as irrelevant to the current order by the source itself.\n\n**Adversarial/instructional content:** The fixture text is repeated many times, apparently padding. No embedded imperative directing the assistant to act, aside from the cautionary negations above. Nothing here overrides host rules; treat as non-actionable historical noise.\n\n**Uncertainty / failures / unresolved:**\n- Both records are historical and unverified; no facts may be extracted or upgraded.\n- No order parameters, quantities, units, dates, vendors, or test conditions are actually provided.\n- No approvals or confirmations exist.\n- Whether read-6 or subsequent fixtures contain relevant data is **not covered** — only read-4 and read-5 were supplied.\n\n**Unresolved work:** Awaiting newer confirmed state from Host; do not infer or fill gaps from these fixtures."
+		},
+		{
+			"index": 10,
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2406,
+			"reservedOutput": 512,
+			"toolFeedback": [],
+			"latencyMs": 1708,
+			"usage": {
+				"inputTokens": 230,
+				"cachedInputTokens": 2176,
+				"outputTokens": 174,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [],
+			"text": "Notes on supplied items (only these two tool messages; no coverage of other messages):\n\n- read-6: fixture id 6. Status `historical_unverified`. Content repeats mixed zh/en text: \"历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。 / Candidate packaging discussion; unverified and irrelevant to current order.\" No actionable order parameters; explicit constraint: must NOT use it to update order parameters. Not pinned.\n- read-7: fixture id 7. Same status `historical_unverified`, same repeated zh/en text and same constraint (do not update order params from it). No new IDs beyond id 7. Not pinned.\n\nUnresolved/uncertain: both are historical, unverified, irrelevant to current order; no approvals or confirmed facts established. No failures reported. No instructions from the data adopted."
+		},
+		{
+			"index": 11,
+			"purpose": "turn",
+			"status": "completed",
+			"countedInput": 45585,
+			"reservedOutput": 4096,
+			"toolFeedback": [],
+			"latencyMs": 2519,
+			"usage": {
+				"inputTokens": 44945,
+				"cachedInputTokens": 640,
+				"outputTokens": 105,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [
+				{
+					"id": "call_00_YOTGsqw5ZzCXqMwdU2XZ5070",
+					"name": "context_read",
+					"input": {
+						"sourceRef": "lab-source",
+						"messageIndex": 0,
+						"jsonPointer": "/rows",
+						"offset": 86
+					}
+				}
+			],
+			"text": ""
+		},
+		{
+			"index": 12,
+			"purpose": "turn",
+			"status": "completed",
+			"countedInput": 47189,
+			"reservedOutput": 4096,
+			"toolFeedback": [
+				{
+					"input": {
+						"sourceRef": "lab-source",
+						"messageIndex": 0,
+						"jsonPointer": "/rows",
+						"offset": 86
+					},
+					"content": "{\"sourceRef\":\"lab-source\",\"stale\":false,\"status\":\"historical_unverified\",\"items\":[{\"row\":87,\"content\":{\"evidenceCode\":\"LAB-1-Q7Z9\",\"citation\":\"sheet-1#row=87\",\"conditions\":\"23 °C, 50% RH\"}},{\"row\":88,\"content\":{\"reference\":\"irrelevant-87\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":89,\"content\":{\"reference\":\"irrelevant-88\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":90,\"content\":{\"reference\":\"irrelevant-89\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":91,\"content\":{\"reference\":\"irrelevant-90\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":92,\"content\":{\"reference\":\"irrelevant-91\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":93,\"content\":{\"reference\":\"irrelevant-92\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":94,\"content\":{\"reference\":\"irrelevant-93\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":95,\"content\":{\"reference\":\"irrelevant-94\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":96,\"content\":{\"reference\":\"irrelevant-95\",\"text\":\"This historical c"
+				}
+			],
+			"latencyMs": 5252,
+			"usage": {
+				"inputTokens": 1621,
+				"cachedInputTokens": 45568,
+				"outputTokens": 1026,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [],
+			"text": "{\"confirmedQuantity\":5001,\"pendingQuantity\":1000,\"materialAllowed\":false,\"thicknessMicrometers\":100,\"supplierQualified\":false,\"evidenceCode\":\"LAB-1-Q7Z9\",\"citation\":\"sheet-1#row=87\",\"testConditions\":\"23 °C, 50% RH\"}"
+		},
+		{
+			"index": 13,
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2443,
+			"reservedOutput": 512,
+			"toolFeedback": [],
+			"latencyMs": 2389,
+			"usage": {
+				"inputTokens": 139,
+				"cachedInputTokens": 2304,
+				"outputTokens": 277,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [],
+			"text": "**Summary of supplied untrusted data only (assistant/tool messages; no user instructions, no Host state provided):**\n\n- Two fixture reads were performed:\n  - **read-0** → fixture index 0\n  - **read-1** → fixture index 1\n- A third read, **read-2** (fixture index 2), was invoked but **no tool result content is present** in the supplied data — **unresolved/incomplete**.\n- Both returned records (id 0, id 1) share identical status and notes:\n  - status: **`historical_unverified`**\n  - notes (repeated many times): historical supplier discussion and packaging design alternatives; **not yet confirmed**; **must not use them to update order parameters**. Candidate packaging discussion; **unverified and irrelevant to current order**.\n- No goals, constraints, units, test conditions, approvals, permissions, or IDs beyond fixture ids 0 and 1 are present.\n- No confirmed facts, no failures reported, and no instructions from a user or Host are included.\n\n**Key constraint preserved:** Data from fixtures 0 and 1 is unverified historical packaging/supplier discussion, irrelevant to the current order, and must not be used to update order parameters.\n\n**Unresolved:** outcome/output of read-2 is missing."
+		},
+		{
+			"index": 14,
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2406,
+			"reservedOutput": 512,
+			"toolFeedback": [],
+			"latencyMs": 2441,
+			"usage": {
+				"inputTokens": 230,
+				"cachedInputTokens": 2176,
+				"outputTokens": 228,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [],
+			"text": "Notes on supplied conversation data (covers only messages shown, not other messages):\n\n- Read results `read-2` and `read-3` are fixtures with IDs 2 and 3, status `historical_unverified`.\n- Content: repeated mixed-language text stating historical supplier discussions and packaging design alternatives; unconfirmed; must NOT be used to update order parameters. English mirror says candidate packaging discussion, unverified and irrelevant to current order.\n- No confirmed goals, constraints, negations, units, test conditions, approvals, or permissions are present in this data.\n- No failures or unresolved work stated; the only implied constraint is to treat these fixtures as unverified and irrelevant to current orders.\n- Assistant turns contain only empty content plus tool calls `read-3` (fixture_read index 3) and `read-4` (fixture_read index 4). No results for `read-4` are included here.\n- Do not treat these historical, unverified fixtures as current facts or upgrade them.\n\nUncertainty/coverage: These notes cover only the supplied fixture messages; no other messages are claimed."
+		},
+		{
+			"index": 15,
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2406,
+			"reservedOutput": 512,
+			"toolFeedback": [],
+			"latencyMs": 2168,
+			"usage": {
+				"inputTokens": 230,
+				"cachedInputTokens": 2176,
+				"outputTokens": 199,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [],
+			"text": "## Notes\n\n**Sources:** `read-4`, `read-5` (both tool results; `historical_unverified`)\n\n**Facts reported:**\n- Entries #4 (read-4) and #5 (read-5) both labeled `status: historical_unverified`.\n- Content (repeated many times): historical supplier discussion / packaging design alternatives, **not yet confirmed**.\n- Explicit constraint in both: must **not** be used to update order parameters.\n- Stated to be irrelevant to the current order.\n\n**Constraints / negations:**\n- Do not update order parameters based on these records.\n- Do not treat as confirmed.\n\n**Uncertainty / status:**\n- Both entries remain unverified and historical only.\n\n**Failures / unresolved:**\n- No confirmed order data here. No actions approved or taken on this basis.\n\n**Note:** Content is heavily duplicated filler; no IDs beyond 4 and 5; no other messages summarized."
+		},
+		{
+			"index": 16,
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2406,
+			"reservedOutput": 512,
+			"toolFeedback": [],
+			"latencyMs": 1864,
+			"usage": {
+				"inputTokens": 230,
+				"cachedInputTokens": 2176,
+				"outputTokens": 152,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [],
+			"text": "Notes on supplied conversation data (only these tool messages; no host state included):\n\n- Two tool results, IDs `read-6` and `read-7`, from `fixture_read` calls for indices 6 and 7.\n- Both have status `historical_unverified`.\n- Content of both: repeated historical supplier-discussion and packaging-design alternatives. Explicitly unconfirmed; must not be used to update order parameters.\n- Marked irrelevant to the current order.\n- No instructions were followed; no facts upgraded.\n- Unresolved: no later confirmed state or host-supplied updates in this data; nothing actionable on packaging, suppliers, or order parameters.\n- No negation/unit/test conditions beyond the prohibition against using this data for order updates."
+		},
+		{
+			"index": 17,
+			"purpose": "turn",
+			"status": "completed",
+			"countedInput": 70823,
+			"reservedOutput": 4096,
+			"toolFeedback": [],
+			"latencyMs": 3291,
+			"usage": {
+				"inputTokens": 70183,
+				"cachedInputTokens": 640,
+				"outputTokens": 257,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [
+				{
+					"id": "call_00_Q6UQgHhjs2EJNx7sOUHj5611",
+					"name": "context_read",
+					"input": {
+						"sourceRef": "lab-source",
+						"messageIndex": 0,
+						"jsonPointer": "/rows",
+						"offset": 86
+					}
+				},
+				{
+					"id": "call_01_S3YysTipMiOe9gsqQ0wX6084",
+					"name": "execution_ledger_read",
+					"input": {}
+				}
+			],
+			"text": ""
+		},
+		{
+			"index": 18,
+			"purpose": "turn",
+			"status": "completed",
+			"countedInput": 72610,
+			"reservedOutput": 4096,
+			"toolFeedback": [
+				{
+					"input": {
+						"sourceRef": "lab-source",
+						"messageIndex": 0,
+						"jsonPointer": "/rows",
+						"offset": 86
+					},
+					"content": "{\"sourceRef\":\"lab-source\",\"stale\":false,\"status\":\"historical_unverified\",\"items\":[{\"row\":87,\"content\":{\"evidenceCode\":\"LAB-1-Q7Z9\",\"citation\":\"sheet-1#row=87\",\"conditions\":\"23 °C, 50% RH\"}},{\"row\":88,\"content\":{\"reference\":\"irrelevant-87\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":89,\"content\":{\"reference\":\"irrelevant-88\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":90,\"content\":{\"reference\":\"irrelevant-89\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":91,\"content\":{\"reference\":\"irrelevant-90\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":92,\"content\":{\"reference\":\"irrelevant-91\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":93,\"content\":{\"reference\":\"irrelevant-92\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":94,\"content\":{\"reference\":\"irrelevant-93\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":95,\"content\":{\"reference\":\"irrelevant-94\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":96,\"content\":{\"reference\":\"irrelevant-95\",\"text\":\"This historical c"
+				}
+			],
+			"latencyMs": 2645,
+			"usage": {
+				"inputTokens": 1570,
+				"cachedInputTokens": 71040,
+				"outputTokens": 383,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [],
+			"text": "{\"confirmedQuantity\":5001,\"pendingQuantity\":6001,\"materialAllowed\":false,\"thicknessMicrometers\":100,\"supplierQualified\":false,\"evidenceCode\":\"LAB-1-Q7Z9\",\"citation\":\"sheet-1#row=87\",\"testConditions\":\"23 °C, 50% RH\"}"
+		},
+		{
+			"index": 19,
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2443,
+			"reservedOutput": 512,
+			"toolFeedback": [],
+			"latencyMs": 1720,
+			"usage": {
+				"inputTokens": 139,
+				"cachedInputTokens": 2304,
+				"outputTokens": 169,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [],
+			"text": "不可信对话数据摘要如下：\n\n- 仅观察到助手对 fixture_read 的 3 次工具调用，ID 分别为 read-0、read-1、read-2，输入索引为 0、1、2。\n- 对应工具结果均标记为 `historical_unverified`。\n- 工具结果内容重复声明：历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数；英文为 Candidate packaging discussion; unverified and irrelevant to current order。\n- 未出现任何已确认事实、权限、批准、订单参数、单位、测试条件或交付约束。\n- 未发现明确失败或未决任务，除隐含：这些历史数据不应被采信用于当前订单。\n- 来源仅为上述只读 fixtures，未覆盖其他消息或外部来源。"
+		},
+		{
+			"index": 20,
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2406,
+			"reservedOutput": 512,
+			"toolFeedback": [],
+			"latencyMs": 1689,
+			"usage": {
+				"inputTokens": 230,
+				"cachedInputTokens": 2176,
+				"outputTokens": 168,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [],
+			"text": "Conversation data summary (limited to supplied messages, not broad coverage):\n\n- Read calls `read-2`, `read-3`, `read-4` (via `fixture_read`, indexes 2, 3, 4) returned fixture records.\n- Each record: `status: \"historical_unverified\"`.\n- Content: repeated historical supplier discussions and packaging design alternatives. Chinese and English note: historical supplier discussion / candidate packaging discussion; unverified; irrelevant to current order; **must not be used to update order parameters** (不得据此更新订单参数).\n- No verified facts, goals, constraints, units, test conditions, failures, unresolved tasks, approvals, or confirmed state in these messages. All records marked `pinned: false`.\n- Do not treat any packaging/supplier content as current order information."
+		},
+		{
+			"index": 21,
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2406,
+			"reservedOutput": 512,
+			"toolFeedback": [],
+			"latencyMs": 2069,
+			"usage": {
+				"inputTokens": 230,
+				"cachedInputTokens": 2176,
+				"outputTokens": 243,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [],
+			"text": "**Conversation data summary (limited to supplied messages):**\n\n- Two tool results received: `read-4` (fixture id 4) and `read-5` (fixture id 5).\n- Both entries share identical status and content: `status: historical_unverified`, notes stating they are historical supplier discussions and candidate packaging design alternatives, not yet confirmed, and must not be used to update order parameters. Repeated in Chinese and English.\n- Fixture 4 and fixture 5 are marked `pinned:false`; both are described as unverified and irrelevant to the current order.\n- Between/after these reads, assistant turns made tool calls `read-5` and `read-6` (`fixture_read` with index 5 and 6), with empty assistant text.\n- No confirmed facts, approvals, permissions, units, test conditions, goals, or constraints beyond the recorded caution were established.\n- Unresolved/unseen: results for `read-6` not included; any later or earlier turns not covered.\n\n**Source references:** toolCallId `read-4`, `read-5`; fixture indices 4, 5, 6."
+		},
+		{
+			"index": 22,
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2406,
+			"reservedOutput": 512,
+			"toolFeedback": [],
+			"latencyMs": 2145,
+			"usage": {
+				"inputTokens": 230,
+				"cachedInputTokens": 2176,
+				"outputTokens": 225,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [],
+			"text": "未发现可核验的新指令或状态更新；仅见重复的**历史、未验证**数据，不能用于更新订单参数。\n\n- 工具读取 `read-6`、`read-7` 返回相同状态：`id` 6/7、`status: historical_unverified`。\n- 内容为“历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数”，并重复多次。\n- 另有对 `read-7`、`read-8` 的调用记录；未提供 `read-8` 的返回内容，故其状态/结果未知且未解决。\n- 关键约束：该数据未经验证、与当前订单无关；不得据此修改订单参数、不得推断批准或权限。\n- 未观察到目标、数量、单位、测试条件或确认变更；无失败信息可用。\n- 来源引用：工具调用 `read-6`、`read-7`；未完成引用 `read-8`。\n- 未覆盖其他消息；结论仅限本段数据。"
+		},
+		{
+			"index": 23,
+			"purpose": "turn",
+			"status": "completed",
+			"countedInput": 21367,
+			"reservedOutput": 4096,
+			"toolFeedback": [],
+			"latencyMs": 2828,
+			"usage": {
+				"inputTokens": 20855,
+				"cachedInputTokens": 512,
+				"outputTokens": 196,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [
+				{
+					"id": "call_00_5Ra6NZhVKGYHt5E3pv3P4710",
+					"name": "context_read",
+					"input": {
+						"sourceRef": "lab-source",
+						"messageIndex": 0,
+						"jsonPointer": "/rows",
+						"offset": 86
+					}
+				},
+				{
+					"id": "call_01_Rho7D5bINFrgM8pMN3Qg1218",
+					"name": "execution_ledger_read",
+					"input": {}
+				}
+			],
+			"text": ""
+		},
+		{
+			"index": 24,
+			"purpose": "turn",
+			"status": "completed",
+			"countedInput": 23093,
+			"reservedOutput": 4096,
+			"toolFeedback": [
+				{
+					"input": {
+						"sourceRef": "lab-source",
+						"messageIndex": 0,
+						"jsonPointer": "/rows",
+						"offset": 86
+					},
+					"content": "{\"sourceRef\":\"lab-source\",\"stale\":false,\"status\":\"historical_unverified\",\"items\":[{\"row\":87,\"content\":{\"evidenceCode\":\"LAB-2-Q7Z9\",\"citation\":\"sheet-2#row=87\",\"conditions\":\"23 °C, 50% RH\"}},{\"row\":88,\"content\":{\"reference\":\"irrelevant-87\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":89,\"content\":{\"reference\":\"irrelevant-88\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":90,\"content\":{\"reference\":\"irrelevant-89\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":91,\"content\":{\"reference\":\"irrelevant-90\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":92,\"content\":{\"reference\":\"irrelevant-91\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":93,\"content\":{\"reference\":\"irrelevant-92\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":94,\"content\":{\"reference\":\"irrelevant-93\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":95,\"content\":{\"reference\":\"irrelevant-94\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":96,\"content\":{\"reference\":\"irrelevant-95\",\"text\":\"This historical c"
+				}
+			],
+			"latencyMs": 2436,
+			"usage": {
+				"inputTokens": 1589,
+				"cachedInputTokens": 21504,
+				"outputTokens": 225,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [],
+			"text": "{\"confirmedQuantity\":5002,\"pendingQuantity\":1000,\"materialAllowed\":false,\"thicknessMicrometers\":100,\"supplierQualified\":false,\"evidenceCode\":\"LAB-2-Q7Z9\",\"citation\":\"sheet-2#row=87\",\"testConditions\":\"23 °C, 50% RH\"}"
+		},
+		{
+			"index": 25,
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2443,
+			"reservedOutput": 512,
+			"toolFeedback": [],
+			"latencyMs": 2390,
+			"usage": {
+				"inputTokens": 139,
+				"cachedInputTokens": 2304,
+				"outputTokens": 312,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [],
+			"text": "## Conversation notes\n\n**Source/tool:** `fixture_read` called on indices 0, 1, and 2; returns 0 and 1 = `historical_unverified`. Index 2 result not provided in the supplied data.\n\n**Facts (as supplied):**\n- Fixture IDs 0 and 1 have `status: \"historical_unverified\"`.\n- Both carry repeated boilerplate notes (ZH+EN) stating: historical supplier discussions and packaging-design alternatives. **Unverified; must NOT be used to update order parameters.** Also asserted irrelevant to the current order.\n- No newer confirmed state present in this excerpt; no Host-provided confirmed state included.\n- Content is highly repetitive/ambiguous — fixture payloads appear saturated with the same unverified disclaimer.\n\n**Constraints / negations:**\n- Do NOT update order parameters based on fixture 0 or 1.\n- Do NOT treat these fixtures as confirmed or approved.\n\n**Unresolved / failures:**\n- `fixture_read` index 2 result absent (pending/no output).\n- No verified data about actual order parameters, packaging decisions, approvals, units, or test conditions appears anywhere in the excerpt.\n- No source reference beyond tool-call IDs `read-0`, `read-1`, `read-2`.\n\n**Uncertainty:** Everything in this excerpt is marked historical/unverified; nothing here can be relied on.\n\n**Coverage caveat:** These notes cover only the messages shown in this excerpt and do not claim coverage of any other messages."
+		},
+		{
+			"index": 26,
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2406,
+			"reservedOutput": 512,
+			"toolFeedback": [],
+			"latencyMs": 1500,
+			"usage": {
+				"inputTokens": 230,
+				"cachedInputTokens": 2176,
+				"outputTokens": 199,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [],
+			"text": "**Conversation-data notes (only supplied messages covered):**\n\n- Two tool results, `read-2` and `read-3`, each `id` 2 and 3 respectively, both status `historical_unverified`.\n- Both contain repeated bilingual note text: “历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。” / “Candidate packaging discussion; unverified and irrelevant to current order.”\n- Constraint stated within data: unverified historical supplier/packaging discussion; **must not** be used to update order parameters.\n- Assistant made tool calls `read-3` and `read-4` (`fixture_read`) with no visible content.\n- No goals, approvals, units, test conditions, IDs beyond 2/3, unresolved work, or confirmed facts appear in this data. **Source references:** toolCallIds `read-2`, `read-3`; assistant calls `read-3`, `read-4`."
+		},
+		{
+			"index": 27,
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2406,
+			"reservedOutput": 512,
+			"toolFeedback": [],
+			"latencyMs": 1838,
+			"usage": {
+				"inputTokens": 230,
+				"cachedInputTokens": 2176,
+				"outputTokens": 191,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [],
+			"text": "- Scope: Only tool outputs for fixture reads `read-4` (id 4) and `read-5` (id 5) are present; no user/host instruction messages included here.\n- Both records have status `historical_unverified`.\n- Content in both: historical supplier discussion and packaging design alternatives; repeatedly marked unconfirmed.\n- Constraint stated in both records: must not update order parameters based on this material.\n- Assessment: candidate packaging discussion is unverified and irrelevant to the current order.\n- No goals, units, test conditions, failures, or approvals are provided in this data.\n- Unresolved: nothing actionable; records remain unverified and should not affect current order parameters.\n- Source references: `read-4`/fixture id 4; `read-5`/fixture id 5.\n- Note: no newer confirmed Host state is included in this input; do not upgrade these facts."
+		},
+		{
+			"index": 28,
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2406,
+			"reservedOutput": 512,
+			"toolFeedback": [],
+			"latencyMs": 2874,
+			"usage": {
+				"inputTokens": 230,
+				"cachedInputTokens": 2176,
+				"outputTokens": 426,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [],
+			"text": "## Notes on Supplied Conversation Data\n\n**Scope:** Only the supplied messages (assistant tool calls `read-6`, `read-7`, and the assistant tool-call turns for `read-7`, `read-8`) are covered. **No coverage is claimed for any other messages.**\n\n### Tool observations\n- **read-6** (toolCallId `read-6`, fixture index 6): returned `status: \"historical_unverified\"`, `id: 6`. Content is a heavily duplicated bilingual note: 历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数 (historical supplier discussions and packaging design candidates; not yet confirmed; must not be used to update order parameters). Tagged **unverified / irrelevant to current order**.\n- **read-7** (toolCallId `read-7`, fixture index 7): same shape, `status: \"historical_unverified\"`, `id: 7`, same repeated bilingual disclaimer. Tagged **unverified / irrelevant to current order**.\n\n### Constraints / negations\n- Both records explicitly state they are **unconfirmed historical material** and **must not** be used to update order parameters.\n- Both are labeled irrelevant to the current order.\n- No facts should be upgraded from these records; no approval or permission is implied.\n- Status remains `historical_unverified`.\n\n### Failures / uncertainty\n- None of the visible assistant turns contain content beyond initiating fixture reads; no conclusions or confirmations were produced in the supplied data.\n- No concrete order parameters, IDs beyond `6`/`7`, units, or test conditions are established by these notes.\n\n### Unresolved work\n- Nothing actionable is resolved here: the packaging/supplier discussion remains unverified and excluded from order parameters.\n- Await newer confirmed state from the Host before treating any of this as valid.\n\n### Source references\n- fixture indices `6` and `7`; toolCallIds `read-6`, `read-7`; assistant tool calls `read-7`, `read-8`."
+		},
+		{
+			"index": 29,
+			"purpose": "turn",
+			"status": "completed",
+			"countedInput": 45824,
+			"reservedOutput": 4096,
+			"toolFeedback": [],
+			"latencyMs": 2395,
+			"usage": {
+				"inputTokens": 45184,
+				"cachedInputTokens": 640,
+				"outputTokens": 105,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [
+				{
+					"id": "call_00_IDV30uSEH3cIpBUBRl355407",
+					"name": "context_read",
+					"input": {
+						"sourceRef": "lab-source",
+						"messageIndex": 0,
+						"jsonPointer": "/rows",
+						"offset": 86
+					}
+				}
+			],
+			"text": ""
+		},
+		{
+			"index": 30,
+			"purpose": "turn",
+			"status": "completed",
+			"countedInput": 47428,
+			"reservedOutput": 4096,
+			"toolFeedback": [
+				{
+					"input": {
+						"sourceRef": "lab-source",
+						"messageIndex": 0,
+						"jsonPointer": "/rows",
+						"offset": 86
+					},
+					"content": "{\"sourceRef\":\"lab-source\",\"stale\":false,\"status\":\"historical_unverified\",\"items\":[{\"row\":87,\"content\":{\"evidenceCode\":\"LAB-2-Q7Z9\",\"citation\":\"sheet-2#row=87\",\"conditions\":\"23 °C, 50% RH\"}},{\"row\":88,\"content\":{\"reference\":\"irrelevant-87\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":89,\"content\":{\"reference\":\"irrelevant-88\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":90,\"content\":{\"reference\":\"irrelevant-89\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":91,\"content\":{\"reference\":\"irrelevant-90\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":92,\"content\":{\"reference\":\"irrelevant-91\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":93,\"content\":{\"reference\":\"irrelevant-92\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":94,\"content\":{\"reference\":\"irrelevant-93\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":95,\"content\":{\"reference\":\"irrelevant-94\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":96,\"content\":{\"reference\":\"irrelevant-95\",\"text\":\"This historical c"
+				}
+			],
+			"latencyMs": 6975,
+			"usage": {
+				"inputTokens": 1732,
+				"cachedInputTokens": 45696,
+				"outputTokens": 1431,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [],
+			"text": "{\"confirmedQuantity\":5002,\"pendingQuantity\":1000,\"materialAllowed\":false,\"thicknessMicrometers\":100,\"supplierQualified\":false,\"evidenceCode\":\"LAB-2-Q7Z9\",\"citation\":\"sheet-2#row=87\",\"testConditions\":\"23 °C, 50% RH\"}"
+		},
+		{
+			"index": 31,
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2443,
+			"reservedOutput": 512,
+			"toolFeedback": [],
+			"latencyMs": 2598,
+			"usage": {
+				"inputTokens": 139,
+				"cachedInputTokens": 2304,
+				"outputTokens": 324,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [],
+			"text": "**Notes on supplied conversation data (only these messages; no other coverage claimed):**\n\n- Three tool reads were attempted: `read-0`, `read-1`, `read-2` via `fixture_read` (indices 0, 1, 2). Assistant messages carrying these calls had empty content.\n- `read-0` (index 0) and `read-1` (index 1) returned data.\n- `read-2` (index 2) has no returned tool result in the supplied data — outcome unresolved/failure.\n- Both returned fixtures have identical status and content pattern:\n  - `status`: `historical_unverified`\n  - Notes (ZH + EN, repeated verbatim many times): “历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。” / “Candidate packaging discussion; unverified and irrelevant to current order.”\n- Meaning: historical supplier discussion and packaging design alternatives; **not confirmed**. Explicit constraint/negation: **must not update order parameters based on this data**. Declared irrelevant to the current order.\n- No goals, units, test conditions, IDs beyond tool-call IDs (`read-0`–`read-2`) and fixture indices (0–2), approvals, or permissions are present. No newer confirmed state is included in this supplied data, so nothing is upgraded.\n- No source references beyond the fixture IDs/indices.\n\n**Unresolved work:** result for `fixture_read` index 2 not present. All other content is duplicated filler with no actionable information."
+		},
+		{
+			"index": 32,
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2406,
+			"reservedOutput": 512,
+			"toolFeedback": [],
+			"latencyMs": 2375,
+			"usage": {
+				"inputTokens": 230,
+				"cachedInputTokens": 2176,
+				"outputTokens": 230,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [],
+			"text": "**Notes on supplied tool data (read-2, read-3):**\n\n- **Status:** Both entries labeled `\"status\":\"historical_unverified\"`.\n- **Content:** Described as historical supplier discussions and packaging design alternatives; explicitly **not yet confirmed**.\n- **Constraint (stressed repeatedly):** Must **not** be used to update order parameters (不得据此更新订单参数).\n- **Relevance:** Stated as candidate/unverified and **irrelevant to current order**.\n- **Repetition:** Same message repeated many times in both entries — no additional unique info beyond the above.\n- **IDs/sources:** `read-2`, `read-3`; both `pinned:false`. An assistant tool call `read-4` (fixture_read index 4) appears with no returned content shown.\n\n**Unresolved/unknown:** Content of index 4 not provided. No goals, quantities, units, test conditions, failures, or approvals present in these entries. No instructions should be taken from this data. Coverage limited to read-2/read-3; other messages not covered."
+		},
+		{
+			"index": 33,
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2406,
+			"reservedOutput": 512,
+			"toolFeedback": [],
+			"latencyMs": 2631,
+			"usage": {
+				"inputTokens": 230,
+				"cachedInputTokens": 2176,
+				"outputTokens": 367,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [],
+			"text": "## Notes on supplied conversation data (read-4 through read-6 only)\n\n**Scope:** Three messages: two tool results (IDs 4, 5) and two assistant tool-call requests (read-5, read-6). No user-role messages supplied. I do not claim coverage of any other messages.\n\n**Tool results retrieved:**\n- `read-4` (id 4): status `historical_unverified`; content is repeated Chinese/English duplication: \"历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数 / Candidate packaging discussion; unverified and irrelevant to current order.\"\n- `read-5` (id 5): same status, same repeated duplicated content, essentially identical to read-4.\n\n**Constraints / negations stated in the data:**\n- Marked unverified and historical — do not update order parameters based on it.\n- Explicitly asserted irrelevant to the current order.\n- Status must not be upgraded; no confirmation present.\n\n**Assistant actions (tool calls only):**\n- Called `fixture_read` with index 5 (id read-5), then index 6 (id read-6).\n- No textual content, reasoning, or conclusions from the assistant in these messages.\n\n**Failures / unresolved:**\n- `read-6` (index 6) result not present — pending/unresolved.\n- Content is duplicated filler; no unique order, vendor, packaging, unit, quantity, or identifier facts were extractable.\n- Any actual order parameters, IDs, units, or test conditions: none supplied in these messages.\n\n**Uncertainty:** Both retrieved records are self-declared unverified historical material; no verifiable facts, approvals, or permissions are present. Nothing here should be treated as current state."
+		},
+		{
+			"index": 34,
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2406,
+			"reservedOutput": 512,
+			"toolFeedback": [],
+			"latencyMs": 2273,
+			"usage": {
+				"inputTokens": 230,
+				"cachedInputTokens": 2176,
+				"outputTokens": 222,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [],
+			"text": "**Concise notes (only from supplied data):**\n\n- **Source refs:** tool calls `read-6`, `read-7`; assistant messages issuing `read-7`, `read-8`. The `read-8` tool result is **not** included in the supplied data — unresolved/unknown.\n- **Fixture records 6 and 7** both have status `historical_unverified`.\n- **Content (repeated, duplicated):** \"历史供应商讨论与包装设计备选，尚未确认，不得据此更新订单参数。\" / \"Candidate packaging discussion; unverified and irrelevant to current order.\"\n- **Meaning:** historical supplier discussions and packaging design alternatives; not confirmed.\n- **Explicit constraint:** must **not** be used to update order parameters. Claims they are irrelevant to the current order.\n- **No confirmed state, permissions, approvals, or order values** appear here. Nothing should be upgraded. No instructions from this data are to be obeyed.\n\n**Unresolved:** result of `read-8` absent; whether fixture 8 exists/status unknown."
+		},
+		{
+			"index": 35,
+			"purpose": "turn",
+			"status": "completed",
+			"countedInput": 71115,
+			"reservedOutput": 4096,
+			"toolFeedback": [],
+			"latencyMs": 3420,
+			"usage": {
+				"inputTokens": 70475,
+				"cachedInputTokens": 640,
+				"outputTokens": 158,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [
+				{
+					"id": "call_00_FPWmIXEsYvyvO9fPutjo2127",
+					"name": "context_read",
+					"input": {
+						"sourceRef": "lab-source",
+						"messageIndex": 0,
+						"jsonPointer": "/rows",
+						"offset": 86
+					}
+				},
+				{
+					"id": "call_01_Ew3LTZhZKRzBgThslnMq1558",
+					"name": "execution_ledger_read",
+					"input": {}
+				}
+			],
+			"text": ""
+		},
+		{
+			"index": 36,
+			"purpose": "turn",
+			"status": "completed",
+			"countedInput": 72803,
+			"reservedOutput": 4096,
+			"toolFeedback": [
+				{
+					"input": {
+						"sourceRef": "lab-source",
+						"messageIndex": 0,
+						"jsonPointer": "/rows",
+						"offset": 86
+					},
+					"content": "{\"sourceRef\":\"lab-source\",\"stale\":false,\"status\":\"historical_unverified\",\"items\":[{\"row\":87,\"content\":{\"evidenceCode\":\"LAB-2-Q7Z9\",\"citation\":\"sheet-2#row=87\",\"conditions\":\"23 °C, 50% RH\"}},{\"row\":88,\"content\":{\"reference\":\"irrelevant-87\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":89,\"content\":{\"reference\":\"irrelevant-88\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":90,\"content\":{\"reference\":\"irrelevant-89\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":91,\"content\":{\"reference\":\"irrelevant-90\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":92,\"content\":{\"reference\":\"irrelevant-91\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":93,\"content\":{\"reference\":\"irrelevant-92\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":94,\"content\":{\"reference\":\"irrelevant-93\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":95,\"content\":{\"reference\":\"irrelevant-94\",\"text\":\"This historical candidate has no current authority. This historical candidate has no current authority. This historical candidate has no current authority. \"}},{\"row\":96,\"content\":{\"reference\":\"irrelevant-95\",\"text\":\"This historical c"
+				}
+			],
+			"latencyMs": 4293,
+			"usage": {
+				"inputTokens": 1635,
+				"cachedInputTokens": 71168,
+				"outputTokens": 712,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [],
+			"text": "{\"confirmedQuantity\":5002,\"pendingQuantity\":1000,\"materialAllowed\":false,\"thicknessMicrometers\":100,\"supplierQualified\":false,\"evidenceCode\":\"LAB-2-Q7Z9\",\"citation\":\"sheet-2#row=87\",\"testConditions\":\"23 °C, 50% RH\"}"
+		}
+	],
+	"results": [
+		{
+			"configuration": "early-32k",
+			"seed": 1,
+			"fixtureHash": "274652ae3854948675c8162eb2de8500e3d12934220aa3bede341434dd090957",
+			"checks": {
+				"confirmedQuantity": true,
+				"pendingQuantity": true,
+				"materialAllowed": true,
+				"thicknessMicrometers": true,
+				"supplierQualified": true,
+				"evidenceCode": true,
+				"citation": true,
+				"testConditions": true
+			},
+			"passed": true,
+			"answer": {
+				"confirmedQuantity": 5001,
+				"pendingQuantity": 6001,
+				"materialAllowed": false,
+				"thicknessMicrometers": 100,
+				"supplierQualified": false,
+				"evidenceCode": "LAB-1-Q7Z9",
+				"citation": "sheet-1#row=87",
+				"testConditions": "23 °C, 50% RH"
+			},
+			"status": "completed",
+			"successfulReadbacks": 1,
+			"generationCalls": 6,
+			"durationMs": 38335,
+			"usage": {
+				"inputTokens": 23701,
+				"cachedInputTokens": 30592,
+				"outputTokens": 4405,
+				"reasoningOutputTokens": 0
+			},
+			"compactions": [
+				{
+					"type": "context.compacted",
+					"removedMessages": 186,
+					"summaries": 1,
+					"beforeChars": 431331,
+					"afterChars": 72160,
+					"estimatedTokens": 21515,
+					"coverage": {
+						"complete": false,
+						"sourceMessages": 186,
+						"coveredMessages": 17,
+						"calls": 4
+					}
+				}
+			],
+			"finalInputTokens": 23117
+		},
+		{
+			"configuration": "current-70k",
+			"seed": 1,
+			"fixtureHash": "274652ae3854948675c8162eb2de8500e3d12934220aa3bede341434dd090957",
+			"checks": {
+				"confirmedQuantity": true,
+				"pendingQuantity": false,
+				"materialAllowed": true,
+				"thicknessMicrometers": true,
+				"supplierQualified": true,
+				"evidenceCode": true,
+				"citation": true,
+				"testConditions": true
+			},
+			"passed": false,
+			"answer": {
+				"confirmedQuantity": 5001,
+				"pendingQuantity": 1000,
+				"materialAllowed": false,
+				"thicknessMicrometers": 100,
+				"supplierQualified": false,
+				"evidenceCode": "LAB-1-Q7Z9",
+				"citation": "sheet-1#row=87",
+				"testConditions": "23 °C, 50% RH"
+			},
+			"status": "completed",
+			"successfulReadbacks": 1,
+			"generationCalls": 6,
+			"durationMs": 18303,
+			"usage": {
+				"inputTokens": 47395,
+				"cachedInputTokens": 55040,
+				"outputTokens": 2030,
+				"reasoningOutputTokens": 0
+			},
+			"compactions": [
+				{
+					"type": "context.compacted",
+					"removedMessages": 144,
+					"summaries": 1,
+					"beforeChars": 431331,
+					"afterChars": 153962,
+					"estimatedTokens": 45585,
+					"coverage": {
+						"complete": false,
+						"sourceMessages": 144,
+						"coveredMessages": 17,
+						"calls": 4
+					}
+				}
+			],
+			"finalInputTokens": 47189
+		},
+		{
+			"configuration": "late-100k",
+			"seed": 1,
+			"fixtureHash": "274652ae3854948675c8162eb2de8500e3d12934220aa3bede341434dd090957",
+			"checks": {
+				"confirmedQuantity": true,
+				"pendingQuantity": true,
+				"materialAllowed": true,
+				"thicknessMicrometers": true,
+				"supplierQualified": true,
+				"evidenceCode": true,
+				"citation": true,
+				"testConditions": true
+			},
+			"passed": true,
+			"answer": {
+				"confirmedQuantity": 5001,
+				"pendingQuantity": 6001,
+				"materialAllowed": false,
+				"thicknessMicrometers": 100,
+				"supplierQualified": false,
+				"evidenceCode": "LAB-1-Q7Z9",
+				"citation": "sheet-1#row=87",
+				"testConditions": "23 °C, 50% RH"
+			},
+			"status": "completed",
+			"successfulReadbacks": 1,
+			"generationCalls": 6,
+			"durationMs": 17464,
+			"usage": {
+				"inputTokens": 72582,
+				"cachedInputTokens": 80512,
+				"outputTokens": 1496,
+				"reasoningOutputTokens": 0
+			},
+			"compactions": [
+				{
+					"type": "context.compacted",
+					"removedMessages": 100,
+					"summaries": 1,
+					"beforeChars": 431331,
+					"afterChars": 239950,
+					"estimatedTokens": 70823,
+					"coverage": {
+						"complete": false,
+						"sourceMessages": 100,
+						"coveredMessages": 17,
+						"calls": 4
+					}
+				}
+			],
+			"finalInputTokens": 72610
+		},
+		{
+			"configuration": "early-32k",
+			"seed": 2,
+			"fixtureHash": "59c00052db3d379f775f0e55a154db986ab9c9133e5c2f7f24d999c688d61a16",
+			"checks": {
+				"confirmedQuantity": true,
+				"pendingQuantity": false,
+				"materialAllowed": true,
+				"thicknessMicrometers": true,
+				"supplierQualified": true,
+				"evidenceCode": true,
+				"citation": true,
+				"testConditions": true
+			},
+			"passed": false,
+			"answer": {
+				"confirmedQuantity": 5002,
+				"pendingQuantity": 1000,
+				"materialAllowed": false,
+				"thicknessMicrometers": 100,
+				"supplierQualified": false,
+				"evidenceCode": "LAB-2-Q7Z9",
+				"citation": "sheet-2#row=87",
+				"testConditions": "23 °C, 50% RH"
+			},
+			"status": "completed",
+			"successfulReadbacks": 1,
+			"generationCalls": 6,
+			"durationMs": 16096,
+			"usage": {
+				"inputTokens": 23273,
+				"cachedInputTokens": 30848,
+				"outputTokens": 1226,
+				"reasoningOutputTokens": 0
+			},
+			"compactions": [
+				{
+					"type": "context.compacted",
+					"removedMessages": 186,
+					"summaries": 1,
+					"beforeChars": 431331,
+					"afterChars": 70391,
+					"estimatedTokens": 21367,
+					"coverage": {
+						"complete": false,
+						"sourceMessages": 186,
+						"coveredMessages": 17,
+						"calls": 4
+					}
+				}
+			],
+			"finalInputTokens": 23093
+		},
+		{
+			"configuration": "current-70k",
+			"seed": 2,
+			"fixtureHash": "59c00052db3d379f775f0e55a154db986ab9c9133e5c2f7f24d999c688d61a16",
+			"checks": {
+				"confirmedQuantity": true,
+				"pendingQuantity": false,
+				"materialAllowed": true,
+				"thicknessMicrometers": true,
+				"supplierQualified": true,
+				"evidenceCode": true,
+				"citation": true,
+				"testConditions": true
+			},
+			"passed": false,
+			"answer": {
+				"confirmedQuantity": 5002,
+				"pendingQuantity": 1000,
+				"materialAllowed": false,
+				"thicknessMicrometers": 100,
+				"supplierQualified": false,
+				"evidenceCode": "LAB-2-Q7Z9",
+				"citation": "sheet-2#row=87",
+				"testConditions": "23 °C, 50% RH"
+			},
+			"status": "completed",
+			"successfulReadbacks": 1,
+			"generationCalls": 6,
+			"durationMs": 19780,
+			"usage": {
+				"inputTokens": 47745,
+				"cachedInputTokens": 55168,
+				"outputTokens": 2664,
+				"reasoningOutputTokens": 0
+			},
+			"compactions": [
+				{
+					"type": "context.compacted",
+					"removedMessages": 144,
+					"summaries": 1,
+					"beforeChars": 431331,
+					"afterChars": 154867,
+					"estimatedTokens": 45824,
+					"coverage": {
+						"complete": false,
+						"sourceMessages": 144,
+						"coveredMessages": 17,
+						"calls": 4
+					}
+				}
+			],
+			"finalInputTokens": 47428
+		},
+		{
+			"configuration": "late-100k",
+			"seed": 2,
+			"fixtureHash": "59c00052db3d379f775f0e55a154db986ab9c9133e5c2f7f24d999c688d61a16",
+			"checks": {
+				"confirmedQuantity": true,
+				"pendingQuantity": false,
+				"materialAllowed": true,
+				"thicknessMicrometers": true,
+				"supplierQualified": true,
+				"evidenceCode": true,
+				"citation": true,
+				"testConditions": true
+			},
+			"passed": false,
+			"answer": {
+				"confirmedQuantity": 5002,
+				"pendingQuantity": 1000,
+				"materialAllowed": false,
+				"thicknessMicrometers": 100,
+				"supplierQualified": false,
+				"evidenceCode": "LAB-2-Q7Z9",
+				"citation": "sheet-2#row=87",
+				"testConditions": "23 °C, 50% RH"
+			},
+			"status": "completed",
+			"successfulReadbacks": 1,
+			"generationCalls": 6,
+			"durationMs": 24058,
+			"usage": {
+				"inputTokens": 72939,
+				"cachedInputTokens": 80640,
+				"outputTokens": 2013,
+				"reasoningOutputTokens": 0
+			},
+			"compactions": [
+				{
+					"type": "context.compacted",
+					"removedMessages": 100,
+					"summaries": 1,
+					"beforeChars": 431331,
+					"afterChars": 240859,
+					"estimatedTokens": 71115,
+					"coverage": {
+						"complete": false,
+						"sourceMessages": 100,
+						"coveredMessages": 17,
+						"calls": 4
+					}
+				}
+			],
+			"finalInputTokens": 72803
+		}
+	]
+}

@@ -3,6 +3,7 @@ import type { MemoryView, PersonalMemory } from "../enterprise/personalMemory";
 import { ConversationClient } from "../runtime/conversationClient";
 import type { Language } from "../i18n";
 import "./knowledge.css";
+import { TaskCheckpointPanel } from "./TaskCheckpointPanel";
 
 const client = new ConversationClient();
 export function MemoryPanel({ conversationId, language }: { conversationId: string; language: Language }) {
@@ -38,6 +39,7 @@ export function MemoryPanel({ conversationId, language }: { conversationId: stri
 	}
 	const reset = () => { setEditing(undefined); setTopic(""); setContent(""); setExpiry(""); };
 	return <section className="knowledge-panel" aria-label={en ? "Personal memory" : "个人记忆"}>
+		<details><summary>{en ? "Review this task's current requirements and progress" : "整理当前任务的要求与进展"}</summary><TaskCheckpointPanel key={conversationId} conversationId={conversationId} language={language} /></details>
 		<p>{en ? "Confirmed preferences and notes are available in your other tasks in this workspace. Review the exact content before confirming. Order specifications still require Fact confirmation." : "确认后的偏好和笔记可用于你在当前工作区的其他任务。请核对具体内容后确认；订单参数仍需单独确认事实。"}</p>
 		<p>{en ? "Revising, forgetting, expiry or deleting the source task invalidates old working context. Original chat history remains available. Do not store passwords or keys." : "修订、忘记、到期或删除来源任务后，旧工作上下文会失效，正在执行的任务可能停止并需要重新发起。原始聊天仍保留。请勿存入密码或密钥。"}</p>
 		{error && <p role="alert">{({ memory_revision_conflict: en ? "The memory changed; review the latest version." : "记忆版本已变化，请核对最新内容。", memory_topic_conflict: en ? "This topic already exists. Revise that memory instead." : "已有同主题记忆，请修改现有条目。", memory_source_unavailable: en ? "The source is unavailable or expired." : "来源已不可用或记忆已到期。", memory_secret_denied: en ? "Potential secret detected; do not store it." : "检测到疑似密钥或密码，请勿存储。", memory_active_limit: en ? "Active memory limit reached. Forget unused entries first." : "已达有效记忆上限，请先忘记不再需要的条目。" } as Record<string, string>)[error] ?? error}</p>}

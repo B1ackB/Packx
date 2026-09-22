@@ -1,0 +1,322 @@
+{
+	"schemaVersion": "context-threshold-eval.v1",
+	"generatedAt": "2026-09-22T09:20:29.963Z",
+	"requestedModel": "deepseek-v4-flash",
+	"officialModelAlias": "Official docs map legacy deepseek-v4-flash to DeepSeek-V4.1-Flash; response model is recorded separately",
+	"mode": "online-synthetic-runtime",
+	"baselineCommit": "da4fcd1",
+	"configurations": [
+		{
+			"name": "early-32k",
+			"trigger": 32000,
+			"target": 20000
+		},
+		{
+			"name": "current-70k",
+			"trigger": 70000,
+			"target": 45000
+		},
+		{
+			"name": "late-100k",
+			"trigger": 100000,
+			"target": 70000
+		}
+	],
+	"limits": {
+		"usd": 1,
+		"generations": 64,
+		"countedRequests": 400,
+		"inputTokens": 2000000,
+		"outputTokens": 80000
+	},
+	"rates": {
+		"uncachedInputUsdPerMillion": 0.3,
+		"outputUsdPerMillion": 1.2,
+		"basis": "DeepSeek official peak Flash prices, retrieved 2026-09-22; cache discounts ignored for conservative bounds"
+	},
+	"priorReservedUsd": 0.090809,
+	"reservedUsd": 0.16571089999999997,
+	"reservedInput": 143177,
+	"reservedOutput": 26624,
+	"tokenCountRequests": 11,
+	"calls": [
+		{
+			"index": 1,
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2443,
+			"reservedOutput": 512,
+			"latencyMs": 1395,
+			"usage": {
+				"inputTokens": 139,
+				"cachedInputTokens": 2304,
+				"outputTokens": 97,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [],
+			"text": "Unable to summarize: the supplied conversation contains only assistant tool calls and tool results for fixtures 0 and 1, both `historical_unverified` packaging/supplier discussion. No user goals, constraints, order parameters, approvals, tests, failures, IDs beyond read-0/read-1/fixture 0/1, or unresolved work are present. No newer Host state supplied. No instruction-like content to obey. Coverage limited to these messages; no other messages summarized."
+		},
+		{
+			"index": 2,
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2406,
+			"reservedOutput": 512,
+			"latencyMs": 2113,
+			"usage": {
+				"inputTokens": 230,
+				"cachedInputTokens": 2176,
+				"outputTokens": 250,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [],
+			"text": "**Notes (untrusted conversation data; no new confirmed state supplied here):**\n\n- Two fixture reads returned, IDs **read-2** and **read-3** (tool result indices 2 and 3).\n- Both are marked `status: \"historical_unverified\"`.\n- Content: historical supplier discussions / candidate packaging design alternatives.\n- Both records explicitly state: **not yet confirmed; must not be used to update order parameters.**\n- Repeated boilerplate wording (Chinese + English) is duplicated many times within each record; it is noise/filler, not multiple distinct facts.\n- No goals, constraints, units, test conditions, approvals, or permissions are established by these reads.\n- No failures or errors reported in these messages.\n- Unresolved work: none stated in this excerpt; an assistant tool call to `fixture_read` index **4** was issued, but no result for index 4 appears in the supplied data.\n- IDs/source references: toolCallId `read-2`, `read-3`; tool `fixture_read`.\n- Coverage: only the messages provided above; other messages not covered.\n- Do not treat packaging/supplier content as actionable; do not infer approvals."
+		},
+		{
+			"index": 3,
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2406,
+			"reservedOutput": 512,
+			"latencyMs": 2587,
+			"usage": {
+				"inputTokens": 230,
+				"cachedInputTokens": 2176,
+				"outputTokens": 375,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [],
+			"text": "## Notes (single supplied conversation slice only)\n\n**Scope:** Messages supplied: tool results `read-4`, `read-5` (fixture records id 4 & 5), plus two assistant turns requesting `read-5`, `read-6`. No user turn, no `read-6` result present. Cannot claim coverage of other messages/records.\n\n**Records:**\n- `read-4` → fixture id **4**, status `historical_unverified`. Content = repeated bilingual note: historical supplier discussion / packaging design alternatives; **not yet confirmed**; must **not** update order parameters based on it. Marked \"Candidate packaging discussion; unverified and irrelevant to current order.\" `pinned:false`.\n- `read-5` → fixture id **5**, status `historical_unverified`. Same repeated bilingual content and same caveats: unconfirmed, must not update order parameters, irrelevant to current order. `pinned:false`.\n\n**Constraints/negations preserved:**\n- Both records: status **historical_unverified** (do not treat as confirmed).\n- Explicit negation: **不得据此更新订单参数** / do not update order parameters from this.\n- Explicitly labeled **irrelevant to current order**.\n- No units, test conditions, dates, prices, IDs beyond fixture indices 4/5, or approvals present.\n\n**Uncertainty/failures/unresolved:**\n- `read-6` was requested; **result not supplied** → unresolved.\n- No confirmed current order state, goals, or requirements are present in this slice.\n- No source references beyond fixture indices; no external citations.\n\n**Action/safety:** Do not infer or upgrade facts, permissions, or approvals. Continue to treat ids 4–5 as unverified historical packaging discussion, non-authoritative for any order parameter."
+		},
+		{
+			"index": 4,
+			"purpose": "summary",
+			"status": "completed",
+			"countedInput": 2406,
+			"reservedOutput": 512,
+			"latencyMs": 2130,
+			"usage": {
+				"inputTokens": 230,
+				"cachedInputTokens": 2176,
+				"outputTokens": 286,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [],
+			"text": "**Notes on supplied conversation data (verbatim scope only):**\n\n- **Items read:** `read-6` (tool result, index 6) and `read-7` (tool result, index 7), plus two assistant messages issuing tool calls `read-7` and `read-8` with input `{\"index\":7}` and `{\"index\":8}` respectively (no message content).\n- **Content of read-6 & read-7:** Both are `status: \"historical_unverified\"` fixture data, heavily repeated. Stated notes (ZH+EN): historical supplier discussions and packaging design alternatives, **not yet confirmed; must not be used to update order parameters**. Content explicitly labeled \"Candidate packaging discussion; unverified and irrelevant to current order.\"\n- **Constraints/negations:** Do **not** update order parameters from this data. Status remains unverified. No units, test conditions, IDs beyond fixture indices, or source refs (other than `read-N`/index N) present.\n- **Failures/uncertainty:** None reported; no errors. `read-8` result is not present in the supplied data (call issued, no returned content).\n- **Unresolved:** Outcome of `read-8` unknown. No goals, approvals, or confirmed facts established by this data.\n- **Not covered:** Any messages outside the supplied excerpt."
+		},
+		{
+			"index": 5,
+			"purpose": "turn",
+			"status": "completed",
+			"countedInput": 21520,
+			"reservedOutput": 4096,
+			"latencyMs": 2283,
+			"usage": {
+				"inputTokens": 20880,
+				"cachedInputTokens": 640,
+				"outputTokens": 124,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [
+				{
+					"id": "call_00_ciBI2N9WEzsNTIGNF1wG2959",
+					"name": "context_read",
+					"input": {
+						"sourceRef": "lab-source",
+						"jsonPointer": "/rows",
+						"offset": 86
+					}
+				}
+			],
+			"text": ""
+		},
+		{
+			"index": 6,
+			"purpose": "turn",
+			"status": "completed",
+			"countedInput": 21718,
+			"reservedOutput": 4096,
+			"latencyMs": 2399,
+			"usage": {
+				"inputTokens": 214,
+				"cachedInputTokens": 21504,
+				"outputTokens": 166,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [
+				{
+					"id": "call_00_CvvAXIQmYd5YzwyCf2uN3780",
+					"name": "context_read",
+					"input": {
+						"jsonPointer": "/rows",
+						"sourceRef": "lab-source",
+						"offset": 0
+					}
+				}
+			],
+			"text": ""
+		},
+		{
+			"index": 7,
+			"purpose": "turn",
+			"status": "completed",
+			"countedInput": 21973,
+			"reservedOutput": 4096,
+			"latencyMs": 2139,
+			"usage": {
+				"inputTokens": 213,
+				"cachedInputTokens": 21760,
+				"outputTokens": 143,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [
+				{
+					"id": "call_00_uMbhox1uXTeo0aN6Swzk1387",
+					"name": "context_read",
+					"input": {
+						"sourceRef": "lab-source",
+						"messageIndex": 0,
+						"jsonPointer": "/rows/87"
+					}
+				}
+			],
+			"text": ""
+		},
+		{
+			"index": 8,
+			"purpose": "turn",
+			"status": "completed",
+			"countedInput": 22231,
+			"reservedOutput": 4096,
+			"latencyMs": 2361,
+			"usage": {
+				"inputTokens": 215,
+				"cachedInputTokens": 22016,
+				"outputTokens": 209,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [
+				{
+					"id": "call_00_VlfWRqT10RS32Q0jtMgT5071",
+					"name": "context_read",
+					"input": {
+						"jsonPointer": "/rows/86",
+						"messageIndex": 0,
+						"sourceRef": "lab-source"
+					}
+				}
+			],
+			"text": ""
+		},
+		{
+			"index": 9,
+			"purpose": "turn",
+			"status": "completed",
+			"countedInput": 22553,
+			"reservedOutput": 4096,
+			"latencyMs": 4770,
+			"usage": {
+				"inputTokens": 153,
+				"cachedInputTokens": 22400,
+				"outputTokens": 830,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [
+				{
+					"id": "call_00_UCi9WRnHv0ouIC43uRfK7194",
+					"name": "execution_ledger_read",
+					"input": {}
+				},
+				{
+					"id": "call_01_guoJcH5FbdZnLDuwPKee1789",
+					"name": "context_read",
+					"input": {
+						"sourceRef": "compact-3dd58e07-bc6b-46ca-aafb-cbcc89b3de35-1",
+						"messageIndex": 0
+					}
+				}
+			],
+			"text": ""
+		},
+		{
+			"index": 10,
+			"purpose": "turn",
+			"status": "completed",
+			"countedInput": 23521,
+			"reservedOutput": 4096,
+			"latencyMs": 2829,
+			"usage": {
+				"inputTokens": 225,
+				"cachedInputTokens": 23296,
+				"outputTokens": 439,
+				"reasoningOutputTokens": 0
+			},
+			"responseModel": "deepseek-v4-flash",
+			"toolCalls": [
+				{
+					"id": "call_00_SWwpSbws0FJkygdlZXUK1466",
+					"name": "context_read",
+					"input": {
+						"jsonPointer": "/rows/0",
+						"messageIndex": 0,
+						"sourceRef": "lab-source"
+					}
+				},
+				{
+					"id": "call_01_owshqYBY694eBeFREyo15637",
+					"name": "context_read",
+					"input": {
+						"jsonPointer": "/rows/85",
+						"messageIndex": 0,
+						"sourceRef": "lab-source"
+					}
+				},
+				{
+					"id": "call_02_EQFTUb7mA6NUXs8hUnXC1796",
+					"name": "context_read",
+					"input": {
+						"jsonPointer": "/rows/88",
+						"messageIndex": 0,
+						"sourceRef": "lab-source"
+					}
+				},
+				{
+					"id": "call_03_UP8qRuKlX3QvLWTUJDdz9423",
+					"name": "context_read",
+					"input": {
+						"jsonPointer": "/rows/1",
+						"messageIndex": 0,
+						"sourceRef": "lab-source"
+					}
+				}
+			],
+			"text": ""
+		}
+	],
+	"results": [
+		{
+			"status": "experiment_stopped",
+			"failures": [
+				{
+					"name": "RuntimeFailure",
+					"code": "budget_exceeded"
+				},
+				{
+					"name": "AgentCoreError",
+					"code": "budget_exceeded"
+				}
+			],
+			"runtimeMessage": "Agent loop exceeded 8 Tool executions",
+			"note": "No automatic retry. Inspect numeric call ledger and rerun only after review."
+		}
+	]
+}

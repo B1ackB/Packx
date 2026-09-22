@@ -1,11 +1,12 @@
 import type { MemoryView } from "../src/enterprise/personalMemory";
+import type { TaskCheckpointView } from "../src/enterprise/taskCheckpoint";
 import type { PlanWorkspace } from "../src/enterprise/agentPlan";
 import type { KnowledgeView, PackagingComparisonResult } from "../src/runtime/knowledgeView";
 import { readEvents } from "../src/runtime/eventStream";
 import { summarizeModelCalls, type ModelTelemetryView } from "../src/runtime/modelTelemetry";
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
-import { createServer } from "node:http";
+import { createServer, request as httpRequest } from "node:http";
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync, readFileSync, realpathSync, existsSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { tmpdir } from "node:os";
@@ -170,6 +171,36 @@ try {
 	assert.equal(toolMemory.versions[0].source.messageId, "memory-propose-source");
 	await api<MemoryView>(memoryPath, { action: "reject", requestId: "memory-tool-reject", memoryId: toolMemory.id, revision: toolMemory.revision });
 	console.log("PASS: authenticated personal memory API, cross-task confirmation/revoke, command replay, owner spoof denial and real memory_propose Tool candidate without auto-confirmation; local fixture only.");
+	const checkpointId = (await api("/api/conversations", {})).conversation.conversationId;
+	const checkpointPath = `/api/conversations/${checkpointId}/task-checkpoint`;
+	await api(`/api/conversations/${checkpointId}/messages`, { messageId: "checkpoint-source", content: "请比较咖啡包装；不得使用 PVC，供应商资质仍待核验。" });
+	let checkpoint = await api<TaskCheckpointView>(checkpointPath);
+	const checkpointDraft = { objective: "比较咖啡包装", constraints: ["不得使用 PVC"], openQuestions: ["供应商资质仍待核验"], progressNotes: "已整理初步需求，未验收方案。" };
+	checkpoint = await api<TaskCheckpointView>(checkpointPath, { action: "propose", requestId: "checkpoint-propose", revision: checkpoint.revision, sourceDigest: checkpoint.sourceDigest, draft: checkpointDraft });
+	assert.equal(checkpoint.versions[0].status, "proposed");
+	assert.equal((await fetch(`${baseUrl}${checkpointPath}`, { headers: { ...headers, "x-blackx-actor-id": "other" } })).status, 403);
+	const checkpointConfirm = { action: "confirm", requestId: "checkpoint-confirm", revision: checkpoint.revision, confirmed: true };
+	checkpoint = await api<TaskCheckpointView>(checkpointPath, checkpointConfirm);
+	assert.deepEqual(await api<TaskCheckpointView>(checkpointPath, checkpointConfirm), checkpoint);
+	assert.equal(checkpoint.versions[0].status, "active");
+	assert.equal((await api<TaskCheckpointView>(`/api/conversations/${memoryTask}/task-checkpoint`)).versions.length, 0);
+	checkpoint = await api<TaskCheckpointView>(checkpointPath, { action: "propose", requestId: "checkpoint-propose-2", revision: checkpoint.revision, sourceDigest: checkpoint.sourceDigest, draft: checkpointDraft });
+	const pendingBody = JSON.stringify({ action: "confirm", requestId: "checkpoint-slow-confirm", revision: checkpoint.revision, confirmed: true });
+	let finishSlow!: () => void;
+	const slowConfirmation = new Promise<{ status: number; code: string }>((resolve, reject) => {
+		const req = httpRequest(`${baseUrl}${checkpointPath}`, { method: "POST", headers: { ...headers, "content-type": "application/json", "content-length": Buffer.byteLength(pendingBody) } }, (res) => {
+			const parts: Buffer[] = []; res.on("data", (chunk) => parts.push(chunk)); res.on("end", () => resolve({ status: res.statusCode!, code: JSON.parse(Buffer.concat(parts).toString()).code }));
+		});
+		req.on("error", reject); req.write(pendingBody.slice(0, -1)); finishSlow = () => req.end(pendingBody.slice(-1));
+	});
+	await new Promise((resolve) => setTimeout(resolve, 50));
+	try { await api(`/api/conversations/${checkpointId}/messages`, { messageId: "checkpoint-new-source", content: "增加要求：先核对厚度测试条件。" }); }
+	finally { finishSlow(); }
+	assert.deepEqual(await slowConfirmation, { status: 409, code: "task_checkpoint_source_changed" });
+	checkpoint = await api<TaskCheckpointView>(checkpointPath);
+	assert.equal(checkpoint.versions[0].status, "active"); assert.equal(checkpoint.versions[1].status, "proposed");
+	await api<TaskCheckpointView>(checkpointPath, { action: "reject", requestId: "checkpoint-reject", revision: checkpoint.revision });
+	console.log("PASS: confirmed task checkpoint HTTP lifecycle, scope isolation, replay and source changes while reading a slow confirmation request.");
 	const comparisonTask = (await api("/api/conversations", {})).conversation.conversationId;
 	const knowledgePath = `/api/conversations/${comparisonTask}/knowledge`;
 	await api(`${knowledgePath}/demo`, {});
@@ -201,6 +232,8 @@ try {
 		throw new Error(`Plan did not reach ${status}`);
 	};
 	await planCommand({ action: "mode", mode: "plan" });
+	const blockedCheckpoint = await fetch(`${baseUrl}/api/conversations/${planId}/task-checkpoint`, { method: "POST", headers: { ...headers, "content-type": "application/json" }, body: JSON.stringify({ action: "propose" }) });
+	assert.equal(blockedCheckpoint.status, 409); assert.equal((await blockedCheckpoint.json() as { code: string }).code, "plan_mode_requires_plan_action");
 	await planCommand({ action: "generate", objective: "整理包装需求并列出待确认信息" });
 	await awaitPlan("awaiting_confirmation");
 	assert.equal(planState.versions[0].children.length, 0);

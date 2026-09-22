@@ -29,12 +29,15 @@ function harness(custom?: AgentRuntimePort) {
 	let revision = 1;
 	let deleted = false;
 	let inputFailure: Error | undefined;
+	let context = "source: brief.txt", inputReads = 0;
+	const assertAvailable = (target: typeof scope) => { if (deleted || target.tenantId !== scope.tenantId || target.workspaceId !== scope.workspaceId || target.runId !== scope.runId) throw new PlanError("conversation_not_found", 404); };
 	const runtime: AgentRuntimePort = custom ?? { async health() { return { adapter: "blackx-agent", online: true }; }, async executeTurn(request) {
 		requests.push(request);
 		return { adapter: "blackx-agent", status: "completed", executionId: `execution-${requests.length}`, finalResponse: JSON.stringify(request.stageId === "plan" ? spec : result), events: [], usage: { inputTokens: 10, outputTokens: 20, cachedInputTokens: 0, reasoningOutputTokens: 0 } };
 	} };
 	const workflow = new AgentPlanWorkflow(store, queue, runtime, {
-		readInput: (target) => { if (inputFailure) throw inputFailure; if (deleted || target.tenantId !== scope.tenantId || target.workspaceId !== scope.workspaceId || target.runId !== scope.runId) throw new PlanError("conversation_not_found", 404); return { revision, context: "source: brief.txt" }; },
+		assertAvailable,
+		readInput: (target) => { inputReads++; assertAvailable(target); if (inputFailure) throw inputFailure; return { revision, context }; },
 		readTools: ["file_read"], executionTools: ["file_read", "file_write"], instructions: ["Packaging test"],
 		cancelJob: (id, target) => { scheduler.cancel(id, target); },
 	});
@@ -42,8 +45,43 @@ function harness(custom?: AgentRuntimePort) {
 	let id = 0;
 	const command = (body: Record<string, unknown>) => workflow.command(scope, "user", { requestId: `c-${++id}`, revision: store.read(scope).revision, ...body });
 	const generate = () => { command({ action: "mode", mode: "plan" }); command({ action: "generate", objective: "Read sources and list packaging gaps" }); };
-	return { dir, path, store, queue, requests, workflow, scheduler, command, generate, changeSource: () => { revision++; }, remove: () => { deleted = true; }, failInput: (error?: Error) => { inputFailure = error; } };
+	return { dir, path, store, queue, requests, workflow, scheduler, command, generate, changeSource: () => { revision++; }, remove: () => { deleted = true; }, failInput: (error?: Error) => { inputFailure = error; }, changeContext: (value: string) => { context = value; }, inputReads: () => inputReads };
 }
+
+it.each([
+	{ action: "pause", failure: "oversized" }, { action: "cancel", failure: "oversized" },
+	{ action: "pause", failure: "unavailable" }, { action: "cancel", failure: "unavailable" },
+])("allows $action and exit without rebuilding $failure context", async ({ action, failure }) => {
+	const h = harness(); h.generate(); await h.scheduler.runNext();
+	h.command({ action: "confirm", version: 1, confirmed: true });
+	if (failure === "oversized") h.changeContext("x".repeat(40_000));
+	else h.failInput(new PlanError("context_store_unavailable", 503));
+	const reads = h.inputReads();
+	expect(h.workflow.read(scope).versions[0].status).toBe("queued");
+	expect(h.command({ action, version: 1 }).versions[0].status).toBe(action === "pause" ? "paused" : "cancelled");
+	expect(h.command({ action: "mode", mode: "execute" }).mode).toBe("execute");
+	h.workflow.reconcile();
+	expect(h.workflow.read(scope).mode).toBe("execute");
+	expect(h.inputReads()).toBe(reads);
+	expect(h.queue.list().filter((job) => ["queued", "leased"].includes(job.status))).toHaveLength(0);
+	expect(h.requests).toHaveLength(1);
+	expect(() => h.command({ action: "mode", mode: "plan" })).toThrow(failure === "oversized" ? "plan_context_too_large" : "context_store_unavailable");
+});
+
+it("retains ownership and deletion checks for context-free Plan reads and stop actions", async () => {
+	const h = harness(); h.generate(); await h.scheduler.runNext();
+	const before = h.store.read(scope);
+	for (const target of [{ ...scope, tenantId: "other" }, { ...scope, workspaceId: "other" }, { ...scope, runId: "other" }]) {
+		expect(() => h.workflow.read(target)).toThrow("conversation_not_found");
+		expect(() => h.workflow.command(target, "user", { action: "mode", mode: "execute", requestId: "exit", revision: 0 })).toThrow("conversation_not_found");
+	}
+	h.remove();
+	expect(() => h.workflow.read(scope)).toThrow("conversation_not_found");
+	expect(() => h.command({ action: "cancel", version: 1 })).toThrow("conversation_not_found");
+	expect(h.store.read(scope)).toEqual(before);
+	h.workflow.reconcile();
+	expect(h.store.read(scope).versions[0].status).toBe("cancelled");
+});
 
 it("keeps the plan and dispatch intent intact after an input read outage", async () => {
 	const h = harness(); h.generate();

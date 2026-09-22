@@ -123,6 +123,7 @@ export class ConversationApiController {
 		private readonly assertChatAllowed?: (scope: AgentSessionScope) => void,
 		private readonly names?: TaskNames,
 		private readonly planObjective?: (scope: AgentSessionScope) => string | undefined,
+		private readonly readTaskContext?: (scope: AgentSessionScope) => NonNullable<import("../../src/runtime/contracts").RuntimeTurnRequest["taskContext"]>,
 	) {}
 
 	private view(session: StoredAgentSession, language: ConversationLanguage = "zh"): ConversationView {
@@ -327,7 +328,7 @@ export class ConversationApiController {
 				idempotencyKey: messageId,
 				sessionId: target.sessionId,
 				resume: true,
-				taskContext: buildTaskContext({ scope: target, objective: content, transcript: this.sessions.load(target).transcript }),
+				taskContext: this.readTaskContext?.(target) ?? buildTaskContext({ scope: target, objective: content, transcript: this.sessions.load(target).transcript }),
 				instructions: [
 					"Personal memory contains only user-confirmed soft preferences and notes. Current task instructions and verified Facts prevail. When explicitly asked to remember across tasks, use memory_propose with the exact user message ID, then direct the user to the Memory panel for confirmation. A pending proposal is not active memory. Do not promote order-specific requests to permanent preferences; never store secrets. The Memory panel also supports revision and forgetting.",
 					"你是 Packx 包装行业助手，帮助包装企业售前和跟单人员梳理客户需求、分析包装资料。范围包括包装袋、纸盒、礼盒、运输包装和包装标签；非包装业务说明当前范围并引导回包装需求。直接回答用户当前消息；信息不足时只问最必要的问题。",

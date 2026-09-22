@@ -166,7 +166,8 @@ describe("error handling fault-injection audit", () => {
 			tools: [{ ...tool, risk: "read", validateContextResult }],
 		});
 		await expect(runtime.executeTurn(request)).resolves.toMatchObject({ status: "completed", finalResponse: "done" });
-		expect(validateContextResult).toHaveBeenCalledOnce();
+		// Revalidate at restore and again immediately before the provider call.
+		expect(validateContextResult).toHaveBeenCalledTimes(2);
 		expect(generate).toHaveBeenCalledOnce();
 	});
 
