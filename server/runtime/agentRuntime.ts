@@ -159,6 +159,7 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 		};
 		let guard = new RuntimeLoopGuard();
 		try {
+			combinedSignal.throwIfAborted();
 			const previous = this.traces.listTraces(scope)
 				.filter((trace) => trace.stageId === request.stageId && trace.idempotencyKey === request.idempotencyKey && trace.sessionId === sessionId && trace.loopGuard)
 				.sort((a, b) => b.loopGuard!.sequence - a.loopGuard!.sequence)[0]?.loopGuard;
@@ -192,8 +193,9 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 				}
 				let resolved: AgentImageAttachment;
 				try {
-					resolved = await this.options.resolveImageAttachment(scope, attachment);
+					resolved = await abortable(this.options.resolveImageAttachment(scope, attachment), combinedSignal);
 				} catch (error) {
+					combinedSignal.throwIfAborted();
 					throw new RuntimeFailure("context_failure", "Runtime image attachment could not be resolved", false, { cause: error });
 				}
 				if (
@@ -208,6 +210,7 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 			};
 			const validateSources = async (messages: readonly AgentMessage[], visited = new Set<string>()): Promise<void> => {
 				for (const message of messages) {
+					combinedSignal.throwIfAborted();
 					for (const ref of message.readDependencies ?? []) {
 						if (visited.has(ref)) continue;
 						if (visited.size >= 128) throw new RuntimeFailure("context_failure", "Context source dependency limit exceeded; rebuild task", false);
@@ -223,8 +226,8 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 					let envelope: { status?: string; sourceRef?: string } | undefined;
 					try { envelope = JSON.parse(output); } catch { /* Plain-text bodies are validated by their source adapter. */ }
 					if (envelope?.status === "body_externalized" && typeof envelope.sourceRef === "string") output = this.snapshots.read(scope, envelope.sourceRef).messages[0].content;
-					try { await tool.validateContextResult(message.sourceTool.input, output, { ...scope, actorId: request.actorId, executionId, stageId: request.stageId, toolCallId: message.toolCallId ?? "restore", idempotencyKey: request.idempotencyKey, signal: combinedSignal }); }
-					catch (error) { throw new RuntimeFailure("context_failure", "Context source is unavailable, changed or no longer permitted", false, { cause: error }); }
+					try { await abortable(Promise.resolve(tool.validateContextResult(message.sourceTool.input, output, { ...scope, actorId: request.actorId, executionId, stageId: request.stageId, toolCallId: message.toolCallId ?? "restore", idempotencyKey: request.idempotencyKey, signal: combinedSignal })), combinedSignal); }
+					catch (error) { combinedSignal.throwIfAborted(); throw new RuntimeFailure("context_failure", "Context source is unavailable, changed or no longer permitted", false, { cause: error }); }
 				}
 			};
 			const observationEvents: RuntimeTurnResult["events"] = [];
@@ -243,7 +246,7 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 				} : { attachments: message.attachments ? await Promise.all(message.attachments.map(hydrate)) : undefined }),
 			})));
 			if (this.executions.list) {
-				const ledger = await this.executions.list(scope);
+				const ledger = await abortable(this.executions.list(scope), combinedSignal);
 				let recoveryChecks = 0;
 				for (let index = 0; index < ledger.length; index++) {
 					const record = ledger[index];
@@ -259,7 +262,7 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 					catch { combinedSignal.throwIfAborted(); recoveryFailure = recoverySignal.aborted ? "timeout" : "source_unavailable"; }
 					combinedSignal.throwIfAborted();
 					validateContext();
-					if (outcome) ledger[index] = await this.executions.resolve(record, { ...outcome, resultDigest: `sha256:${createHash("sha256").update(outcome.result).digest("hex")}`, resolvedAt: this.now() });
+					if (outcome) ledger[index] = await abortable(this.executions.resolve(record, { ...outcome, resultDigest: `sha256:${createHash("sha256").update(outcome.result).digest("hex")}`, resolvedAt: this.now() }), combinedSignal);
 					const event = { type: "tool.reconciled" as const, tool: record.tool, toolCallId: record.toolCallId, idempotencyKey: record.idempotencyKey, status: outcome ? "succeeded" as const : "unresolved" as const, durationMs: Math.max(0, this.clockMs() - recoveryStarted), ...(outcome ? { evidenceRef: outcome.evidenceRef } : { failureCode: recoveryFailure }) };
 					traceEvents.push(event); observationEvents.push(event);
 				}
@@ -517,9 +520,10 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 			const failure = classifyFailure(error, timedOut, Boolean(signal?.aborted));
 			if (guard.state.blocked) traceEvents.push({ type: "loop.guard.stopped", code: guard.state.blocked });
 			if (failure.code !== "cancelled") this.providerStatus = "last_request_failed";
-			progress("failed");
+			const reportingFailures: unknown[] = [];
+			try { progress("failed"); } catch (reportingError) { reportingFailures.push(reportingError); }
 			traceEvents = [...traceEvents, { type: "turn.failed", message: failure.message }];
-			this.traces.putTrace({
+			try { this.traces.putTrace({
 				schemaVersion: "runtime-trace.v1",
 				tenantId: request.tenantId,
 				workspaceId: request.workspaceId,
@@ -536,7 +540,12 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 				events: traceEvents,
 				failure: { code: failure.code, retryable: failure.retryable, message: failure.message },
 				loopGuard: guard.state,
-			});
+			}); } catch (reportingError) { reportingFailures.push(reportingError); }
+			if (reportingFailures.length) {
+				throw new RuntimeFailure(failure.code, failure.message, failure.retryable, {
+					cause: new AggregateError([failure, ...reportingFailures], "Runtime failure reporting failed", { cause: failure }),
+				});
+			}
 			throw failure;
 		} finally {
 			clearTimeout(timer);

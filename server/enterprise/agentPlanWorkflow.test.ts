@@ -28,12 +28,13 @@ function harness(custom?: AgentRuntimePort) {
 	const requests: RuntimeTurnRequest[] = [];
 	let revision = 1;
 	let deleted = false;
+	let inputFailure: Error | undefined;
 	const runtime: AgentRuntimePort = custom ?? { async health() { return { adapter: "blackx-agent", online: true }; }, async executeTurn(request) {
 		requests.push(request);
 		return { adapter: "blackx-agent", status: "completed", executionId: `execution-${requests.length}`, finalResponse: JSON.stringify(request.stageId === "plan" ? spec : result), events: [], usage: { inputTokens: 10, outputTokens: 20, cachedInputTokens: 0, reasoningOutputTokens: 0 } };
 	} };
 	const workflow = new AgentPlanWorkflow(store, queue, runtime, {
-		readInput: (target) => { if (deleted || target.tenantId !== scope.tenantId || target.workspaceId !== scope.workspaceId || target.runId !== scope.runId) throw new PlanError("conversation_not_found", 404); return { revision, context: "source: brief.txt" }; },
+		readInput: (target) => { if (inputFailure) throw inputFailure; if (deleted || target.tenantId !== scope.tenantId || target.workspaceId !== scope.workspaceId || target.runId !== scope.runId) throw new PlanError("conversation_not_found", 404); return { revision, context: "source: brief.txt" }; },
 		readTools: ["file_read"], executionTools: ["file_read", "file_write"], instructions: ["Packaging test"],
 		cancelJob: (id, target) => { scheduler.cancel(id, target); },
 	});
@@ -41,8 +42,22 @@ function harness(custom?: AgentRuntimePort) {
 	let id = 0;
 	const command = (body: Record<string, unknown>) => workflow.command(scope, "user", { requestId: `c-${++id}`, revision: store.read(scope).revision, ...body });
 	const generate = () => { command({ action: "mode", mode: "plan" }); command({ action: "generate", objective: "Read sources and list packaging gaps" }); };
-	return { dir, path, store, queue, requests, workflow, scheduler, command, generate, changeSource: () => { revision++; }, remove: () => { deleted = true; } };
+	return { dir, path, store, queue, requests, workflow, scheduler, command, generate, changeSource: () => { revision++; }, remove: () => { deleted = true; }, failInput: (error?: Error) => { inputFailure = error; } };
 }
+
+it("keeps the plan and dispatch intent intact after an input read outage", async () => {
+	const h = harness(); h.generate();
+	const before = h.store.read(scope);
+	h.failInput(new PlanError("context_store_unavailable", 503));
+	await expect(h.scheduler.runNext()).rejects.toThrow("context_store_unavailable");
+	expect(h.store.read(scope)).toEqual(before);
+	expect(h.queue.list()[0].status).toBe("queued");
+	expect(h.requests).toHaveLength(0);
+	h.failInput();
+	expect(await h.scheduler.runNext()).toMatchObject({ status: "completed" });
+	expect(h.store.read(scope).versions[0].status).toBe("awaiting_confirmation");
+	expect(h.requests).toHaveLength(1);
+});
 
 it("requires explicit version confirmation, isolates children and aggregates structured results", async () => {
 	const h = harness(); h.generate();

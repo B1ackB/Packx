@@ -2,6 +2,8 @@
 
 更新：2026-09-21。跨会话范围按用户确认限定为**当前用户的个人偏好与笔记**，同一工作区内使用。[ADR-0026](adr/0026-confirmed-personal-memory-and-context-dependency.md) 记录状态契约和迁移；[上下文管理](context-management.md) 说明压缩预算；[可靠性与恢复](reliability-recovery.md) 说明执行账本。
 
+故障边界已补充到 [逐节点恢复审计](failure-handling-audit.md)：个人记忆状态和命令事件在同一 SQLite 事务内，确认／遗忘的最后审计写入失败会回滚，本次通过真实 SQLite 故障注入与重开连接验证。成功遗忘没有自动 undo，已保存的聊天／Artifact／备份也不会随之抹除。`memory_propose` 的业务事务与通用 Tool 执行账本分别提交，尚未接入文件工具那样的结果对账；出现未知结果时先查询记忆面板并保留原幂等身份，不能靠重做或删除账本恢复。存储不可读时明确停止，不静默遗漏个人记忆继续执行。
+
 ```mermaid
 flowchart LR
 	U[用户消息或个人记忆面板] --> P[候选记忆 proposed]

@@ -111,7 +111,9 @@ export class AgentPlanWorkflow {
 		const plan = latest(state);
 		if (!plan) return;
 		try { this.options.readInput(scope); }
-		catch {
+		catch (error) {
+			// An unavailable context store is not evidence that the user deleted the task.
+			if (!(error instanceof PlanError) || error.code !== "conversation_not_found" || error.status !== 404) throw error;
 			if (active(plan) || plan.status === "awaiting_confirmation" || plan.status === "paused") {
 				this.store.change(scope, `deleted:${plan.version}`, "deleted", "host", "plan.cancelled", state.revision, (s) => { latest(s)!.status = "cancelled"; });
 				this.cancel(scope, plan);

@@ -139,7 +139,8 @@ export class KnowledgeStore {
 		if (doc.status === "imported") doc = this.transition(scope, versionId, "parsed", "knowledge-worker");
 		const blocks = snapshot.blocks.map(this.normalizeBlock);
 		const bodies = blocks.map((b) => `${snapshot.title} ${snapshot.publisher} ${snapshot.model} ${b.location.section} ${b.text} ${JSON.stringify(b.table ?? {})}`);
-		const batch = await this.embedding.embed(bodies, signal, "passage");
+		const pending = this.embedding.embed(bodies, signal, "passage");
+		const batch = await (signal ? abortable(pending, signal) : pending);
 		const vectors = batch.vectors;
 		if (vectors.length !== blocks.length) throw new KnowledgeError("embedding_count_mismatch");
 		vectors.forEach((v) => validateVector(v, this.embedding.dimensions));

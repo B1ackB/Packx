@@ -16,7 +16,7 @@
 - 每个候选版本保存 review-input（实际输入快照）、review-call（Runtime 结果）、review（结构化报告）和原有 evaluation；报告绑定 Artifact ID/版本、全部输入 Fact 版本、证据版本和输入摘要。
 - 单次自动修订另存 revision-call，新版本通过现有 runtime.execution.linked、artifact.version_created、evaluation.completed 和 stage/approval 事件审计。原版本及报告不覆盖。
 - 所有读写使用原租户、工作区、Run 边界。每次异步返回和持久化之前复查租约、取消状态、Fact 版本、知识证据有效性和附件摘要。
-- 每次 Runtime Turn 先写不可变调用意图，最多两个复核 Turn 和一个修订 Turn；每 Turn 一个 Agent iteration、24,000 输入 Token、60 秒超时。工具白名单为空（现有 Runtime 的数值型工具上限最小为 1，但不授权任何工具）。沿用 Runtime 的模型重试与预算检查，不新增工具重试或副作用执行。
+- 每次 Runtime Turn 先写不可变调用意图，最多两个复核 Turn 和一个修订 Turn；每 Turn 一个 Agent iteration、24,000 输入 Token、60 秒超时。工作流传入的业务工具白名单为空，数值型工具上限为 1；当前 BlackxAgentRuntime 仍统一追加 `context_read` 和 `execution_ledger_read` 两个只读恢复工具。因此不能说 Provider 请求完全没有工具定义。工作流拒绝含任何 `tool.started`／`tool.completed` 事件的返回结果，不授权业务写入。沿用 Runtime 的模型重试与预算检查，不新增工具重试或副作用执行。
 - 已保存结果直接复用。若进程在发起模型调用后、结果持久化前崩溃，恢复报告 `interrupted_review` 并请求人工处理，不自动重复购买不确定的调用。租约丢失或取消后的迟到响应不能推进审批。基础设施写入失败保留原队列恢复行为。
 - 每个失败报告保留分类；模型失败、超时、预算失败、暂停结果、无快照、无效 JSON/引用、降级 Adapter 或工具调用均不能放行。复核/修订用量和延迟计入需求单指标，成本仍遵守原有未配置价格时显示未知的规则。
 

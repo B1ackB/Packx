@@ -1,6 +1,7 @@
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { DatabaseSync } from "node:sqlite";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { InMemoryStageJobQueue } from "../../src/enterprise/stageJobQueue";
 import { coffeeKnowledgeFixtures } from "../../src/manufacturing/knowledgeFixtures";
@@ -23,6 +24,25 @@ function setup(embedding = new LexicalEmbedding(packagingTerms), clock = () => n
 }
 afterEach(() => { vi.unstubAllGlobals(); for (const store of stores.splice(0)) store.close(); for (const dir of folders.splice(0)) rmSync(dir, { recursive: true, force: true }); });
 async function indexed(store: KnowledgeStore, fixture = coffeeKnowledgeFixtures()[0], owner = scope) { const doc = store.import(owner, fixture, "operator"); await store.process(owner, doc.versionId); return doc; }
+
+it("rolls back all index chunks and status after a final audit failure, then safely retries", async () => {
+	const { store, root } = setup();
+	const doc = store.import(scope, coffeeKnowledgeFixtures()[0], "operator");
+	const db = new DatabaseSync(join(root, "knowledge.sqlite"));
+	try {
+		db.exec("CREATE TRIGGER fail_index_audit BEFORE INSERT ON knowledge_events WHEN NEW.type='knowledge.indexed' BEGIN SELECT RAISE(ABORT, 'injected_index_failure'); END");
+		await expect(store.process(scope, doc.versionId)).rejects.toThrow("injected_index_failure");
+		expect(store.get(scope, doc.versionId)?.status).toBe("parsed");
+		expect(db.prepare("SELECT COUNT(*) AS count FROM chunks").get()?.count).toBe(0);
+		expect(db.prepare("SELECT COUNT(*) AS count FROM knowledge_events WHERE type='knowledge.indexed'").get()?.count).toBe(0);
+		db.exec("DROP TRIGGER fail_index_audit");
+		await store.process(scope, doc.versionId);
+		await store.process(scope, doc.versionId);
+		expect(store.get(scope, doc.versionId)?.status).toBe("indexed");
+		expect(db.prepare("SELECT COUNT(*) AS count FROM chunks").get()?.count).toBe(coffeeKnowledgeFixtures()[0].blocks.length);
+		expect(db.prepare("SELECT COUNT(*) AS count FROM knowledge_events WHERE type='knowledge.indexed'").get()?.count).toBe(1);
+	} finally { db.close(); }
+});
 
 describe("governed knowledge ingestion and retrieval", () => {
 	it("deduplicates canonical imports, preserves tables, and separates model identity", async () => {
