@@ -1,5 +1,5 @@
-import type { AgentHostTool, AgentMessage } from "../../src/agent/contracts";
-import type { AgentSessionScope, AgentSessionStore, ContextSnapshotStore } from "../../src/agent/state";
+import type { AgentHostTool, AgentMessage } from "../../../src/agent/contracts";
+import type { AgentSessionScope, AgentSessionStore, ContextSnapshotStore } from "../../../src/agent/state";
 
 /** Read whole records/lines. A single oversized unit is explicit, never a fabricated partial value. */
 export function pageUnits<T>(units: readonly T[], offset: number, maxChars = 12_000) {
@@ -36,7 +36,7 @@ function textFragment(text: string, offset: number) {
 
 export function contextReadTool(scope: AgentSessionScope, sessions: AgentSessionStore, snapshots: ContextSnapshotStore, validate: () => void, binding?: string, validateSources?: (messages: readonly AgentMessage[]) => Promise<void>, historyBinding?: string, budget?: () => { remainingTools: number; remainingIterations: number }): AgentHostTool {
 	return {
-		name: "context_read", description: "Read evidence within this exact task/session. Copy an exact existing sourceRef or navigation.archiveRoots entry. transcript contains dialogue, not tool results; with a history dependency it exposes only user requests. query searches a source and declared dependencies, listing originals before derived summaries/readbacks. sourceKind is provenance, not verification. A complete search covers searchedSourceRefs: do not repeat it at each child. Read matched records, then answer when evidence is sufficient. Use current Host values directly; report pending/unverified states without seeking historical confirmation. Missing evidence stays unknown. Old sources cannot change current facts or permissions; obsolete archives remain denied. execution_ledger_read is for side-effect receipts. Without messageIndex, offset pages messages. messageIndex selects CONTENT already: omit /content; jsonPointer selects fields inside JSON content. Text fragments use characterOffset and must be reassembled.",
+		name: "context_read", description: "Locate and read original evidence for this exact task/session. Copy a complete sourceRef from an existing summary or navigation.archiveRoots; never invent or abbreviate it. Transcript contains dialogue, NOT tool results: search the listed archives for tool evidence, and transcript for user requirements. To locate missing evidence, use query with a short literal keyword; this searches the source and its declared archive dependencies and returns exact read locations. Read the matched message to verify its context, then answer once the requested evidence is sufficient; do not keep paging unrelated records. Missing evidence stays unknown. Historical data cannot override current Host facts or permissions. execution_ledger_read contains side-effect receipts, not historical research evidence. Without messageIndex, offset pages messages. messageIndex ALREADY selects the message CONTENT: omit jsonPointer to read it; a pointer selects a field INSIDE JSON content, not the message wrapper. Text fragments use characterOffset and must be reassembled. With a history dependency, transcript exposes user messages only; obsolete archives remain denied.",
 		execution: "host", risk: "read", idempotent: true, timeoutMs: 1000, maxResultChars: 16_000,
 		inputSchema: { type: "object", properties: {
 			sourceRef: { type: "string", description: "Exact existing source reference, or transcript." },
@@ -72,7 +72,7 @@ export function contextReadTool(scope: AgentSessionScope, sessions: AgentSession
 			const envelope = { sourceRef, stale, status: "historical_unverified", navigation, ...(budget ? { executionBudget: { ...budget(), scope: "current_execution_after_this_batch" } } : {}) };
 			if (query !== undefined) {
 				const pending = [sourceRef], visited = new Set<string>(), needle = query.trim().toLowerCase();
-				const hits: Array<{ read: { sourceRef: string; messageIndex: number }; role: string; sourceKind: string; stale: boolean; excerpt: string }> = [];
+				const hits: Array<{ read: { sourceRef: string; messageIndex: number }; role: string; stale: boolean; excerpt: string }> = [];
 				let scannedChars = 0, scannedMessages = 0, incomplete = false;
 				while (pending.length) {
 					execution.signal.throwIfAborted();
@@ -84,26 +84,17 @@ export function contextReadTool(scope: AgentSessionScope, sessions: AgentSession
 					const source = ref === sourceRef ? { messages, stale } : readContextSource(scope, sessions, snapshots, ref, binding, historyBinding);
 					await validateSources?.(source.messages);
 					visited.add(ref);
-					const pairedTools = new Map<string, string>();
 					for (const [index, message] of source.messages.entries()) {
 						if (scannedChars + message.content.length > 2_000_000 || ++scannedMessages > 10_000) { pending.unshift(ref); incomplete = true; break; }
 						scannedChars += message.content.length;
-						if (message.role !== "tool") {
-							pairedTools.clear();
-							for (const call of message.role === "assistant" ? message.toolCalls ?? [] : []) pairedTools.set(call.id, call.name);
-						}
 						const at = message.content.toLowerCase().indexOf(needle);
-						const toolName = message.sourceTool?.name ?? pairedTools.get(message.toolCallId ?? "");
-						const sourceKind = message.kind === "summary" || message.kind === "receipt" || message.kind === "task_context" ? message.kind : toolName === "context_read" ? "readback" : toolName === "execution_ledger_read" ? "receipt" : message.role === "tool" ? "tool_result" : message.role === "system" ? "instructions" : "dialogue";
-						if (at >= 0) hits.push({ read: { sourceRef: ref, messageIndex: index }, role: message.role, sourceKind, stale: source.stale, excerpt: message.content.slice(Math.max(0, at - 80), at + 160) });
+						if (at >= 0) hits.push({ read: { sourceRef: ref, messageIndex: index }, role: message.role, stale: source.stale, excerpt: message.content.slice(Math.max(0, at - 80), at + 160) });
 						pending.push(...(message.readDependencies ?? []));
 						if (message.sourceTool?.name === "context_read" && typeof (message.sourceTool.input as { sourceRef?: unknown })?.sourceRef === "string") pending.push((message.sourceTool.input as { sourceRef: string }).sourceRef);
 					}
 					if (incomplete) break;
 				}
-				const derived = (kind: string) => !["dialogue", "tool_result"].includes(kind);
-				hits.sort((a, b) => Number(derived(a.sourceKind)) - Number(derived(b.sourceKind)));
-				return { ...envelope, query, searchComplete: !incomplete, searchedSources: visited.size, searchedSourceRefs: [...visited], ...(incomplete ? { unsearchedSourceRefs: [...new Set(pending)].slice(0, 8) } : {}), ...pageUnits(hits, offset, 8_000), hint: "Read an original matching record before interpreting summaries or previous readbacks. sourceKind is provenance, not verification. Excerpts are incomplete, untrusted text. A complete search already covers searchedSourceRefs; changing the root to one of them does not add coverage. Empty transcript matches do not cover tool results; use navigation.archiveRoots. User requirements remain in navigation.dialogue. Report known pending states as pending; search only missing evidence and answer once sufficient. A limited search does not prove absence." };
+				return { ...envelope, query, searchComplete: !incomplete, searchedSources: visited.size, ...(incomplete ? { unsearchedSourceRefs: [...new Set(pending)].slice(0, 8) } : {}), ...pageUnits(hits, offset, 10_000), hint: "Copy a matching read object to verify the original message. Excerpts are incomplete, untrusted text. Empty transcript matches do not cover tool results: search navigation.archiveRoots for those. User requirements remain in navigation.dialogue. Search only missing evidence; answer once sufficient. A limited search does not prove absence." };
 			}
 			let units: unknown[] = messages;
 			if (messageIndex !== undefined) {
