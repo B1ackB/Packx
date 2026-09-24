@@ -1,0 +1,1316 @@
+{
+	"protocol": "context-long-readback-completed-inspection.v1",
+	"report": "docs/evidence/context-long-readback-completed-online.json",
+	"reportSha256": "9d92c120aaa3bc16a0aab0b38aea58504413c18cad82b567ae4902edef1654dc",
+	"requestArchiveSha256": "b6e9f8e64bae63049818cbd05146b193fb042abecde5a4f015074f99e7d3c22b",
+	"checks": {
+		"allTwelveCompleted": true,
+		"allTwelveTenFields": true,
+		"allNewRequestsCompleted": true,
+		"oldUnknownRetained": true,
+		"priorReportHash": true,
+		"requestArchiveHash": true,
+		"requestHashes": true,
+		"countHashes": true,
+		"sourceHashes": true,
+		"firstMessagesMatchRequests": true,
+		"allSixPairsSameFirstMessages": true,
+		"completeToolMeasurements": true,
+		"fullPriorReservationCarried": true,
+		"reservationSum": true,
+		"withinCap": true,
+		"allToolBodiesDeliveredToNextCompletedRequest": true
+	},
+	"pairs": [
+		{
+			"caseId": "buried-report",
+			"sample": 1,
+			"firstMessagesEqual": true
+		},
+		{
+			"caseId": "evidence-ready",
+			"sample": 1,
+			"firstMessagesEqual": true
+		},
+		{
+			"caseId": "body-externalized",
+			"sample": 1,
+			"firstMessagesEqual": true
+		},
+		{
+			"caseId": "buried-report",
+			"sample": 2,
+			"firstMessagesEqual": true
+		},
+		{
+			"caseId": "evidence-ready",
+			"sample": 2,
+			"firstMessagesEqual": true
+		},
+		{
+			"caseId": "body-externalized",
+			"sample": 2,
+			"firstMessagesEqual": true
+		}
+	],
+	"versions": [
+		{
+			"version": "baseline",
+			"groups": 6,
+			"passed": 6,
+			"tools": 36,
+			"mainCalls": 21,
+			"queries": 30,
+			"emptyQueries": 11,
+			"toolsAfterExactTextReady": 15,
+			"durationMs": 93307,
+			"usage": {
+				"inputTokens": 76787,
+				"cachedInputTokens": 997248,
+				"outputTokens": 8490
+			},
+			"estimatedUsd": 0.039207588
+		},
+		{
+			"version": "candidate",
+			"groups": 6,
+			"passed": 6,
+			"tools": 36,
+			"mainCalls": 14,
+			"queries": 28,
+			"emptyQueries": 15,
+			"toolsAfterExactTextReady": 0,
+			"durationMs": 68725,
+			"usage": {
+				"inputTokens": 119312,
+				"cachedInputTokens": 586368,
+				"outputTokens": 7255
+			},
+			"estimatedUsd": 0.048017807999999995
+		}
+	],
+	"phases": [
+		{
+			"phase": "buried-report-1-baseline",
+			"caseId": "buried-report",
+			"version": "baseline",
+			"sample": 1,
+			"status": "completed",
+			"correctFields": 10,
+			"answerMatchesRecorded": true,
+			"passed": true,
+			"mainCalls": 9,
+			"summaryCalls": 0,
+			"tools": 14,
+			"failedTools": 0,
+			"queries": 12,
+			"emptyQueries": 6,
+			"strictMetrics": {
+				"measurementComplete": true,
+				"missingResultBodies": [],
+				"toolsExecuted": 14,
+				"failedTools": 0,
+				"mainCalls": 9,
+				"summaryCalls": 0,
+				"fullOriginalsVisibleAtIterations": [
+					8,
+					9
+				],
+				"toolsChosenWithAllOriginalsVisible": 2,
+				"additionalMainCallsAfterFirstFullOriginals": 1,
+				"sameBatchQueryOverlaps": [],
+				"fullReportReadsWhileAlreadyVisible": [],
+				"fullReportRecoveryReads": [],
+				"compactions": []
+			},
+			"exactFullTextVisibleAtIterations": [
+				5,
+				6,
+				7,
+				8,
+				9
+			],
+			"toolsChosenWithAllExactTextVisible": 7,
+			"additionalMainCallsAfterFirstExactText": 4,
+			"preciseReportFieldReads": [],
+			"inputs": [
+				{
+					"iteration": 1,
+					"requestIndex": 0,
+					"status": "completed",
+					"strict": {
+						"requirements": false,
+						"report": false,
+						"host": true
+					},
+					"exactText": {
+						"requirements": false,
+						"report": false,
+						"host": true
+					}
+				},
+				{
+					"iteration": 2,
+					"requestIndex": 1,
+					"status": "completed",
+					"strict": {
+						"requirements": false,
+						"report": false,
+						"host": true
+					},
+					"exactText": {
+						"requirements": false,
+						"report": false,
+						"host": true
+					}
+				},
+				{
+					"iteration": 3,
+					"requestIndex": 2,
+					"status": "completed",
+					"strict": {
+						"requirements": false,
+						"report": false,
+						"host": true
+					},
+					"exactText": {
+						"requirements": true,
+						"report": false,
+						"host": true
+					}
+				},
+				{
+					"iteration": 4,
+					"requestIndex": 3,
+					"status": "completed",
+					"strict": {
+						"requirements": false,
+						"report": false,
+						"host": true
+					},
+					"exactText": {
+						"requirements": true,
+						"report": false,
+						"host": true
+					}
+				},
+				{
+					"iteration": 5,
+					"requestIndex": 4,
+					"status": "completed",
+					"strict": {
+						"requirements": false,
+						"report": true,
+						"host": true
+					},
+					"exactText": {
+						"requirements": true,
+						"report": true,
+						"host": true
+					}
+				},
+				{
+					"iteration": 6,
+					"requestIndex": 5,
+					"status": "completed",
+					"strict": {
+						"requirements": false,
+						"report": true,
+						"host": true
+					},
+					"exactText": {
+						"requirements": true,
+						"report": true,
+						"host": true
+					}
+				},
+				{
+					"iteration": 7,
+					"requestIndex": 6,
+					"status": "completed",
+					"strict": {
+						"requirements": false,
+						"report": true,
+						"host": true
+					},
+					"exactText": {
+						"requirements": true,
+						"report": true,
+						"host": true
+					}
+				},
+				{
+					"iteration": 8,
+					"requestIndex": 7,
+					"status": "completed",
+					"strict": {
+						"requirements": true,
+						"report": true,
+						"host": true
+					},
+					"exactText": {
+						"requirements": true,
+						"report": true,
+						"host": true
+					}
+				},
+				{
+					"iteration": 9,
+					"requestIndex": 8,
+					"status": "completed",
+					"strict": {
+						"requirements": true,
+						"report": true,
+						"host": true
+					},
+					"exactText": {
+						"requirements": true,
+						"report": true,
+						"host": true
+					}
+				}
+			],
+			"usage": {
+				"inputTokens": 7265,
+				"cachedInputTokens": 460800,
+				"outputTokens": 2514
+			},
+			"estimatedUsd": 0.0079611,
+			"maxInputTokens": 56163,
+			"durationMs": 32834,
+			"firstMessagesSha256": "3ce1b63498510135d13aa5718d1ac55b97eb179b9962e1d7368230ce07bbff9f"
+		},
+		{
+			"phase": "buried-report-1-candidate",
+			"caseId": "buried-report",
+			"version": "candidate",
+			"sample": 1,
+			"status": "completed",
+			"correctFields": 10,
+			"answerMatchesRecorded": true,
+			"passed": true,
+			"mainCalls": 4,
+			"summaryCalls": 0,
+			"tools": 16,
+			"failedTools": 0,
+			"queries": 15,
+			"emptyQueries": 9,
+			"strictMetrics": {
+				"measurementComplete": true,
+				"missingResultBodies": [],
+				"toolsExecuted": 16,
+				"failedTools": 0,
+				"mainCalls": 4,
+				"summaryCalls": 0,
+				"fullOriginalsVisibleAtIterations": [],
+				"toolsChosenWithAllOriginalsVisible": 0,
+				"additionalMainCallsAfterFirstFullOriginals": null,
+				"sameBatchQueryOverlaps": [],
+				"fullReportReadsWhileAlreadyVisible": [],
+				"fullReportRecoveryReads": [],
+				"compactions": []
+			},
+			"exactFullTextVisibleAtIterations": [
+				4
+			],
+			"toolsChosenWithAllExactTextVisible": 0,
+			"additionalMainCallsAfterFirstExactText": 0,
+			"preciseReportFieldReads": [],
+			"inputs": [
+				{
+					"iteration": 1,
+					"requestIndex": 9,
+					"status": "completed",
+					"strict": {
+						"requirements": false,
+						"report": false,
+						"host": true
+					},
+					"exactText": {
+						"requirements": false,
+						"report": false,
+						"host": true
+					}
+				},
+				{
+					"iteration": 2,
+					"requestIndex": 10,
+					"status": "completed",
+					"strict": {
+						"requirements": false,
+						"report": false,
+						"host": true
+					},
+					"exactText": {
+						"requirements": true,
+						"report": false,
+						"host": true
+					}
+				},
+				{
+					"iteration": 3,
+					"requestIndex": 11,
+					"status": "completed",
+					"strict": {
+						"requirements": false,
+						"report": false,
+						"host": true
+					},
+					"exactText": {
+						"requirements": true,
+						"report": false,
+						"host": true
+					}
+				},
+				{
+					"iteration": 4,
+					"requestIndex": 12,
+					"status": "completed",
+					"strict": {
+						"requirements": false,
+						"report": true,
+						"host": true
+					},
+					"exactText": {
+						"requirements": true,
+						"report": true,
+						"host": true
+					}
+				}
+			],
+			"usage": {
+				"inputTokens": 55115,
+				"cachedInputTokens": 151040,
+				"outputTokens": 1903
+			},
+			"estimatedUsd": 0.01972434,
+			"maxInputTokens": 56948,
+			"durationMs": 18121,
+			"firstMessagesSha256": "3ce1b63498510135d13aa5718d1ac55b97eb179b9962e1d7368230ce07bbff9f"
+		},
+		{
+			"phase": "evidence-ready-1-baseline",
+			"caseId": "evidence-ready",
+			"version": "baseline",
+			"sample": 1,
+			"status": "completed",
+			"correctFields": 10,
+			"answerMatchesRecorded": true,
+			"passed": true,
+			"mainCalls": 1,
+			"summaryCalls": 0,
+			"tools": 0,
+			"failedTools": 0,
+			"queries": 0,
+			"emptyQueries": 0,
+			"strictMetrics": {
+				"measurementComplete": true,
+				"missingResultBodies": [],
+				"toolsExecuted": 0,
+				"failedTools": 0,
+				"mainCalls": 1,
+				"summaryCalls": 0,
+				"fullOriginalsVisibleAtIterations": [
+					1
+				],
+				"toolsChosenWithAllOriginalsVisible": 0,
+				"additionalMainCallsAfterFirstFullOriginals": 0,
+				"sameBatchQueryOverlaps": [],
+				"fullReportReadsWhileAlreadyVisible": [],
+				"fullReportRecoveryReads": [],
+				"compactions": []
+			},
+			"exactFullTextVisibleAtIterations": [
+				1
+			],
+			"toolsChosenWithAllExactTextVisible": 0,
+			"additionalMainCallsAfterFirstExactText": 0,
+			"preciseReportFieldReads": [],
+			"inputs": [
+				{
+					"iteration": 1,
+					"requestIndex": 13,
+					"status": "completed",
+					"strict": {
+						"requirements": true,
+						"report": true,
+						"host": true
+					},
+					"exactText": {
+						"requirements": true,
+						"report": true,
+						"host": true
+					}
+				}
+			],
+			"usage": {
+				"inputTokens": 7519,
+				"cachedInputTokens": 47104,
+				"outputTokens": 639
+			},
+			"estimatedUsd": 0.003305124,
+			"maxInputTokens": 54623,
+			"durationMs": 5580,
+			"firstMessagesSha256": "e4b320215e8d7eaf583137f4e2839d43e400478c6d6c3b30b782d360e5b09bca"
+		},
+		{
+			"phase": "evidence-ready-1-candidate",
+			"caseId": "evidence-ready",
+			"version": "candidate",
+			"sample": 1,
+			"status": "completed",
+			"correctFields": 10,
+			"answerMatchesRecorded": true,
+			"passed": true,
+			"mainCalls": 1,
+			"summaryCalls": 0,
+			"tools": 0,
+			"failedTools": 0,
+			"queries": 0,
+			"emptyQueries": 0,
+			"strictMetrics": {
+				"measurementComplete": true,
+				"missingResultBodies": [],
+				"toolsExecuted": 0,
+				"failedTools": 0,
+				"mainCalls": 1,
+				"summaryCalls": 0,
+				"fullOriginalsVisibleAtIterations": [
+					1
+				],
+				"toolsChosenWithAllOriginalsVisible": 0,
+				"additionalMainCallsAfterFirstFullOriginals": 0,
+				"sameBatchQueryOverlaps": [],
+				"fullReportReadsWhileAlreadyVisible": [],
+				"fullReportRecoveryReads": [],
+				"compactions": []
+			},
+			"exactFullTextVisibleAtIterations": [
+				1
+			],
+			"toolsChosenWithAllExactTextVisible": 0,
+			"additionalMainCallsAfterFirstExactText": 0,
+			"preciseReportFieldReads": [],
+			"inputs": [
+				{
+					"iteration": 1,
+					"requestIndex": 14,
+					"status": "completed",
+					"strict": {
+						"requirements": true,
+						"report": true,
+						"host": true
+					},
+					"exactText": {
+						"requirements": true,
+						"report": true,
+						"host": true
+					}
+				}
+			],
+			"usage": {
+				"inputTokens": 7488,
+				"cachedInputTokens": 47104,
+				"outputTokens": 773
+			},
+			"estimatedUsd": 0.003456624,
+			"maxInputTokens": 54592,
+			"durationMs": 6180,
+			"firstMessagesSha256": "e4b320215e8d7eaf583137f4e2839d43e400478c6d6c3b30b782d360e5b09bca"
+		},
+		{
+			"phase": "body-externalized-1-baseline",
+			"caseId": "body-externalized",
+			"version": "baseline",
+			"sample": 1,
+			"status": "completed",
+			"correctFields": 10,
+			"answerMatchesRecorded": true,
+			"passed": true,
+			"mainCalls": 3,
+			"summaryCalls": 0,
+			"tools": 7,
+			"failedTools": 0,
+			"queries": 6,
+			"emptyQueries": 0,
+			"strictMetrics": {
+				"measurementComplete": true,
+				"missingResultBodies": [],
+				"toolsExecuted": 7,
+				"failedTools": 0,
+				"mainCalls": 3,
+				"summaryCalls": 0,
+				"fullOriginalsVisibleAtIterations": [
+					2,
+					3
+				],
+				"toolsChosenWithAllOriginalsVisible": 4,
+				"additionalMainCallsAfterFirstFullOriginals": 1,
+				"sameBatchQueryOverlaps": [],
+				"fullReportReadsWhileAlreadyVisible": [],
+				"fullReportRecoveryReads": [
+					"call_00_X0lstqoHb5XCHav4vHTR0266"
+				],
+				"compactions": []
+			},
+			"exactFullTextVisibleAtIterations": [
+				2,
+				3
+			],
+			"toolsChosenWithAllExactTextVisible": 4,
+			"additionalMainCallsAfterFirstExactText": 1,
+			"preciseReportFieldReads": [],
+			"inputs": [
+				{
+					"iteration": 1,
+					"requestIndex": 15,
+					"status": "completed",
+					"strict": {
+						"requirements": true,
+						"report": false,
+						"host": true
+					},
+					"exactText": {
+						"requirements": true,
+						"report": false,
+						"host": true
+					}
+				},
+				{
+					"iteration": 2,
+					"requestIndex": 16,
+					"status": "completed",
+					"strict": {
+						"requirements": true,
+						"report": true,
+						"host": true
+					},
+					"exactText": {
+						"requirements": true,
+						"report": true,
+						"host": true
+					}
+				},
+				{
+					"iteration": 3,
+					"requestIndex": 17,
+					"status": "completed",
+					"strict": {
+						"requirements": true,
+						"report": true,
+						"host": true
+					},
+					"exactText": {
+						"requirements": true,
+						"report": true,
+						"host": true
+					}
+				}
+			],
+			"usage": {
+				"inputTokens": 52279,
+				"cachedInputTokens": 100480,
+				"outputTokens": 2012
+			},
+			"estimatedUsd": 0.01870098,
+			"maxInputTokens": 54987,
+			"durationMs": 17155,
+			"firstMessagesSha256": "072987bbaf753758f5762ac88430bdee94d042063cce2dfbf16b30d8ecd286a2"
+		},
+		{
+			"phase": "body-externalized-1-candidate",
+			"caseId": "body-externalized",
+			"version": "candidate",
+			"sample": 1,
+			"status": "completed",
+			"correctFields": 10,
+			"answerMatchesRecorded": true,
+			"passed": true,
+			"mainCalls": 2,
+			"summaryCalls": 0,
+			"tools": 4,
+			"failedTools": 0,
+			"queries": 0,
+			"emptyQueries": 0,
+			"strictMetrics": {
+				"measurementComplete": true,
+				"missingResultBodies": [],
+				"toolsExecuted": 4,
+				"failedTools": 0,
+				"mainCalls": 2,
+				"summaryCalls": 0,
+				"fullOriginalsVisibleAtIterations": [],
+				"toolsChosenWithAllOriginalsVisible": 0,
+				"additionalMainCallsAfterFirstFullOriginals": null,
+				"sameBatchQueryOverlaps": [],
+				"fullReportReadsWhileAlreadyVisible": [],
+				"fullReportRecoveryReads": [],
+				"compactions": []
+			},
+			"exactFullTextVisibleAtIterations": [],
+			"toolsChosenWithAllExactTextVisible": 0,
+			"additionalMainCallsAfterFirstExactText": null,
+			"preciseReportFieldReads": [
+				{
+					"callId": "call_00_APaa4ueICIDhN7wsxOJe8638",
+					"iteration": 1,
+					"jsonPointer": "/evidenceCode",
+					"expected": "SEAL-9Q7",
+					"actual": "SEAL-9Q7",
+					"passed": true,
+					"deliveredAt": [
+						2
+					]
+				},
+				{
+					"callId": "call_01_yOFi7inrtZ5464e9rHbJ3828",
+					"iteration": 1,
+					"jsonPointer": "/temperatureCelsius",
+					"expected": 23,
+					"actual": 23,
+					"passed": true,
+					"deliveredAt": [
+						2
+					]
+				},
+				{
+					"callId": "call_02_wR5EOyZdgjYv1mLu8HRL2799",
+					"iteration": 1,
+					"jsonPointer": "/citation",
+					"expected": "report-C17#sample=4",
+					"actual": "report-C17#sample=4",
+					"passed": true,
+					"deliveredAt": [
+						2
+					]
+				},
+				{
+					"callId": "call_03_SpP9EHbYZkgD8VIpoWcM4903",
+					"iteration": 1,
+					"jsonPointer": "/relativeHumidityPercent",
+					"expected": 50,
+					"actual": 50,
+					"passed": true,
+					"deliveredAt": [
+						2
+					]
+				}
+			],
+			"inputs": [
+				{
+					"iteration": 1,
+					"requestIndex": 18,
+					"status": "completed",
+					"strict": {
+						"requirements": true,
+						"report": false,
+						"host": true
+					},
+					"exactText": {
+						"requirements": true,
+						"report": false,
+						"host": true
+					}
+				},
+				{
+					"iteration": 2,
+					"requestIndex": 19,
+					"status": "completed",
+					"strict": {
+						"requirements": true,
+						"report": false,
+						"host": true
+					},
+					"exactText": {
+						"requirements": true,
+						"report": false,
+						"host": true
+					}
+				}
+			],
+			"usage": {
+				"inputTokens": 45318,
+				"cachedInputTokens": 47232,
+				"outputTokens": 1511
+			},
+			"estimatedUsd": 0.015691992000000002,
+			"maxInputTokens": 47273,
+			"durationMs": 12026,
+			"firstMessagesSha256": "072987bbaf753758f5762ac88430bdee94d042063cce2dfbf16b30d8ecd286a2"
+		},
+		{
+			"phase": "buried-report-2-candidate",
+			"caseId": "buried-report",
+			"version": "candidate",
+			"sample": 2,
+			"status": "completed",
+			"correctFields": 10,
+			"answerMatchesRecorded": true,
+			"passed": true,
+			"mainCalls": 4,
+			"summaryCalls": 0,
+			"tools": 12,
+			"failedTools": 0,
+			"queries": 10,
+			"emptyQueries": 6,
+			"strictMetrics": {
+				"measurementComplete": true,
+				"missingResultBodies": [],
+				"toolsExecuted": 12,
+				"failedTools": 0,
+				"mainCalls": 4,
+				"summaryCalls": 0,
+				"fullOriginalsVisibleAtIterations": [
+					4
+				],
+				"toolsChosenWithAllOriginalsVisible": 0,
+				"additionalMainCallsAfterFirstFullOriginals": 0,
+				"sameBatchQueryOverlaps": [],
+				"fullReportReadsWhileAlreadyVisible": [],
+				"fullReportRecoveryReads": [],
+				"compactions": []
+			},
+			"exactFullTextVisibleAtIterations": [
+				4
+			],
+			"toolsChosenWithAllExactTextVisible": 0,
+			"additionalMainCallsAfterFirstExactText": 0,
+			"preciseReportFieldReads": [],
+			"inputs": [
+				{
+					"iteration": 1,
+					"requestIndex": 20,
+					"status": "completed",
+					"strict": {
+						"requirements": false,
+						"report": false,
+						"host": true
+					},
+					"exactText": {
+						"requirements": false,
+						"report": false,
+						"host": true
+					}
+				},
+				{
+					"iteration": 2,
+					"requestIndex": 21,
+					"status": "completed",
+					"strict": {
+						"requirements": false,
+						"report": false,
+						"host": true
+					},
+					"exactText": {
+						"requirements": true,
+						"report": false,
+						"host": true
+					}
+				},
+				{
+					"iteration": 3,
+					"requestIndex": 22,
+					"status": "completed",
+					"strict": {
+						"requirements": true,
+						"report": false,
+						"host": true
+					},
+					"exactText": {
+						"requirements": true,
+						"report": false,
+						"host": true
+					}
+				},
+				{
+					"iteration": 4,
+					"requestIndex": 23,
+					"status": "completed",
+					"strict": {
+						"requirements": true,
+						"report": true,
+						"host": true
+					},
+					"exactText": {
+						"requirements": true,
+						"report": true,
+						"host": true
+					}
+				}
+			],
+			"usage": {
+				"inputTokens": 6705,
+				"cachedInputTokens": 195328,
+				"outputTokens": 1452
+			},
+			"estimatedUsd": 0.004925868,
+			"maxInputTokens": 54694,
+			"durationMs": 18620,
+			"firstMessagesSha256": "5c2fe0ea6aa4cb0ee072be8700ed09e97cd97807425d37554f8bdb29d4cd4899"
+		},
+		{
+			"phase": "buried-report-2-baseline",
+			"caseId": "buried-report",
+			"version": "baseline",
+			"sample": 2,
+			"status": "completed",
+			"correctFields": 10,
+			"answerMatchesRecorded": true,
+			"passed": true,
+			"mainCalls": 4,
+			"summaryCalls": 0,
+			"tools": 7,
+			"failedTools": 0,
+			"queries": 5,
+			"emptyQueries": 2,
+			"strictMetrics": {
+				"measurementComplete": true,
+				"missingResultBodies": [],
+				"toolsExecuted": 7,
+				"failedTools": 0,
+				"mainCalls": 4,
+				"summaryCalls": 0,
+				"fullOriginalsVisibleAtIterations": [
+					4
+				],
+				"toolsChosenWithAllOriginalsVisible": 0,
+				"additionalMainCallsAfterFirstFullOriginals": 0,
+				"sameBatchQueryOverlaps": [],
+				"fullReportReadsWhileAlreadyVisible": [],
+				"fullReportRecoveryReads": [],
+				"compactions": []
+			},
+			"exactFullTextVisibleAtIterations": [
+				4
+			],
+			"toolsChosenWithAllExactTextVisible": 0,
+			"additionalMainCallsAfterFirstExactText": 0,
+			"preciseReportFieldReads": [],
+			"inputs": [
+				{
+					"iteration": 1,
+					"requestIndex": 24,
+					"status": "completed",
+					"strict": {
+						"requirements": false,
+						"report": false,
+						"host": true
+					},
+					"exactText": {
+						"requirements": false,
+						"report": false,
+						"host": true
+					}
+				},
+				{
+					"iteration": 2,
+					"requestIndex": 25,
+					"status": "completed",
+					"strict": {
+						"requirements": false,
+						"report": false,
+						"host": true
+					},
+					"exactText": {
+						"requirements": true,
+						"report": false,
+						"host": true
+					}
+				},
+				{
+					"iteration": 3,
+					"requestIndex": 26,
+					"status": "completed",
+					"strict": {
+						"requirements": true,
+						"report": false,
+						"host": true
+					},
+					"exactText": {
+						"requirements": true,
+						"report": false,
+						"host": true
+					}
+				},
+				{
+					"iteration": 4,
+					"requestIndex": 27,
+					"status": "completed",
+					"strict": {
+						"requirements": true,
+						"report": true,
+						"host": true
+					},
+					"exactText": {
+						"requirements": true,
+						"report": true,
+						"host": true
+					}
+				}
+			],
+			"usage": {
+				"inputTokens": 4420,
+				"cachedInputTokens": 193280,
+				"outputTokens": 1113
+			},
+			"estimatedUsd": 0.0038212800000000002,
+			"maxInputTokens": 52281,
+			"durationMs": 15226,
+			"firstMessagesSha256": "5c2fe0ea6aa4cb0ee072be8700ed09e97cd97807425d37554f8bdb29d4cd4899"
+		},
+		{
+			"phase": "evidence-ready-2-candidate",
+			"caseId": "evidence-ready",
+			"version": "candidate",
+			"sample": 2,
+			"status": "completed",
+			"correctFields": 10,
+			"answerMatchesRecorded": true,
+			"passed": true,
+			"mainCalls": 1,
+			"summaryCalls": 0,
+			"tools": 0,
+			"failedTools": 0,
+			"queries": 0,
+			"emptyQueries": 0,
+			"strictMetrics": {
+				"measurementComplete": true,
+				"missingResultBodies": [],
+				"toolsExecuted": 0,
+				"failedTools": 0,
+				"mainCalls": 1,
+				"summaryCalls": 0,
+				"fullOriginalsVisibleAtIterations": [
+					1
+				],
+				"toolsChosenWithAllOriginalsVisible": 0,
+				"additionalMainCallsAfterFirstFullOriginals": 0,
+				"sameBatchQueryOverlaps": [],
+				"fullReportReadsWhileAlreadyVisible": [],
+				"fullReportRecoveryReads": [],
+				"compactions": []
+			},
+			"exactFullTextVisibleAtIterations": [
+				1
+			],
+			"toolsChosenWithAllExactTextVisible": 0,
+			"additionalMainCallsAfterFirstExactText": 0,
+			"preciseReportFieldReads": [],
+			"inputs": [
+				{
+					"iteration": 1,
+					"requestIndex": 28,
+					"status": "completed",
+					"strict": {
+						"requirements": true,
+						"report": true,
+						"host": true
+					},
+					"exactText": {
+						"requirements": true,
+						"report": true,
+						"host": true
+					}
+				}
+			],
+			"usage": {
+				"inputTokens": 192,
+				"cachedInputTokens": 54400,
+				"outputTokens": 337
+			},
+			"estimatedUsd": 0.0007884,
+			"maxInputTokens": 54592,
+			"durationMs": 3663,
+			"firstMessagesSha256": "3e2253b34cb2f54f6253a86c3e3453d1d3b0956d7d3429c1df9bb90ac16c3d52"
+		},
+		{
+			"phase": "evidence-ready-2-baseline",
+			"caseId": "evidence-ready",
+			"version": "baseline",
+			"sample": 2,
+			"status": "completed",
+			"correctFields": 10,
+			"answerMatchesRecorded": true,
+			"passed": true,
+			"mainCalls": 1,
+			"summaryCalls": 0,
+			"tools": 0,
+			"failedTools": 0,
+			"queries": 0,
+			"emptyQueries": 0,
+			"strictMetrics": {
+				"measurementComplete": true,
+				"missingResultBodies": [],
+				"toolsExecuted": 0,
+				"failedTools": 0,
+				"mainCalls": 1,
+				"summaryCalls": 0,
+				"fullOriginalsVisibleAtIterations": [
+					1
+				],
+				"toolsChosenWithAllOriginalsVisible": 0,
+				"additionalMainCallsAfterFirstFullOriginals": 0,
+				"sameBatchQueryOverlaps": [],
+				"fullReportReadsWhileAlreadyVisible": [],
+				"fullReportRecoveryReads": [],
+				"compactions": []
+			},
+			"exactFullTextVisibleAtIterations": [
+				1
+			],
+			"toolsChosenWithAllExactTextVisible": 0,
+			"additionalMainCallsAfterFirstExactText": 0,
+			"preciseReportFieldReads": [],
+			"inputs": [
+				{
+					"iteration": 1,
+					"requestIndex": 29,
+					"status": "completed",
+					"strict": {
+						"requirements": true,
+						"report": true,
+						"host": true
+					},
+					"exactText": {
+						"requirements": true,
+						"report": true,
+						"host": true
+					}
+				}
+			],
+			"usage": {
+				"inputTokens": 223,
+				"cachedInputTokens": 54400,
+				"outputTokens": 434
+			},
+			"estimatedUsd": 0.0009140999999999999,
+			"maxInputTokens": 54623,
+			"durationMs": 3828,
+			"firstMessagesSha256": "3e2253b34cb2f54f6253a86c3e3453d1d3b0956d7d3429c1df9bb90ac16c3d52"
+		},
+		{
+			"phase": "body-externalized-2-candidate",
+			"caseId": "body-externalized",
+			"version": "candidate",
+			"sample": 2,
+			"status": "completed",
+			"correctFields": 10,
+			"answerMatchesRecorded": true,
+			"passed": true,
+			"mainCalls": 2,
+			"summaryCalls": 0,
+			"tools": 4,
+			"failedTools": 0,
+			"queries": 3,
+			"emptyQueries": 0,
+			"strictMetrics": {
+				"measurementComplete": true,
+				"missingResultBodies": [],
+				"toolsExecuted": 4,
+				"failedTools": 0,
+				"mainCalls": 2,
+				"summaryCalls": 0,
+				"fullOriginalsVisibleAtIterations": [
+					2
+				],
+				"toolsChosenWithAllOriginalsVisible": 0,
+				"additionalMainCallsAfterFirstFullOriginals": 0,
+				"sameBatchQueryOverlaps": [],
+				"fullReportReadsWhileAlreadyVisible": [],
+				"fullReportRecoveryReads": [
+					"call_00_ucPw0STvUrcj3LaYvVgH6852"
+				],
+				"compactions": []
+			},
+			"exactFullTextVisibleAtIterations": [
+				2
+			],
+			"toolsChosenWithAllExactTextVisible": 0,
+			"additionalMainCallsAfterFirstExactText": 0,
+			"preciseReportFieldReads": [],
+			"inputs": [
+				{
+					"iteration": 1,
+					"requestIndex": 30,
+					"status": "completed",
+					"strict": {
+						"requirements": true,
+						"report": false,
+						"host": true
+					},
+					"exactText": {
+						"requirements": true,
+						"report": false,
+						"host": true
+					}
+				},
+				{
+					"iteration": 2,
+					"requestIndex": 31,
+					"status": "completed",
+					"strict": {
+						"requirements": true,
+						"report": true,
+						"host": true
+					},
+					"exactText": {
+						"requirements": true,
+						"report": true,
+						"host": true
+					}
+				}
+			],
+			"usage": {
+				"inputTokens": 4494,
+				"cachedInputTokens": 91264,
+				"outputTokens": 1279
+			},
+			"estimatedUsd": 0.003430584,
+			"maxInputTokens": 50481,
+			"durationMs": 10115,
+			"firstMessagesSha256": "b733c0d26e31dd8b9d0f9497b30ad12b21797e158021471e7cac113810826038"
+		},
+		{
+			"phase": "body-externalized-2-baseline",
+			"caseId": "body-externalized",
+			"version": "baseline",
+			"sample": 2,
+			"status": "completed",
+			"correctFields": 10,
+			"answerMatchesRecorded": true,
+			"passed": true,
+			"mainCalls": 3,
+			"summaryCalls": 0,
+			"tools": 8,
+			"failedTools": 0,
+			"queries": 7,
+			"emptyQueries": 3,
+			"strictMetrics": {
+				"measurementComplete": true,
+				"missingResultBodies": [],
+				"toolsExecuted": 8,
+				"failedTools": 0,
+				"mainCalls": 3,
+				"summaryCalls": 0,
+				"fullOriginalsVisibleAtIterations": [
+					2,
+					3
+				],
+				"toolsChosenWithAllOriginalsVisible": 4,
+				"additionalMainCallsAfterFirstFullOriginals": 1,
+				"sameBatchQueryOverlaps": [],
+				"fullReportReadsWhileAlreadyVisible": [],
+				"fullReportRecoveryReads": [
+					"call_00_GcwZwnwn08tMzrl3j7Lv5100"
+				],
+				"compactions": []
+			},
+			"exactFullTextVisibleAtIterations": [
+				2,
+				3
+			],
+			"toolsChosenWithAllExactTextVisible": 4,
+			"additionalMainCallsAfterFirstExactText": 1,
+			"preciseReportFieldReads": [],
+			"inputs": [
+				{
+					"iteration": 1,
+					"requestIndex": 32,
+					"status": "completed",
+					"strict": {
+						"requirements": true,
+						"report": false,
+						"host": true
+					},
+					"exactText": {
+						"requirements": true,
+						"report": false,
+						"host": true
+					}
+				},
+				{
+					"iteration": 2,
+					"requestIndex": 33,
+					"status": "completed",
+					"strict": {
+						"requirements": true,
+						"report": true,
+						"host": true
+					},
+					"exactText": {
+						"requirements": true,
+						"report": true,
+						"host": true
+					}
+				},
+				{
+					"iteration": 3,
+					"requestIndex": 34,
+					"status": "completed",
+					"strict": {
+						"requirements": true,
+						"report": true,
+						"host": true
+					},
+					"exactText": {
+						"requirements": true,
+						"report": true,
+						"host": true
+					}
+				}
+			],
+			"usage": {
+				"inputTokens": 5081,
+				"cachedInputTokens": 141184,
+				"outputTokens": 1778
+			},
+			"estimatedUsd": 0.004505004,
+			"maxInputTokens": 51359,
+			"durationMs": 18684,
+			"firstMessagesSha256": "b733c0d26e31dd8b9d0f9497b30ad12b21797e158021471e7cac113810826038"
+		}
+	],
+	"usage": {
+		"inputTokens": 196099,
+		"cachedInputTokens": 1583616,
+		"outputTokens": 15745
+	},
+	"estimatedUsd": 0.087225396,
+	"addedReservationUsd": 0.7059465000000005,
+	"cumulativeReservationUsd": 3.6456709999999997,
+	"remainingReservationUsd": 13.354329,
+	"oldUnknownReservationUsd": 0.0207207,
+	"allBatches": {
+		"attemptedGroups": 13,
+		"completedGroups": 12,
+		"interruptedGroups": 1,
+		"completedGenerations": 39,
+		"unknownGenerations": 1,
+		"completedCounts": 40,
+		"successfulTools": 79
+	},
+	"offlineValidation": {
+		"testFiles": 84,
+		"testsPassed": 672,
+		"testsSkipped": 21,
+		"typescriptAndVitePassed": true,
+		"carryReplayGroups": 12,
+		"carryReplayGenerations": 28,
+		"carryReplayCounts": 28
+	},
+	"independentToolReplay": {
+		"source": "repository portable fixture plus frozen/current tools",
+		"compared": "exact JSON.stringify output",
+		"identical": 72,
+		"total": 72,
+		"temporaryStateRequired": false
+	},
+	"limitations": [
+		"Two repeats per captured state of one synthetic workload, no production success-rate or latency-distribution claim.",
+		"No new compaction occurred in these readback turns; this is not a new threshold or summary-budget comparison.",
+		"Whole-text presence, exact field evidence and source authority are different measurements.",
+		"Cache warmth and generation variation confound cost and latency comparisons.",
+		"The prior interruption is retained as an extra attempt; its response and bill remain unknown."
+	],
+	"toolBodiesDelivered": 72
+}

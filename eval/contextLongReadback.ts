@@ -32,7 +32,7 @@ interface FixtureCase { id: string; session: { messages: AgentMessage[]; transcr
 interface LongFixture { protocol: string; syntheticOnly: boolean; scope: AgentSessionScope; hostContent: string; requirement: string; labRead: { sourceRef: string; messageIndex: number }; labText: string; cases: FixtureCase[] }
 interface Visibility { requirements: boolean; report: boolean; host: boolean }
 interface Completion { iteration: number; call: AgentToolCall; failed: boolean }
-interface ModelCall { phase: string; iteration: number; purpose: "turn" | "summary"; status: string; requestIndex: number; requestSha256: string; countedInput: number; reservedOutput: number; reservation: number; response?: AgentModelResponse; durationMs?: number }
+interface ModelCall { phase: string; iteration: number; purpose: "turn" | "summary"; status: string; requestIndex: number; requestSha256: string; countedInput: number; reservedOutput: number; reservation: number; response?: AgentModelResponse; durationMs?: number; failure?: ReturnType<typeof failureMetadata> }
 interface CaseResult { phase: string; caseId: string; version: Version; sample: number; status: string; passed: boolean; toolCompletions: Completion[]; toolResults: Record<string, AgentMessage>; modelInputs: Array<Visibility & { iteration: number }>; initialVisibility: Visibility; metrics?: Record<string, unknown>; answer?: unknown; checks?: Record<string, boolean>; correctFields?: number; events?: RuntimeTurnResult["events"]; firstMessagesSha256?: string; durationMs?: number; code?: string }
 
 export function loadLongFixture(): LongFixture {
@@ -86,6 +86,35 @@ export function checkPrior(prior: { requestedModel?: string; reservedUsd?: numbe
 	if (prior.requestedModel !== "deepseek-v4-flash" || prior.unresolved || prior.status !== "completed" || !Array.isArray(prior.calls) || prior.calls.some((call) => call.status !== "completed") || !Array.isArray(prior.countRequests) || prior.countRequests.some((call) => call.status !== "completed") || !Number.isFinite(prior.reservedUsd) || prior.reservedUsd! < 0 || !Number.isFinite(prior.limits?.usd) || prior.reservedUsd! > prior.limits!.usd) throw new Error("invalid_or_unresolved_prior_ledger");
 	if (!Number.isFinite(usdLimit) || usdLimit > 17 || usdLimit < prior.limits!.usd || !Number.isSafeInteger(cases) || cases < 1) throw new Error("invalid_protocol_budget");
 	return { priorReservedUsd: prior.reservedUsd!, priorCapUsd: prior.limits!.usd, requiredUsd: prior.reservedUsd! + cases * maximumReservationPerCase, fits: prior.reservedUsd! + cases * maximumReservationPerCase <= usdLimit };
+}
+
+// One explicitly reviewed interruption, not a general bypass for unresolved ledgers.
+export function carryReviewedStop(priorBytes: string, requestArchive: Buffer, acknowledgement: string, usdLimit: number, cases: number) {
+	const reviewedHash = "51aff75fe5da26139770e924d2c725be5fb96974cc746fe0d3db3ba867248b09";
+	if (acknowledgement !== reviewedHash || hash(priorBytes) !== reviewedHash || usdLimit !== 17 || cases !== 12) throw new Error("unapproved_stopped_batch_carry");
+	const prior = JSON.parse(priorBytes) as { reservedUsd: number; priorReservedUsd: number; limits: { usd: number }; requestArchiveSha256: string; calls: ModelCall[] };
+	if (hash(requestArchive) !== prior.requestArchiveSha256) throw new Error("stopped_request_archive_changed");
+	const requests = JSON.parse(gunzipSync(requestArchive).toString()) as AgentModelRequest[];
+	assert(prior.calls.every((call) => digest(requests[call.requestIndex]) === call.requestSha256), "stopped_request_changed");
+	assert(Math.abs(prior.reservedUsd - prior.priorReservedUsd - prior.calls.reduce((sum, call) => sum + call.reservation, 0)) < 1e-9, "stopped_reservation_changed");
+	const carriedUnknownCalls = prior.calls.filter((call) => call.status === "unknown").map((call) => ({ requestSha256: call.requestSha256, status: call.status, reservation: call.reservation }));
+	assert.deepEqual(carriedUnknownCalls, [{ requestSha256: "c1215bc35299d1978dfa9590c1ccddae442801109466923512abce25a5c0b852", status: "unknown", reservation: 0.0207207 }]);
+	return { priorReservedUsd: prior.reservedUsd, priorCapUsd: prior.limits.usd, requiredUsd: prior.reservedUsd + cases * maximumReservationPerCase, fits: prior.reservedUsd + cases * maximumReservationPerCase <= usdLimit, carriedUnknownCalls, priorRequestArchiveSha256: prior.requestArchiveSha256, reviewedStopSha256: reviewedHash, carryAuthorization: "2026-09-24 user authorized a new complete 12-case batch, retaining the stopped report and all reservations within cumulative USD 17." };
+}
+
+export function failureMetadata(error: unknown) {
+	const details: Array<Record<string, string | number>> = [];
+	const names = ["Error", "TypeError", "AbortError", "TimeoutError", "AnthropicCompatibilityError"];
+	const codes = ["api_error", "authentication_error", "permission_error", "not_found_error", "rate_limit_error", "overloaded_error", "invalid_request_error", "invalid_response", "upstream_error", "output_limit", "pause_turn", "refusal", "context_window_exceeded", "ECONNRESET", "ECONNREFUSED", "ETIMEDOUT", "ENOTFOUND", "EAI_AGAIN", "UND_ERR_SOCKET", "UND_ERR_CONNECT_TIMEOUT", "UND_ERR_HEADERS_TIMEOUT", "UND_ERR_BODY_TIMEOUT"];
+	for (let value = error, depth = 0; value && typeof value === "object" && depth < 4; depth++) {
+		const entry = value as Record<string, unknown>, detail: Record<string, string | number> = { depth };
+		if (typeof entry.name === "string" && names.includes(entry.name)) detail.name = entry.name;
+		if (typeof entry.code === "string" && codes.includes(entry.code)) detail.code = entry.code;
+		for (const key of ["providerStatus", "adapterStatus"]) if (typeof entry[key] === "number" && Number.isInteger(entry[key]) && entry[key] >= 100 && entry[key] <= 599) detail[key] = entry[key];
+		if (Object.keys(detail).length > 1) details.push(detail);
+		value = entry.cause;
+	}
+	return details;
 }
 
 function sourceCoverage(state: FileAgentStateStore, fixture: LongFixture, root: string): string[] {
@@ -157,11 +186,14 @@ function fakeProvider(fixture: LongFixture, item: FixtureCase): AgentModelProvid
 }
 
 async function main() {
-	const { values } = parseArgs({ options: { plan: { type: "boolean" }, offline: { type: "boolean" }, online: { type: "boolean" }, "prior-report": { type: "string" }, report: { type: "string" }, "usd-limit": { type: "string" }, repeats: { type: "string" } } });
+	const { values } = parseArgs({ options: { plan: { type: "boolean" }, offline: { type: "boolean" }, online: { type: "boolean" }, "prior-report": { type: "string" }, report: { type: "string" }, "usd-limit": { type: "string" }, repeats: { type: "string" }, "carry-reviewed-stop": { type: "string" } } });
 	if ([values.plan, values.offline, values.online].filter(Boolean).length !== 1 || !values["prior-report"]) throw new Error("choose_mode_and_latest_prior_report");
 	const repeats = Number(values.repeats ?? 2); if (repeats !== 1 && repeats !== 2) throw new Error("repeats_must_be_one_or_two");
 	const priorPath = resolve(values["prior-report"]), priorBytes = readFileSync(priorPath, "utf8"), prior = JSON.parse(priorBytes);
-	const fixture = loadLongFixture(), usdLimit = Number(values["usd-limit"] ?? prior.limits?.usd), budget = checkPrior(prior, usdLimit, fixture.cases.length * 2 * repeats);
+	const fixture = loadLongFixture(), usdLimit = Number(values["usd-limit"] ?? prior.limits?.usd), cases = fixture.cases.length * 2 * repeats;
+	const budget = values["carry-reviewed-stop"]
+		? carryReviewedStop(priorBytes, readFileSync(`${priorPath}.requests.json.gz`), values["carry-reviewed-stop"], usdLimit, cases)
+		: { ...checkPrior(prior, usdLimit, cases), carriedUnknownCalls: [] };
 	const phases = Array.from({ length: repeats }, (_, sample) => fixture.cases.flatMap((item) => (sample % 2 === 0 ? ["baseline", "candidate"] : ["candidate", "baseline"]).map((version) => ({ phase: `${item.id}-${sample + 1}-${version}`, caseId: item.id, sample: sample + 1, version: version as Version })))).flat();
 	const sourcePaths = ["eval/contextLongReadback.ts", "eval/baselines/context-readback-v2/agentRuntime.ts", "eval/baselines/context-readback-v2/contextRead.ts", "eval/fixtures/contextReadbackV2.ts", "server/runtime/agentRuntime.ts", "server/runtime/contextRead.ts", "server/runtime/fileAgentStateStore.ts", "server/runtime/loopGuard.ts", "server/runtime/anthropicModelProvider.ts", "src/agent/loop.ts", "src/agent/context.ts", "src/agent/summarizer.ts"];
 	const sourceHashes = Object.fromEntries(sourcePaths.map((path) => [path, hash(readFileSync(resolve(path)))]));
@@ -182,8 +214,8 @@ async function main() {
 		onlineProvider = new AnthropicModelProvider(new AnthropicMessagesClient({ baseUrl: environment.ANTHROPIC_BASE_URL, apiKey: environment.ANTHROPIC_API_KEY }), prior.requestedModel, longLimits.outputTokens);
 	}
 	const root = mkdtempSync(join(tmpdir(), "packx-long-readback-"));
-	const calls: ModelCall[] = [], requests: AgentModelRequest[] = [], countRequests: Array<{ phase: string; status: string; requestSha256: string; tokens?: number }> = [], results: CaseResult[] = [];
-	const report = { ...plan, commit: execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim(), generatedAt: new Date().toISOString(), temporaryStateDirectory: root, requestArchive: requestArchive.split("/").at(-1), requestArchiveSha256: "", status: "running", unresolved: false, reservedUsd: budget.priorReservedUsd, rates: { inputPerMillionUsd: 0.3, cachedInputPerMillionUsd: 0.006, outputPerMillionUsd: 1.2, source: "https://api-docs.deepseek.com/quick_start/pricing/", verifiedOn: "2026-09-24", reservationIgnoresCache: true }, calls, countRequests, results };
+	const calls: ModelCall[] = [], requests: AgentModelRequest[] = [], countRequests: Array<{ phase: string; status: string; requestSha256: string; tokens?: number; durationMs?: number; failure?: ReturnType<typeof failureMetadata> }> = [], results: CaseResult[] = [];
+	const report = { ...plan, commit: execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim(), generatedAt: new Date().toISOString(), temporaryStateDirectory: root, requestArchive: requestArchive.split("/").at(-1), requestArchiveSha256: "", status: "running", unresolved: budget.carriedUnknownCalls.length > 0, currentBatchUnresolved: false, reservedUsd: budget.priorReservedUsd, rates: { inputPerMillionUsd: 0.3, cachedInputPerMillionUsd: 0.006, outputPerMillionUsd: 1.2, source: "https://api-docs.deepseek.com/quick_start/pricing/", verifiedOn: "2026-09-24", reservationIgnoresCache: true }, calls, countRequests, results };
 	const save = (initial = false) => {
 		const compressed = gzipSync(JSON.stringify(requests), { level: 1 }); report.requestArchiveSha256 = hash(compressed);
 		for (const [path, content] of [[requestArchive, compressed], [output, JSON.stringify(report, null, "\t") + "\n"]] as const) {
@@ -199,13 +231,13 @@ async function main() {
 			console.log(JSON.stringify({ phase: phase.phase, status: "started", reservedUsd: report.reservedUsd }));
 			const provider = onlineProvider ?? fakeProvider(fixture, item), counts = new Map<string, number>(); let iteration = 0, summaryCalls = 0, mainCalls = 0, counted = 0;
 			const count = async (request: AgentModelRequest, signal?: AbortSignal) => {
-				if (report.unresolved) throw new Error("uncertain_call_requires_review"); signal?.throwIfAborted();
+				if (report.currentBatchUnresolved) throw new Error("uncertain_call_requires_review"); signal?.throwIfAborted();
 				const key = digest({ messages: request.messages, tools: request.tools, outputSchema: request.outputSchema, reasoning: request.reasoning });
 				if (counts.has(key)) return counts.get(key)!;
 				if (++counted > longLimits.countRequestsPerCase) throw new Error("count_budget_exceeded");
-				const entry: typeof countRequests[number] = { phase: phase.phase, status: "started", requestSha256: key }; countRequests.push(entry); save();
-				try { const tokens = await provider.countTokens!(request, signal); if (!Number.isSafeInteger(tokens) || tokens < 0) throw new Error("invalid_token_count"); entry.tokens = tokens; entry.status = "completed"; counts.set(key, tokens); save(); return tokens; }
-				catch (error) { entry.status = "unknown"; report.unresolved = true; save(); throw error; }
+				const entry: typeof countRequests[number] = { phase: phase.phase, status: "started", requestSha256: key }; countRequests.push(entry); save(); const countStarted = performance.now();
+				try { const tokens = await provider.countTokens!(request, signal); if (!Number.isSafeInteger(tokens) || tokens < 0) throw new Error("invalid_token_count"); entry.tokens = tokens; entry.status = "completed"; entry.durationMs = Math.round(performance.now() - countStarted); counts.set(key, tokens); save(); return tokens; }
+				catch (error) { Object.assign(entry, { status: "unknown", durationMs: Math.round(performance.now() - countStarted), failure: failureMetadata(error) }); report.unresolved = report.currentBatchUnresolved = true; save(); throw error; }
 			};
 			const bounded: AgentModelProvider = { countTokens: count, generate: async (request, signal) => {
 				const purpose = request.callContext?.purpose === "summary" ? "summary" : "turn";
@@ -221,7 +253,7 @@ async function main() {
 				const entry: ModelCall = { phase: phase.phase, iteration, purpose, status: "started", requestIndex: requests.length, requestSha256: digest(snapshot), countedInput, reservedOutput, reservation }; requests.push(snapshot); calls.push(entry); report.reservedUsd += reservation; save();
 				const callStarted = performance.now();
 				try { const response = await provider.generate(request, signal); Object.assign(entry, { status: "completed", response, durationMs: Math.round(performance.now() - callStarted) }); if (purpose === "turn") result.modelInputs.push({ iteration, ...originalVisibility(request.messages, fixture) }); save(); return response; }
-				catch (error) { entry.status = "unknown"; report.unresolved = true; save(); throw error; }
+				catch (error) { Object.assign(entry, { status: "unknown", durationMs: Math.round(performance.now() - callStarted), failure: failureMetadata(error) }); report.unresolved = report.currentBatchUnresolved = true; save(); throw error; }
 			} };
 			const hooks = new AgentHooks();
 			hooks.on("model.before", (event) => { iteration = event.iteration; });
@@ -237,7 +269,7 @@ async function main() {
 				if (values.offline) { assert.equal(result.passed, true); assert(result.modelInputs.some((input) => input.host && input.requirements && input.report)); }
 			} catch (error) {
 				Object.assign(result, { status: "stopped", code: errorCode(error), passed: false, events: state.listTraces(fixture.scope).at(-1)?.events ?? [] });
-				if (report.unresolved || values.offline) throw error;
+				if (report.currentBatchUnresolved || values.offline) throw error;
 			} finally {
 				result.durationMs = Math.round(performance.now() - started); result.metrics = measureLongReadback(result, fixture, state, calls); save(); console.log(JSON.stringify({ phase: phase.phase, status: result.status, correctFields: result.correctFields, tools: result.metrics.toolsExecuted, mainCalls: result.metrics.mainCalls, summaryCalls: result.metrics.summaryCalls, reservedUsd: report.reservedUsd }));
 			}
