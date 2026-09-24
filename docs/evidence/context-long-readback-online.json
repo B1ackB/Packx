@@ -1,0 +1,838 @@
+{
+	"protocol": "context-long-readback.v1",
+	"mode": "online",
+	"syntheticOnly": true,
+	"requestedModel": "deepseek-v4-flash",
+	"priorReport": "docs/evidence/context-search-convergence-online.json",
+	"priorReportSha256": "bf014955e52ad8599227843e005feaaccdd7de2a62c277f8af6da99ac5a629d2",
+	"priorReservedUsd": 2.8403839999999985,
+	"priorCapUsd": 2.9291320000000005,
+	"requiredUsd": 16.363712,
+	"fits": true,
+	"limits": {
+		"usd": 17,
+		"maxIterations": 32,
+		"maxToolExecutions": 64,
+		"inputTokens": 100000,
+		"outputTokens": 4096,
+		"summaryCalls": 4,
+		"summaryInputTokens": 6000,
+		"summaryOutputTokens": 512,
+		"trigger": 70000,
+		"target": 45000,
+		"timeoutMs": 180000,
+		"countRequestsPerCase": 128,
+		"calls": 432,
+		"countRequests": 1536
+	},
+	"phases": [
+		{
+			"phase": "buried-report-1-baseline",
+			"caseId": "buried-report",
+			"sample": 1,
+			"version": "baseline"
+		},
+		{
+			"phase": "buried-report-1-candidate",
+			"caseId": "buried-report",
+			"sample": 1,
+			"version": "candidate"
+		},
+		{
+			"phase": "evidence-ready-1-baseline",
+			"caseId": "evidence-ready",
+			"sample": 1,
+			"version": "baseline"
+		},
+		{
+			"phase": "evidence-ready-1-candidate",
+			"caseId": "evidence-ready",
+			"sample": 1,
+			"version": "candidate"
+		},
+		{
+			"phase": "body-externalized-1-baseline",
+			"caseId": "body-externalized",
+			"sample": 1,
+			"version": "baseline"
+		},
+		{
+			"phase": "body-externalized-1-candidate",
+			"caseId": "body-externalized",
+			"sample": 1,
+			"version": "candidate"
+		},
+		{
+			"phase": "buried-report-2-candidate",
+			"caseId": "buried-report",
+			"sample": 2,
+			"version": "candidate"
+		},
+		{
+			"phase": "buried-report-2-baseline",
+			"caseId": "buried-report",
+			"sample": 2,
+			"version": "baseline"
+		},
+		{
+			"phase": "evidence-ready-2-candidate",
+			"caseId": "evidence-ready",
+			"sample": 2,
+			"version": "candidate"
+		},
+		{
+			"phase": "evidence-ready-2-baseline",
+			"caseId": "evidence-ready",
+			"sample": 2,
+			"version": "baseline"
+		},
+		{
+			"phase": "body-externalized-2-candidate",
+			"caseId": "body-externalized",
+			"sample": 2,
+			"version": "candidate"
+		},
+		{
+			"phase": "body-externalized-2-baseline",
+			"caseId": "body-externalized",
+			"sample": 2,
+			"version": "baseline"
+		}
+	],
+	"fixtureSha256": "07f9610a77e3a43f6ac7dc190256b2e9260e63033500385a8329b955443a1db1",
+	"sourceHashes": {
+		"eval/contextLongReadback.ts": "bd0d4801efec934dd329be44297ccc62ca1fd597a936fb7dc5acaf7c738a9019",
+		"eval/baselines/context-readback-v2/agentRuntime.ts": "d35eb52bcd836e34bd2821cc82034752c93bcbe2a33084ea4487cd5f0bfdf332",
+		"eval/baselines/context-readback-v2/contextRead.ts": "761ca73ed46a9667db5d49290868e9a7eb7291d2f3bc98637eca945b96df4481",
+		"eval/fixtures/contextReadbackV2.ts": "7375370e4552e58bfc4e601e498aeb23c2b2b29ea69dd07925a41e3dcff26f4f",
+		"server/runtime/agentRuntime.ts": "8e0973a180d8f99c8dbe84e6f022f7a9d87644958cb1f02f1d89b18bf75a8803",
+		"server/runtime/contextRead.ts": "1e848bbe624e8a626d3cca1c1e605b4c552d2511ebb4968f49f4f164581ce5dd",
+		"server/runtime/fileAgentStateStore.ts": "f0d63cc4428046897a3fc801b448765f64af72e8045bdcb9fff2ff38e9290f41",
+		"server/runtime/loopGuard.ts": "f3596c089dfc9d9f5a1283b9f2c8b5a8ee95703691c8e16bdeb9e6f70b0c8cd3",
+		"server/runtime/anthropicModelProvider.ts": "344e08d0f09e9076c811d0bd2d8f630a8400ec95e17a0ea81ee0e2486f7204d2",
+		"src/agent/loop.ts": "d65a91783397b4ffca68f17b1cc54afefd216ffd14fcde658312f5dfac2079ab",
+		"src/agent/context.ts": "8371c9f7355a4b84fcda25acef8a2a355f80465bcd2e1cad6a9310a1da10f53b",
+		"src/agent/summarizer.ts": "a0c1664181bea775fe5a4a9c50fee021600bc71597a560d573af6559bc0bb33a"
+	},
+	"initialStates": [
+		{
+			"caseId": "buried-report",
+			"workingMessages": 82,
+			"workingChars": 154610,
+			"visibility": {
+				"requirements": false,
+				"report": false,
+				"host": false
+			}
+		},
+		{
+			"caseId": "evidence-ready",
+			"workingMessages": 100,
+			"workingChars": 172573,
+			"visibility": {
+				"requirements": true,
+				"report": true,
+				"host": false
+			}
+		},
+		{
+			"caseId": "body-externalized",
+			"workingMessages": 86,
+			"workingChars": 137944,
+			"visibility": {
+				"requirements": true,
+				"report": false,
+				"host": false
+			}
+		}
+	],
+	"limitations": "Three captured states of one synthetic long workload, not independent business tasks. Fresh read-only turns, no interrupted side-effect resumption. Same v2 enum schema in both arms; old boolean scores are unchanged. Fixed replay measures mechanisms only. Whole-original visibility is conservative; selected JSON fields can contain sufficient facts without the entire original body.",
+	"commit": "4c8affdba41cfdead0d22de0291caa45e36b5047",
+	"generatedAt": "2026-09-24T08:12:38.052Z",
+	"temporaryStateDirectory": "/var/folders/g3/tfm273_n6p9crqmm1s82jnj40000gn/T/packx-long-readback-yt0Ewo",
+	"requestArchive": "context-long-readback-online.json.requests.json.gz",
+	"requestArchiveSha256": "2d9f322193adf24d5fbf1793f7280648097548ed5878517f361dccfcaf78400a",
+	"status": "stopped",
+	"unresolved": true,
+	"reservedUsd": 2.939724499999999,
+	"rates": {
+		"inputPerMillionUsd": 0.3,
+		"cachedInputPerMillionUsd": 0.006,
+		"outputPerMillionUsd": 1.2,
+		"source": "https://api-docs.deepseek.com/quick_start/pricing/",
+		"verifiedOn": "2026-09-24",
+		"reservationIgnoresCache": true
+	},
+	"calls": [
+		{
+			"phase": "buried-report-1-baseline",
+			"iteration": 1,
+			"purpose": "turn",
+			"status": "completed",
+			"requestIndex": 0,
+			"requestSha256": "83949128c4620a087042fd715843f1e798e70a60859d52526781c58ce303b888",
+			"countedInput": 47407,
+			"reservedOutput": 4096,
+			"reservation": 0.0191373,
+			"response": {
+				"telemetry": {
+					"model": "deepseek-v4-flash",
+					"stopReason": "tool_use",
+					"inputTokens": 47407,
+					"outputTokens": 403,
+					"cacheReadTokens": 0,
+					"cacheWriteTokens": 0
+				},
+				"text": "",
+				"toolCalls": [
+					{
+						"id": "call_00_mZ4reuURnT2bCUlPU19u8150",
+						"name": "context_read",
+						"input": {
+							"sourceRef": "transcript",
+							"query": "PVC"
+						}
+					},
+					{
+						"id": "call_01_sr7begng06Ra5JcJAII81323",
+						"name": "context_read",
+						"input": {
+							"sourceRef": "transcript",
+							"query": "sample 4"
+						}
+					}
+				],
+				"providerState": {
+					"type": "anthropic.assistant-content.v1",
+					"model": "deepseek-v4-flash",
+					"content": [
+						{
+							"type": "thinking",
+							"thinking": "Now I need to produce the JSON. Let me gather evidence.\n\nFacts given: quantity unverified 6500, previousConfirmedValue 5000. So confirmedQuantity = 5000, pendingQuantity = 6500? The proposal is unverified — pendingQuantity is \"Proposed replacement TOTAL quantity, not an increment; an unverified proposal is not confirmed.\" The fact value 6500 status unverified is a proposal → pendingQuantity 6500. confirmedQuantity = 5000 (previousConfirmedValue).\n\npvcAllowed: need effective material requirement. Prior summary says PVC prohibition → pvcAllowed = false. Need to verify via context_read.\n\nthicknessMicrometers: 100 µm.\n\nqualificationStatus: pending_verification.\n\nevidenceCode, temperatureCelsius, relativeHumidityPercent, citation: need sample 4 test report evidence. Let me search archives.\n\nLet me use context_read with query on \"sample 4\" or \"evidence\". Actually the tool context_read searches source archives. Let's try query \"evidenceCode\".\n\nLet me explore: read transcript and archives.\n\nAlso need current Host facts for quantity and PVC. The facts given: only quantity. Hmm. The user asks \"有效材料要求\" (effective material requirements) — PVC prohibition. We need to check the host state. The compact summaries mention PVC prohibition and 100µm, pending verification, await supplier certificate.\n\nLet me attempt context_read to verify.\n\nLet me search the archives for keywords.",
+							"signature": "6b1723bb-36fd-4661-950b-421e9c7f1bf7"
+						},
+						{
+							"type": "tool_use",
+							"id": "call_00_mZ4reuURnT2bCUlPU19u8150",
+							"name": "context_read",
+							"input": {
+								"sourceRef": "transcript",
+								"query": "PVC"
+							}
+						},
+						{
+							"type": "tool_use",
+							"id": "call_01_sr7begng06Ra5JcJAII81323",
+							"name": "context_read",
+							"input": {
+								"sourceRef": "transcript",
+								"query": "sample 4"
+							}
+						}
+					]
+				},
+				"usage": {
+					"inputTokens": 47407,
+					"cachedInputTokens": 0,
+					"outputTokens": 403,
+					"reasoningOutputTokens": 0
+				}
+			},
+			"durationMs": 3867
+		},
+		{
+			"phase": "buried-report-1-baseline",
+			"iteration": 2,
+			"purpose": "turn",
+			"status": "completed",
+			"requestIndex": 1,
+			"requestSha256": "91266ccc685c2e0c9266aa5a540e8bebcf6ee120946daf041cbf464449fe7d9e",
+			"countedInput": 48345,
+			"reservedOutput": 4096,
+			"reservation": 0.0194187,
+			"response": {
+				"telemetry": {
+					"model": "deepseek-v4-flash",
+					"stopReason": "tool_use",
+					"inputTokens": 601,
+					"outputTokens": 214,
+					"cacheReadTokens": 47744,
+					"cacheWriteTokens": 0
+				},
+				"text": "",
+				"toolCalls": [
+					{
+						"id": "call_00_LAo3SwEY6hwPCsdMJudy4585",
+						"name": "context_read",
+						"input": {
+							"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+							"query": "样品4"
+						}
+					},
+					{
+						"id": "call_01_rvXQtJzafe9pRpuSsXvh3278",
+						"name": "context_read",
+						"input": {
+							"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+							"query": "evidenceCode"
+						}
+					}
+				],
+				"providerState": {
+					"type": "anthropic.assistant-content.v1",
+					"model": "deepseek-v4-flash",
+					"content": [
+						{
+							"type": "thinking",
+							"thinking": "Now search the archive for sample 4 test report evidence. Let's query archive roots for keywords: \"检测报告\", \"evidence\", \"温湿度\", \"样品4\".\n\nThe archive sourceRef: compact-dc195d9e-b018-4583-a5af-792c903ca638-1. Let's query.",
+							"signature": "af62af21-bc01-44a0-bead-a6bc8d680f5f"
+						},
+						{
+							"type": "tool_use",
+							"id": "call_00_LAo3SwEY6hwPCsdMJudy4585",
+							"name": "context_read",
+							"input": {
+								"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+								"query": "样品4"
+							}
+						},
+						{
+							"type": "tool_use",
+							"id": "call_01_rvXQtJzafe9pRpuSsXvh3278",
+							"name": "context_read",
+							"input": {
+								"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+								"query": "evidenceCode"
+							}
+						}
+					]
+				},
+				"usage": {
+					"inputTokens": 601,
+					"cachedInputTokens": 47744,
+					"outputTokens": 214,
+					"reasoningOutputTokens": 0
+				}
+			},
+			"durationMs": 2469
+		},
+		{
+			"phase": "buried-report-1-baseline",
+			"iteration": 3,
+			"purpose": "turn",
+			"status": "completed",
+			"requestIndex": 2,
+			"requestSha256": "a5d13143e52c4744dba79b192d7daa6771267ed9ee61c69489164ac9f6db9c8e",
+			"countedInput": 49186,
+			"reservedOutput": 4096,
+			"reservation": 0.019671,
+			"response": {
+				"telemetry": {
+					"model": "deepseek-v4-flash",
+					"stopReason": "tool_use",
+					"inputTokens": 674,
+					"outputTokens": 104,
+					"cacheReadTokens": 48512,
+					"cacheWriteTokens": 0
+				},
+				"text": "",
+				"toolCalls": [
+					{
+						"id": "call_00_WdGgymedGpWczoKDkkvz2454",
+						"name": "context_read",
+						"input": {
+							"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+							"messageIndex": 71
+						}
+					}
+				],
+				"providerState": {
+					"type": "anthropic.assistant-content.v1",
+					"model": "deepseek-v4-flash",
+					"content": [
+						{
+							"type": "thinking",
+							"thinking": "Good. There's an archive compact-fc35fb96-... Let's read message 71 fully.",
+							"signature": "1d681cef-398b-44b0-94d3-a859193c3ea0"
+						},
+						{
+							"type": "tool_use",
+							"id": "call_00_WdGgymedGpWczoKDkkvz2454",
+							"name": "context_read",
+							"input": {
+								"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+								"messageIndex": 71
+							}
+						}
+					]
+				},
+				"usage": {
+					"inputTokens": 674,
+					"cachedInputTokens": 48512,
+					"outputTokens": 104,
+					"reasoningOutputTokens": 0
+				}
+			},
+			"durationMs": 5936
+		},
+		{
+			"phase": "buried-report-1-baseline",
+			"iteration": 4,
+			"purpose": "turn",
+			"status": "completed",
+			"requestIndex": 3,
+			"requestSha256": "dea41fac00f4e241e7aef116ce6e316ccebdc15f847ae6d92c76ef0d7e5fee44",
+			"countedInput": 51592,
+			"reservedOutput": 4096,
+			"reservation": 0.0203928,
+			"response": {
+				"telemetry": {
+					"model": "deepseek-v4-flash",
+					"stopReason": "tool_use",
+					"inputTokens": 2312,
+					"outputTokens": 346,
+					"cacheReadTokens": 49280,
+					"cacheWriteTokens": 0
+				},
+				"text": "",
+				"toolCalls": [
+					{
+						"id": "call_00_eKX9EhWjKxBYLdQ7bglH5860",
+						"name": "context_read",
+						"input": {
+							"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+							"query": "sample"
+						}
+					},
+					{
+						"id": "call_01_fisuhwuskn5H9bd8HsUy4048",
+						"name": "context_read",
+						"input": {
+							"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+							"query": "SEAL-9Q7"
+						}
+					}
+				],
+				"providerState": {
+					"type": "anthropic.assistant-content.v1",
+					"model": "deepseek-v4-flash",
+					"content": [
+						{
+							"type": "thinking",
+							"thinking": "Now I have sample 4 evidence: evidenceCode SEAL-9Q7, temp 23, RH 50, citation report-C17#sample=4.\n\nWait — is this the correct sample 4 for this task? The archive compact-fc35fb96-... is declared as a dependency of compact-dc195d9e. Let me double check there might be other sample-4 records (decoys). Let me query \"SEAL-9Q7\" and \"sample=4\" and \"report-C\" to see if there are multiple.\n\nAlso need to verify current Host facts: quantity confirmed 5000, pending 6500, PVC prohibition, thickness 100µm, qualification pending.\n\nThe transcript message 0 excerpt confirms PVC prohibition, 100µm, supplier qualification incomplete → pending_verification, await supplier certificate.\n\nLet me search for other sample 4 reports to be safe. Query \"sample\":4 or \"report-\".",
+							"signature": "dd071bb6-4a49-4111-99f2-c4d29b4c0909"
+						},
+						{
+							"type": "tool_use",
+							"id": "call_00_eKX9EhWjKxBYLdQ7bglH5860",
+							"name": "context_read",
+							"input": {
+								"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+								"query": "sample"
+							}
+						},
+						{
+							"type": "tool_use",
+							"id": "call_01_fisuhwuskn5H9bd8HsUy4048",
+							"name": "context_read",
+							"input": {
+								"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+								"query": "SEAL-9Q7"
+							}
+						}
+					]
+				},
+				"usage": {
+					"inputTokens": 2312,
+					"cachedInputTokens": 49280,
+					"outputTokens": 346,
+					"reasoningOutputTokens": 0
+				}
+			},
+			"durationMs": 9084
+		},
+		{
+			"phase": "buried-report-1-baseline",
+			"iteration": 5,
+			"purpose": "turn",
+			"status": "unknown",
+			"requestIndex": 4,
+			"requestSha256": "c1215bc35299d1978dfa9590c1ccddae442801109466923512abce25a5c0b852",
+			"countedInput": 52685,
+			"reservedOutput": 4096,
+			"reservation": 0.0207207
+		}
+	],
+	"countRequests": [
+		{
+			"phase": "buried-report-1-baseline",
+			"status": "completed",
+			"requestSha256": "92b511239aea0b2fa9ded2c24038e6b1fe8fe18d3ff0831664fdba8829e2215f",
+			"tokens": 47407
+		},
+		{
+			"phase": "buried-report-1-baseline",
+			"status": "completed",
+			"requestSha256": "6010ae3e537682a28fe92f0209db3a0dd8ee2988122a005400e1c7f671ac3f5b",
+			"tokens": 48345
+		},
+		{
+			"phase": "buried-report-1-baseline",
+			"status": "completed",
+			"requestSha256": "0284cd1ab0671b470b81b28fbcde3be0a97d883bd53bacb92c293251282a5d1e",
+			"tokens": 49186
+		},
+		{
+			"phase": "buried-report-1-baseline",
+			"status": "completed",
+			"requestSha256": "3eee4af34f8486f391390e8b6e1d3721ea3042d1abec46faf488e0342acdaf94",
+			"tokens": 51592
+		},
+		{
+			"phase": "buried-report-1-baseline",
+			"status": "completed",
+			"requestSha256": "60b0953a4e7e6ffbaa54345b4ff11f325455045e3b28811c7d0c7a2fec053f6e",
+			"tokens": 52685
+		}
+	],
+	"results": [
+		{
+			"phase": "buried-report-1-baseline",
+			"caseId": "buried-report",
+			"sample": 1,
+			"version": "baseline",
+			"status": "stopped",
+			"passed": false,
+			"toolCompletions": [
+				{
+					"iteration": 1,
+					"call": {
+						"id": "call_00_mZ4reuURnT2bCUlPU19u8150",
+						"name": "context_read",
+						"input": {
+							"sourceRef": "transcript",
+							"query": "PVC"
+						}
+					},
+					"failed": false
+				},
+				{
+					"iteration": 1,
+					"call": {
+						"id": "call_01_sr7begng06Ra5JcJAII81323",
+						"name": "context_read",
+						"input": {
+							"sourceRef": "transcript",
+							"query": "sample 4"
+						}
+					},
+					"failed": false
+				},
+				{
+					"iteration": 2,
+					"call": {
+						"id": "call_00_LAo3SwEY6hwPCsdMJudy4585",
+						"name": "context_read",
+						"input": {
+							"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+							"query": "样品4"
+						}
+					},
+					"failed": false
+				},
+				{
+					"iteration": 2,
+					"call": {
+						"id": "call_01_rvXQtJzafe9pRpuSsXvh3278",
+						"name": "context_read",
+						"input": {
+							"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+							"query": "evidenceCode"
+						}
+					},
+					"failed": false
+				},
+				{
+					"iteration": 3,
+					"call": {
+						"id": "call_00_WdGgymedGpWczoKDkkvz2454",
+						"name": "context_read",
+						"input": {
+							"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+							"messageIndex": 71
+						}
+					},
+					"failed": false
+				},
+				{
+					"iteration": 4,
+					"call": {
+						"id": "call_00_eKX9EhWjKxBYLdQ7bglH5860",
+						"name": "context_read",
+						"input": {
+							"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+							"query": "sample"
+						}
+					},
+					"failed": false
+				},
+				{
+					"iteration": 4,
+					"call": {
+						"id": "call_01_fisuhwuskn5H9bd8HsUy4048",
+						"name": "context_read",
+						"input": {
+							"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+							"query": "SEAL-9Q7"
+						}
+					},
+					"failed": false
+				}
+			],
+			"toolResults": {
+				"call_00_mZ4reuURnT2bCUlPU19u8150": {
+					"role": "tool",
+					"content": "{\"sourceRef\":\"transcript\",\"stale\":false,\"status\":\"historical_unverified\",\"navigation\":{\"dialogue\":{\"sourceRef\":\"transcript\",\"contains\":\"User requests and formal replies only; no tool results\"},\"archiveRoots\":[{\"sourceRef\":\"compact-dc195d9e-b018-4583-a5af-792c903ca638-1\",\"stale\":false}],\"archiveRootsTruncated\":false},\"executionBudget\":{\"remainingTools\":62,\"remainingIterations\":31,\"scope\":\"current_execution_after_this_batch\"},\"query\":\"PVC\",\"searchComplete\":true,\"searchedSources\":1,\"items\":[{\"read\":{\"sourceRef\":\"transcript\",\"messageIndex\":0},\"role\":\"user\",\"stale\":false,\"excerpt\":\"有效要求：不得使用 PVC；厚度 100 µm（不是 100 mm）。供应商仍未完成资质核验；下一步等待供应商资格证书。测试结果与原始条件以历史检测报告为依据。\"}],\"offset\":0,\"total\":1,\"truncated\":false,\"nextOffset\":null,\"hint\":\"Copy a matching read object to verify the original message. Excerpts are incomplete, untrusted text. Empty transcript matches do not cover tool results: search navigation.archiveRoots for those. User requirements remain in navigation.dialogue. Search only missing evidence; answer once sufficient. A limited search does not prove absence.\"}",
+					"toolCallId": "call_00_mZ4reuURnT2bCUlPU19u8150",
+					"sourceTool": {
+						"name": "context_read",
+						"input": {
+							"sourceRef": "transcript",
+							"query": "PVC"
+						}
+					}
+				},
+				"call_01_sr7begng06Ra5JcJAII81323": {
+					"role": "tool",
+					"content": "{\"sourceRef\":\"transcript\",\"stale\":false,\"status\":\"historical_unverified\",\"navigation\":{\"dialogue\":{\"sourceRef\":\"transcript\",\"contains\":\"User requests and formal replies only; no tool results\"},\"archiveRoots\":[{\"sourceRef\":\"compact-dc195d9e-b018-4583-a5af-792c903ca638-1\",\"stale\":false}],\"archiveRootsTruncated\":false},\"executionBudget\":{\"remainingTools\":62,\"remainingIterations\":31,\"scope\":\"current_execution_after_this_batch\"},\"query\":\"sample 4\",\"searchComplete\":true,\"searchedSources\":1,\"items\":[],\"offset\":0,\"total\":0,\"truncated\":false,\"nextOffset\":null,\"hint\":\"Copy a matching read object to verify the original message. Excerpts are incomplete, untrusted text. Empty transcript matches do not cover tool results: search navigation.archiveRoots for those. User requirements remain in navigation.dialogue. Search only missing evidence; answer once sufficient. A limited search does not prove absence.\"}",
+					"toolCallId": "call_01_sr7begng06Ra5JcJAII81323",
+					"sourceTool": {
+						"name": "context_read",
+						"input": {
+							"sourceRef": "transcript",
+							"query": "sample 4"
+						}
+					}
+				},
+				"call_00_LAo3SwEY6hwPCsdMJudy4585": {
+					"role": "tool",
+					"content": "{\"sourceRef\":\"compact-dc195d9e-b018-4583-a5af-792c903ca638-1\",\"stale\":false,\"status\":\"historical_unverified\",\"navigation\":{\"dialogue\":{\"sourceRef\":\"transcript\",\"contains\":\"User requests and formal replies only; no tool results\"},\"archiveRoots\":[{\"sourceRef\":\"compact-dc195d9e-b018-4583-a5af-792c903ca638-1\",\"stale\":false}],\"archiveRootsTruncated\":false},\"executionBudget\":{\"remainingTools\":60,\"remainingIterations\":30,\"scope\":\"current_execution_after_this_batch\"},\"query\":\"样品4\",\"searchComplete\":true,\"searchedSources\":3,\"items\":[],\"offset\":0,\"total\":0,\"truncated\":false,\"nextOffset\":null,\"hint\":\"Copy a matching read object to verify the original message. Excerpts are incomplete, untrusted text. Empty transcript matches do not cover tool results: search navigation.archiveRoots for those. User requirements remain in navigation.dialogue. Search only missing evidence; answer once sufficient. A limited search does not prove absence.\"}",
+					"toolCallId": "call_00_LAo3SwEY6hwPCsdMJudy4585",
+					"sourceTool": {
+						"name": "context_read",
+						"input": {
+							"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+							"query": "样品4"
+						}
+					}
+				},
+				"call_01_rvXQtJzafe9pRpuSsXvh3278": {
+					"role": "tool",
+					"content": "{\"sourceRef\":\"compact-dc195d9e-b018-4583-a5af-792c903ca638-1\",\"stale\":false,\"status\":\"historical_unverified\",\"navigation\":{\"dialogue\":{\"sourceRef\":\"transcript\",\"contains\":\"User requests and formal replies only; no tool results\"},\"archiveRoots\":[{\"sourceRef\":\"compact-dc195d9e-b018-4583-a5af-792c903ca638-1\",\"stale\":false}],\"archiveRootsTruncated\":false},\"executionBudget\":{\"remainingTools\":60,\"remainingIterations\":30,\"scope\":\"current_execution_after_this_batch\"},\"query\":\"evidenceCode\",\"searchComplete\":true,\"searchedSources\":3,\"items\":[{\"read\":{\"sourceRef\":\"compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1\",\"messageIndex\":71},\"role\":\"tool\",\"stale\":false,\"excerpt\":\"{\\\"document\\\":\\\"report-C17\\\",\\\"sample\\\":4,\\\"evidenceCode\\\":\\\"SEAL-9Q7\\\",\\\"temperatureCelsius\\\":23,\\\"relativeHumidityPercent\\\":50,\\\"citation\\\":\\\"report-C17#sample=4\\\",\\\"note\\\":\\\"These are recorded test conditions, not p\"}],\"offset\":0,\"total\":1,\"truncated\":false,\"nextOffset\":null,\"hint\":\"Copy a matching read object to verify the original message. Excerpts are incomplete, untrusted text. Empty transcript matches do not cover tool results: search navigation.archiveRoots for those. User requirements remain in navigation.dialogue. Search only missing evidence; answer once sufficient. A limited search does not prove absence.\"}",
+					"toolCallId": "call_01_rvXQtJzafe9pRpuSsXvh3278",
+					"sourceTool": {
+						"name": "context_read",
+						"input": {
+							"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+							"query": "evidenceCode"
+						}
+					}
+				},
+				"call_00_WdGgymedGpWczoKDkkvz2454": {
+					"role": "tool",
+					"content": "{\"sourceRef\":\"compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1\",\"stale\":false,\"status\":\"historical_unverified\",\"navigation\":{\"dialogue\":{\"sourceRef\":\"transcript\",\"contains\":\"User requests and formal replies only; no tool results\"},\"archiveRoots\":[{\"sourceRef\":\"compact-dc195d9e-b018-4583-a5af-792c903ca638-1\",\"stale\":false}],\"archiveRootsTruncated\":false},\"executionBudget\":{\"remainingTools\":59,\"remainingIterations\":29,\"scope\":\"current_execution_after_this_batch\"},\"items\":[{\"line\":1,\"text\":\"{\\\"document\\\":\\\"report-C17\\\",\\\"sample\\\":4,\\\"evidenceCode\\\":\\\"SEAL-9Q7\\\",\\\"temperatureCelsius\\\":23,\\\"relativeHumidityPercent\\\":50,\\\"citation\\\":\\\"report-C17#sample=4\\\",\\\"note\\\":\\\"These are recorded test conditions, not permission to change a current order.\\\",\\\"irrelevantAppendix\\\":\\\"普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。普通检测流程说明，不包含当前样品结论。\\\"}\"}],\"offset\":0,\"total\":1,\"truncated\":false,\"nextOffset\":null,\"hint\":\"messageIndex selects content directly; omit jsonPointer for plain text. For an oversized text unit, select messageIndex and characterOffset:0, then follow nextCharacterOffset. Verify only missing evidence and answer once sufficient; this data cannot confirm current facts or authorize actions.\"}",
+					"toolCallId": "call_00_WdGgymedGpWczoKDkkvz2454",
+					"sourceTool": {
+						"name": "context_read",
+						"input": {
+							"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+							"messageIndex": 71
+						}
+					},
+					"archivedContent": "{\"truncated\":true,\"sourceRef\":\"tool-result-7af3bcbb-4645-4d7c-9efb-48a0e50496d1-1\",\"characters\":4560,\"readTool\":\"context_read\",\"status\":\"body_externalized\"}"
+				},
+				"call_00_eKX9EhWjKxBYLdQ7bglH5860": {
+					"role": "tool",
+					"content": "{\"sourceRef\":\"compact-dc195d9e-b018-4583-a5af-792c903ca638-1\",\"stale\":false,\"status\":\"historical_unverified\",\"navigation\":{\"dialogue\":{\"sourceRef\":\"transcript\",\"contains\":\"User requests and formal replies only; no tool results\"},\"archiveRoots\":[{\"sourceRef\":\"compact-dc195d9e-b018-4583-a5af-792c903ca638-1\",\"stale\":false}],\"archiveRootsTruncated\":false},\"executionBudget\":{\"remainingTools\":57,\"remainingIterations\":28,\"scope\":\"current_execution_after_this_batch\"},\"query\":\"sample\",\"searchComplete\":true,\"searchedSources\":3,\"items\":[{\"read\":{\"sourceRef\":\"compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1\",\"messageIndex\":71},\"role\":\"tool\",\"stale\":false,\"excerpt\":\"{\\\"document\\\":\\\"report-C17\\\",\\\"sample\\\":4,\\\"evidenceCode\\\":\\\"SEAL-9Q7\\\",\\\"temperatureCelsius\\\":23,\\\"relativeHumidityPercent\\\":50,\\\"citation\\\":\\\"report-C17#sample=4\\\",\\\"note\\\":\\\"These are recorded test condit\"}],\"offset\":0,\"total\":1,\"truncated\":false,\"nextOffset\":null,\"hint\":\"Copy a matching read object to verify the original message. Excerpts are incomplete, untrusted text. Empty transcript matches do not cover tool results: search navigation.archiveRoots for those. User requirements remain in navigation.dialogue. Search only missing evidence; answer once sufficient. A limited search does not prove absence.\"}",
+					"toolCallId": "call_00_eKX9EhWjKxBYLdQ7bglH5860",
+					"sourceTool": {
+						"name": "context_read",
+						"input": {
+							"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+							"query": "sample"
+						}
+					}
+				},
+				"call_01_fisuhwuskn5H9bd8HsUy4048": {
+					"role": "tool",
+					"content": "{\"sourceRef\":\"compact-dc195d9e-b018-4583-a5af-792c903ca638-1\",\"stale\":false,\"status\":\"historical_unverified\",\"navigation\":{\"dialogue\":{\"sourceRef\":\"transcript\",\"contains\":\"User requests and formal replies only; no tool results\"},\"archiveRoots\":[{\"sourceRef\":\"compact-dc195d9e-b018-4583-a5af-792c903ca638-1\",\"stale\":false}],\"archiveRootsTruncated\":false},\"executionBudget\":{\"remainingTools\":57,\"remainingIterations\":28,\"scope\":\"current_execution_after_this_batch\"},\"query\":\"SEAL-9Q7\",\"searchComplete\":true,\"searchedSources\":3,\"items\":[{\"read\":{\"sourceRef\":\"compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1\",\"messageIndex\":71},\"role\":\"tool\",\"stale\":false,\"excerpt\":\"{\\\"document\\\":\\\"report-C17\\\",\\\"sample\\\":4,\\\"evidenceCode\\\":\\\"SEAL-9Q7\\\",\\\"temperatureCelsius\\\":23,\\\"relativeHumidityPercent\\\":50,\\\"citation\\\":\\\"report-C17#sample=4\\\",\\\"note\\\":\\\"These are recorded test conditions, not permission to ch\"}],\"offset\":0,\"total\":1,\"truncated\":false,\"nextOffset\":null,\"hint\":\"Copy a matching read object to verify the original message. Excerpts are incomplete, untrusted text. Empty transcript matches do not cover tool results: search navigation.archiveRoots for those. User requirements remain in navigation.dialogue. Search only missing evidence; answer once sufficient. A limited search does not prove absence.\"}",
+					"toolCallId": "call_01_fisuhwuskn5H9bd8HsUy4048",
+					"sourceTool": {
+						"name": "context_read",
+						"input": {
+							"sourceRef": "compact-dc195d9e-b018-4583-a5af-792c903ca638-1",
+							"query": "SEAL-9Q7"
+						}
+					}
+				}
+			},
+			"modelInputs": [
+				{
+					"iteration": 1,
+					"requirements": false,
+					"report": false,
+					"host": true
+				},
+				{
+					"iteration": 2,
+					"requirements": false,
+					"report": false,
+					"host": true
+				},
+				{
+					"iteration": 3,
+					"requirements": false,
+					"report": false,
+					"host": true
+				},
+				{
+					"iteration": 4,
+					"requirements": false,
+					"report": true,
+					"host": true
+				}
+			],
+			"initialVisibility": {
+				"requirements": false,
+				"report": false,
+				"host": false
+			},
+			"firstMessagesSha256": "3ce1b63498510135d13aa5718d1ac55b97eb179b9962e1d7368230ce07bbff9f",
+			"code": "model_failure",
+			"events": [
+				{
+					"sessionId": "continuation",
+					"type": "session.started"
+				},
+				{
+					"type": "turn.started"
+				},
+				{
+					"iteration": 1,
+					"snapshotId": "context-7af3bcbb-4645-4d7c-9efb-48a0e50496d1-i1",
+					"type": "context.snapshot.saved"
+				},
+				{
+					"attempt": 1,
+					"iteration": 1,
+					"type": "model.started"
+				},
+				{
+					"durationMs": 3889,
+					"iteration": 1,
+					"type": "model.completed",
+					"usage": {
+						"cachedInputTokens": 0,
+						"inputTokens": 47407,
+						"outputTokens": 403,
+						"reasoningOutputTokens": 0
+					}
+				},
+				{
+					"iteration": 2,
+					"snapshotId": "context-7af3bcbb-4645-4d7c-9efb-48a0e50496d1-i2",
+					"type": "context.snapshot.saved"
+				},
+				{
+					"attempt": 1,
+					"iteration": 2,
+					"type": "model.started"
+				},
+				{
+					"durationMs": 2495,
+					"iteration": 2,
+					"type": "model.completed",
+					"usage": {
+						"cachedInputTokens": 47744,
+						"inputTokens": 601,
+						"outputTokens": 214,
+						"reasoningOutputTokens": 0
+					}
+				},
+				{
+					"iteration": 3,
+					"snapshotId": "context-7af3bcbb-4645-4d7c-9efb-48a0e50496d1-i3",
+					"type": "context.snapshot.saved"
+				},
+				{
+					"attempt": 1,
+					"iteration": 3,
+					"type": "model.started"
+				},
+				{
+					"durationMs": 5963,
+					"iteration": 3,
+					"type": "model.completed",
+					"usage": {
+						"cachedInputTokens": 48512,
+						"inputTokens": 674,
+						"outputTokens": 104,
+						"reasoningOutputTokens": 0
+					}
+				},
+				{
+					"iteration": 4,
+					"snapshotId": "context-7af3bcbb-4645-4d7c-9efb-48a0e50496d1-i4",
+					"type": "context.snapshot.saved"
+				},
+				{
+					"attempt": 1,
+					"iteration": 4,
+					"type": "model.started"
+				},
+				{
+					"durationMs": 9115,
+					"iteration": 4,
+					"type": "model.completed",
+					"usage": {
+						"cachedInputTokens": 49280,
+						"inputTokens": 2312,
+						"outputTokens": 346,
+						"reasoningOutputTokens": 0
+					}
+				},
+				{
+					"iteration": 5,
+					"snapshotId": "context-7af3bcbb-4645-4d7c-9efb-48a0e50496d1-i5",
+					"type": "context.snapshot.saved"
+				},
+				{
+					"attempt": 1,
+					"iteration": 5,
+					"type": "model.started"
+				},
+				{
+					"message": "Model provider call failed",
+					"type": "turn.failed"
+				}
+			],
+			"durationMs": 48841,
+			"metrics": {
+				"measurementComplete": true,
+				"missingResultBodies": [],
+				"toolsExecuted": 7,
+				"failedTools": 0,
+				"mainCalls": 5,
+				"summaryCalls": 0,
+				"fullOriginalsVisibleAtIterations": [],
+				"toolsChosenWithAllOriginalsVisible": 0,
+				"additionalMainCallsAfterFirstFullOriginals": null,
+				"sameBatchQueryOverlaps": [],
+				"fullReportReadsWhileAlreadyVisible": [],
+				"fullReportRecoveryReads": [],
+				"compactions": []
+			}
+		}
+	],
+	"stopCode": "model_failure"
+}

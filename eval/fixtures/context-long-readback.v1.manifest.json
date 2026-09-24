@@ -1,0 +1,35 @@
+{
+	"protocol": "context-long-readback.v1",
+	"syntheticOnly": true,
+	"fixtureFile": "context-long-readback.v1.json.gz",
+	"fixtureSha256": "07f9610a77e3a43f6ac7dc190256b2e9260e63033500385a8329b955443a1db1",
+	"uncompressedSha256": "b4db05a3d459545231cbeaf22f0ad0053e2a5b2c7423469fe1902a28b5b4da31",
+	"sourceReports": {
+		"docs/evidence/context-continuation-online.json": "b2cd95843c72dcde2d3722797a488247bd36a09f7b9e96584deb38ec4f1f53eb",
+		"docs/evidence/context-readback-optimization-v2-online.json": "169610f3326c1f641fbad31b2a2f91e4b0f862eff40da2bb6c8e0426a4fc2e0a"
+	},
+	"cases": [
+		{
+			"id": "buried-report",
+			"origin": "evolving checkpoint after three real compactions",
+			"workingMessages": 82,
+			"workingChars": 154610,
+			"snapshots": 18
+		},
+		{
+			"id": "evidence-ready",
+			"origin": "saved completed-batch messages before old long-task main call 5; transcript uses pre-query original checkpoint only",
+			"workingMessages": 100,
+			"workingChars": 172573,
+			"snapshots": 24
+		},
+		{
+			"id": "body-externalized",
+			"origin": "saved completed-batch messages before old long-task main call 9; transcript uses pre-query original checkpoint only",
+			"workingMessages": 86,
+			"workingChars": 137944,
+			"snapshots": 36
+		}
+	],
+	"notes": "Fixed captured synthetic states; no later final answer is imported into transcript. All cases are states of one long workload, not three independent business tasks. Fresh read-only turns use the same v2 enum question and schema in both arms."
+}
