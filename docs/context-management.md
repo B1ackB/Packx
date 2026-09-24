@@ -1,6 +1,6 @@
 # 上下文管理：实现、运行与验证
 
-更新：2026-09-24。基础决策：[ADR-0024](adr/0024-separated-dialogue-and-versioned-task-context.md)；第一阶段任务整理与回读修复：[ADR-0027](adr/0027-confirmed-task-checkpoints-and-readback-validation.md)。下文标为 2026-09-20 的数字保留当时验证范围；真实 DeepSeek 阈值对照见 [第一阶段报告](evidence/context-phase1-report.md)，最新检索排序与状态评测见 [回读收敛报告](evidence/context-search-convergence.md)。
+更新：2026-09-24。基础决策：[ADR-0024](adr/0024-separated-dialogue-and-versioned-task-context.md)；第一阶段任务整理与回读修复：[ADR-0027](adr/0027-confirmed-task-checkpoints-and-readback-validation.md)。下文标为 2026-09-20 的数字保留当时验证范围；真实 DeepSeek 阈值对照见 [第一阶段报告](evidence/context-phase1-report.md)，检索排序与状态评测见 [回读收敛报告](evidence/context-search-convergence.md)，最新固定长任务协议、离线通过与在线中断记录见 [长上下文回读验证](evidence/context-long-readback.md)。
 
 原始对话、工作上下文、业务事实、知识与跨会话偏好的范围、确认、失效和删除边界，以及当前实现导图，见 [记忆系统](memory-system.md)。2026-09-21 已实现同一工作区当前用户的显式确认个人偏好与笔记；组织／客户共享记忆和自动经验学习仍未实现，不能用上下文恢复机制代称。
 
@@ -86,6 +86,8 @@ min(应用输入上限, 模型上下文容量 - 输出预留 - 安全余量)
 2026-09-22 增加摘要 4／8／16／32 次调用的隔离对照，以及回读定位和完成行为的同起点实测。默认预算与 70k／45k 阈值没有随实验上调；覆盖范围、模型实际保留的信息、主任务答案分别评分，见[回读优化与摘要预算报告](evidence/context-readback-optimization.md)。
 
 2026-09-24 的 `context-readback.v2` 固定新评测 Schema，区分待核验、已通过、已不通过和完全未知；原先含歧义的布尔字段只存在于评测脚本，本次没有改写生产业务事实。旧评分保留。新增小型同条件 Tool 对照和状态控制题，记录原文是否进入实际模型请求，范围与结果见[回读收敛报告](evidence/context-search-convergence.md)。
+
+同日新增三种长上下文状态、每状态两次旧／新对照的固定协议及可移植 fixture。12 组离线机制回放通过；在线首组第 5 次生成出现未知结果，后续全部停止，尚无完成的配对结果。完整要求也可能恰好出现在查询摘录中，严格回读指标与逐字文本是否已进入请求分别核对。原始记录、费用保守预留和限制见[长上下文回读验证](evidence/context-long-readback.md)。
 
 主请求和摘要生成保存对应快照；摘要计数请求失败也保留输入快照。`context.summary`、`context.compacted`、RuntimeTrace 和 ModelTelemetry 记录调用/执行 ID、来源范围、快照、覆盖量、输入/输出 Token、计数结果、耗时和失败类别。Telemetry 只持久数值与标识，不保存 prompt、正文或原始错误；业务正文仅在受控 Session/Snapshot/Artifact 中。遥测最多保留最近 200 条并显式标记截断，完整长期趋势/存储归档尚未实现。缓存读取/写入统计沿用 Provider 响应，未知保持未知；没有实现新的 Prompt Cache 优化或缓存系统。
 

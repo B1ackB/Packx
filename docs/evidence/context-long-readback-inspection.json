@@ -1,0 +1,194 @@
+{
+	"protocol": "context-long-readback-inspection.v1",
+	"report": "docs/evidence/context-long-readback-online.json",
+	"reportSha256": "51aff75fe5da26139770e924d2c725be5fb96974cc746fe0d3db3ba867248b09",
+	"requestArchiveSha256": "2d9f322193adf24d5fbf1793f7280648097548ed5878517f361dccfcaf78400a",
+	"checks": {
+		"requestArchiveHash": true,
+		"requestHashes": true,
+		"sourceHashes": true,
+		"noCallsAfterUnknown": true,
+		"countRequestsAllCompleted": true
+	},
+	"status": "interrupted_unknown_generation",
+	"protocolCasesCompleted": 0,
+	"protocolCasesStarted": 1,
+	"protocolCasesNotStarted": 11,
+	"usage": {
+		"inputTokens": 50994,
+		"cachedInputTokens": 145536,
+		"outputTokens": 1067
+	},
+	"completedUsageEstimateUsd": 0.017451816,
+	"unknownReservationUsd": 0.0207207,
+	"additionalReservationUsd": 0.09934050000000072,
+	"cumulativeReservationUsd": 2.939724499999999,
+	"remainingReservationUsd": 14.060275500000001,
+	"proposedNewTwelveMaximumCumulativeUsd": 16.4630525,
+	"requests": [
+		{
+			"iteration": 1,
+			"status": "completed",
+			"strictOriginalVisibility": {
+				"requirements": false,
+				"report": false,
+				"host": true
+			},
+			"exactTextMatches": {
+				"requirements": [],
+				"report": []
+			}
+		},
+		{
+			"iteration": 2,
+			"status": "completed",
+			"strictOriginalVisibility": {
+				"requirements": false,
+				"report": false,
+				"host": true
+			},
+			"exactTextMatches": {
+				"requirements": [
+					{
+						"messageIndex": 86,
+						"role": "tool",
+						"toolCallId": "call_00_mZ4reuURnT2bCUlPU19u8150",
+						"sourceTool": {
+							"name": "context_read",
+							"input": {
+								"sourceRef": "transcript",
+								"query": "PVC"
+							}
+						}
+					}
+				],
+				"report": []
+			}
+		},
+		{
+			"iteration": 3,
+			"status": "completed",
+			"strictOriginalVisibility": {
+				"requirements": false,
+				"report": false,
+				"host": true
+			},
+			"exactTextMatches": {
+				"requirements": [
+					{
+						"messageIndex": 86,
+						"role": "tool",
+						"toolCallId": "call_00_mZ4reuURnT2bCUlPU19u8150",
+						"sourceTool": {
+							"name": "context_read",
+							"input": {
+								"sourceRef": "transcript",
+								"query": "PVC"
+							}
+						}
+					}
+				],
+				"report": []
+			}
+		},
+		{
+			"iteration": 4,
+			"status": "completed",
+			"strictOriginalVisibility": {
+				"requirements": false,
+				"report": true,
+				"host": true
+			},
+			"exactTextMatches": {
+				"requirements": [
+					{
+						"messageIndex": 86,
+						"role": "tool",
+						"toolCallId": "call_00_mZ4reuURnT2bCUlPU19u8150",
+						"sourceTool": {
+							"name": "context_read",
+							"input": {
+								"sourceRef": "transcript",
+								"query": "PVC"
+							}
+						}
+					}
+				],
+				"report": [
+					{
+						"messageIndex": 92,
+						"role": "tool",
+						"toolCallId": "call_00_WdGgymedGpWczoKDkkvz2454",
+						"sourceTool": {
+							"name": "context_read",
+							"input": {
+								"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+								"messageIndex": 71
+							}
+						}
+					}
+				]
+			}
+		},
+		{
+			"iteration": 5,
+			"status": "unknown",
+			"strictOriginalVisibility": {
+				"requirements": false,
+				"report": true,
+				"host": true
+			},
+			"exactTextMatches": {
+				"requirements": [
+					{
+						"messageIndex": 86,
+						"role": "tool",
+						"toolCallId": "call_00_mZ4reuURnT2bCUlPU19u8150",
+						"sourceTool": {
+							"name": "context_read",
+							"input": {
+								"sourceRef": "transcript",
+								"query": "PVC"
+							}
+						}
+					}
+				],
+				"report": [
+					{
+						"messageIndex": 92,
+						"role": "tool",
+						"toolCallId": "call_00_WdGgymedGpWczoKDkkvz2454",
+						"sourceTool": {
+							"name": "context_read",
+							"input": {
+								"sourceRef": "compact-fc35fb96-af5b-42da-8cfb-bb17aff64d2d-1",
+								"messageIndex": 71
+							}
+						}
+					}
+				]
+			}
+		}
+	],
+	"independentReview": {
+		"toolResultsReplayed": 7,
+		"toolResultsIdentical": 7,
+		"networkOrModelCalls": 0
+	},
+	"offlineValidation": {
+		"testFiles": 84,
+		"testsPassed": 668,
+		"testsSkipped": 21,
+		"typescriptBuildPassed": true,
+		"viteBuildPassed": true,
+		"scriptedGroupsPassed": 12,
+		"fakeGenerations": 28,
+		"fakeCounts": 28
+	},
+	"limitations": [
+		"No completed online group and no baseline/candidate pair; no quality or convergence comparison is supported.",
+		"The fifth saved request has an unknown response and is not counted as confirmed delivery.",
+		"Strict originalVisibility excludes query excerpts even when an excerpt contains the full exact original text. Text presence does not grant factual authority.",
+		"Only model_failure was retained; the original transport or HTTP error is not available. No provider outage attribution is established."
+	]
+}
