@@ -1,18 +1,53 @@
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { afterEach, expect, it } from "vitest";
 import { AgentHooks } from "../src/agent/hooks";
 import { AgentLoop } from "../src/agent/loop";
 import { FileAgentStateStore } from "../server/runtime/fileAgentStateStore";
 import { contextReadTool } from "../server/runtime/contextRead";
 import { RuntimeLoopGuard } from "../server/runtime/loopGuard";
-import { checkPrior, loadLongFixture, measureLongReadback, originalVisibility } from "./contextLongReadback";
+import { carryReviewedStop, checkPrior, failureMetadata, loadLongFixture, measureLongReadback, originalVisibility } from "./contextLongReadback";
 
 const fixture = loadLongFixture(), directories: string[] = [];
 afterEach(() => { for (const path of directories.splice(0)) rmSync(path, { recursive: true, force: true }); });
 function state() { const path = mkdtempSync(join(tmpdir(), "long-readback-test-")); directories.push(path); return new FileAgentStateStore(path); }
 const result = (): Parameters<typeof measureLongReadback>[0] => ({ phase: "test", caseId: "test", version: "candidate", sample: 1, status: "completed", passed: true, toolCompletions: [], toolResults: {}, modelInputs: [], initialVisibility: { host: false, report: false, requirements: false } });
+const stoppedPath = resolve("docs/evidence/context-long-readback-online.json");
+const stoppedBytes = readFileSync(stoppedPath, "utf8"), stoppedRequests = readFileSync(`${stoppedPath}.requests.json.gz`);
+const stoppedHash = createHash("sha256").update(stoppedBytes).digest("hex");
+
+it("carries only the explicitly reviewed stop with its full reservation and immutable request archive", () => {
+	expect(() => checkPrior(JSON.parse(stoppedBytes), 17, 12)).toThrow("invalid_or_unresolved_prior_ledger");
+	expect(carryReviewedStop(stoppedBytes, stoppedRequests, stoppedHash, 17, 12)).toMatchObject({ priorReservedUsd: 2.939724499999999, requiredUsd: 16.4630525, fits: true, carriedUnknownCalls: [{ status: "unknown", reservation: 0.0207207 }] });
+	for (const [bytes, ack, cap, cases] of [[stoppedBytes, "", 17, 12], [stoppedBytes, "wrong", 17, 12], [stoppedBytes + " ", stoppedHash, 17, 12], [stoppedBytes, stoppedHash, 18, 12], [stoppedBytes, stoppedHash, 17, 6]] as const) expect(() => carryReviewedStop(bytes, stoppedRequests, ack, cap, cases)).toThrow("unapproved_stopped_batch_carry");
+	const reduced = JSON.parse(stoppedBytes); reduced.reservedUsd -= 0.0207207;
+	expect(() => carryReviewedStop(JSON.stringify(reduced), stoppedRequests, stoppedHash, 17, 12)).toThrow("unapproved_stopped_batch_carry");
+	expect(() => carryReviewedStop(stoppedBytes, Buffer.from("changed archive"), stoppedHash, 17, 12)).toThrow("stopped_request_archive_changed");
+});
+
+it("records only allowlisted error metadata, with no messages, headers, URLs or arbitrary codes", () => {
+	const error = Object.assign(new TypeError("private request content"), { code: "private_code", providerStatus: 502, cause: { code: "ECONNRESET", name: "private_name", message: "private key", adapterStatus: 999 } });
+	expect(failureMetadata(error)).toEqual([{ depth: 0, name: "TypeError", providerStatus: 502 }, { depth: 1, code: "ECONNRESET" }]);
+});
+
+it.each(["count", "generation"])("stops the new CLI batch after an unknown %s with fetch stubbed and zero network", (failure) => {
+	const dir = mkdtempSync(join(tmpdir(), "long-readback-cli-")); directories.push(dir);
+	const preload = join(dir, "fetch.mjs"), log = join(dir, "requests.json"), report = join(dir, "report.json");
+	writeFileSync(preload, `import {writeFileSync} from "node:fs"; const calls=[]; globalThis.fetch=async(url)=>{calls.push(new URL(url).pathname);writeFileSync(${JSON.stringify(log)},JSON.stringify(calls));if(${JSON.stringify(failure)}==="generation"&&url.endsWith("/count_tokens"))return Response.json({input_tokens:100});throw new TypeError("private request content",{cause:{code:"ECONNRESET"}});};`);
+	expect(() => execFileSync(process.execPath, ["--import", "tsx", "--import", preload, "eval/contextLongReadback.ts", "--online", `--prior-report=${stoppedPath}`, `--carry-reviewed-stop=${stoppedHash}`, "--usd-limit=17", `--report=${report}`], { env: { ...process.env, PACKX_SETTINGS_PATH: join(dir, "unused-settings.json"), ANTHROPIC_BASE_URL: "https://api.deepseek.com/anthropic", ANTHROPIC_MODEL: "deepseek-v4-flash", ANTHROPIC_API_KEY: "offline-test" }, stdio: "pipe" })).toThrow();
+	const saved = JSON.parse(readFileSync(report, "utf8")), calls = JSON.parse(readFileSync(log, "utf8"));
+	expect(calls).toEqual(failure === "count" ? ["/anthropic/v1/messages/count_tokens"] : ["/anthropic/v1/messages/count_tokens", "/anthropic/v1/messages"]);
+	expect(saved).toMatchObject({ status: "stopped", unresolved: true, currentBatchUnresolved: true, priorReservedUsd: 2.939724499999999 });
+	expect(saved.results).toHaveLength(1); expect(saved.carriedUnknownCalls).toHaveLength(1);
+	expect(saved.reservedUsd).toBeCloseTo(saved.priorReservedUsd + (failure === "count" ? 0 : (100 * 0.3 + 4096 * 1.2) / 1e6), 10);
+	const unknown = (failure === "count" ? saved.countRequests : saved.calls)[0];
+	expect(unknown).toMatchObject({ status: "unknown", failure: [{ depth: 0, name: "TypeError" }, { depth: 1, code: "ECONNRESET" }] }); expect(unknown.durationMs).toBeGreaterThanOrEqual(0);
+	expect(JSON.stringify(saved)).not.toContain("private request content");
+	expect(readFileSync(stoppedPath, "utf8")).toBe(stoppedBytes);
+});
 
 it("distinguishes complete original bodies from the actual externalized long checkpoint and query excerpts", () => {
 	expect(fixture.cases.map((item) => originalVisibility(item.session.messages, fixture))).toEqual([
