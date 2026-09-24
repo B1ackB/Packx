@@ -1,0 +1,7 @@
+{
+	"sourceCommit": "f2310928be23fe1de0af73daf3626f46e2cc89fa",
+	"sourcePath": "server/runtime/contextRead.ts",
+	"sourceSha256": "904be9b15f6378ae353ee80b0d7b39537d940b32fc285a7737aaee332c9cb0d1",
+	"frozenSha256": "761ca73ed46a9667db5d49290868e9a7eb7291d2f3bc98637eca945b96df4481",
+	"change": "Only relative type import paths adjusted for the evaluation directory."
+}

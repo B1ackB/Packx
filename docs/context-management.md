@@ -1,6 +1,6 @@
 # 上下文管理：实现、运行与验证
 
-更新：2026-09-22。基础决策：[ADR-0024](adr/0024-separated-dialogue-and-versioned-task-context.md)；第一阶段任务整理与回读修复：[ADR-0027](adr/0027-confirmed-task-checkpoints-and-readback-validation.md)。下文标为 2026-09-20 的数字保留当时验证范围；最新验证与真实 DeepSeek 阈值对照见 [第一阶段报告](evidence/context-phase1-report.md)。
+更新：2026-09-24。基础决策：[ADR-0024](adr/0024-separated-dialogue-and-versioned-task-context.md)；第一阶段任务整理与回读修复：[ADR-0027](adr/0027-confirmed-task-checkpoints-and-readback-validation.md)。下文标为 2026-09-20 的数字保留当时验证范围；真实 DeepSeek 阈值对照见 [第一阶段报告](evidence/context-phase1-report.md)，最新检索排序与状态评测见 [回读收敛报告](evidence/context-search-convergence.md)。
 
 原始对话、工作上下文、业务事实、知识与跨会话偏好的范围、确认、失效和删除边界，以及当前实现导图，见 [记忆系统](memory-system.md)。2026-09-21 已实现同一工作区当前用户的显式确认个人偏好与笔记；组织／客户共享记忆和自动经验学习仍未实现，不能用上下文恢复机制代称。
 
@@ -42,6 +42,7 @@ Session / Event Store / Fact / Artifact / 资料索引
 3. 被移除的完整消息归档后，摘要按完整消息分批调用。工作历史裁剪保证工具调用／结果成组；摘要器不额外保证每个输入批次都含完整工具组。摘要有非权威标记、实际覆盖范围和原文引用；超大单消息、预算耗尽或超预算输出都明确为 `INCOMPLETE`，不使用截尾输入或截断输出假装覆盖成功。
 4. `context_read` 在当前 tenant/workspace/run/session 读取原始 transcript 或快照，按完整消息/行分页。`messageIndex` 已选择消息正文；`jsonPointer` 只选择正文 JSON 内的字段，不要加包装层 `/content`。默认仍按完整单元分页，单条超过页预算返回 `single_unit_exceeds_budget`；显式提供 `characterOffset:0` 可读取有分片标记的精确文本，并沿 `nextCharacterOffset` 拼接，不能把半个值当完整证据。
 5. 不知道原文位置时，用 `query` 在指定来源及其 Host 声明的归档依赖内搜索字面关键词，得到可直接读取的 `sourceRef/messageIndex` 和非权威片段。导航区分只含原话／正式回复的 `transcript` 与保存工具结果的 `archiveRoots`；后者来自当前 Session 的来源依赖，并逐个复查权限和历史绑定。正文自行声称的来源不进入导航或遍历。
+6. 搜索命中附 `sourceKind`，按 Host 消息元数据区分对话、工具记录、摘要、回读、回执及任务上下文／指令；对话和工具记录优先，其余命中仍全部保留并可分页。缺少 `sourceTool` 时，只用同一来源内连续 assistant/tool batch 的调用 ID 判断回读或回执；无法配对的旧孤立工具记录仍为 `tool_result`。这些标签表示来源类型，不表示已核验、当前有效或事实优先级。
 
 示例工具参数：
 
@@ -51,7 +52,7 @@ Session / Event Store / Fact / Artifact / 资料索引
 
 正文返回 `nextOffset` 时以同一 sourceRef/选择参数继续。文本分片返回 `nextCharacterOffset`，与完整单元分页独立；按 UTF-16 字符位置续读，避免切断合法代理对。`sourceRef=transcript` 可回看原始对话，其中不含工具结果。快照绑定和当前任务不同会标记 `stale`，不能覆盖当前确认状态。
 
-关键词搜索每次最多扫描 32 个来源、2,000,000 字符或 10,000 条消息，超限明确返回 `searchComplete:false`。`offset` 只翻命中页；当前没有单个归档内部的扫描续读游标。导航最多给出 8 个根并标记截断，也没有根列表下一页。该能力是有边界的本地定位，不能据空结果断定全历史没有证据。每次结果附本执行片在整批工具扣额后的剩余工具／迭代数；提示模型证据足够后完成回答，硬预算和停止保护仍由 Host 执行。
+关键词搜索每次最多扫描 32 个来源、2,000,000 字符或 10,000 条消息，超限明确返回 `searchComplete:false`。返回的 `searchedSourceRefs` 标明访问范围；只有 `searchComplete:true` 才能表示这些来源已完整扫描，同一关键词无需再逐个子来源重复搜索。`offset` 只翻命中页；当前没有单个归档内部的扫描续读游标。搜索命中页最多 8,000 字符，为来源列表留出结果封套空间。导航最多给出 8 个根并标记截断，也没有根列表下一页。该能力是有边界的本地定位，不能据空结果断定全历史没有证据。每次结果附本执行片在整批工具扣额后的剩余工具／迭代数；提示模型直接使用当前 Host 状态、保留已知待核验状态、证据足够后完成回答，硬预算和停止保护仍由 Host 执行。原文在压缩后可能需要再次读取，因此不按“曾读过”强制去重。
 
 `document_read` 返回完整行、页码/行号、源哈希、截断状态与 `sha256:offset` 游标；每次读取重新检查附件或本地路径权限和哈希。Native parser 1.2.0 的提取结果进入既有 inspection Artifact cache；重启后可继续读取，缓存键含 parser 版本。目前每次续读仍重新运行源解析，缓存用于受控留存，尚未优化为直接分页读缓存。表格保留整行，DOCX 表格及 footnotes/endnotes 纳入提取。扫描件仍不提供 OCR；提取仍受 10 MiB 输入、1,000 页/表、1,000,000 Swift 字符限制，并显式标记 sourceTruncated。
 
@@ -84,9 +85,13 @@ min(应用输入上限, 模型上下文容量 - 输出预留 - 安全余量)
 
 2026-09-22 增加摘要 4／8／16／32 次调用的隔离对照，以及回读定位和完成行为的同起点实测。默认预算与 70k／45k 阈值没有随实验上调；覆盖范围、模型实际保留的信息、主任务答案分别评分，见[回读优化与摘要预算报告](evidence/context-readback-optimization.md)。
 
+2026-09-24 的 `context-readback.v2` 固定新评测 Schema，区分待核验、已通过、已不通过和完全未知；原先含歧义的布尔字段只存在于评测脚本，本次没有改写生产业务事实。旧评分保留。新增小型同条件 Tool 对照和状态控制题，记录原文是否进入实际模型请求，范围与结果见[回读收敛报告](evidence/context-search-convergence.md)。
+
 主请求和摘要生成保存对应快照；摘要计数请求失败也保留输入快照。`context.summary`、`context.compacted`、RuntimeTrace 和 ModelTelemetry 记录调用/执行 ID、来源范围、快照、覆盖量、输入/输出 Token、计数结果、耗时和失败类别。Telemetry 只持久数值与标识，不保存 prompt、正文或原始错误；业务正文仅在受控 Session/Snapshot/Artifact 中。遥测最多保留最近 200 条并显式标记截断，完整长期趋势/存储归档尚未实现。缓存读取/写入统计沿用 Provider 响应，未知保持未知；没有实现新的 Prompt Cache 优化或缓存系统。
 
 ## 能力—代码入口—验证证据—剩余限制
+
+本表保留截至 2026-09-20 的验证快照，表内“未测／未授权”指当时的状态。2026-09-22 和 2026-09-24 已在授权下完成有限合成在线评测，见上文链接；真实业务泛化仍未验证。
 
 | 能力 | 代码入口 | 验证证据 | 剩余限制 |
 | --- | --- | --- | --- |
