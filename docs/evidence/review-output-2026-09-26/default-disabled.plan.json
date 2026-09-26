@@ -1,0 +1,247 @@
+{
+	"protocol": "evidence-review-output-comparison.v1",
+	"sourceHashes": {
+		"eval/evidenceReviewComparison.ts": "11be9cdbb20cf08003662d304140441511d46b3a9575a4357604749b4f4afac4",
+		"eval/fixtures/evidence-review-output/cases.json": "3f96199495de41ab77773c8f07764929f4ea89677f4d54f2af89298cf3923fd0",
+		"eval/requirementIntakeRun.ts": "f08fb315b22b6a10f6be6886f31b3a93ca04c6b22aff3231a49c779e07fa2503",
+		"eval/requirementAutomaticRun.ts": "2562d6743aef5970dcf2f4a367e219ee089bcd29589b6f7ba5ed6a6ad02c2534",
+		"eval/requirementIntake.ts": "b105ce9ee2b3989ef13a794a6dae8d0fd54b56469a27502cd3adfc7e949881c3",
+		"server/modelSettings.ts": "6911f6e849e5a01172c19839e4ca6e1290f47dca182b74845a65b69bae5a4477",
+		"server/runtime/anthropicModelProvider.ts": "bf679a4588327e9c99c1abb43c3f1d84ca5d2cbc6921475b194e2dd2bede388e",
+		"server/anthropic/client.ts": "0d9804b2924c5119b30d6b803bcf3ebcf8da3e1e19650bfc7d1089e93a2021b9",
+		"server/anthropic/types.ts": "74ab5cae0d0ce718697bf5e72cd4dbe5216f9f7346adc516b56fa65714615473",
+		"server/anthropic/stream.ts": "e9c1933b91f329945d4f73ab434eea08e723f34c5e77ae900d84da1010c5c729",
+		"src/enterprise/evidenceReview.ts": "ef25bcfde886223d2a9a69e34b593aa8c09a8ff8bf4571bfff85adb84256d42c"
+	},
+	"priorReportSha256": "c31dccf3f25d2144f77dcff13a947d89282bd4eecd8cc5e5b558ca94a24182cf",
+	"model": "deepseek-v4-flash",
+	"usdLimit": 20,
+	"maxOutputTokens": 8192,
+	"rates": {
+		"input": 0.3,
+		"cached": 0.006,
+		"output": 1.2
+	},
+	"attempts": [
+		{
+			"id": "received-limit-38-1-default",
+			"caseId": "received-limit-38",
+			"repeat": 1,
+			"arm": "default"
+		},
+		{
+			"id": "received-limit-38-1-disabled",
+			"caseId": "received-limit-38",
+			"repeat": 1,
+			"arm": "disabled"
+		},
+		{
+			"id": "received-limit-83-1-disabled",
+			"caseId": "received-limit-83",
+			"repeat": 1,
+			"arm": "disabled"
+		},
+		{
+			"id": "received-limit-83-1-default",
+			"caseId": "received-limit-83",
+			"repeat": 1,
+			"arm": "default"
+		},
+		{
+			"id": "received-limit-104-1-default",
+			"caseId": "received-limit-104",
+			"repeat": 1,
+			"arm": "default"
+		},
+		{
+			"id": "received-limit-104-1-disabled",
+			"caseId": "received-limit-104",
+			"repeat": 1,
+			"arm": "disabled"
+		},
+		{
+			"id": "received-limit-131-1-disabled",
+			"caseId": "received-limit-131",
+			"repeat": 1,
+			"arm": "disabled"
+		},
+		{
+			"id": "received-limit-131-1-default",
+			"caseId": "received-limit-131",
+			"repeat": 1,
+			"arm": "default"
+		},
+		{
+			"id": "received-limit-149-1-default",
+			"caseId": "received-limit-149",
+			"repeat": 1,
+			"arm": "default"
+		},
+		{
+			"id": "received-limit-149-1-disabled",
+			"caseId": "received-limit-149",
+			"repeat": 1,
+			"arm": "disabled"
+		},
+		{
+			"id": "clean-control-1-disabled",
+			"caseId": "clean-control",
+			"repeat": 1,
+			"arm": "disabled"
+		},
+		{
+			"id": "clean-control-1-default",
+			"caseId": "clean-control",
+			"repeat": 1,
+			"arm": "default"
+		},
+		{
+			"id": "omission-control-1-default",
+			"caseId": "omission-control",
+			"repeat": 1,
+			"arm": "default"
+		},
+		{
+			"id": "omission-control-1-disabled",
+			"caseId": "omission-control",
+			"repeat": 1,
+			"arm": "disabled"
+		},
+		{
+			"id": "contradiction-control-1-disabled",
+			"caseId": "contradiction-control",
+			"repeat": 1,
+			"arm": "disabled"
+		},
+		{
+			"id": "contradiction-control-1-default",
+			"caseId": "contradiction-control",
+			"repeat": 1,
+			"arm": "default"
+		},
+		{
+			"id": "unsupported-control-1-default",
+			"caseId": "unsupported-control",
+			"repeat": 1,
+			"arm": "default"
+		},
+		{
+			"id": "unsupported-control-1-disabled",
+			"caseId": "unsupported-control",
+			"repeat": 1,
+			"arm": "disabled"
+		},
+		{
+			"id": "received-limit-38-2-disabled",
+			"caseId": "received-limit-38",
+			"repeat": 2,
+			"arm": "disabled"
+		},
+		{
+			"id": "received-limit-38-2-default",
+			"caseId": "received-limit-38",
+			"repeat": 2,
+			"arm": "default"
+		},
+		{
+			"id": "received-limit-83-2-default",
+			"caseId": "received-limit-83",
+			"repeat": 2,
+			"arm": "default"
+		},
+		{
+			"id": "received-limit-83-2-disabled",
+			"caseId": "received-limit-83",
+			"repeat": 2,
+			"arm": "disabled"
+		},
+		{
+			"id": "received-limit-104-2-disabled",
+			"caseId": "received-limit-104",
+			"repeat": 2,
+			"arm": "disabled"
+		},
+		{
+			"id": "received-limit-104-2-default",
+			"caseId": "received-limit-104",
+			"repeat": 2,
+			"arm": "default"
+		},
+		{
+			"id": "received-limit-131-2-default",
+			"caseId": "received-limit-131",
+			"repeat": 2,
+			"arm": "default"
+		},
+		{
+			"id": "received-limit-131-2-disabled",
+			"caseId": "received-limit-131",
+			"repeat": 2,
+			"arm": "disabled"
+		},
+		{
+			"id": "received-limit-149-2-disabled",
+			"caseId": "received-limit-149",
+			"repeat": 2,
+			"arm": "disabled"
+		},
+		{
+			"id": "received-limit-149-2-default",
+			"caseId": "received-limit-149",
+			"repeat": 2,
+			"arm": "default"
+		},
+		{
+			"id": "clean-control-2-default",
+			"caseId": "clean-control",
+			"repeat": 2,
+			"arm": "default"
+		},
+		{
+			"id": "clean-control-2-disabled",
+			"caseId": "clean-control",
+			"repeat": 2,
+			"arm": "disabled"
+		},
+		{
+			"id": "omission-control-2-disabled",
+			"caseId": "omission-control",
+			"repeat": 2,
+			"arm": "disabled"
+		},
+		{
+			"id": "omission-control-2-default",
+			"caseId": "omission-control",
+			"repeat": 2,
+			"arm": "default"
+		},
+		{
+			"id": "contradiction-control-2-default",
+			"caseId": "contradiction-control",
+			"repeat": 2,
+			"arm": "default"
+		},
+		{
+			"id": "contradiction-control-2-disabled",
+			"caseId": "contradiction-control",
+			"repeat": 2,
+			"arm": "disabled"
+		},
+		{
+			"id": "unsupported-control-2-disabled",
+			"caseId": "unsupported-control",
+			"repeat": 2,
+			"arm": "disabled"
+		},
+		{
+			"id": "unsupported-control-2-default",
+			"caseId": "unsupported-control",
+			"repeat": 2,
+			"arm": "default"
+		}
+	],
+	"gate": "All eight disabled-arm control calls pass; disabled valid output count >= default; disabled truncations < default. Otherwise no default change.",
+	"unknownPolicy": "Keep all reservations. Received output_limit may end this independent review; any other unknown stops the experiment. Never resume a prior business request.",
+	"semanticQuality": "NOT_EVALUATED beyond frozen narrow controls",
+	"source": "https://api-docs.deepseek.com/guides/thinking_mode/"
+}

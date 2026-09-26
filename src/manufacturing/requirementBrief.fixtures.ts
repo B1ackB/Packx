@@ -85,7 +85,11 @@ function brief(input: {
 		customerGoal: input.goal,
 		facts: input.facts,
 		missingRequiredFacts: input.missing ?? [],
-		assumptions: [],
+		assumptions: (input.missing ?? []).map((key) => ({
+			dimensions: "请提供本单完整尺寸和单位，并说明内尺寸或外尺寸口径；袋型请包含宽、高、底折，其他类型请给出适用的长宽高或直径；也可提供本单可读图纸。",
+			artwork_status: "请确认稿件状态：尚未设计、设计中或已提供；若需要厂方协助设计，请一并说明。",
+			delivery_location: "请确认本单实际送货地点。",
+		} as Record<string, string>)[key]!),
 		nextAction: input.nextAction ?? "ready_for_approval",
 	};
 }

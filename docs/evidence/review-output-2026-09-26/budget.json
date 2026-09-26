@@ -1,0 +1,16 @@
+{
+	"protocol": "review-output-budget.v1",
+	"usdLimit": 20,
+	"priorBudgetSha256": "c8d75adf7652f778e641997aab8bb4776a8e575df2228040486f70e25b0c1848",
+	"priorReservedUsd": 12.343839119999997,
+	"newReservedUsd": 0.4972595999999996,
+	"reservedUsd": 12.841098719999996,
+	"unallocatedUpperBoundUsd": 7.158901280000004,
+	"priorKnownUsageUsd": 2.928799288,
+	"newKnownUsageUsd": 0.14672129999999994,
+	"cumulativeKnownUsageUsd": 3.075520588,
+	"priorUnavailableUsageCalls": 36,
+	"newUnavailableUsageCalls": 1,
+	"totalUnavailableUsageCalls": 37,
+	"note": "Not invoice. All reservations retained, including received failures with measured usage and unresolved requests. No prior unknowns retried or reconstructed."
+}

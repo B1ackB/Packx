@@ -1,0 +1,33 @@
+{
+	"protocol": "matrix-initial-archive.v1",
+	"mode": "online-real-model",
+	"status": "stopped_unknown",
+	"planned": 108,
+	"recorded": 4,
+	"notStarted": 104,
+	"reservedUsd": 0.17140170000000002,
+	"unknowns": [
+		{
+			"caseId": "flash-baseline-AI-02-1",
+			"eventId": "RI-02-E05",
+			"kind": "generate",
+			"purpose": "evidence_review",
+			"status": "unknown",
+			"requestSha256": "0d95392d5115273649a3cf33a81c4e81bda871ee7a6b1e9edc31b0e5e297df61",
+			"startedAt": "2026-09-26T09:02:18.609Z",
+			"reservationUsd": 0.010811399999999999,
+			"tokens": 3270,
+			"error": "output_limit",
+			"durationMs": 37313
+		}
+	],
+	"files": {
+		"initial.authorization.json.gz": "5b7b8bc85a2b6c275efeaf36c133072bbde6bc41c224942d7be541b9d59c3f58",
+		"initial.flash-baseline-AI-01-1.json.gz": "41f541a3592015aba41a2801394c265b2d7511df067ddc878617c055a795b166",
+		"initial.flash-baseline-AI-02-1.json.gz": "8e7a767429de9c4abad76215514351c3da8bcdb9415ba0575902b67a064356d1",
+		"initial.flash-candidate-AI-01-1.json.gz": "3f1bcbfd7fdfdd1bde870ad6d6ef49f028f4b3b7b30ba135889626c3437d322f",
+		"initial.flash-candidate-AI-02-1.json.gz": "8d68d9f2b81e7d16e21f57f7eb246af17d08fcada440611ac828386d9f5bc8f3",
+		"initial.plan.json.gz": "24c8a7e200544b8643cf5a6159f730bb06673dda46ab34cac9f09f6a97e4892b",
+		"initial.report.json.gz": "8e4f6df61c18f942e33493cedec87c7ce0c80c5ff155bbbc9ceae7b6d1cfe269"
+	}
+}

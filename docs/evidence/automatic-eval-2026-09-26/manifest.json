@@ -1,0 +1,40 @@
+{
+	"protocol": "automatic-evaluation-delivery.v1",
+	"date": "2026-09-26",
+	"status": "offline_verified_online_budget_pending",
+	"newPaidCalls": 0,
+	"realModelQuality": "NOT_EVALUATED",
+	"checks": {
+		"full": {
+			"filesPassed": 91,
+			"passed": 747,
+			"skipped": 21,
+			"build": "passed"
+		},
+		"native": {
+			"passed": 30,
+			"environment": "host_after_nested_sandbox_rejection"
+		},
+		"finalTargeted": {
+			"filesPassed": 2,
+			"passed": 5,
+			"serverTypecheck": "passed"
+		}
+	},
+	"prepared": {
+		"matrix": "temp/requirement-automatic-2026-09-26-r2",
+		"contextPlan": "temp/context-continuous-2026-09-26-r2.plan.json"
+	},
+	"preflightCorrection": "Added current transitive Provider/scorer dependency and frozen shared-executor hash guards before any paid calls; original preparations retained; baseline/candidate production and common executor hashes unchanged. Fake smoke binds the original preflight plan with identical executors.",
+	"files": {
+		"docs/evidence/automatic-eval-2026-09-26/candidate.source.tar.gz": "09b68e3587b7c17c3b7275d385baac8a7492a6aba97f7414785154d256b93d52",
+		"docs/evidence/automatic-eval-2026-09-26/context.plan.json": "d8fe8d6ce695547349beca0093f3280d1427dde25ccc3753c0e6b4cf63666abf",
+		"docs/evidence/automatic-eval-2026-09-26/context.preflight.plan.json": "26a9241327ef9b9b6c262a2657478360c7f0f14ec05c416cc4d73b5cf5ef4db2",
+		"docs/evidence/automatic-eval-2026-09-26/evaluation.source.tar.gz": "b2fdc0b396f389d78ad041bfca4671dea2a6d2b4c5d2147adc41461da1bc79d7",
+		"docs/evidence/automatic-eval-2026-09-26/matrix.plan.json": "4790d764a24dc6d37ab97ad7dd5c21f9f5397c582d52dbd4f008f044d3f5660d",
+		"docs/evidence/automatic-eval-2026-09-26/matrix.preflight.plan.json": "3a6a3c9817026b5f6f1ebf80a29ec174c1932e1adc6ba1c24cde6959bd05bbaa",
+		"docs/evidence/recovery-windows-2026-09-26.json": "73f98c52b136a4c4b992cc02741ca27355c1a82024a9e2f96b0483ef4ee7435b",
+		"docs/evidence/automatic-frozen-smoke-2026-09-26.json": "361b79c2399f29132f6d79289aac972c11db9db2d75f11c5aa435fed8bd44e88",
+		"eval/recoveryWindows.ts": "2bd69d1630e70ce9fa5f85481abeb52a9c1c1ec9cae1a15c293ae5977e71fa9e"
+	}
+}

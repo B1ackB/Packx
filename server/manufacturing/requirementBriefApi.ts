@@ -1,3 +1,4 @@
+import { validRequirementTrial, type RequirementTrialObservation } from "../../src/manufacturing/requirementTrial";
 import { factSourceReference, type KnowledgeService } from "../knowledge/service";
 import { KnowledgeError } from "../../src/enterprise/knowledge";
 import type { RequirementDelivery } from "../../src/manufacturing/requirementDelivery";
@@ -15,6 +16,7 @@ import type {
 	RequirementBriefMetricsView,
 	RequirementBriefRunMetricsPoint,
 	RequirementBriefWorkspaceView,
+	RequirementSourceView,
 } from "../../src/runtime/conversationContracts";
 import type { RuntimeUsage } from "../../src/runtime/contracts";
 import {
@@ -22,12 +24,14 @@ import {
 	ProposalWorkspaceValidationError,
 } from "../enterprise/proposalWorkspaceApi";
 import { ConversationApiController } from "../runtime/conversationApi";
-import { FileConversationAttachmentStore } from "../runtime/conversationAttachments";
+import { ConversationAttachmentError, FileConversationAttachmentStore } from "../runtime/conversationAttachments";
+import { reconcileRequirementWithdrawals } from "./requirementSourceLifecycle";
 import { StageJobOutbox } from "../workers/stageJobOutbox";
 import { StageJobScheduler } from "../workers/stageJobScheduler";
 import type { PlanScope, PlanWorkspace } from "../../src/enterprise/agentPlan";
 import { planRequirementSource } from "./planRequirementSource";
 import type { ArtifactWorkspaceStartFact } from "../enterprise/proposalWorkspaceApi";
+import { requirementSourceViews, sourceExcerpt } from "./requirementReview";
 
 function industryFact(payload: unknown, _conversation: ConversationView) {
 	if (
@@ -55,7 +59,7 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 		private readonly requirementArtifacts: ArtifactContentStore,
 		outbox: StageJobOutbox,
 		private readonly requirementScheduler: StageJobScheduler,
-		attachments?: FileConversationAttachmentStore,
+		private readonly attachments?: FileConversationAttachmentStore,
 		private readonly now: () => string = () => new Date().toISOString(),
 		readPlan?: (scope: PlanScope) => PlanWorkspace,
 		private readonly knowledge?: KnowledgeService,
@@ -73,6 +77,13 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 				if (state.aggregateVersion > 0 && state.facts.industry?.value !== "print") throw new ProposalWorkspaceValidationError("历史非包装需求已停用，请新建包装会话；原始资料与交付版本保留。");
 			},
 			prepareStart: (payload, conversation, scope) => {
+				if (attachments) {
+					const previous = requirementEngine.load(scope);
+					if (previous.stageStatus === "cancelled" && attachments.list({ ...scope, conversationId: conversation.conversationId }, { includeWithdrawn: true }).some((item) => item.withdrawal)) {
+						requirementEngine.restartProposal({ ...scope, actorId: "source-reconciliation", commandId: `withdrawal-resume-${previous.aggregateVersion}`, correlationId: "source-reconciliation", expectedVersion: previous.aggregateVersion });
+					}
+					reconcileRequirementWithdrawals(requirementEngine, attachments, { ...scope, conversationId: conversation.conversationId });
+				}
 				const facts: ArtifactWorkspaceStartFact[] = industryFact(payload, conversation);
 				const selected = knowledge?.store.selected({ ...scope, runId: conversation.conversationId });
 				if (selected?.unavailable.length) throw new ProposalWorkspaceValidationError("已选证据过期或不可用，请在证据面板重新选择。", "evidence_unavailable");
@@ -112,7 +123,8 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 
 	override get(context: Parameters<ConversationApiController["get"]>[0], conversationId: unknown) {
 		return this.respond(() => {
-			const { scope } = this.target(context, conversationId);
+			const { scope, conversation } = this.target(context, conversationId);
+			if (this.attachments) reconcileRequirementWithdrawals(this.requirementEngine, this.attachments, { ...scope, conversationId: conversation.conversationId });
 			this.knowledge?.refreshRun(this.requirementEngine, scope);
 			return super.get(context, conversationId);
 		});
@@ -120,11 +132,30 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 
 	override resolveApproval(context: Parameters<ConversationApiController["get"]>[0], conversationId: unknown, payload: unknown) {
 		return this.respond(() => {
-			const { scope } = this.target(context, conversationId);
+			const { scope, conversation } = this.target(context, conversationId);
+			if (this.attachments) reconcileRequirementWithdrawals(this.requirementEngine, this.attachments, { ...scope, conversationId: conversation.conversationId });
 			this.knowledge?.refreshRun(this.requirementEngine, scope);
 			try { this.knowledge?.assertRun(this.requirementEngine.load(scope), this.requirementEngine); }
 			catch (error) { if (error instanceof KnowledgeError) return { status: 409, body: { code: error.code, message: "证据需要重新核对，不能批准。" } }; throw error; }
 			return super.resolveApproval(context, conversationId, payload);
+		});
+	}
+
+	withdrawAttachment(context: Parameters<ConversationApiController["get"]>[0], conversationId: unknown, attachmentId: string, payload: unknown) {
+		return this.respond(() => {
+			const { scope, conversation } = this.target(context, conversationId);
+			if (!this.attachments || !payload || typeof payload !== "object" || !context.actorId) throw new ProposalWorkspaceValidationError("需要撤回请求、原因和附件版本。");
+			if (this.requirementScheduler.jobsForRun(scope).some((job) => job.status === "queued" || job.status === "leased")) return { status: 409, body: { code: "attachment_withdrawal_busy", message: "需求单正在执行，请先停止任务再撤回附件。" } };
+			const input = payload as { requestId: string; reason: string; sha256: string };
+			try {
+				const attachmentScope = { ...scope, conversationId: conversation.conversationId };
+				const attachment = this.attachments.withdraw(attachmentScope, attachmentId, { requestId: input.requestId, reason: input.reason, sha256: input.sha256, actorId: context.actorId });
+				reconcileRequirementWithdrawals(this.requirementEngine, this.attachments, attachmentScope);
+				return { status: 200, body: { attachment, attachments: this.attachments.list(attachmentScope) } };
+			} catch (error) {
+				if (!(error instanceof ConversationAttachmentError)) throw error;
+				return { status: error.code === "attachment_not_found" ? 404 : error.code === "attachment_conflict" ? 409 : error.code === "invalid_attachment" ? 400 : 503, body: { code: error.code, message: error.message } };
+			}
 		});
 	}
 
@@ -136,9 +167,57 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 		return super.recordFact(context, conversationId, payload);
 	}
 
-	delivery(context: Parameters<ConversationApiController["get"]>[0], conversationId: unknown, version: number) {
+	override resolveFact(context: Parameters<ConversationApiController["get"]>[0], conversationId: unknown, key: unknown, payload: unknown) {
+		return this.respond(() => {
+			const { scope, conversation } = this.target(context, conversationId);
+			if (this.attachments) reconcileRequirementWithdrawals(this.requirementEngine, this.attachments, { ...scope, conversationId: conversation.conversationId });
+			this.knowledge?.refreshRun(this.requirementEngine, scope);
+			const input = payload as { requestId?: string; expectedFactVersion?: number; expectedAggregateVersion?: number } | null;
+			if (!input || !Number.isSafeInteger(input.expectedFactVersion) || !Number.isSafeInteger(input.expectedAggregateVersion)) return { status: 400, body: { code: "fact_review_version_required", message: "请重新打开当前字段，核对后再确认。" } };
+			const state = this.requirementEngine.load(scope);
+			const previous = this.requirementEngine.readEvents(scope).find((event) => event.commandId === `${input.requestId}:fact-decision` && event.data.type === "fact.version_recorded");
+			const matches = previous?.data.type === "fact.version_recorded"
+				? previous.data.factVersion === input.expectedFactVersion! + 1 && previous.aggregateVersion === input.expectedAggregateVersion! + 1
+				: state.facts[String(key)]?.version === input.expectedFactVersion && state.aggregateVersion === input.expectedAggregateVersion;
+			if (!matches) return { status: 409, body: { code: "fact_review_stale", message: "字段或来源已变化，请刷新并核对新版本；本次没有确认任何内容。" } };
+			return super.resolveFact(context, conversationId, key, payload);
+		});
+	}
+
+	saveTrialObservation(context: Parameters<ConversationApiController["get"]>[0], conversationId: unknown, payload: unknown) {
 		return this.respond(() => {
 			const { scope } = this.target(context, conversationId);
+			if (!context.actorId || !validRequirementTrial(payload)) throw new ProposalWorkspaceValidationError("试用记录格式不正确，请检查计时、版本和结果。");
+			const key = { ...scope, artifactId: `review-trial-${payload.observationId}`, artifactVersion: 1 };
+			let previous: RequirementTrialObservation | undefined;
+			try { previous = this.requirementArtifacts.readJson(key) as RequirementTrialObservation; }
+			catch (error) { if (!(error instanceof ArtifactStoreError && error.code === "artifact_not_found")) throw error; }
+			const state = this.requirementEngine.load(scope);
+			if (!previous && (state.aggregateVersion !== payload.expectedAggregateVersion || !state.proposalVersions.some((item) => item.artifactId === "requirement-brief" && item.version === payload.artifactVersion))) return { status: 409, body: { code: "trial_version_stale", message: "任务已变化，请重新核对后保存记录。" } };
+			const observation: RequirementTrialObservation = { schemaVersion: "requirement-review-trial.v1", measurement: "self_reported_review_timer", runId: scope.runId, actorId: context.actorId, storedAt: previous?.storedAt ?? this.now(), input: payload, runtimeSnapshot: previous?.runtimeSnapshot ?? this.metrics(state).runtime };
+			try {
+				const ref = this.requirementArtifacts.putJson(key, observation);
+				return { status: previous ? 200 : 201, body: { ref, observation } };
+			} catch (error) {
+				if (error instanceof ArtifactStoreError && error.code === "artifact_conflict") return { status: 409, body: { code: error.code, message: "该记录已保存，不能用同一编号覆盖不同结果。" } };
+				throw error;
+			}
+		});
+	}
+
+	trialObservation(context: Parameters<ConversationApiController["get"]>[0], conversationId: unknown, observationId: string) {
+		return this.respond(() => {
+			const { scope } = this.target(context, conversationId);
+			if (!/^[a-zA-Z0-9][a-zA-Z0-9_-]{7,63}$/.test(observationId)) throw new ProposalWorkspaceValidationError("记录编号不正确。");
+			try { return { status: 200, body: { observation: this.requirementArtifacts.readJson({ ...scope, artifactId: `review-trial-${observationId}`, artifactVersion: 1 }) } }; }
+			catch (error) { if (error instanceof ArtifactStoreError && error.code === "artifact_not_found") return { status: 404, body: { code: error.code } }; throw error; }
+		});
+	}
+
+	delivery(context: Parameters<ConversationApiController["get"]>[0], conversationId: unknown, version: number) {
+		return this.respond(() => {
+			const { scope, conversation } = this.target(context, conversationId);
+			if (this.attachments) reconcileRequirementWithdrawals(this.requirementEngine, this.attachments, { ...scope, conversationId: conversation.conversationId });
 			this.knowledge?.refreshRun(this.requirementEngine, scope);
 			const state = this.requirementEngine.load(scope);
 			if (state.aggregateVersion > 0 && state.facts.industry?.value !== "print") return { status: 410, body: { code: "industry_retired", message: "历史非包装交付保留在本地，不再通过当前包装需求单导出。" } };
@@ -216,8 +295,58 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 	}
 
 	protected override view(state: ProposalRunState): RequirementBriefWorkspaceView {
+		const base = super.view(state);
+		const events = this.requirementEngine.readEvents(state);
+		const sources: RequirementSourceView[] = events.flatMap((event) => {
+			const data = event.data;
+			return data.type === "fact.version_recorded" && (data.factKey === "customer_brief" || data.sourceType === "user_input" && packagingFactKeys.includes(data.factKey))
+				? [{ ref: data.sourceRef, label: data.sourceType === "model_output" ? "计划输出 / Plan output" : data.factKey === "customer_brief" ? "客户原始资料 / Customer source" : "人工录入 / Employee entry", status: "available" as const, text: String(data.value) }] : [];
+		}).reverse();
+		for (const source of [...sources]) {
+			try {
+				const value = JSON.parse(source.text ?? "");
+				if (value?.schemaVersion === "plan-requirement-source.v1" && typeof value.sourceRef === "string") sources.push({ ref: value.sourceRef, label: "计划输出（待核对） / Unverified plan output", status: "available", text: source.text });
+				if (Array.isArray(value?.messages)) for (const message of value.messages) if (typeof message?.sourceRef === "string" && typeof message.content === "string") sources.push({ ref: message.sourceRef, label: "客户消息 / Customer message", status: "available", text: message.content });
+			} catch { /* Ordinary briefs are plain text. */ }
+		}
+		const conversationId = /^conversation:(.+):revision:\d+$/.exec(state.facts.customer_brief?.sourceRef ?? "")?.[1];
+		if (conversationId && this.attachments) {
+			const scope = { ...state, conversationId };
+			const attachments = this.attachments.list(scope, { includeWithdrawn: true });
+			for (const attachment of attachments) sources.push({ ref: attachment.sourceRef, label: attachment.name, status: attachment.withdrawal ? "withdrawn" : "unavailable" });
+			for (const text of this.attachments.readText(scope, 32_000)) {
+				const source = sources.find((item) => item.ref === text.sourceRef);
+				if (source && source.status !== "withdrawn") Object.assign(source, { status: "available", text: text.content, truncated: text.truncated });
+			}
+			for (const version of [...state.proposalVersions].reverse()) {
+				if (version.artifactId !== "requirement-brief") continue;
+				for (const inspection of this.readCheckpointMetrics(state, version.version)?.inspections ?? []) {
+					const attachment = attachments.find((item) => item.sourceRef === inspection.sourceRef);
+					for (const page of inspection.inspection.pages) {
+						const ref = `${inspection.sourceRef}#page=${page.page}`;
+						if (sources.some((item) => item.ref === ref)) continue;
+						sources.push({ ref, label: `${inspection.name} · p${page.page}`, status: attachment?.withdrawal ? "withdrawn" : attachment?.sha256 === inspection.sha256 ? "available" : "unavailable", ...(attachment && !attachment.withdrawal && attachment.sha256 === inspection.sha256 ? { text: page.text, truncated: inspection.inspection.truncated } : {}) });
+					}
+				}
+			}
+		}
+		if (this.knowledge) for (const fact of Object.values(state.facts)) {
+			const ref = factSourceReference(events, fact.key, fact.version) ?? fact.sourceRef;
+			if (!packagingFactKeys.includes(fact.key) || !ref.startsWith("kb-") || sources.some((source) => source.ref === ref)) continue;
+			try {
+				const hit = this.knowledge.store.readEvidence(state, ref);
+				sources.push({ ref, label: `${hit.title}${hit.location.page ? ` · p${hit.location.page}` : ""}`, status: "available", text: hit.text });
+			} catch (error) { if (!(error instanceof KnowledgeError)) throw error; sources.push({ ref, label: ref, status: "unavailable" }); }
+		}
+		const brief = evaluateRequirementBrief(base.artifact?.content).passed ? base.artifact?.content as RequirementBriefV1 : undefined;
 		return {
-			...super.view(state),
+			...base,
+			factSources: requirementSourceViews(state, events, sources),
+			proposalSources: Object.fromEntries((brief?.pendingChanges ?? []).map((change) => {
+				const source = sources.find((item) => item.ref === change.sourceRef);
+				const excerpt = source?.text ? sourceExcerpt(source.text, change.value) : undefined;
+				return [change.key, source ? { ...source, ...excerpt, truncated: Boolean(source.truncated || excerpt?.truncated) } : { ref: change.sourceRef, label: change.sourceRef, status: "unavailable" }];
+			})),
 			...(state.facts.industry?.value !== "print" ? { readOnlyReason: "此历史需求不在当前包装业务范围内，已停止生成、修改和审批。原始会话与交付记录保留，请新建会话处理包装需求。" } : {}),
 			metrics: this.metrics(state),
 		};

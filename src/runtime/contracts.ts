@@ -69,6 +69,7 @@ export interface RuntimeTurnRequest {
 	resume?: boolean | "if-present";
 	instructions?: string[];
 	skills?: string[];
+	/** An explicit empty list disables all tools, including runtime readback helpers. */
 	allowedTools?: string[];
   input: string;
 	attachments?: AgentImageAttachment[];

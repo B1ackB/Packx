@@ -425,6 +425,8 @@ export class ProposalWorkspaceApiController {
 		return this.respond(() => {
 			const id = requestId(payload);
 			const selectedDecision = factDecision(payload);
+			const expected = (payload as { expectedAggregateVersion?: unknown }).expectedAggregateVersion;
+			if (expected !== undefined && (!Number.isSafeInteger(expected) || Number(expected) < 1)) throw new ProposalWorkspaceValidationError("expectedAggregateVersion must be a positive integer");
 			const factKey = requiredId(factKeyValue, "factKey", 64);
 			if (this.options.protectedFactKeys?.includes(factKey)) {
 				throw new ProposalWorkspaceValidationError(`${factKey} is managed by the Intake source`);
@@ -452,7 +454,7 @@ export class ProposalWorkspaceApiController {
 						actorId,
 						commandId,
 						correlationId: `${id}:fact-decision`,
-						expectedVersion: state.aggregateVersion,
+						expectedVersion: expected === undefined ? state.aggregateVersion : Number(expected),
 						factKey,
 						decision: selectedDecision,
 						sourceRef: `conversation:${conversation.conversationId}:fact-decision:${id}`,
@@ -510,6 +512,7 @@ export class ProposalWorkspaceApiController {
 			evaluation,
 			job: job && {
 				jobId: job.jobId,
+				leaseExpiresAt: job.leaseExpiresAt,
 				status: job.status,
 				failureCount: job.failureCount,
 				lastFailure: job.lastFailure && {

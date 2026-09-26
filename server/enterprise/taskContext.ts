@@ -17,6 +17,8 @@ export interface TaskContextInput {
 	knowledge?: unknown;
 	unavailable?: string[];
 	checkpoint?: TaskCheckpointVersion;
+	/** Domain-selected business fields; source bookkeeping remains visible but is not a user confirmation task. */
+	confirmationFactKeys?: readonly string[];
 }
 
 /** Read models passed by Host come from Session/Event Store, never from a summary model. */
@@ -38,7 +40,7 @@ export function buildTaskContext(input: TaskContextInput) {
 		stage: state ? { runId: state.runId, aggregateVersion: state.aggregateVersion, status: state.stageStatus, runStatus: state.status } : { status: "conversation" },
 		completed: (input.events ?? []).filter((event) => event.data.type === "stage.completed").map((event) => ({ eventId: event.eventId, version: event.aggregateVersion, ...event.data })),
 		unresolved: [
-			...facts.filter((fact) => fact.status !== "verified" && fact.status !== "rejected").map((fact) => ({ key: fact.key, version: fact.version, reason: "confirmation_required" })),
+			...facts.filter((fact) => fact.status !== "verified" && fact.status !== "rejected" && (!input.confirmationFactKeys || input.confirmationFactKeys.includes(fact.key))).map((fact) => ({ key: fact.key, version: fact.version, reason: "confirmation_required" })),
 			...(input.unavailable ?? []).map((ref) => ({ ref, reason: "source_unavailable" })),
 			...(state?.currentProposal?.freshness === "stale" ? [{ ref: state.currentProposal.contentRef, reason: "artifact_stale" }] : []),
 		],

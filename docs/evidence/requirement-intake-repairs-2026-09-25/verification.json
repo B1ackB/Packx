@@ -1,0 +1,47 @@
+{
+	"date": "2026-09-25",
+	"mode": "offline-and-build",
+	"tests": {
+		"filesPassed": 87,
+		"passed": 718,
+		"skipped": 21,
+		"failed": 0,
+		"maxWorkers": 2
+	},
+	"build": "passed",
+	"serverTypecheck": "passed",
+	"fixedOfflineHarness": "passed",
+	"m2": {
+		"passed": true,
+		"fixtures": 10
+	},
+	"recoveryFaultInjection": "passed; Fake and local filesystem only",
+	"browserInteraction": "not_run",
+	"sourceSha256": "8eeefbc01d1703176cb6ca1da531dfb4ad54e067c1603befe65ef103f5c0fb17",
+	"logs": {
+		"tests": {
+			"sha256": "75829f2183b1603464baf1a9f05411609bedae356f715383f51637ae0354a94f",
+			"bytes": 6386
+		},
+		"build": {
+			"sha256": "2c33c49ce170cca37967676b546b9ef0dc374a51ae9613e900f5d7928720bf4f",
+			"bytes": 395
+		},
+		"tsc": {
+			"sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+			"bytes": 0
+		},
+		"offline": {
+			"sha256": "bb5eeebb9943652f9486db785adc3e312ca4d134d973c20e79e8c872b6b2ea88",
+			"bytes": 938
+		},
+		"m2": {
+			"sha256": "abf24f93a8468da8e690becce0d9348ee32214ea441828a2025d6685f447e12d",
+			"bytes": 10385
+		},
+		"recovery": {
+			"sha256": "f0a1724733b41ebbb1f3fd74e520305a8001d26ef857b55297487a2047eb533c",
+			"bytes": 3005
+		}
+	}
+}

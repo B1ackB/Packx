@@ -1,0 +1,26 @@
+{
+	"suiteId": "requirement-automatic.v1",
+	"createdAt": "2026-09-26",
+	"provenance": "Derived from all 12 authored development cases; no holdout use; structured scope only; semantic quality NOT_EVALUATED",
+	"caseIds": [
+		"AI-01",
+		"AI-02",
+		"AI-03",
+		"AI-05",
+		"AI-06",
+		"AI-07",
+		"AI-09",
+		"AI-10",
+		"AI-11",
+		"AI-13",
+		"AI-14",
+		"AI-15"
+	],
+	"checkpointCount": 31,
+	"files": {
+		"cases.json": "fdf12692a38777fc24e0e93b8e7dbe101f3b3d2df4552add2059a30be4801588",
+		"oracles.json": "ed47ac847f1930ed16c8eacb8a461348e477676cb2f698071ab01dcbc75331dd",
+		"normalization.json": "a649d29f408a4b879cc8e0aaea4c1fd4f2159d59c8840a8ed384496e16c2d9cc",
+		"README.md": "3b023fa2a4428a6f5a781f54eb3d7153e2ac6465c732ac5ec66f855acdfa3634"
+	}
+}

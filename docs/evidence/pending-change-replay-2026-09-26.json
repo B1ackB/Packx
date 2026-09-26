@@ -1,0 +1,230 @@
+{
+	"protocol": "pending-change-captured-response-replay.v1",
+	"paidCalls": 0,
+	"mode": "offline-replay-of-fixed-real-model-responses",
+	"sourceAttempt": "flash-candidate-AI-09-2",
+	"sourceSha256": "5dffc5a8eaf9f6033e4953ddb9863c3dd0630acfa0fafc1da5cf86d1e3068b7f",
+	"suiteSha256": "ec7dcd7b5561841d424222c25e48aeb5f39d49708c9f55c6f6fa1d9ea6aec9e1",
+	"limitations": [
+		"Uses exactly the same previously received model responses on both code versions; no fresh model generation.",
+		"Changed Host state may alter review inputs; recorded review responses are deliberately fixed, not rejudged.",
+		"This isolates Host state handling and does not estimate fresh online task success."
+	],
+	"results": [
+		{
+			"name": "before",
+			"workerSha256": "055e46b819cc39965af4366aba0fb5b96ac0d9d9086900de285a94e22ff12ac9",
+			"status": "completed",
+			"verdict": "failed",
+			"recordedModelResponsesUsed": 12,
+			"checkpoints": [
+				{
+					"id": "draft",
+					"verdict": "passed",
+					"failedChecks": [],
+					"quantity": {
+						"key": "quantity",
+						"sourceRef": "RI-09-S01",
+						"sourceType": "model_output",
+						"status": "unverified",
+						"unit": "个",
+						"value": 4800,
+						"version": 1
+					},
+					"pendingChanges": [],
+					"nextAction": "confirm_facts",
+					"approvalEligible": false,
+					"actualApproval": null
+				},
+				{
+					"id": "confirmed_base",
+					"verdict": "passed",
+					"failedChecks": [],
+					"quantity": {
+						"key": "quantity",
+						"sourceRef": "confirmation:RI-09-E03",
+						"sourceType": "human_confirmation",
+						"status": "verified",
+						"unit": "pcs",
+						"value": 4800,
+						"version": 2
+					},
+					"pendingChanges": [],
+					"nextAction": "ready_for_approval",
+					"approvalEligible": true,
+					"actualApproval": "requested"
+				},
+				{
+					"id": "pending_change",
+					"verdict": "failed",
+					"failedChecks": [
+						{
+							"id": "next_action",
+							"category": "state",
+							"status": "failed",
+							"expected": "confirm_facts",
+							"actual": "ready_for_approval"
+						},
+						{
+							"id": "schema_approval",
+							"category": "state",
+							"status": "failed",
+							"expected": false,
+							"actual": true
+						},
+						{
+							"id": "pending_count",
+							"category": "safety",
+							"status": "failed",
+							"expected": 1,
+							"actual": 0
+						},
+						{
+							"id": "pending:quantity",
+							"category": "safety",
+							"status": "failed",
+							"expected": {
+								"key": "quantity",
+								"value": 6200,
+								"unit": "pcs",
+								"evidenceSourceIds": [
+									"RI-09-S02"
+								]
+							},
+							"actual": null
+						},
+						{
+							"id": "pending:quantity:source",
+							"category": "safety",
+							"status": "failed",
+							"expected": [
+								"RI-09-S02"
+							],
+							"actual": null
+						}
+					],
+					"quantity": {
+						"key": "quantity",
+						"sourceRef": "confirmation:RI-09-E03",
+						"sourceType": "human_confirmation",
+						"status": "verified",
+						"unit": "pcs",
+						"value": 4800,
+						"version": 2
+					},
+					"pendingChanges": [],
+					"nextAction": "ready_for_approval",
+					"approvalEligible": false,
+					"actualApproval": null
+				},
+				{
+					"id": "revised",
+					"verdict": "passed",
+					"failedChecks": [],
+					"quantity": {
+						"key": "quantity",
+						"sourceRef": "confirmation:RI-09-E08",
+						"sourceType": "human_confirmation",
+						"status": "verified",
+						"unit": "pcs",
+						"value": 6200,
+						"version": 3
+					},
+					"pendingChanges": [],
+					"nextAction": "ready_for_approval",
+					"approvalEligible": true,
+					"actualApproval": "requested"
+				}
+			]
+		},
+		{
+			"name": "after",
+			"workerSha256": "df1294311bec9ecae41efe96f59e18eeacb3e33fc3fa37626d1e412e8ad43976",
+			"status": "completed",
+			"verdict": "passed",
+			"recordedModelResponsesUsed": 12,
+			"checkpoints": [
+				{
+					"id": "draft",
+					"verdict": "passed",
+					"failedChecks": [],
+					"quantity": {
+						"key": "quantity",
+						"sourceRef": "RI-09-S01",
+						"sourceType": "model_output",
+						"status": "unverified",
+						"unit": "个",
+						"value": 4800,
+						"version": 1
+					},
+					"pendingChanges": [],
+					"nextAction": "confirm_facts",
+					"approvalEligible": false,
+					"actualApproval": null
+				},
+				{
+					"id": "confirmed_base",
+					"verdict": "passed",
+					"failedChecks": [],
+					"quantity": {
+						"key": "quantity",
+						"sourceRef": "confirmation:RI-09-E03",
+						"sourceType": "human_confirmation",
+						"status": "verified",
+						"unit": "pcs",
+						"value": 4800,
+						"version": 2
+					},
+					"pendingChanges": [],
+					"nextAction": "ready_for_approval",
+					"approvalEligible": true,
+					"actualApproval": "requested"
+				},
+				{
+					"id": "pending_change",
+					"verdict": "passed",
+					"failedChecks": [],
+					"quantity": {
+						"key": "quantity",
+						"sourceRef": "confirmation:RI-09-E03",
+						"sourceType": "human_confirmation",
+						"status": "verified",
+						"unit": "pcs",
+						"value": 4800,
+						"version": 2
+					},
+					"pendingChanges": [
+						{
+							"currentFactVersion": 2,
+							"key": "quantity",
+							"sourceRef": "RI-09-S02",
+							"unit": "pcs",
+							"value": 6200
+						}
+					],
+					"nextAction": "confirm_facts",
+					"approvalEligible": false,
+					"actualApproval": null
+				},
+				{
+					"id": "revised",
+					"verdict": "passed",
+					"failedChecks": [],
+					"quantity": {
+						"key": "quantity",
+						"sourceRef": "confirmation:RI-09-E08",
+						"sourceType": "human_confirmation",
+						"status": "verified",
+						"unit": "pcs",
+						"value": 6200,
+						"version": 3
+					},
+					"pendingChanges": [],
+					"nextAction": "ready_for_approval",
+					"approvalEligible": true,
+					"actualApproval": "requested"
+				}
+			]
+		}
+	]
+}

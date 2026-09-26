@@ -1,0 +1,83 @@
+{
+	"protocol": "review-output-analysis.v1",
+	"status": "completed_with_rejected_candidates_and_stopped_unknown_trial",
+	"rows": [
+		{
+			"arm": "default",
+			"planned": 18,
+			"recorded": 18,
+			"notStarted": 0,
+			"validOutput": 16,
+			"outputLimit": 2,
+			"otherFailed": 0,
+			"controlsPlanned": 8,
+			"controlsReached": 8,
+			"controlsPassed": 8,
+			"latencyMedianMsRecorded": 13987.5,
+			"knownUsageUsd": 0.09213788399999996,
+			"outputTokensKnown": 75040,
+			"responseModels": [
+				"deepseek-v4-flash"
+			]
+		},
+		{
+			"arm": "disabled",
+			"planned": 18,
+			"recorded": 18,
+			"notStarted": 0,
+			"validOutput": 17,
+			"outputLimit": 0,
+			"otherFailed": 1,
+			"controlsPlanned": 8,
+			"controlsReached": 8,
+			"controlsPassed": 5,
+			"latencyMedianMsRecorded": 2620.0,
+			"knownUsageUsd": 0.012010632,
+			"outputTokensKnown": 5307,
+			"responseModels": [
+				"deepseek-v4-flash"
+			]
+		},
+		{
+			"arm": "low",
+			"planned": 18,
+			"recorded": 11,
+			"notStarted": 7,
+			"validOutput": 9,
+			"outputLimit": 1,
+			"otherFailed": 1,
+			"controlsPlanned": 8,
+			"controlsReached": 4,
+			"controlsPassed": 3,
+			"latencyMedianMsRecorded": 16326,
+			"knownUsageUsd": 0.042572784,
+			"outputTokensKnown": 31262,
+			"responseModels": [
+				"deepseek-v4-flash"
+			]
+		}
+	],
+	"decisions": {
+		"disabled": "REJECTED_CONTROL_REGRESSIONS",
+		"low": "NOT_ADOPTED_CONTROL_LOCATION_FAILURE_AND_INCOMPLETE_RUN",
+		"productionReasoning": "UNCHANGED",
+		"semanticQuality": "NOT_EVALUATED beyond narrow authored controls",
+		"newEndToEndBusinessTaskRuns": 0
+	},
+	"newReceivedFailuresWithKnownUsage": 3,
+	"newUsageUnavailable": [
+		{
+			"caseId": "received-limit-83-2-low",
+			"eventId": "isolated-read-only-review",
+			"kind": "generate",
+			"status": "unknown",
+			"requestSha256": "2f3757207ab15c2e46fe91901ca1d15fcfb11eb03954d926cb0f843891e62854",
+			"error": "inspect_saved_trace",
+			"reservationUsd": 0.011235,
+			"durationMs": 3009,
+			"startedAt": "2026-09-26T12:21:40.881Z"
+		}
+	],
+	"newGenerationCalls": 47,
+	"newCountCalls": 47
+}

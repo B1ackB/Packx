@@ -1,0 +1,53 @@
+{
+	"protocol": "automatic-evaluation-delivery.v1",
+	"date": "2026-09-26",
+	"archiveEntriesVerified": 155,
+	"markdownLinksVerified": 107,
+	"checkedMarkdownFiles": 6,
+	"gitDiffWhitespaceCheck": "passed",
+	"paidExecution": "finished",
+	"totalUsdLimit": 20,
+	"reservedUsd": 12.34383912,
+	"files": [
+		{
+			"path": "../automatic-online-2026-09-26.md",
+			"sha256": "4e37a4e9557de08f94faa397ecde316b759cd00d42e82c4b079dc9161da5c8b9"
+		},
+		{
+			"path": "README.md",
+			"sha256": "2a4bae3c2cc952f3bfc6275ec3ff331c53e9fd88e6afcc383119eb166ff8185a"
+		},
+		{
+			"path": "initial.manifest.json",
+			"sha256": "595f8e1587532817aa1ce9eee12b777e7a19720462a32c9cb1a9da228fe89575"
+		},
+		{
+			"path": "matrix.manifest.json",
+			"sha256": "aa9bd0c6b15892f2a94f24958e97146a035ee35348e573f5f683b949d51065a2"
+		},
+		{
+			"path": "final.manifest.json",
+			"sha256": "d29b190e376232be849c116e49e47af945e0ad9a632234564f5d936e61ee59e2"
+		},
+		{
+			"path": "context.manifest.json",
+			"sha256": "7a59658400afd714048b978b1f1664b3687920af5a894ff9b2230cdb4574792e"
+		},
+		{
+			"path": "repair.manifest.json",
+			"sha256": "2cfd66f1d1217d1a4f4638f0eec23d03487dc8c1049c9855be334f0eb958335f"
+		},
+		{
+			"path": "verification.json",
+			"sha256": "b13c0c3aea1501f57bf66af48f85c4403e41d9b2d2cd8c52f4b785a4702dbc17"
+		},
+		{
+			"path": "budget-summary.json",
+			"sha256": "c8d75adf7652f778e641997aab8bb4776a8e575df2228040486f70e25b0c1848"
+		},
+		{
+			"path": "budget-summary-source.py.gz",
+			"sha256": "db19393c986f557fe77bc4e2241d325436601e319d8179eea267504896513035"
+		}
+	]
+}

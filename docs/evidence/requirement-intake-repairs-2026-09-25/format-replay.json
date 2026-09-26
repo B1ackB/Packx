@@ -1,0 +1,50 @@
+{
+	"mode": "offline replay of saved real model outputs, not new task success",
+	"sourceReportSha256": "d3074ff69d14c5dfb77ef89b432aa0a956a5fbce8cd706dd47943d780486aa9a",
+	"rows": [
+		{
+			"caseId": "RI-01",
+			"eventId": "RI-01-E02",
+			"outputSha256": "e58a407a67df410ccbbbe9f20845ad14237ab568739f92ce854945d91e318d68",
+			"wrapped": false,
+			"accepted": false
+		},
+		{
+			"caseId": "RI-02",
+			"eventId": "RI-02-E03",
+			"outputSha256": "f9b4fe0ff1c5098b3a2353958b8c06115d8f98c5d0fdc84c9aab7a5b00d9e531",
+			"wrapped": false,
+			"accepted": false
+		},
+		{
+			"caseId": "RI-06",
+			"eventId": "RI-06-E04",
+			"outputSha256": "720915b3b8397c46768fd9a798d83508f88b2c55e234f65636104017a1229157",
+			"wrapped": true,
+			"accepted": true,
+			"parsedSha256": "1aa3ccf3580c7bd4bc4e321760e1911719693e7c31dc3d257266ef7a3c22ceb9"
+		},
+		{
+			"caseId": "RI-09",
+			"eventId": "RI-09-E02",
+			"outputSha256": "3c72c2b31a23929819097464803b1facb44ae68c242c6e0b03dc5ea0a63b0ac5",
+			"wrapped": true,
+			"accepted": true,
+			"parsedSha256": "4a1aa7d09de068ec13673b3c1d3097d648873f6be389ac9e075ff0a05e7af632"
+		},
+		{
+			"caseId": "RI-03",
+			"eventId": "RI-03-E04",
+			"outputSha256": "fa73b1434434b68405b37763a1d8bc600d8ccb2b70733dc6d24c2ec4bca7d72f",
+			"wrapped": false,
+			"accepted": false
+		},
+		{
+			"caseId": "RI-13",
+			"eventId": "RI-13-E09",
+			"outputSha256": "e2ba89462a5e52228a6cea92b09e5ebde6041d4a89f27a59efe5f4b20ba17cc1",
+			"wrapped": false,
+			"accepted": false
+		}
+	]
+}

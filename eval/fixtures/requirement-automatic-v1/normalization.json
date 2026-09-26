@@ -1,0 +1,65 @@
+{
+	"protocol": "requirement-automatic-normalization.v1",
+	"units": [
+		[
+			"pcs",
+			"个",
+			"件",
+			"只",
+			"张"
+		],
+		[
+			"mm",
+			"毫米"
+		]
+	],
+	"values": [
+		[
+			"香港",
+			"中国香港",
+			"Hong Kong"
+		],
+		[
+			"中国内地",
+			"中国大陆",
+			"Mainland China"
+		],
+		[
+			"Singapore",
+			"新加坡"
+		],
+		[
+			"日本",
+			"Japan"
+		],
+		[
+			"英国",
+			"United Kingdom",
+			"UK"
+		],
+		[
+			"bottle labels",
+			"瓶贴",
+			"瓶身标签"
+		],
+		[
+			"茶叶圆罐",
+			"茶叶罐",
+			"茶叶金属圆罐"
+		],
+		[
+			"定稿已提供",
+			"已提供定稿",
+			"定稿已提供，待印前检查"
+		],
+		[
+			"设计中",
+			"正在设计"
+		],
+		[
+			"print artwork supplied, preflight pending",
+			"印刷稿已提供，待印前检查",
+			"已提供印刷稿，待印前检查"
+		]
+	]
+}
