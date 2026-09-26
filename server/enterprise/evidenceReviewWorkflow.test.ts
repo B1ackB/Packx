@@ -12,6 +12,7 @@ import type { EvidenceReviewIssue } from "../../src/enterprise/evidenceReview";
 import { RuntimeFailure, type AgentRuntimePort, type RuntimeTurnRequest } from "../../src/runtime/contracts";
 import { FileArtifactContentStore } from "../artifacts/fileArtifactStore";
 import { RequirementBriefWorker } from "../manufacturing/requirementBriefWorker";
+import { requirementEvidencePolicy } from "../manufacturing/requirementEvidencePolicy";
 import { FileEnterpriseEventStore } from "./fileEventStore";
 
 const dirs: string[] = [];
@@ -56,6 +57,19 @@ function harness(outputs: Array<unknown | Error>, candidate: RequirementBriefV1 
 }
 
 describe("requirement evidence review boundary", () => {
+	it.each(["intake", "revision"])("blocks an unsupported narrative number introduced during %s", async (phase) => {
+		const candidate = structuredClone(fixture.artifact);
+		if (phase === "intake") candidate.customerGoal = "总数量为 6085 个。";
+		const h = harness(phase === "revision" ? [{ issues: [issue()] }, { ...revised, customerGoal: "保留品牌原稿，总数量为 6085 个。" }, pass] : [pass], candidate);
+		const before = h.engine.load(h.scope).facts;
+		await h.run();
+		expect(h.report()).toMatchObject({ passed: false, approvalEligible: false });
+		expect(h.report().issues).toContainEqual(expect.objectContaining({ code: "unsupported_narrative_number" }));
+		expect(h.engine.load(h.scope).facts).toEqual(before);
+		expect(h.engine.load(h.scope).approval).toBeUndefined();
+		expect(h.requests).toHaveLength(phase === "intake" ? 1 : 3);
+	});
+
 	it("runs rules before independent review and still requires version-bound human approval", async () => {
 		const h = harness([pass]); await h.run();
 		expect(h.engine.load(h.scope)).toMatchObject({ stageStatus: "waiting_approval", approval: { artifactVersion: 1, status: "requested" } });
@@ -90,6 +104,9 @@ describe("requirement evidence review boundary", () => {
 		issue({ kind: "insufficient_evidence", evidenceRefs: [], suggestedAction: "request_input", reason: "缺少供应商原始测试报告，不能证实材料性能。" }),
 		issue({ kind: "scope_change", suggestedAction: "reconfirm_plan" }),
 		issue({ location: "/facts/quantity" }),
+		// Online low/disabled review found a missing narrative constraint but targeted Facts.
+		// Keep the detection, block automatic rewriting of authoritative state.
+		issue({ location: "/facts", reason: "Original customer source forbids PVC, but the narrative omits that constraint." }),
 	])("routes $kind / $location to the user without revising Facts or running tools", async (finding) => {
 		const h = harness([{ issues: [finding] }]); const before = h.engine.load(h.scope).facts;
 		await h.run();
@@ -119,7 +136,8 @@ describe("requirement evidence review boundary", () => {
 	it("a model pass cannot override failed deterministic validation", async () => {
 		const h = harness([pass], { ...fixture.artifact, schemaVersion: "wrong" } as unknown as RequirementBriefV1);
 		await h.run(); expect(h.report().passed).toBe(false); expect(h.engine.load(h.scope).approval).toBeUndefined();
-		expect(JSON.parse(h.requests[1]!.input).ruleValidation.passed).toBe(false);
+		expect(h.requests).toHaveLength(1);
+		expect(h.report().evidenceReview).toMatchObject({ status: "failed", failure: "deterministic_validation_failed" });
 	});
 
 	it.each(["requirement-brief-review-call", "requirement-brief-review", "requirement-brief-revision-call", "requirement-brief-evaluation", "requirement-brief"])("replays durable checkpoints after a crash following %s persistence", async (crashId) => {
@@ -148,6 +166,23 @@ describe("requirement evidence review boundary", () => {
 		await expect(h.run(store)).rejects.toThrow("lost result"); await h.run();
 		expect(h.report()).toMatchObject({ passed: false, evidenceReview: { failure: "interrupted_review" } });
 		expect(h.requests).toHaveLength(2);
+	});
+
+	it("does not reuse or overwrite a review checkpoint after its policy version changes", async () => {
+		const h = harness([pass]); const version = requirementEvidencePolicy.version;
+		const store: ArtifactContentStore = { readJson: key => h.artifacts.readJson(key), putJson(key, value) {
+			const ref = h.artifacts.putJson(key, value);
+			if (key.artifactId === "requirement-brief-review-call") throw new Error("crash after old policy response");
+			return ref;
+		} };
+		try {
+			requirementEvidencePolicy.version = "historical-policy";
+			await expect(h.run(store)).rejects.toThrow("crash after old policy response");
+		} finally { requirementEvidencePolicy.version = version; }
+		await expect(h.run()).rejects.toThrow();
+		expect(h.requests).toHaveLength(2);
+		expect(h.read("requirement-brief-review-input", 1)).toMatchObject({ policyVersion: "historical-policy" });
+		expect(h.engine.load(h.scope).approval).toBeUndefined();
 	});
 
 	it("rejects a late response after cancellation and does not persist a passing report", async () => {

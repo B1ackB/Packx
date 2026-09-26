@@ -21,7 +21,7 @@ export interface ConversationAttachmentScope {
 
 export class ConversationAttachmentError extends Error {
 	constructor(
-		readonly code: "invalid_attachment" | "attachment_conflict" | "attachment_not_found" | "attachment_store_unavailable",
+		readonly code: "invalid_attachment" | "attachment_conflict" | "attachment_not_found" | "attachment_withdrawn" | "attachment_store_unavailable",
 		message: string,
 	) {
 		super(message);
@@ -38,7 +38,7 @@ const textTypes = new Set([
 const previewImageTypes = new Set(["image/gif", "image/jpeg", "image/png", "image/webp"]);
 
 function id(value: string, name: string): string {
-	if (!/^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(value)) {
+	if (typeof value !== "string" || !/^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(value)) {
 		throw new ConversationAttachmentError("invalid_attachment", `${name} is invalid`);
 	}
 	return value;
@@ -122,7 +122,7 @@ export class FileConversationAttachmentStore {
 				}
 				return { attachment: existing, duplicate: true };
 			}
-			const existingAttachments = this.list(scope);
+			const existingAttachments = this.list(scope, { includeWithdrawn: true });
 			if (
 				existingAttachments.length >= 20 ||
 				existingAttachments.reduce((total, attachment) => total + attachment.size, 0) + input.content.byteLength > 50 * 1024 * 1024
@@ -154,16 +154,35 @@ export class FileConversationAttachmentStore {
 		});
 	}
 
-	list(scope: ConversationAttachmentScope): ConversationAttachment[] {
+	/** A durable tombstone disables reads before downstream invalidation; retries finish Host reconciliation. */
+	withdraw(scope: ConversationAttachmentScope, attachmentId: string, input: { requestId: string; actorId: string; reason: string; sha256: string }): ConversationAttachment {
+		id(input.requestId, "requestId"); id(input.actorId, "actorId");
+		if (typeof input.reason !== "string" || !input.reason.trim() || input.reason.length > 1000 || !/^[a-f0-9]{64}$/.test(input.sha256)) throw new ConversationAttachmentError("invalid_attachment", "withdrawal reason and source hash are required");
+		const path = join(this.directory(scope), `${id(attachmentId, "attachmentId")}.json`);
+		const stored = this.read(scope, attachmentId, { includeWithdrawn: true }).attachment;
+		if (stored.sha256 !== input.sha256) throw new ConversationAttachmentError("attachment_conflict", "withdrawal targets a different attachment version");
+		return this.withLock(path, () => {
+			const current = this.readMetadata(path);
+			if (current.withdrawal) {
+				if (current.withdrawal.requestId === input.requestId && (current.withdrawal.actorId !== input.actorId || current.withdrawal.reason !== input.reason.trim())) throw new ConversationAttachmentError("attachment_conflict", "withdrawal requestId has different input");
+				return current;
+			}
+			this.atomicWrite(`${path}.withdrawal`, Buffer.from(JSON.stringify({ requestId: input.requestId, actorId: input.actorId, sha256: input.sha256, reason: input.reason.trim(), at: this.now() })));
+			return this.readMetadata(path);
+		});
+	}
+
+	list(scope: ConversationAttachmentScope, options: { includeWithdrawn?: boolean } = {}): ConversationAttachment[] {
 		const directory = this.directory(scope);
 		if (!existsSync(directory)) return [];
 		return readdirSync(directory)
 			.filter((entry) => entry.endsWith(".json"))
 			.map((entry) => this.readMetadata(join(directory, entry)))
+			.filter((attachment) => options.includeWithdrawn || !attachment.withdrawal)
 			.sort((left, right) => left.createdAt.localeCompare(right.createdAt));
 	}
 
-	read(scope: ConversationAttachmentScope, attachmentId: string): {
+	read(scope: ConversationAttachmentScope, attachmentId: string, options: { includeWithdrawn?: boolean } = {}): {
 		attachment: ConversationAttachment;
 		content: Buffer;
 	} {
@@ -175,6 +194,7 @@ export class FileConversationAttachmentStore {
 			throw new ConversationAttachmentError("attachment_not_found", "attachment does not exist");
 		}
 		const attachment = this.readMetadata(metadataPath);
+		if (attachment.withdrawal && !options.includeWithdrawn) throw new ConversationAttachmentError("attachment_withdrawn", "attachment was withdrawn and is no longer valid evidence");
 		const content = readFileSync(contentPath);
 		if (attachment.attachmentId !== targetId || attachment.conversationId !== scope.conversationId || attachment.size !== content.length || createHash("sha256").update(content).digest("hex") !== attachment.sha256) {
 			throw new ConversationAttachmentError("attachment_conflict", "attachment integrity check failed");
@@ -184,7 +204,7 @@ export class FileConversationAttachmentStore {
 
 	digest(scope: ConversationAttachmentScope): string | undefined {
 		const attachments = this.list(scope);
-		if (attachments.length === 0) return undefined;
+		if (attachments.length === 0 && this.list(scope, { includeWithdrawn: true }).length === 0) return undefined;
 		return createHash("sha256")
 			.update(attachments.map((attachment) => [
 				attachment.attachmentId,
@@ -284,8 +304,11 @@ export class FileConversationAttachmentStore {
 	private readMetadata(path: string): ConversationAttachment {
 		try {
 			const attachment = JSON.parse(readFileSync(path, "utf8")) as ConversationAttachment;
+			const withdrawal = existsSync(`${path}.withdrawal`) ? JSON.parse(readFileSync(`${path}.withdrawal`, "utf8")) as ConversationAttachment["withdrawal"] : undefined;
+			if (withdrawal && (withdrawal.sha256 !== attachment.sha256 || !withdrawal.requestId || !withdrawal.actorId || !withdrawal.at || !withdrawal.reason)) throw new Error("invalid_withdrawal");
 			return {
 				...attachment,
+				...(withdrawal ? { withdrawal } : {}),
 				modelInput: attachment.kind === "text"
 					? "text_extracted"
 					: attachment.kind === "image" && attachment.size <= 5 * 1024 * 1024

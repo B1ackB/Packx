@@ -9,6 +9,8 @@ import { RuntimeFailure, type RuntimeTurnRequest } from "../../src/runtime/contr
 import { AnthropicCompatibilityError } from "../anthropic/client";
 import { BlackxAgentRuntime } from "./agentRuntime";
 import { ModelTelemetryStore } from "./modelTelemetry";
+import { AnthropicModelProvider } from "./anthropicModelProvider";
+import { AnthropicMessagesClient } from "../anthropic/client";
 
 const request: RuntimeTurnRequest = {
 	tenantId: "audit-tenant", workspaceId: "audit-workspace", runId: "audit-run", stageId: "audit-stage",
@@ -31,6 +33,38 @@ const audit = { append: async () => {} };
 afterEach(() => vi.useRealTimers());
 
 describe("error handling fault-injection audit", () => {
+	it("does not automatically repeat an uncertain transport failure despite a retryable runtime category", async () => {
+		const directory = mkdtempSync(join(tmpdir(), "packx-transport-audit-"));
+		try {
+			const state = new InMemoryAgentStateStore(), telemetry = new ModelTelemetryStore(directory, "offline-model");
+			const generate = vi.fn(async () => { throw new TypeError("private URL", { cause: Object.assign(new Error("private socket"), { code: "UND_ERR_SOCKET" }) }); });
+			const runtime = new BlackxAgentRuntime({ provider: { generate }, telemetry, skills: new SkillRegistry(), sessions: state, traces: state });
+			await expect(runtime.executeTurn(request)).rejects.toMatchObject({ code: "model_failure", retryable: true });
+			expect(generate).toHaveBeenCalledOnce();
+			expect(telemetry.view(request).calls).toMatchObject([{ status: "failed", failure: "transport_failure" }]);
+			expect(state.listTraces(request)).toMatchObject([{ status: "failed", failure: { code: "model_failure" } }]);
+			expect(JSON.stringify(telemetry.view(request))).not.toContain("private");
+		} finally { rmSync(directory, { recursive: true, force: true }); }
+	});
+
+	it("retains failed generation cost without persisting a final message or executing a partial tool", async () => {
+		const directory = mkdtempSync(join(tmpdir(), "packx-received-failure-"));
+		try {
+			const state = new InMemoryAgentStateStore();
+			const execute = vi.fn(async () => "must not run");
+			const provider = new AnthropicModelProvider(new AnthropicMessagesClient({ baseUrl: "https://example.invalid", apiKey: "test",
+				fetch: async (url) => new Response(JSON.stringify(String(url).endsWith("/count_tokens") ? { input_tokens: 100 } : { content: [{ type: "tool_use", id: "partial", name: tool.name, input: {} }], stop_reason: "max_tokens", usage: { input_tokens: 100, output_tokens: 8192 } }), { headers: { "content-type": "application/json" } }),
+			}), "offline-model");
+			const telemetry = new ModelTelemetryStore(directory, "offline-model");
+			const runtime = new BlackxAgentRuntime({ provider, telemetry, skills: new SkillRegistry(), sessions: state, traces: state, tools: [{ ...tool, execute }], approval, audit });
+			await expect(runtime.executeTurn(writeRequest)).rejects.toMatchObject({ code: "invalid_output", retryable: true });
+			expect(execute).not.toHaveBeenCalled();
+			expect(state.load(scope).transcript ?? []).not.toContainEqual(expect.objectContaining({ role: "assistant" }));
+			expect(state.listTraces(request)).toMatchObject([{ status: "failed", failure: { code: "invalid_output" } }]);
+			expect(new ModelTelemetryStore(directory, "offline-model").view(request).calls.filter(call => call.kind === "generate")).toMatchObject([{ status: "failed", usage: { outputTokens: 8192 }, response: { stopReason: "max_tokens" } }]);
+		} finally { rmSync(directory, { recursive: true, force: true }); }
+	});
+
 	it.each(["trace", "activity"] as const)("preserves authentication failure when %s reporting also fails", async (reporter) => {
 		const state = new InMemoryAgentStateStore();
 		const providerError = new AnthropicCompatibilityError("authentication_error", "private provider detail", { providerStatus: 401 });

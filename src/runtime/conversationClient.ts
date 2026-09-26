@@ -1,3 +1,4 @@
+import type { RequirementTrialInput, RequirementTrialObservation } from "../manufacturing/requirementTrial";
 import type { ModelSettingsInput, ModelSettingsView } from "./modelSettings";
 import type { PlanWorkspace } from "../enterprise/agentPlan";
 import { readEvents } from "./eventStream";
@@ -183,6 +184,12 @@ export class ConversationClient {
 		)).attachments;
 	}
 
+	async withdrawAttachment(conversationId: string, attachment: ConversationAttachment, requestId: string, reason: string): Promise<ConversationAttachment[]> {
+		return (await request<{ attachments: ConversationAttachment[] }>(`/api/conversations/${encodeURIComponent(conversationId)}/attachments/${encodeURIComponent(attachment.attachmentId)}/withdraw`, {
+			method: "POST", body: JSON.stringify({ requestId, reason, sha256: attachment.sha256 }),
+		})).attachments;
+	}
+
 	async uploadAttachment(
 		conversationId: string,
 		requestId: string,
@@ -340,15 +347,21 @@ export class ConversationClient {
 		)).requirementBrief;
 	}
 
+	async saveRequirementTrial(conversationId: string, input: RequirementTrialInput): Promise<RequirementTrialObservation> {
+		return (await request<{ observation: RequirementTrialObservation }>(`/api/conversations/${encodeURIComponent(conversationId)}/requirement-brief/trial-observations`, { method: "POST", body: JSON.stringify(input) })).observation;
+	}
+
 	async resolveRequirementFact(
 		conversationId: string,
 		factKey: string,
 		requestId: string,
 		decision: "verified" | "rejected",
+		expectedFactVersion: number,
+		expectedAggregateVersion: number,
 	): Promise<RequirementBriefWorkspaceView> {
 		return (await request<{ requirementBrief: RequirementBriefWorkspaceView }>(
 			`/api/conversations/${encodeURIComponent(conversationId)}/requirement-brief/facts/${encodeURIComponent(factKey)}/decision`,
-			{ method: "POST", body: JSON.stringify({ requestId, decision }) },
+			{ method: "POST", body: JSON.stringify({ requestId, decision, expectedFactVersion, expectedAggregateVersion }) },
 		)).requirementBrief;
 	}
 
