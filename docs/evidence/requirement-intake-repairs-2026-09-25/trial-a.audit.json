@@ -1,0 +1,71 @@
+{
+	"reportSha256": "d3074ff69d14c5dfb77ef89b432aa0a956a5fbce8cd706dd47943d780486aa9a",
+	"priorReportSha256": "2663ba5cf206715c13132d93648f27713b2661b39760b33259eefab994cad7d4",
+	"codeFilesVerified": 148,
+	"continuations": [
+		{
+			"parentSha256": "d15d9a5576e7a68e128afdc0cf21a6b7d3441f16150fd7b136e93856f819b6d4",
+			"excluded": [
+				"RI-07"
+			],
+			"callsPreserved": 177
+		},
+		{
+			"parentSha256": "ca42d69bd4e6595c2783abdb0d0a2ab229c47c15de286dabca84424c93d607d1",
+			"excluded": [
+				"RI-07",
+				"RI-10"
+			],
+			"callsPreserved": 186
+		}
+	],
+	"allCallsAndCapturesPreserved": true,
+	"unknownsRetained": [
+		{
+			"caseId": "RI-01",
+			"requestSha256": "7f9dc7313d90d91a456a3b98d04e5228b1f0e7b8095988684f9650313090390a",
+			"error": "output_limit",
+			"reservationUsd": 0.0056739,
+			"status": "unknown"
+		},
+		{
+			"caseId": "RI-02",
+			"requestSha256": "dbbbec457d7db7d1be10acebeedf9b2145f6e0158950a51bd14064be4cc003cd",
+			"error": "runtime_timeout",
+			"reservationUsd": 0.0207303,
+			"status": "unknown"
+		},
+		{
+			"caseId": "RI-03",
+			"requestSha256": "c0f7bf1355188d12b226ae3a86b35123aa8f6f47b05ba682803896b2c24c9cee",
+			"error": "runtime_timeout",
+			"reservationUsd": 0.0205524,
+			"status": "unknown"
+		},
+		{
+			"caseId": "RI-13",
+			"requestSha256": "f9603126a27f4a7f3bcb761cc16874a3841bb7495e5782aac5b1768d4ad02ce7",
+			"error": "runtime_timeout",
+			"reservationUsd": 0.020918700000000002,
+			"status": "unknown"
+		},
+		{
+			"caseId": "RI-07",
+			"requestSha256": "0b21445d0f120a2d4898786f028d0e92ef2480ed806cc55ae2d76f7323c42328",
+			"status": "unknown",
+			"reservationUsd": 0.020577599999999998,
+			"error": "runtime_timeout"
+		},
+		{
+			"caseId": "RI-10",
+			"requestSha256": "58551dea00aac61b11dfeab09a14431167121bbc0807316f2414cd2d6863d184",
+			"status": "unknown",
+			"reservationUsd": 0.0209133,
+			"error": "runtime_timeout"
+		}
+	],
+	"holdoutModelRuns": 0,
+	"sourceIdLeakFindings": [],
+	"semanticReview": "codex_assisted; case author; unblinded and uncalibrated",
+	"credentialLiteralScan": "passed; limited pattern scan, not a general privacy proof"
+}

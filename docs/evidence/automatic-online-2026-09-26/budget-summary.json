@@ -1,0 +1,56 @@
+{
+	"protocol": "online-evaluation-budget-summary.v1",
+	"authorizedUsdLimit": 20,
+	"knownUsageEstimateUsd": 2.928799288,
+	"reservedUsd": 12.343839119999997,
+	"unallocatedUpperBoundUsd": 7.656160880000003,
+	"retainedUnresolvedUsageCalls": 36,
+	"phases": [
+		{
+			"phase": "matrix",
+			"status": "completed",
+			"reportSha256": "be1ad5083ff30c98a55c3c240576634bf5225d56894ba1c24c41af41518200e8",
+			"phaseKnownUsageUsd": 2.740570264,
+			"phaseReservedUsd": 11.578978619999996,
+			"cumulativeReservedUsd": 11.578978619999997,
+			"generations": 563,
+			"countRequests": 1126,
+			"unresolvedUsage": {
+				"output_limit": 26,
+				"terminated": 1
+			}
+		},
+		{
+			"phase": "continuous_context",
+			"status": "completed_with_failed_sequences",
+			"reportSha256": "14aa336808b3e55abfda63e661965470a684829462ba22ae41331c05307b2c7c",
+			"phaseKnownUsageUsd": 0.08606838000000001,
+			"phaseReservedUsd": 0.22568369999999993,
+			"cumulativeReservedUsd": 11.804662319999997,
+			"generations": 34,
+			"countRequests": 55,
+			"unresolvedUsage": {
+				"output_limit": 4
+			}
+		},
+		{
+			"phase": "pending_change_repair",
+			"status": "completed",
+			"reportSha256": "c31dccf3f25d2144f77dcff13a947d89282bd4eecd8cc5e5b558ca94a24182cf",
+			"phaseKnownUsageUsd": 0.102160644,
+			"phaseReservedUsd": 0.5391767999999999,
+			"cumulativeReservedUsd": 12.343839119999997,
+			"generations": 50,
+			"countRequests": 100,
+			"unresolvedUsage": {
+				"output_limit": 5
+			}
+		}
+	],
+	"notes": [
+		"Known usage uses frozen peak prices; it is not an invoice and excludes unavailable usage.",
+		"Every per-request upper reservation is retained, including completed responses. No unused reservation was refunded or reused.",
+		"Received output_limit is a known failed generation with lost usage; terminated is an unreconciled remote outcome.",
+		"Prior Sept 25 ledgers and their eight unresolved calls remain separate historical evidence; this is one newly authorized USD 20 experiment."
+	]
+}

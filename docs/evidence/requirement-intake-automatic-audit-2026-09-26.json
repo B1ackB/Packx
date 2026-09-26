@@ -1,0 +1,416 @@
+{
+	"inputFileSha256": "41ae4643ac002d5aa8313c697a29d4884579a2cadcaa259c292f399f9853f912",
+	"inputReportSha256": "f953fdb134f3b396ccaf5bca0ae6d1313fd9455c1358e62924f618aebce06b83",
+	"protocol": "requirement-intake-recorded-audit.v1",
+	"mode": "offline_recorded_evidence_only",
+	"original": {
+		"protocol": "requirement-intake-online.v5",
+		"model": "deepseek-v4-flash",
+		"manifestSha256": "92aa8722c05de6c8915603c45c5031d2a05f671ca7fad965df80c0803b046486",
+		"sourceSha256": "8eeefbc01d1703176cb6ca1da531dfb4ad54e067c1603befe65ef103f5c0fb17",
+		"scoringProtocolSha256": "a0ebe80bc62799f0bfc1d6be4262176be827ad00fcfe1b50018f6cccaf812a5d"
+	},
+	"limitations": [
+		"Historical trajectory includes scripted confirmations and may include review-dependent approvals; this is not a new unattended run.",
+		"No current-code regrading, new model calls, causal comparison, or user productivity measurement.",
+		"All observed deterministic checks passing is not full-task success; missing checkpoints and review-dependent checks remain visible.",
+		"Source-ID association is not semantic entailment. Costs and earlier unknown calls remain in the original ledger; this audit does not recompute them."
+	],
+	"summary": {
+		"selected": 12,
+		"started": 12,
+		"notStarted": 0,
+		"recordedPassed": 9,
+		"recordedFailed": 3,
+		"recordedNeedsReview": 0,
+		"fullyAutomaticallyVerified": 0,
+		"casesWithAllObservedDeterministicChecksPassed": 11,
+		"plannedCheckpoints": 31,
+		"reachedCheckpoints": 29,
+		"deterministicPassed": 1320,
+		"deterministicFailed": 0,
+		"reviewDependentChecks": 121,
+		"unresolvedReviewChecks": 0,
+		"currentUnresolvedCalls": 1
+	},
+	"rows": [
+		{
+			"caseId": "RI-01",
+			"split": "development",
+			"executionStatus": "completed",
+			"recordedVerdict": "failed",
+			"plannedCheckpoints": 2,
+			"reachedCheckpoints": 2,
+			"missingCheckpoints": [],
+			"deterministic": {
+				"passed": 91,
+				"failed": 0
+			},
+			"reviewDependent": {
+				"passed": 6,
+				"failed": 1,
+				"needs_review": 0
+			},
+			"reviewMethods": {
+				"codex_assisted": 7
+			},
+			"failures": [
+				{
+					"checkpointId": "draft",
+					"checkId": "claims",
+					"grading": "review"
+				}
+			],
+			"allObservedDeterministicChecksPassed": true,
+			"fullyAutomaticallyVerified": false,
+			"generationCalls": 6,
+			"toolCalls": 2,
+			"toolFailures": 0,
+			"compactions": 0,
+			"executionDurationMs": 41299,
+			"error": null
+		},
+		{
+			"caseId": "RI-02",
+			"split": "development",
+			"executionStatus": "completed",
+			"recordedVerdict": "passed",
+			"plannedCheckpoints": 2,
+			"reachedCheckpoints": 2,
+			"missingCheckpoints": [],
+			"deterministic": {
+				"passed": 91,
+				"failed": 0
+			},
+			"reviewDependent": {
+				"passed": 7,
+				"failed": 0,
+				"needs_review": 0
+			},
+			"reviewMethods": {
+				"codex_assisted": 7
+			},
+			"failures": [],
+			"allObservedDeterministicChecksPassed": true,
+			"fullyAutomaticallyVerified": false,
+			"generationCalls": 8,
+			"toolCalls": 5,
+			"toolFailures": 2,
+			"compactions": 0,
+			"executionDurationMs": 59610,
+			"error": null
+		},
+		{
+			"caseId": "RI-03",
+			"split": "development",
+			"executionStatus": "completed",
+			"recordedVerdict": "passed",
+			"plannedCheckpoints": 3,
+			"reachedCheckpoints": 3,
+			"missingCheckpoints": [],
+			"deterministic": {
+				"passed": 158,
+				"failed": 0
+			},
+			"reviewDependent": {
+				"passed": 11,
+				"failed": 0,
+				"needs_review": 0
+			},
+			"reviewMethods": {
+				"codex_assisted": 11
+			},
+			"failures": [],
+			"allObservedDeterministicChecksPassed": true,
+			"fullyAutomaticallyVerified": false,
+			"generationCalls": 10,
+			"toolCalls": 4,
+			"toolFailures": 1,
+			"compactions": 0,
+			"executionDurationMs": 98366,
+			"error": null
+		},
+		{
+			"caseId": "RI-05",
+			"split": "development",
+			"executionStatus": "completed",
+			"recordedVerdict": "passed",
+			"plannedCheckpoints": 1,
+			"reachedCheckpoints": 1,
+			"missingCheckpoints": [],
+			"deterministic": {
+				"passed": 29,
+				"failed": 0
+			},
+			"reviewDependent": {
+				"passed": 9,
+				"failed": 0,
+				"needs_review": 0
+			},
+			"reviewMethods": {
+				"codex_assisted": 9
+			},
+			"failures": [],
+			"allObservedDeterministicChecksPassed": true,
+			"fullyAutomaticallyVerified": false,
+			"generationCalls": 3,
+			"toolCalls": 1,
+			"toolFailures": 0,
+			"compactions": 0,
+			"executionDurationMs": 28466,
+			"error": null
+		},
+		{
+			"caseId": "RI-06",
+			"split": "development",
+			"executionStatus": "completed",
+			"recordedVerdict": "passed",
+			"plannedCheckpoints": 3,
+			"reachedCheckpoints": 3,
+			"missingCheckpoints": [],
+			"deterministic": {
+				"passed": 128,
+				"failed": 0
+			},
+			"reviewDependent": {
+				"passed": 13,
+				"failed": 0,
+				"needs_review": 0
+			},
+			"reviewMethods": {
+				"codex_assisted": 13
+			},
+			"failures": [],
+			"allObservedDeterministicChecksPassed": true,
+			"fullyAutomaticallyVerified": false,
+			"generationCalls": 9,
+			"toolCalls": 3,
+			"toolFailures": 0,
+			"compactions": 0,
+			"executionDurationMs": 68410,
+			"error": null
+		},
+		{
+			"caseId": "RI-07",
+			"split": "development",
+			"executionStatus": "completed",
+			"recordedVerdict": "passed",
+			"plannedCheckpoints": 3,
+			"reachedCheckpoints": 3,
+			"missingCheckpoints": [],
+			"deterministic": {
+				"passed": 132,
+				"failed": 0
+			},
+			"reviewDependent": {
+				"passed": 11,
+				"failed": 0,
+				"needs_review": 0
+			},
+			"reviewMethods": {
+				"codex_assisted": 11
+			},
+			"failures": [],
+			"allObservedDeterministicChecksPassed": true,
+			"fullyAutomaticallyVerified": false,
+			"generationCalls": 10,
+			"toolCalls": 5,
+			"toolFailures": 1,
+			"compactions": 0,
+			"executionDurationMs": 87540,
+			"error": null
+		},
+		{
+			"caseId": "RI-09",
+			"split": "development",
+			"executionStatus": "completed",
+			"recordedVerdict": "failed",
+			"plannedCheckpoints": 4,
+			"reachedCheckpoints": 4,
+			"missingCheckpoints": [],
+			"deterministic": {
+				"passed": 198,
+				"failed": 0
+			},
+			"reviewDependent": {
+				"passed": 11,
+				"failed": 2,
+				"needs_review": 0
+			},
+			"reviewMethods": {
+				"codex_assisted": 13
+			},
+			"failures": [
+				{
+					"checkpointId": "pending_change",
+					"checkId": "claims",
+					"grading": "review"
+				},
+				{
+					"checkpointId": "pending_change",
+					"checkId": "note:1",
+					"grading": "review"
+				}
+			],
+			"allObservedDeterministicChecksPassed": true,
+			"fullyAutomaticallyVerified": false,
+			"generationCalls": 12,
+			"toolCalls": 4,
+			"toolFailures": 0,
+			"compactions": 0,
+			"executionDurationMs": 122016,
+			"error": null
+		},
+		{
+			"caseId": "RI-10",
+			"split": "development",
+			"executionStatus": "completed",
+			"recordedVerdict": "passed",
+			"plannedCheckpoints": 3,
+			"reachedCheckpoints": 3,
+			"missingCheckpoints": [],
+			"deterministic": {
+				"passed": 131,
+				"failed": 0
+			},
+			"reviewDependent": {
+				"passed": 13,
+				"failed": 0,
+				"needs_review": 0
+			},
+			"reviewMethods": {
+				"codex_assisted": 13
+			},
+			"failures": [],
+			"allObservedDeterministicChecksPassed": true,
+			"fullyAutomaticallyVerified": false,
+			"generationCalls": 10,
+			"toolCalls": 4,
+			"toolFailures": 0,
+			"compactions": 0,
+			"executionDurationMs": 148688,
+			"error": null
+		},
+		{
+			"caseId": "RI-11",
+			"split": "development",
+			"executionStatus": "completed",
+			"recordedVerdict": "passed",
+			"plannedCheckpoints": 2,
+			"reachedCheckpoints": 2,
+			"missingCheckpoints": [],
+			"deterministic": {
+				"passed": 79,
+				"failed": 0
+			},
+			"reviewDependent": {
+				"passed": 8,
+				"failed": 0,
+				"needs_review": 0
+			},
+			"reviewMethods": {
+				"codex_assisted": 8
+			},
+			"failures": [],
+			"allObservedDeterministicChecksPassed": true,
+			"fullyAutomaticallyVerified": false,
+			"generationCalls": 6,
+			"toolCalls": 2,
+			"toolFailures": 0,
+			"compactions": 0,
+			"executionDurationMs": 80461,
+			"error": null
+		},
+		{
+			"caseId": "RI-13",
+			"split": "development",
+			"executionStatus": "completed",
+			"recordedVerdict": "passed",
+			"plannedCheckpoints": 5,
+			"reachedCheckpoints": 5,
+			"missingCheckpoints": [],
+			"deterministic": {
+				"passed": 248,
+				"failed": 0
+			},
+			"reviewDependent": {
+				"passed": 21,
+				"failed": 0,
+				"needs_review": 0
+			},
+			"reviewMethods": {
+				"codex_assisted": 21
+			},
+			"failures": [],
+			"allObservedDeterministicChecksPassed": true,
+			"fullyAutomaticallyVerified": false,
+			"generationCalls": 15,
+			"toolCalls": 5,
+			"toolFailures": 0,
+			"compactions": 0,
+			"executionDurationMs": 168420,
+			"error": null
+		},
+		{
+			"caseId": "RI-14",
+			"split": "development",
+			"executionStatus": "failed",
+			"recordedVerdict": "failed",
+			"plannedCheckpoints": 2,
+			"reachedCheckpoints": 0,
+			"missingCheckpoints": [
+				"draft",
+				"confirmed"
+			],
+			"deterministic": {
+				"passed": 0,
+				"failed": 0
+			},
+			"reviewDependent": {
+				"passed": 0,
+				"failed": 0,
+				"needs_review": 0
+			},
+			"reviewMethods": {},
+			"failures": [],
+			"allObservedDeterministicChecksPassed": false,
+			"fullyAutomaticallyVerified": false,
+			"generationCalls": 3,
+			"toolCalls": 1,
+			"toolFailures": 0,
+			"compactions": 0,
+			"executionDurationMs": 212285,
+			"error": "lease_lost"
+		},
+		{
+			"caseId": "RI-15",
+			"split": "development",
+			"executionStatus": "completed",
+			"recordedVerdict": "passed",
+			"plannedCheckpoints": 1,
+			"reachedCheckpoints": 1,
+			"missingCheckpoints": [],
+			"deterministic": {
+				"passed": 35,
+				"failed": 0
+			},
+			"reviewDependent": {
+				"passed": 8,
+				"failed": 0,
+				"needs_review": 0
+			},
+			"reviewMethods": {
+				"codex_assisted": 8
+			},
+			"failures": [],
+			"allObservedDeterministicChecksPassed": true,
+			"fullyAutomaticallyVerified": false,
+			"generationCalls": 3,
+			"toolCalls": 1,
+			"toolFailures": 0,
+			"compactions": 0,
+			"executionDurationMs": 24487,
+			"error": null
+		}
+	]
+}

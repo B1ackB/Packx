@@ -14,9 +14,12 @@
 | 哪些节点可以回滚、哪里仍有缺口 | [40 节点故障审计](failure-handling-audit.md) | [Harness 故障测试记录](harness-error-handling-tests.md) |
 | Plan、子任务、重规划怎样受控 | [Plan 模式](plan-mode.md) | [ADR-0015](adr/0015-confirmed-plans-and-bounded-subagents.md)、[停止与预算 ADR-0023](adr/0023-loop-guards-and-task-plan-budgets.md) |
 | Reviewer 能改什么、如何防止无限反思 | [需求单证据复核](requirement-evidence-review.md) | [业务完成原则](architecture/principles.md) |
+| 如何衡量完整需求澄清任务是否完成 | [任务集与评分协议](../eval/fixtures/requirement-intake-v1/README.md)、[执行与评分](requirement-intake-evaluation.md) | [16 个独立合成案例](../eval/fixtures/requirement-intake-v1/CASEBOOK.md)、[首轮真实模型基线](evidence/requirement-intake-baseline-2026-09-25.md)、[逐项修复与复测](evidence/requirement-intake-repairs-2026-09-25.md) |
+| 暂无人工评审时如何评测，哪些证据仍缺失 | [自动任务评测与可靠性计划](task-evaluation-plan.md)、[自动任务协议](../eval/fixtures/requirement-automatic-v1/README.md) | [真实模型任务对照](evidence/automatic-online-2026-09-26.md)、[复核输出与费用](evidence/review-output-2026-09-26.md)、[位置与动作边界](evidence/review-boundary-2026-09-26.md)、[精简指令与传输停止](evidence/review-concise-2026-09-26.md)、[联网前验证](evidence/automatic-eval-2026-09-26.md)、[历史结果审计](evidence/requirement-intake-automatic-audit-2026-09-26.json) |
 | 资料如何检索、来源是否适用 | [知识系统入口](knowledge/README.md)、[证据规则](knowledge/evidence.md) | [RAG ADR-0018](adr/0018-packaging-evidence-retrieval.md)、[重排对照](knowledge/overlap-rerank.md) |
 | 如何运行、备份、排障、发布本地包 | [本地运维](local-operations.md)、[启动与发布](release-start.md)、[配置](api-configuration.md) | [本地交付工作单](local-product-completion.md) |
 | 下一步优先做什么 | [路线图](roadmap.md)、[用户验证模板](user-validation-template.md) | [项目决策](project-decisions.md) |
+| 如何核对原文、记录人工试用与复现进程中断 | [试用协议与记录入口](user-validation-template.md) | [本轮产品验证](evidence/requirement-review-2026-09-26.md)、[进程终止原始记录](evidence/process-recovery-2026-09-26.json) |
 
 ## 阅读优先级与维护方式
 

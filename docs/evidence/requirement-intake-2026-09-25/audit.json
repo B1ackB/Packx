@@ -1,0 +1,150 @@
+{
+	"finalReportSha256": "2663ba5cf206715c13132d93648f27713b2661b39760b33259eefab994cad7d4",
+	"initialReportSha256": "b937cd530965060c11d54b46c37a2f5214c8c5e36c2631d4a265c07613cd5045",
+	"codeFilesVerified": 147,
+	"initialCodeFilesVerified": 147,
+	"sourceHashesVerified": true,
+	"inputManifestSha256": "92aa8722c05de6c8915603c45c5031d2a05f671ca7fad965df80c0803b046486",
+	"scoringProtocolSha256": "fcfd72227dec83616a79eb9d7ac4401e9cafa055ed7e0d2329e19e2a72920487",
+	"parentChain": [
+		{
+			"sourceReportSha256": "314bc4a864e0543335c3375f48b3737014501c0fe98e4c23631188c5cbcd7ce3",
+			"excludedCaseIds": [
+				"RI-02"
+			],
+			"callsPreserved": 156,
+			"capturesPreserved": 17
+		},
+		{
+			"sourceReportSha256": "fd624a619346292d3ad94dd92863e146575ea6a614d8a880f6ecf43f60908840",
+			"excludedCaseIds": [
+				"RI-02",
+				"RI-03"
+			],
+			"callsPreserved": 165,
+			"capturesPreserved": 18
+		},
+		{
+			"sourceReportSha256": "0168d0111e3278b81dcd17d2aef1ec3c799f9a71e2c465ebb6bff3e1d6889867",
+			"excludedCaseIds": [
+				"RI-02",
+				"RI-03",
+				"RI-13"
+			],
+			"callsPreserved": 210,
+			"capturesPreserved": 23
+		}
+	],
+	"sourceIdLeakFindings": [],
+	"sourceLeakCheckScope": "Exact source IDs from other cases or future events only; not a proof of general semantic isolation.",
+	"unknownCalls": [
+		{
+			"caseId": "RI-02",
+			"eventId": "RI-02-E05",
+			"kind": "generate",
+			"purpose": "evidence_review",
+			"status": "unknown",
+			"requestSha256": "dbbbec457d7db7d1be10acebeedf9b2145f6e0158950a51bd14064be4cc003cd",
+			"startedAt": "2026-09-25T02:56:12.587Z",
+			"reservationUsd": 0.0207303,
+			"tokens": 3565,
+			"error": "runtime_timeout",
+			"durationMs": 57124
+		},
+		{
+			"caseId": "RI-03",
+			"eventId": "RI-03-E04",
+			"kind": "generate",
+			"purpose": "evidence_review",
+			"status": "unknown",
+			"requestSha256": "c0f7bf1355188d12b226ae3a86b35123aa8f6f47b05ba682803896b2c24c9cee",
+			"startedAt": "2026-09-25T03:00:20.272Z",
+			"reservationUsd": 0.0205524,
+			"tokens": 2972,
+			"error": "runtime_timeout",
+			"durationMs": 57255
+		},
+		{
+			"caseId": "RI-13",
+			"eventId": "RI-13-E09",
+			"kind": "generate",
+			"purpose": "evidence_review",
+			"status": "unknown",
+			"requestSha256": "f9603126a27f4a7f3bcb761cc16874a3841bb7495e5782aac5b1768d4ad02ce7",
+			"startedAt": "2026-09-25T03:05:41.844Z",
+			"reservationUsd": 0.020918700000000002,
+			"tokens": 4193,
+			"error": "runtime_timeout",
+			"durationMs": 57711
+		}
+	],
+	"priorUnknown": [
+		{
+			"caseId": "RI-01",
+			"requestSha256": "7f9dc7313d90d91a456a3b98d04e5228b1f0e7b8095988684f9650313090390a",
+			"error": "output_limit",
+			"reservationUsd": 0.0056739,
+			"status": "unknown"
+		}
+	],
+	"allUnknownsRetained": true,
+	"allExcludedCaseCallsUnchanged": true,
+	"allExistingCapturesUnchanged": true,
+	"noStartedCalls": true,
+	"holdoutCaseIds": [
+		"RI-04",
+		"RI-08",
+		"RI-12",
+		"RI-16"
+	],
+	"holdoutModelRuns": 0,
+	"semanticReviewMethod": "codex_assisted, case author, unblinded, uncalibrated",
+	"measurementErrata": [
+		{
+			"caseId": "RI-10",
+			"checkpointId": "clarified",
+			"captureSha256": "575cee8b4098a587ec8f2d9a43704cfba6b2428556e0ba7c5760ec1e33fc1cb4",
+			"checkId": "field:dimensions:source",
+			"recordedStatus": "failed",
+			"auditFinding": "false_negative_first_duplicate_candidate_only",
+			"currentFact": {
+				"key": "dimensions",
+				"sourceRef": "runtime:318cd976-d654-41dd-8aea-af02469fe348",
+				"sourceType": "model_output",
+				"status": "unverified",
+				"unit": "mm",
+				"value": "212 × 162 × 92 mm",
+				"version": 2
+			},
+			"matchingCandidate": {
+				"key": "dimensions",
+				"version": 2,
+				"value": "212 × 162 × 92 mm",
+				"unit": "mm",
+				"status": "unverified",
+				"sourceType": "source_document",
+				"sourceRef": "RI-10-S04"
+			},
+			"resolvedSourceIds": [
+				"RI-10-S04"
+			],
+			"effect": "The current value has persisted source evidence. The scorer and confirmation guard only inspect the first candidate of this key. The earlier dimension_conflict checkpoint independently fails, so the strict case verdict remains failed; the final confirmation checkpoint was not reached. No score or capture overwritten."
+		}
+	],
+	"transitionPassed": {
+		"present": 12,
+		"artifact_version_increases": 12,
+		"previous_artifact_content_unchanged": 12,
+		"previous_artifact_stale": 12,
+		"changed_fact_versions_increase": 11
+	},
+	"tests": {
+		"command": "npm exec vitest run eval/requirementIntakeFixtures.test.ts eval/requirementIntake.test.ts server/eval/m2RequirementWorkflow.test.ts server/enterprise/evidenceReviewWorkflow.test.ts",
+		"files": 4,
+		"passed": 63
+	},
+	"typecheck": {
+		"command": "npm exec tsc -- --noEmit -p tsconfig.server.json",
+		"exitCode": 0
+	}
+}

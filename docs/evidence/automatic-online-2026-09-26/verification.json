@@ -1,0 +1,15 @@
+{
+	"protocol": "online-evaluation-final-verification.v1",
+	"command": "npm run check",
+	"exitCode": 0,
+	"testFiles": 91,
+	"passedTests": 755,
+	"configurationSkippedTests": 21,
+	"typescript": "passed",
+	"viteBuild": "passed",
+	"workerSha256": "df1294311bec9ecae41efe96f59e18eeacb3e33fc3fa37626d1e412e8ad43976",
+	"logSha256": "c3da8813b70a3cf4329b571b8cf83f892f8c44d55998434ee165e3a4ba140598",
+	"scope": "Current working tree after the pending-change fix; does not establish online semantic quality.",
+	"environmentNote": "Full local checks briefly overlapped the first targeted online attempt. Online wall-clock times are descriptive, not production latency benchmarks.",
+	"nativeChecks": "30 native tests passed earlier in this same-day implementation; overlap with normal tests, not added to 755."
+}

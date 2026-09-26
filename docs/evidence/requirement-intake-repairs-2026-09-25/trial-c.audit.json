@@ -1,0 +1,84 @@
+{
+	"reportSha256": "f953fdb134f3b396ccaf5bca0ae6d1313fd9455c1358e62924f618aebce06b83",
+	"priorReportSha256": "61556668c4cdb25a70699359a9608f41173a482f108e14d32583138ba15af24b",
+	"codeFilesVerified": 148,
+	"continuations": [
+		{
+			"parentSha256": "7f62245963aad61867856a94cdf36d3685b3dab012d228d490e0605ff6e24318",
+			"excluded": [
+				"RI-14"
+			],
+			"callsPreserved": 144
+		},
+		{
+			"parentSha256": "3f206b3f6b1504d4165424f5321b3e98775507abdfa333866e903e307a291db3",
+			"excluded": [
+				"RI-14"
+			],
+			"callsPreserved": 258
+		}
+	],
+	"allCallsAndCapturesPreserved": true,
+	"unknownsRetained": [
+		{
+			"caseId": "RI-01",
+			"requestSha256": "7f9dc7313d90d91a456a3b98d04e5228b1f0e7b8095988684f9650313090390a",
+			"error": "output_limit",
+			"reservationUsd": 0.0056739,
+			"status": "unknown"
+		},
+		{
+			"caseId": "RI-02",
+			"requestSha256": "dbbbec457d7db7d1be10acebeedf9b2145f6e0158950a51bd14064be4cc003cd",
+			"error": "runtime_timeout",
+			"reservationUsd": 0.0207303,
+			"status": "unknown"
+		},
+		{
+			"caseId": "RI-03",
+			"requestSha256": "c0f7bf1355188d12b226ae3a86b35123aa8f6f47b05ba682803896b2c24c9cee",
+			"error": "runtime_timeout",
+			"reservationUsd": 0.0205524,
+			"status": "unknown"
+		},
+		{
+			"caseId": "RI-13",
+			"requestSha256": "f9603126a27f4a7f3bcb761cc16874a3841bb7495e5782aac5b1768d4ad02ce7",
+			"error": "runtime_timeout",
+			"reservationUsd": 0.020918700000000002,
+			"status": "unknown"
+		},
+		{
+			"caseId": "RI-07",
+			"requestSha256": "0b21445d0f120a2d4898786f028d0e92ef2480ed806cc55ae2d76f7323c42328",
+			"error": "runtime_timeout",
+			"reservationUsd": 0.020577599999999998,
+			"status": "unknown"
+		},
+		{
+			"caseId": "RI-10",
+			"requestSha256": "58551dea00aac61b11dfeab09a14431167121bbc0807316f2414cd2d6863d184",
+			"error": "runtime_timeout",
+			"reservationUsd": 0.0209133,
+			"status": "unknown"
+		},
+		{
+			"caseId": "RI-01",
+			"requestSha256": "b530c9b687658814012fbf4437ac949924c29a24de111286caa86322faae95a3",
+			"error": "inspect_saved_trace",
+			"reservationUsd": 0,
+			"status": "unknown"
+		},
+		{
+			"caseId": "RI-14",
+			"requestSha256": "d33d2c6920d34948b02672f1ea2648015e710c094d4cc7d3d6b3dd7131e29e41",
+			"status": "unknown",
+			"reservationUsd": 0.020484,
+			"error": "lease_lost"
+		}
+	],
+	"holdoutModelRuns": 0,
+	"sourceIdLeakFindings": [],
+	"semanticReview": "codex_assisted; case author; unblinded and uncalibrated",
+	"credentialLiteralScan": "passed; limited pattern scan, not a general privacy proof"
+}

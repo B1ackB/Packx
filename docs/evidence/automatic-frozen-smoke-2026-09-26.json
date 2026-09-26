@@ -1,0 +1,23 @@
+{
+	"protocol": "automatic-frozen-smoke.v1",
+	"mode": "fake-provider-scripted-reference",
+	"paidCalls": 0,
+	"taskQuality": "NOT_EVALUATED",
+	"planSha256": "3a6a3c9817026b5f6f1ebf80a29ec174c1932e1adc6ba1c24cde6959bd05bbaa",
+	"observations": [
+		{
+			"arm": "baseline",
+			"caseId": "AI-01",
+			"verdict": "passed",
+			"checkpoints": 2,
+			"error": null
+		},
+		{
+			"arm": "candidate",
+			"caseId": "AI-01",
+			"verdict": "passed",
+			"checkpoints": 2,
+			"error": null
+		}
+	]
+}

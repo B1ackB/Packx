@@ -1,0 +1,60 @@
+{
+	"protocol": "review-concise-evidence.v1",
+	"files": [
+		{
+			"path": "docs/evidence/review-concise-2026-09-26/budget.json",
+			"sha256": "cb19e3a3d482d1f62d779c1d1522a3a702ca3d6b1641b75cf7de3a97166b69a4",
+			"bytes": 723
+		},
+		{
+			"path": "docs/evidence/review-concise-2026-09-26/candidate.source.tar.gz",
+			"sha256": "f38f8ba5e658b1dc2eb25a2d6a069c33242f0fb1bd36d0ce8a45c378490692cd",
+			"bytes": 74529
+		},
+		{
+			"path": "docs/evidence/review-concise-2026-09-26/diagnosis.json",
+			"sha256": "b597e603639ee8eadc745fccd98ccf87f624a54611394a1b3aff0ab357771881",
+			"bytes": 1941
+		},
+		{
+			"path": "docs/evidence/review-concise-2026-09-26/plan.json",
+			"sha256": "0fa19d6d05bd6fa7b27a92e174377f0d2aad224033fac6f8deecf5b69354465e",
+			"bytes": 33241
+		},
+		{
+			"path": "docs/evidence/review-concise-2026-09-26/replay-base.source.tar.gz",
+			"sha256": "7e859122066883e6441b4d38eb408a7e84a403265cb1e7c8806ba17b1c8f54f1",
+			"bytes": 945495
+		},
+		{
+			"path": "docs/evidence/review-concise-2026-09-26/report.json.gz",
+			"sha256": "15261aa3099f99d0ddad87ce8709bae754d3aa8218843148ad45c70b9363d5ae",
+			"bytes": 36101
+		},
+		{
+			"path": "docs/evidence/review-concise-2026-09-26/run.log.gz",
+			"sha256": "59bb123b88af1d8b2c5674eb9c10f982f3aa7499d2cf52a6492003ee56201c0c",
+			"bytes": 450
+		},
+		{
+			"path": "docs/evidence/review-concise-2026-09-26/summary.json",
+			"sha256": "258a6d2a3582ea7c39d75649e8de46ded2ddf7edea159a00e41aaaf761c09462",
+			"bytes": 2110
+		},
+		{
+			"path": "docs/evidence/review-concise-2026-09-26/verification.json",
+			"sha256": "14aaa2a790ee7c6d6d491faab6efaaf79f199c39a787b56615bf40f046ea7b50",
+			"bytes": 36403
+		},
+		{
+			"path": "docs/evidence/review-concise-2026-09-26/verification.log.gz",
+			"sha256": "71a9919c490e0441300b02c22f422a832dd2cc76fa4fda04ba3c82b6e22ad343",
+			"bytes": 711
+		}
+	],
+	"report": {
+		"path": "docs/evidence/review-concise-2026-09-26.md",
+		"sha256": "6415c1202ee1d25448ee59c7984f38bebc1dc353c1cc07b6feb03ce78f1146d2"
+	},
+	"priorEvidenceManifestSha256": "ef44d5fb4eb25a34842a8beb4892c994bc065e9697e30d31a5e422d4fcdd0353"
+}

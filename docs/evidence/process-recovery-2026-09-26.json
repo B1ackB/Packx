@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "process-recovery-eval.v1",
+  "mode": "offline-real-process-termination",
+  "at": "2026-09-26T06:21:05.685Z",
+  "paidCalls": 0,
+  "semanticQuality": "NOT_EVALUATED",
+  "limitations": [
+    "Local filesystem only",
+    "Fake model",
+    "SIGKILL is not a power-loss/fsync test",
+    "Does not prove recovery of remote API side effects or model requests"
+  ],
+  "cases": [
+    {
+      "window": "effect-before-receipt",
+      "signal": "SIGKILL",
+      "changedAfterCrash": false,
+      "initialLedgerStatus": "started",
+      "recoveredLedgerStatus": "succeeded",
+      "originalWrites": 1,
+      "duplicateWrites": 0,
+      "continuation": "reconciled"
+    },
+    {
+      "window": "receipt-before-ledger",
+      "signal": "SIGKILL",
+      "changedAfterCrash": false,
+      "initialLedgerStatus": "started",
+      "recoveredLedgerStatus": "succeeded",
+      "originalWrites": 1,
+      "duplicateWrites": 0,
+      "continuation": "reconciled"
+    },
+    {
+      "window": "effect-before-receipt",
+      "signal": "SIGKILL",
+      "changedAfterCrash": true,
+      "initialLedgerStatus": "started",
+      "recoveredLedgerStatus": "started",
+      "originalWrites": 1,
+      "duplicateWrites": 0,
+      "continuation": "requires_attention"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+	"dataset": "requirement-intake.v1",
+	"protocol": "requirement-intake-online.v2",
+	"date": "2026-09-25",
+	"files": {
+		"baseline.report.json.gz": {
+			"bytes": 523383,
+			"sha256": "6d3c53fcfdd2829babbed00c7e7b58bcaee433d6b110d09e0ebc73b97ca7ac23"
+		},
+		"summary.json": {
+			"bytes": 36484,
+			"sha256": "929b88bf5d28ad17662aa5fa7189f397f6ff42cd24bbacb8801752e80bc34b1e"
+		},
+		"audit.json": {
+			"bytes": 4672,
+			"sha256": "6daf1da16f3e4e2624a099962949adff469a730f9df93e27eb7a3647a360f6fd"
+		},
+		"supporting-evidence.tar.gz": {
+			"bytes": 2398629,
+			"sha256": "a711b23886700e43c51729a1880f916e7f9f2ac36f95b9e921ef8649d81b82ec"
+		}
+	},
+	"finalReportUncompressedSha256": "2663ba5cf206715c13132d93648f27713b2661b39760b33259eefab994cad7d4",
+	"initialReportSha256": "b937cd530965060c11d54b46c37a2f5214c8c5e36c2631d4a265c07613cd5045",
+	"initialSourceArchiveSha256": "d0b824bf8bd1ec66ddac15aec0804ca7680dfc44b2ca86a44af7c4a6d8537a68",
+	"commonCredentialLiteralScanFiles": 537,
+	"notices": [
+		"All business data are authored synthetic fixtures.",
+		"Stored report/call/capture contents have not been rewritten.",
+		"Unknown calls remain unresolved and reserved.",
+		"The supporting archive includes executed source snapshots, immutable parent reports, persisted business state, semantic reviews and the one-off operator continuation driver.",
+		"The continuation driver contains historical RI-02 wording in its reason; excludedCaseIds and retainedUnknowns are the complete per-continuation records.",
+		"Code snapshot and fixture hashes, not the Git commit alone, identify this uncommitted evaluation."
+	]
+}

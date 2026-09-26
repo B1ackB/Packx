@@ -1,0 +1,16 @@
+{
+	"protocol": "review-concise-budget.v1",
+	"usdLimit": 20,
+	"priorBudgetSha256": "843f832b96ca3d917b21e392af352295e7ef2e393f4c862fd449d200f5015722",
+	"priorReservedUsd": 13.344532319999995,
+	"newReservedUsd": 0.09479999999999933,
+	"reservedUsd": 13.439332319999995,
+	"unallocatedUpperBoundUsd": 6.560667680000005,
+	"priorKnownUsageUsd": 3.270573082,
+	"newKnownUsageUsd": 0.04484666999999999,
+	"cumulativeKnownUsageUsd": 3.315419752,
+	"priorUnavailableUsageCalls": 37,
+	"newUnavailableUsageCalls": 1,
+	"totalUnavailableUsageCalls": 38,
+	"note": "Not invoice. Every prior reservation and unknown is retained. Received failures with measured usage remain reserved. Do not reuse this historical runner with its old budget."
+}
