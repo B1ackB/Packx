@@ -1,10 +1,20 @@
-import type { AgentModelProvider, AgentModelRequest } from "../../src/agent/contracts";
+import type { AgentModelProvider, AgentModelRequest, AgentUsage } from "../../src/agent/contracts";
 import { AnthropicCompatibilityError, AnthropicMessagesClient } from "../anthropic/client";
 import type {
 	AnthropicAssistantContentBlock,
 	AnthropicContentBlock,
 	AnthropicMessageRequest,
 } from "../anthropic/types";
+
+import type { ModelCallRecord } from "../../src/runtime/modelTelemetry";
+
+/** A received but unusable response: numeric accounting survives, partial content does not. */
+export class AnthropicGenerationError extends AnthropicCompatibilityError {
+	constructor(code: string, message: string, adapterStatus: number,
+		readonly usage: AgentUsage, readonly telemetry: NonNullable<ModelCallRecord["response"]>) {
+		super(code, message, { adapterStatus });
+	}
+}
 
 const anthropicProviderStateType = "anthropic.assistant-content.v1";
 
@@ -45,7 +55,13 @@ function validateResponse(value: unknown): void {
 	if (!record(value) || !Array.isArray(value.content) || !record(value.usage)) {
 		throw invalidResponse("Anthropic Message response is invalid");
 	}
-	if (!Number.isInteger(value.usage.input_tokens) || !Number.isInteger(value.usage.output_tokens)) {
+	const usage = value.usage;
+	const counts = [usage.input_tokens, usage.output_tokens, usage.cache_read_input_tokens ?? 0, usage.cache_creation_input_tokens ?? 0];
+	if (usage.output_tokens_details !== undefined) {
+		if (!record(usage.output_tokens_details)) throw invalidResponse("Anthropic usage is invalid");
+		counts.push(usage.output_tokens_details.thinking_tokens ?? 0);
+	}
+	if (counts.some((count) => !Number.isSafeInteger(count) || Number(count) < 0)) {
 		throw invalidResponse("Anthropic usage is invalid");
 	}
 	for (const block of value.content) validateAssistantBlock(block);
@@ -163,42 +179,24 @@ export class AnthropicModelProvider implements AgentModelProvider {
 	async generate(request: AgentModelRequest, signal?: AbortSignal) {
 		const upstream = await this.client.createMessage(toAnthropicRequest(request, this.model, this.maxTokens), signal, request.onText);
 		validateResponse(upstream);
-		if (upstream.stop_reason === "model_context_window_exceeded") {
-			throw new AnthropicCompatibilityError(
-				"context_window_exceeded",
-				"Model context window exceeded",
-				{ adapterStatus: 422 },
-			);
-		}
-		if (upstream.stop_reason === "max_tokens") {
-			throw new AnthropicCompatibilityError(
-				"output_limit",
-				"Model output token limit reached",
-				{ adapterStatus: 422 },
-			);
-		}
-		if (upstream.stop_reason === "refusal") {
-			throw new AnthropicCompatibilityError(
-				"refusal",
-				"Model refused the request",
-				{ adapterStatus: 422 },
-			);
-		}
-		if (upstream.stop_reason === "pause_turn") {
-			throw new AnthropicCompatibilityError(
-				"pause_turn",
-				"Model paused the turn",
-				{ adapterStatus: 503 },
-			);
-		}
-		return {
-			telemetry: {
-				model: typeof upstream.model === "string" && /^[A-Za-z0-9._:/-]{1,128}$/.test(upstream.model) ? upstream.model : this.model,
-				stopReason: ["end_turn", "tool_use", "stop_sequence"].includes(upstream.stop_reason ?? "") ? upstream.stop_reason! : "unknown",
-				inputTokens: upstream.usage.input_tokens, outputTokens: upstream.usage.output_tokens,
-				cacheReadTokens: Number.isSafeInteger(upstream.usage.cache_read_input_tokens) && upstream.usage.cache_read_input_tokens! >= 0 ? upstream.usage.cache_read_input_tokens! : null,
-				cacheWriteTokens: Number.isSafeInteger(upstream.usage.cache_creation_input_tokens) && upstream.usage.cache_creation_input_tokens! >= 0 ? upstream.usage.cache_creation_input_tokens! : null,
-			},
+		const usage: AgentUsage = {
+			inputTokens: upstream.usage.input_tokens,
+			cachedInputTokens: upstream.usage.cache_read_input_tokens ?? 0,
+			outputTokens: upstream.usage.output_tokens,
+			reasoningOutputTokens: upstream.usage.output_tokens_details?.thinking_tokens ?? 0,
+		};
+		const telemetry: NonNullable<ModelCallRecord["response"]> = {
+			model: typeof upstream.model === "string" && /^[A-Za-z0-9._:/-]{1,128}$/.test(upstream.model) ? upstream.model : this.model,
+			stopReason: ["end_turn", "tool_use", "stop_sequence", "max_tokens", "refusal", "pause_turn", "model_context_window_exceeded"].includes(upstream.stop_reason ?? "") ? upstream.stop_reason! : "unknown",
+			inputTokens: usage.inputTokens, outputTokens: usage.outputTokens,
+			cacheReadTokens: upstream.usage.cache_read_input_tokens ?? null,
+			cacheWriteTokens: upstream.usage.cache_creation_input_tokens ?? null,
+		};
+		if (upstream.stop_reason === "model_context_window_exceeded") throw new AnthropicGenerationError("context_window_exceeded", "Model context window exceeded", 422, usage, telemetry);
+		if (upstream.stop_reason === "max_tokens") throw new AnthropicGenerationError("output_limit", "Model output token limit reached", 422, usage, telemetry);
+		if (upstream.stop_reason === "refusal") throw new AnthropicGenerationError("refusal", "Model refused the request", 422, usage, telemetry);
+		if (upstream.stop_reason === "pause_turn") throw new AnthropicGenerationError("pause_turn", "Model paused the turn", 503, usage, telemetry);
+		return { telemetry, usage,
 			text: upstream.content
 				.filter((block) => block.type === "text")
 				.map((block) => block.text)
@@ -215,12 +213,6 @@ export class AnthropicModelProvider implements AgentModelProvider {
 					content: structuredClone(upstream.content),
 				}
 				: undefined,
-			usage: {
-				inputTokens: upstream.usage.input_tokens,
-				cachedInputTokens: upstream.usage.cache_read_input_tokens ?? 0,
-				outputTokens: upstream.usage.output_tokens,
-				reasoningOutputTokens: upstream.usage.output_tokens_details?.thinking_tokens ?? 0,
-			},
 		};
 	}
 

@@ -5,6 +5,9 @@ import type { AgentModelProvider, AgentModelResponse, AgentModelRequest } from "
 import { abortable } from "../../src/agent/loop";
 import type { ModelCallRecord, ModelTelemetryView } from "../../src/runtime/modelTelemetry";
 
+import { AnthropicGenerationError } from "./anthropicModelProvider";
+import { modelFailureCode } from "./modelFailure";
+
 type Scope = { tenantId: string; workspaceId: string; runId: string };
 type Index = { schemaVersion: "model-calls.v1"; scope: Scope; calls: ModelCallRecord[]; truncated: boolean };
 export type ObservedModelResponse = AgentModelResponse & { telemetry?: ModelCallRecord["response"] };
@@ -69,11 +72,15 @@ export class ModelTelemetryStore {
 				return result;
 			} catch (error) {
 				failure = { error };
+				if (kind === "generate" && error instanceof AnthropicGenerationError) {
+					call.usage = { ...error.usage };
+					call.response = { ...error.telemetry };
+				}
 				call.status = signal?.aborted ? "cancelled" : "failed";
 				// Upstream messages/types may contain secrets or customer text; expose a fixed category only.
 				const status = (error as { providerStatus?: number })?.providerStatus;
 				if (Number.isInteger(status) && status! >= 400 && status! <= 599) call.httpStatus = status;
-				call.failure = signal?.aborted ? "request_cancelled" : status === 429 ? "rate_limited" : status === 401 || status === 403 ? "provider_auth" : "provider_error";
+				call.failure = signal?.aborted ? "request_cancelled" : modelFailureCode(error);
 				throw error;
 			} finally {
 				call.latencyMs = Math.max(0, this.now() - start); this.active.delete(call.id);

@@ -1,0 +1,16 @@
+{
+	"protocol": "review-boundary-budget.v1",
+	"usdLimit": 20,
+	"priorBudgetSha256": "777e584b460c0a3c4192eb55969719c78451c2a8834b0c4eb6e6adcaf50effe9",
+	"priorReservedUsd": 12.841098719999996,
+	"newReservedUsd": 0.5034335999999993,
+	"reservedUsd": 13.344532319999995,
+	"unallocatedUpperBoundUsd": 6.6554676800000045,
+	"priorKnownUsageUsd": 3.075520588,
+	"newKnownUsageUsd": 0.19505249400000008,
+	"cumulativeKnownUsageUsd": 3.270573082,
+	"priorUnavailableUsageCalls": 37,
+	"newUnavailableUsageCalls": 0,
+	"totalUnavailableUsageCalls": 37,
+	"note": "Not invoice. Every prior reservation and unknown is retained. Received failures with measured usage remain reserved. Do not reuse this historical runner with its old budget."
+}

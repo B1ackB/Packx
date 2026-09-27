@@ -62,6 +62,7 @@ import { ProposalWorkspaceApiController } from "./enterprise/proposalWorkspaceAp
 import { researchSourceTool } from "./runtime/researchTools";
 import { createProjectSourceReadTool } from "./runtime/requirementTools";
 import { RequirementBriefWorker } from "./manufacturing/requirementBriefWorker";
+import { packagingFactKeys } from "../src/manufacturing/requirementBrief";
 import { RequirementBriefWorkspaceApiController } from "./manufacturing/requirementBriefApi";
 import { configureLocalData, ensureLocalDataVersion, lockLocalData, within } from "./localData";
 
@@ -178,7 +179,7 @@ function conversationTaskContext(scope: { tenantId: string; workspaceId: string;
 	const state = requirementBriefEngine.load(runScope);
 	const transcript = session.transcript ?? session.messages;
 	try { return buildTaskContext({ scope, objective: transcript.findLast((message) => message.role === "user")?.content ?? "Clarify current packaging task", checkpoint: taskCheckpoints.active(scope, transcript),
-		transcript, relatedRunId: runScope.runId, state: state.aggregateVersion ? state : undefined,
+		transcript, relatedRunId: runScope.runId, confirmationFactKeys: packagingFactKeys, state: state.aggregateVersion ? state : undefined,
 		unavailable: state.facts.customer_attachments && state.facts.customer_attachments.value !== conversationAttachments.digest({ ...scope, conversationId: scope.runId }) ? Object.values(state.facts).filter((fact) => fact.sourceRef.startsWith("attachment://") || fact.key === "customer_attachments").map((fact) => fact.sourceRef) : [], events: requirementBriefEngine.readEvents(runScope),
 		references: conversationAttachments.list({ ...scope, conversationId: scope.runId }).map(({ name, sourceRef, sha256 }) => ({ name, sourceRef, sha256 })), knowledge: selected.selection });
 	} catch (error) {
@@ -578,6 +579,13 @@ server.on("request", async (request, response) => {
 		return;
 	}
 
+	const attachmentWithdrawalMatch = url.pathname.match(/^\/api\/conversations\/([^/]+)\/attachments\/([^/]+)\/withdraw$/);
+	if (request.method === "POST" && attachmentWithdrawalMatch) {
+		const result = requirementBriefWorkspaceApi.withdrawAttachment(conversationApiContext(request), decodeURIComponent(attachmentWithdrawalMatch[1]), decodeURIComponent(attachmentWithdrawalMatch[2]), await readJson(request));
+		json(response, result.status, result.body);
+		return;
+	}
+
 	const attachmentContentMatch = url.pathname.match(
 		/^\/api\/conversations\/([^/]+)\/attachments\/([^/]+)\/content$/,
 	);
@@ -613,7 +621,7 @@ server.on("request", async (request, response) => {
 			response.end(stored.content);
 		} catch (error) {
 			const known = error instanceof ConversationAttachmentError ? error : undefined;
-			json(response, known?.code === "attachment_not_found" ? 404 : 503, {
+			json(response, known?.code === "attachment_not_found" ? 404 : known?.code === "attachment_withdrawn" ? 410 : 503, {
 				code: known?.code ?? "attachment_store_unavailable",
 				message: known?.message,
 			});
@@ -868,6 +876,19 @@ server.on("request", async (request, response) => {
 		}
 		return;
 	}
+	const trialMatch = url.pathname.match(/^\/api\/conversations\/([^/]+)\/requirement-brief\/trial-observations(?:\/([A-Za-z0-9_-]+))?$/);
+	if (trialMatch && (request.method === "POST" && !trialMatch[2] || request.method === "GET" && trialMatch[2])) {
+		try {
+			const context = conversationApiContext(request);
+			const id = decodeURIComponent(trialMatch[1]);
+			const result = request.method === "POST"
+				? requirementBriefWorkspaceApi.saveTrialObservation(context, id, await readJson(request))
+				: requirementBriefWorkspaceApi.trialObservation(context, id, trialMatch[2]);
+			json(response, result.status, result.body);
+		} catch (error) { json(response, 400, { code: error instanceof Error && error.message === "request_too_large" ? "request_too_large" : "invalid_json" }); }
+		return;
+	}
+
 	const requirementFactDecisionMatch = url.pathname.match(
 		/^\/api\/conversations\/([^/]+)\/requirement-brief\/facts\/([^/]+)\/decision$/,
 	);

@@ -1,0 +1,78 @@
+{
+	"protocol": "continuous-context-archive.v1",
+	"status": "completed_with_failed_sequences",
+	"planSha256": "d28dd158f86ea323f71f1db25b5ab72e32de8690e39e4b0716f008992785ba0b",
+	"reportSha256": "14aa336808b3e55abfda63e661965470a684829462ba22ae41331c05307b2c7c",
+	"priorArchive": "final.manifest.json",
+	"priorReportSha256": "be1ad5083ff30c98a55c3c240576634bf5225d56894ba1c24c41af41518200e8",
+	"totalUsdLimit": 20,
+	"priorReservedUsd": 11.578978619999997,
+	"reservedUsd": 11.804662319999997,
+	"phaseKnownUsageUsd": 0.08606838000000001,
+	"recordedWaves": 9,
+	"sequences": [
+		{
+			"configuration": "early-32k",
+			"seed": 1,
+			"passed": false,
+			"totalCompactions": 2,
+			"continuousCompactionObserved": true,
+			"error": "output_limit_sequence_stopped_without_replay"
+		},
+		{
+			"configuration": "current-70k",
+			"seed": 1,
+			"passed": false,
+			"totalCompactions": 1,
+			"continuousCompactionObserved": false,
+			"error": "output_limit_sequence_stopped_without_replay"
+		},
+		{
+			"configuration": "current-70k",
+			"seed": 2,
+			"passed": false,
+			"totalCompactions": 0,
+			"continuousCompactionObserved": false,
+			"error": "output_limit_sequence_stopped_without_replay"
+		},
+		{
+			"configuration": "early-32k",
+			"seed": 2,
+			"passed": false,
+			"totalCompactions": 1,
+			"continuousCompactionObserved": false,
+			"error": "output_limit_sequence_stopped_without_replay"
+		}
+	],
+	"files": [
+		{
+			"path": "context.plan.json.gz",
+			"sha256": "96bdca8560c9dc3b30ad6c14bf64449db81edf3f6105536d179efdf19b3026ca",
+			"uncompressedSha256": "d28dd158f86ea323f71f1db25b5ab72e32de8690e39e4b0716f008992785ba0b"
+		},
+		{
+			"path": "context.report.json.gz",
+			"sha256": "8770d9a66e34c7d6f8e5cafda8fe9322fb4c36a2f56ea45733717f07c489bc57",
+			"uncompressedSha256": "14aa336808b3e55abfda63e661965470a684829462ba22ae41331c05307b2c7c"
+		},
+		{
+			"path": "context.archive-source.py.gz",
+			"sha256": "4b582a77def1663cbf12520828fb04c8b53861e4a900969153801dd48909e193",
+			"uncompressedSha256": "82cecd16232d8f95661142426e5b60fd3ebde0f21a2cb378686d66286f6b1432"
+		},
+		{
+			"path": "context.analysis-source.py.gz",
+			"sha256": "75ab30d43ade4d301004ea8e10ede43f2e2a749c1d0751a22f5ed11c00f45cec",
+			"uncompressedSha256": "0dec470382628954b5b489d3b5ac8e1e01fc7fa3425c2044729d89949f6b0d24"
+		},
+		{
+			"path": "context.analysis.json.gz",
+			"sha256": "c4788dce8ebe431b80dda21bde6d448353122b4bac0a45ea61b65a7eb468bb52",
+			"uncompressedSha256": "72c5f2c0764abaa48695d66936e4d55c9066aefad096eccc5a8b6f1bf890e5db"
+		},
+		{
+			"path": "context.source.tar.gz",
+			"sha256": "2465fa97c6082849f52d298ece319a7f1ac1e512e362579f90c08a03329e5f92"
+		}
+	]
+}

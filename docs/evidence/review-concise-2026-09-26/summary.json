@@ -1,0 +1,89 @@
+{
+	"protocol": "review-concise-analysis.v1",
+	"status": "stopped_unknown",
+	"rows": [
+		{
+			"arm": "baseline",
+			"planned": 32,
+			"recorded": 5,
+			"notStarted": 27,
+			"validOutput": 3,
+			"outputLimit": 1,
+			"otherFailed": 1,
+			"controlsPlanned": 24,
+			"controlsReached": 1,
+			"controlsPassed": 0,
+			"routingChecksReached": 3,
+			"routingChecksPassed": 3,
+			"revisionEligible": 0,
+			"latencyMedianMsRecorded": 8135,
+			"latencyRangeMsRecorded": [
+				1289,
+				38084
+			],
+			"knownUsageUsd": 0.022043754,
+			"outputTokensKnown": 18125
+		},
+		{
+			"arm": "candidate",
+			"planned": 32,
+			"recorded": 4,
+			"notStarted": 28,
+			"validOutput": 3,
+			"outputLimit": 1,
+			"otherFailed": 0,
+			"controlsPlanned": 24,
+			"controlsReached": 0,
+			"controlsPassed": 0,
+			"routingChecksReached": 3,
+			"routingChecksPassed": 3,
+			"revisionEligible": 0,
+			"latencyMedianMsRecorded": 25115.5,
+			"latencyRangeMsRecorded": [
+				8291,
+				51794
+			],
+			"knownUsageUsd": 0.022802916,
+			"outputTokensKnown": 17030
+		}
+	],
+	"decisions": {
+		"candidate": "NOT_ADOPTED_INCOMPLETE_TRANSPORT_STOP",
+		"productionPolicy": "v2.2",
+		"reasoning": "UNCHANGED_DEFAULT",
+		"semanticQuality": "NOT_EVALUATED: candidate reached none of the authored controls",
+		"newEndToEndBusinessTaskRuns": 0
+	},
+	"newGenerationCalls": 9,
+	"newCountCalls": 9,
+	"newReceivedFailuresWithKnownUsage": 2,
+	"newUnavailableUsageCalls": 1,
+	"controlFailures": [
+		{
+			"id": "concise-clean-control-1-baseline",
+			"caseId": "clean-control",
+			"repeat": 1,
+			"arm": "baseline",
+			"status": "failed",
+			"error": "transport_failure"
+		}
+	],
+	"routingFailures": [],
+	"newUsageUnavailable": [
+		{
+			"caseId": "concise-clean-control-1-baseline",
+			"kind": "generate",
+			"status": "unknown",
+			"requestSha256": "2a5f110022cf2baeadd617d3bc2743b71377b10ae6542def5b4bc48120f2e9e2",
+			"error": "transport_failure",
+			"reservationUsd": 0.0104106,
+			"durationMs": 193,
+			"startedAt": "2026-09-26T14:15:42.427Z"
+		}
+	],
+	"newQuarantinedInputCaseIds": [
+		"clean-control"
+	],
+	"plannedGenerationCalls": 64,
+	"notStartedGenerationCalls": 55
+}

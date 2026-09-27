@@ -1,0 +1,52 @@
+{
+	"protocol": "recovery-windows.v1",
+	"mode": "offline-real-processes-fake-model",
+	"paidCalls": 0,
+	"powerLossTested": false,
+	"semanticQuality": "NOT_EVALUATED",
+	"cases": [
+		{
+			"window": "model-before-session",
+			"signal": "SIGKILL",
+			"outcome": "completed",
+			"generationsBeforeCrash": 1,
+			"generationsAfterRestart": 1,
+			"recoveredWithoutRegeneration": false,
+			"finding": "Model response is not durable before Session save; retry regenerates. No exactly-once model-cost guarantee."
+		},
+		{
+			"window": "session-before-trace",
+			"signal": "SIGKILL",
+			"outcome": "context_failure",
+			"generationsBeforeCrash": 1,
+			"generationsAfterRestart": 0,
+			"recoveredWithoutRegeneration": false,
+			"finding": "Session reply survives but completed Trace is absent; Runtime stops without another generation."
+		},
+		{
+			"window": "enqueue-before-outbox-ack",
+			"signal": "SIGKILL",
+			"recovered": true,
+			"duplicateJobs": 0
+		},
+		{
+			"window": "stale-worker",
+			"process": "two-real-processes",
+			"oldWorkerCommitRejected": true,
+			"artifactVersions": 1,
+			"recovered": true,
+			"durationMs": 468
+		},
+		{
+			"window": "event-replay",
+			"v2AndV3StateEqual": true,
+			"oldApprovalSuperseded": true,
+			"oldArtifactStale": true,
+			"unknownEventRejected": true,
+			"missingBlobDetected": true,
+			"modelCalls": 0,
+			"externalSideEffects": 0,
+			"limitation": "File-format compatibility, not a general event-schema migration framework"
+		}
+	]
+}

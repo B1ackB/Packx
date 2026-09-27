@@ -29,7 +29,24 @@ export interface RequirementBriefV1 {
 	facts: RequirementFactV1[];
 	missingRequiredFacts: string[];
 	assumptions: string[];
+	/** Host-owned proposals; they never replace the current confirmed Fact. */
+	pendingChanges?: RequirementFactChange[];
 	nextAction: "clarify" | "confirm_facts" | "ready_for_approval";
+}
+
+export interface RequirementFactChange {
+	key: string;
+	currentFactVersion: number;
+	value: string | number | boolean;
+	unit?: string;
+	sourceRef: string;
+}
+
+export function pendingChangeNotes(facts: RequirementFactV1[], changes: RequirementFactChange[]): string[] {
+	return changes.flatMap((change) => {
+		const current = facts.find((fact) => fact.key === change.key);
+		return current ? [`${change.key}：已确认 ${current.value}${current.unit ? ` ${current.unit}` : ""}；新提议 ${change.value}${change.unit ? ` ${change.unit}` : ""}（来源 ${change.sourceRef}），待人工确认。旧交付物不能继续作为当前完整交接依据。`] : [];
+	});
 }
 
 export interface RequirementBriefEvaluation {
@@ -88,6 +105,18 @@ export function normalizeRequirementFactKey(
 
 const canonicalRequirementFactKeys = packagingFactKeys;
 
+// Domain-owned questions survive model revisions; they never supply missing values.
+const requiredClarifications: Record<string, string> = {
+	product_type: "请确认本单包装类型及用途。",
+	quantity: "请确认本单总数量及计数单位；若按卷或箱下单，请提供每卷/箱数量或总件数，不按常见规格估算。",
+	dimensions: "请提供本单完整尺寸和单位，并说明内尺寸或外尺寸口径；袋型请包含宽、高、底折，其他类型请给出适用的长宽高或直径；也可提供本单可读图纸。",
+	target_market: "请确认本单销售市场；送货地址不能代替销售市场。",
+	target_delivery: "请确认本单要求的交付日期及到货或出货口径。",
+	delivery_location: "请确认本单实际送货地点。",
+	artwork_status: "请确认稿件状态：尚未设计、设计中或已提供；若需要厂方协助设计，请一并说明。",
+};
+const standardClarifications = new Set(Object.values(requiredClarifications));
+
 export const requirementBriefOutputSchema = {
 	type: "object",
 	properties: {
@@ -137,6 +166,7 @@ export function createRequirementBrief(input: {
 	customerGoal: string;
 	facts: RequirementFactV1[];
 	assumptions?: string[];
+	pendingChanges?: RequirementFactChange[];
 }): RequirementBriefV1 {
 	const required = requiredRequirementFacts[input.industry];
 	const facts = input.facts
@@ -152,11 +182,16 @@ export function createRequirementBrief(input: {
 		title: input.title.trim() || "Customer Requirement Brief",
 		customerGoal: input.customerGoal.trim() || "Clarify the customer's packaging requirement",
 		facts,
+		...(input.pendingChanges?.length ? { pendingChanges: input.pendingChanges.map((change) => ({ ...change })) } : {}),
 		missingRequiredFacts,
-		assumptions: input.assumptions?.filter((value) => value.trim()).map((value) => value.trim()) ?? [],
+		assumptions: [...new Set([
+			...(input.assumptions ?? []).map((value) => value.trim()).filter((value) => value && !standardClarifications.has(value)),
+			...missingRequiredFacts.map((key) => requiredClarifications[key]),
+			...pendingChangeNotes(facts, input.pendingChanges ?? []),
+		])],
 		nextAction: missingRequiredFacts.length > 0
 			? "clarify"
-			: hasUnverifiedRequired
+			: hasUnverifiedRequired || Boolean(input.pendingChanges?.length)
 				? "confirm_facts"
 				: "ready_for_approval",
 	};
@@ -187,6 +222,7 @@ const briefKeys = new Set([
 	"missingRequiredFacts",
 	"assumptions",
 	"nextAction",
+	"pendingChanges",
 ]);
 
 const allowedFactKeys = new Set(["key", "version", "value", "unit", "status", "sourceType", "sourceRef"]);
@@ -285,9 +321,19 @@ export function evaluateRequirementBrief(value: unknown): RequirementBriefEvalua
 	const unverifiedRequired = facts.filter(
 		(fact) => fact.status !== "verified",
 	);
+	const changes = Array.isArray(value.pendingChanges) ? value.pendingChanges : [];
+	if (value.pendingChanges !== undefined && (!Array.isArray(value.pendingChanges) || changes.length > 30)) issue("invalid_pending_changes", "Pending changes must be a bounded array");
+	for (const change of changes) {
+		const current = isRecord(change) ? facts.find((fact) => fact.key === change.key) : undefined;
+		if (!isRecord(change) || Object.keys(change).some((key) => !["key", "currentFactVersion", "value", "unit", "sourceRef"].includes(key)) ||
+			!current || current.status !== "verified" || change.currentFactVersion !== current.version ||
+			!["string", "number", "boolean"].includes(typeof change.value) || typeof change.value === "number" && !Number.isFinite(change.value) ||
+			typeof change.value === "string" && !change.value.trim() || typeof change.sourceRef !== "string" || !change.sourceRef.trim() ||
+			change.unit !== undefined && (typeof change.unit !== "string" || !change.unit.trim())) issue("invalid_pending_change", "A pending change must bind the current confirmed Fact and its proposal source");
+	}
 	const expectedNextAction = missing.length > 0
 		? "clarify"
-		: unverifiedRequired.length > 0
+		: unverifiedRequired.length > 0 || changes.length > 0
 			? "confirm_facts"
 			: "ready_for_approval";
 	if (value.nextAction !== expectedNextAction) {

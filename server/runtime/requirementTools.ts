@@ -40,6 +40,20 @@ export function createProjectSourceReadTool(
 ): AgentHostTool {
 	return {
 		name: "project_source_read",
+		validateContextResult: (_input, output, context) => {
+			const prior = JSON.parse(output);
+			const state = engine.load(context);
+			const brief = state.facts.customer_brief;
+			if (!brief || prior.sourceRef !== brief.sourceRef || prior.content !== brief.value) throw new Error("Requirement source changed");
+			const conversationId = /^conversation:(.+):revision:\d+$/.exec(brief.sourceRef)?.[1];
+			if (attachments && conversationId) {
+				const scope = { ...context, conversationId };
+				if (prior.attachmentDigest !== undefined && prior.attachmentDigest !== attachments.digest(scope)) throw new Error("Requirement attachments changed");
+				for (const source of [...(prior.attachments ?? []), ...(prior.textAttachments ?? [])]) {
+					if (attachments.read(scope, source.attachmentId).attachment.sha256 !== source.sha256) throw new Error("Requirement attachment changed");
+				}
+			}
+		},
 		description: "Read the tenant-scoped customer brief and selected industry for the current Requirement Brief Run.",
 		inputSchema: {
 			type: "object",
@@ -89,6 +103,7 @@ export function createProjectSourceReadTool(
 				industry: industry.value,
 				content: brief.value,
 				sourceRef: brief.sourceRef,
+				attachmentDigest: attachmentFact?.value,
 				...(state.facts.plan_source ? { planSourceRef: state.facts.plan_source.sourceRef, warning: "Plan results are unverified model reports. Confirmation approves execution only; verify each fact against its original source." } : {}),
 				attachments: attachmentList.map((attachment) => ({
 					attachmentId: attachment.attachmentId,

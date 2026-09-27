@@ -144,6 +144,14 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 		const executionId = crypto.randomUUID();
 		const startedAt = this.now();
 		const startedMs = this.clockMs();
+		const assertWithinDeadline = () => {
+			// Timers can be delayed by sleep or synchronous work. Recheck elapsed time at execution boundaries.
+			if (this.clockMs() - startedMs >= request.policy.timeoutMs) {
+				timedOut = true;
+				timeout.abort(new Error("runtime_timeout"));
+			}
+			combinedSignal.throwIfAborted();
+		};
 		let traceEvents: RuntimeTurnResult["events"] = [
 			{ type: "session.started", sessionId },
 			{ type: "turn.started" },
@@ -177,6 +185,7 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 			if (resuming && session.checkpoint?.turnKey === request.idempotencyKey && session.checkpoint.contextBinding !== taskContext?.binding) throw new RuntimeFailure("context_failure", "Checkpoint task facts or source versions changed; rebuild the task", false);
 			let sessionRevision = session.revision;
 			const validateContext = () => {
+				assertWithinDeadline();
 				const current = this.options.readTaskContext?.(request) ?? request.taskContext;
 				if (current?.binding !== taskContext?.binding) throw new RuntimeFailure("context_failure", "Task facts or source versions changed during execution", false);
 			};
@@ -355,7 +364,7 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 				partialText = (partialText + event.text).slice(0, 128_000);
 				progress("model", { iteration: event.iteration, partialText });
 			});
-			hooks.on("tool.before", (event) => { attemptedTools++; pendingBatchTools--; progress("tool", { tool: event.call.name, iteration: event.iteration }); });
+			hooks.on("tool.before", (event) => { assertWithinDeadline(); attemptedTools++; pendingBatchTools--; progress("tool", { tool: event.call.name, iteration: event.iteration }); });
 			hooks.on("model.before", (event) => {
 				combinedSignal.throwIfAborted();
 				currentIteration = event.iteration;
@@ -389,6 +398,7 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 				observe({ type: "model.started", iteration: event.iteration, attempt: event.attempt });
 			});
 			hooks.on("model.after", (event) => {
+				assertWithinDeadline();
 				pendingBatchTools = event.response.toolCalls.length;
 				const completedAt = this.clockMs();
 				observe({
@@ -496,7 +506,7 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 				input: resuming ? "" : request.input,
 				attachments: inputAttachments,
 				resume: resuming,
-				allowedTools: [...(request.allowedTools ?? []), "context_read", "execution_ledger_read"],
+				allowedTools: request.allowedTools?.length === 0 ? [] : [...new Set([...(request.allowedTools ?? []), "context_read", "execution_ledger_read"])],
 				policy: request.policy,
 				outputSchema: request.outputSchema,
 				fallbackOutput: request.fallbackOutput,

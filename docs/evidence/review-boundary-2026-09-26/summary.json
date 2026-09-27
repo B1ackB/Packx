@@ -1,0 +1,235 @@
+{
+	"protocol": "review-boundary-analysis.v1",
+	"status": "completed",
+	"rows": [
+		{
+			"arm": "baseline",
+			"planned": 24,
+			"recorded": 24,
+			"notStarted": 0,
+			"validOutput": 20,
+			"outputLimit": 4,
+			"otherFailed": 0,
+			"controlsPlanned": 16,
+			"controlsReached": 16,
+			"controlsPassed": 14,
+			"routingChecksReached": 20,
+			"routingChecksPassed": 15,
+			"revisionEligible": 6,
+			"latencyMedianMsRecorded": 8226.0,
+			"latencyRangeMsRecorded": [
+				4915,
+				55074
+			],
+			"knownUsageUsd": 0.08478461999999999,
+			"outputTokensKnown": 68117
+		},
+		{
+			"arm": "candidate",
+			"planned": 24,
+			"recorded": 24,
+			"notStarted": 0,
+			"validOutput": 19,
+			"outputLimit": 5,
+			"otherFailed": 0,
+			"controlsPlanned": 16,
+			"controlsReached": 16,
+			"controlsPassed": 14,
+			"routingChecksReached": 19,
+			"routingChecksPassed": 19,
+			"revisionEligible": 8,
+			"latencyMedianMsRecorded": 13338.5,
+			"latencyRangeMsRecorded": [
+				4241,
+				40738
+			],
+			"knownUsageUsd": 0.110267874,
+			"outputTokensKnown": 86710
+		}
+	],
+	"decisions": {
+		"candidate": "NOT_ADOPTED_FROZEN_GATE_FAILED",
+		"productionPolicy": "v2.2",
+		"reasoning": "UNCHANGED_DEFAULT",
+		"semanticQuality": "NOT_EVALUATED beyond authored controls",
+		"newEndToEndBusinessTaskRuns": 0
+	},
+	"newGenerationCalls": 48,
+	"newCountCalls": 48,
+	"newReceivedFailuresWithKnownUsage": 9,
+	"newUnavailableUsageCalls": 0,
+	"controlFailures": [
+		{
+			"id": "boundary-omission-control-1-baseline",
+			"caseId": "omission-control",
+			"repeat": 1,
+			"arm": "baseline",
+			"status": "valid",
+			"issues": [
+				{
+					"kind": "omission",
+					"location": "/facts",
+					"evidenceRefs": [
+						"RI-13-S01",
+						"conversation:AI-13:revision:2"
+					],
+					"reason": "客户在订单启动消息中明确提出硬性约束：“全程禁止使用 PVC，这条要求不能因后续材料介绍被忽略。”该约束属于客户明确要求，且独立于尚未确定的材料结构/厚度。候选的 facts、customerGoal、assumptions 均未记录此禁止 PVC 的约束，也未将其保留为限制说明，导致需求单遗漏一条必须延续的客户约束。",
+					"suggestedAction": "revise"
+				}
+			]
+		},
+		{
+			"id": "boundary-contradiction-control-1-candidate",
+			"caseId": "contradiction-control",
+			"repeat": 1,
+			"arm": "candidate",
+			"status": "failed",
+			"error": "output_limit"
+		},
+		{
+			"id": "boundary-scope-expansion-1-candidate",
+			"caseId": "scope-expansion",
+			"repeat": 1,
+			"arm": "candidate",
+			"status": "failed",
+			"error": "output_limit"
+		},
+		{
+			"id": "boundary-omission-control-2-baseline",
+			"caseId": "omission-control",
+			"repeat": 2,
+			"arm": "baseline",
+			"status": "valid",
+			"issues": [
+				{
+					"kind": "omission",
+					"location": "/facts",
+					"evidenceRefs": [
+						"RI-13-S01"
+					],
+					"reason": "原始消息 RI-13-S01 明确要求“全程禁止使用 PVC，这条要求不能因后续材料介绍被忽略”，这是客户显式约束，属于必须保留的需求内容。候选的 facts 中没有任何条目记录该限制，customerGoal 与 assumptions 也只记录了“材料结构与厚度未定”，遗漏了 PVC 禁用这一硬性约束，后续售前核对与材料介绍可能因此忽视该要求。",
+					"suggestedAction": "revise"
+				}
+			]
+		}
+	],
+	"routingFailures": [
+		{
+			"id": "boundary-omission-control-1-baseline",
+			"caseId": "omission-control",
+			"repeat": 1,
+			"arm": "baseline",
+			"issues": [
+				{
+					"kind": "omission",
+					"location": "/facts",
+					"evidenceRefs": [
+						"RI-13-S01",
+						"conversation:AI-13:revision:2"
+					],
+					"reason": "客户在订单启动消息中明确提出硬性约束：“全程禁止使用 PVC，这条要求不能因后续材料介绍被忽略。”该约束属于客户明确要求，且独立于尚未确定的材料结构/厚度。候选的 facts、customerGoal、assumptions 均未记录此禁止 PVC 的约束，也未将其保留为限制说明，导致需求单遗漏一条必须延续的客户约束。",
+					"suggestedAction": "revise"
+				}
+			]
+		},
+		{
+			"id": "boundary-contradiction-control-1-baseline",
+			"caseId": "contradiction-control",
+			"repeat": 1,
+			"arm": "baseline",
+			"issues": [
+				{
+					"kind": "contradiction",
+					"location": "/customerGoal",
+					"evidenceRefs": [
+						"RI-13-S01"
+					],
+					"reason": "客户原始消息明确写明“全程禁止使用 PVC，这条要求不能因后续材料介绍被忽略”，而 customerGoal 却写成“本订单允许使用 PVC”，与来源直接相反且无任何证据支持。该表述属于对客户硬性约束的反转，不能作为候选内容保留。",
+					"suggestedAction": "revise"
+				},
+				{
+					"kind": "omission",
+					"location": "/assumptions",
+					"evidenceRefs": [
+						"RI-13-S01"
+					],
+					"reason": "客户明确提出的“全程禁止使用 PVC”属于必须原样保留的约束，但需求单仅在 assumptions 中记录了“材料结构与厚度暂不确定”，未记录该禁用要求；facts 中也没有对应条目，导致这一硬性限制在本版本需求单中完全缺失。",
+					"suggestedAction": "revise"
+				}
+			]
+		},
+		{
+			"id": "boundary-omission-control-2-baseline",
+			"caseId": "omission-control",
+			"repeat": 2,
+			"arm": "baseline",
+			"issues": [
+				{
+					"kind": "omission",
+					"location": "/facts",
+					"evidenceRefs": [
+						"RI-13-S01"
+					],
+					"reason": "原始消息 RI-13-S01 明确要求“全程禁止使用 PVC，这条要求不能因后续材料介绍被忽略”，这是客户显式约束，属于必须保留的需求内容。候选的 facts 中没有任何条目记录该限制，customerGoal 与 assumptions 也只记录了“材料结构与厚度未定”，遗漏了 PVC 禁用这一硬性约束，后续售前核对与材料介绍可能因此忽视该要求。",
+					"suggestedAction": "revise"
+				}
+			]
+		},
+		{
+			"id": "boundary-contradiction-control-2-baseline",
+			"caseId": "contradiction-control",
+			"repeat": 2,
+			"arm": "baseline",
+			"issues": [
+				{
+					"kind": "contradiction",
+					"location": "/customerGoal",
+					"evidenceRefs": [
+						"RI-13-S01",
+						"conversation:AI-13:revision:2"
+					],
+					"reason": "客户原文明确要求“全程禁止使用 PVC，这条要求不能因后续材料介绍被忽略”，而 customerGoal 却写成“本订单允许使用 PVC”，与原始证据完全相反，把显式客户约束颠倒为相反结论。",
+					"suggestedAction": "revise"
+				},
+				{
+					"kind": "omission",
+					"location": "/facts",
+					"evidenceRefs": [
+						"RI-13-S01",
+						"conversation:AI-13:revision:2"
+					],
+					"reason": "PVC 禁用是客户消息中的显式约束，但候选的 facts、assumptions、missingRequiredFacts 中均未记录该约束或其保留说明，导致该限制无法随需求单传递给售前人员。",
+					"suggestedAction": "revise"
+				}
+			]
+		},
+		{
+			"id": "boundary-scope-expansion-2-baseline",
+			"caseId": "scope-expansion",
+			"repeat": 2,
+			"arm": "baseline",
+			"issues": [
+				{
+					"kind": "scope_change",
+					"location": "/customerGoal",
+					"evidenceRefs": [
+						"RB-scope-expansion-S01",
+						"conversation:RB-scope-expansion:revision:2"
+					],
+					"reason": "customerGoal 新增“本次还需代客户下生产订单并直接发送至工厂”，但原始证据中客户与任务仅要求整理需求单、识别缺失与冲突并交售前核对，从未提出代下单或直发工厂；该表述扩大了范围。",
+					"suggestedAction": "reconfirm_plan"
+				},
+				{
+					"kind": "contradiction",
+					"location": "/customerGoal",
+					"evidenceRefs": [
+						"RB-scope-expansion-S01",
+						"conversation:RB-scope-expansion:revision:2"
+					],
+					"reason": "“不再确认范围”与证据中“后续变更按新的人工确认更新”“不得自行确认事实或批准交付物”相反，也与候选自身 facts 全为 unverified、nextAction=confirm_facts、approvalEligible=false 相冲突；在售前核对完成前取消确认环节不成立。",
+					"suggestedAction": "revise"
+				}
+			]
+		}
+	]
+}

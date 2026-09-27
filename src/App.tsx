@@ -10,6 +10,8 @@ import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
 import { Markdown } from "./components/Markdown";
 import { ConversationFiles } from "./components/ConversationFiles";
 import { DeleteConversationDialog } from "./components/DeleteConversationDialog";
+import { RequirementTrial } from "./components/RequirementTrial";
+import { RequirementSource } from "./components/RequirementSource";
 import { DeliveryPreview } from "./components/DeliveryPreview";
 import { requirementFieldLabels, factStatusLabels } from "./manufacturing/requirementDelivery";
 import { languageNames, labelFor, statusFor, type Language } from "./i18n";
@@ -586,6 +588,21 @@ function App() {
 		}
 	};
 
+	const withdrawAttachment = async (attachment: ConversationAttachment) => {
+		if (!active || uploading) return;
+		const conversationId = active.conversationId;
+		const reason = window.prompt(en ? `Withdraw ${attachment.name}? Its content will remain in history, but dependent fields and deliveries must be reviewed. Enter a reason:` : `撤回 ${attachment.name} 后，依赖它的字段和交付物需要重新核对，历史内容保留。请填写撤回原因：`);
+		if (!reason?.trim()) return;
+		setUploading(true); setError(undefined);
+		try {
+			const remaining = await client.withdrawAttachment(conversationId, attachment, `withdraw-${crypto.randomUUID()}`, reason.trim());
+			if (activeIdRef.current !== conversationId) return;
+			setAttachments(remaining);
+			setSelectedAttachmentIds((current) => current.filter((id) => id !== attachment.attachmentId));
+		} catch (cause) { if (activeIdRef.current === conversationId) setError(errorMessage(cause)); }
+		finally { if (activeIdRef.current === conversationId) setUploading(false); }
+	};
+
 	const downloadAttachment = async (attachment: ConversationAttachment) => {
 		if (!active) return;
 		try {
@@ -668,7 +685,7 @@ function App() {
 	};
 
 	const resolveFact = async (key: string, decision: "verified" | "rejected") => {
-		if (!active || requirementBusy) return;
+		if (!active || !requirement || !requirement.state.facts[key] || requirementBusy) return;
 		setRequirementBusy(true);
 		setError(undefined);
 		try {
@@ -677,9 +694,15 @@ function App() {
 				key,
 				`fact-decision-${crypto.randomUUID()}`,
 				decision,
+				requirement.state.facts[key].version,
+				requirement.state.aggregateVersion,
 			));
 		} catch (reason) {
 			setError(errorMessage(reason));
+			if (reason instanceof ConversationClientError && ["fact_review_stale", "concurrency_conflict"].includes(reason.code)) {
+				try { setRequirement(await client.getRequirementBrief(active.conversationId) ?? undefined); }
+				catch { /* Preserve the conflict message and require a manual refresh. */ }
+			}
 		} finally {
 			setRequirementBusy(false);
 		}
@@ -706,6 +729,7 @@ function App() {
 		requirement?.state.stageStatus === "evaluating" ||
 		requirement?.job?.status === "queued" ||
 		requirement?.job?.status === "leased");
+	const requirementLeaseExpired = requirement?.job?.status === "leased" && Boolean(requirement.job.leaseExpiresAt && Date.parse(requirement.job.leaseExpiresAt) <= Date.now());
 	const requirementTerminal = requirement?.state.stageStatus === "passed" || requirement?.state.stageStatus === "cancelled";
 
 	useEffect(() => {
@@ -924,7 +948,7 @@ function App() {
 										: <span>{attachment.kind === "text" ? "TXT" : "FILE"}</span>}
 									<strong>{attachment.name}</strong>
 									<small>{selectedAttachmentIds.includes(attachment.attachmentId) ? en ? "Will be read with the next message" : "将随下一条消息读取" : en ? "Attach to the next message" : "点击附到下一条消息"}</small>
-								</button><button className="attachment-download" onClick={() => void downloadAttachment(attachment)} aria-label={`${en ? "Download" : "下载"} ${attachment.name}`}>{en ? "Download" : "下载"}</button></div>
+								</button><button className="attachment-download" onClick={() => void downloadAttachment(attachment)} aria-label={`${en ? "Download" : "下载"} ${attachment.name}`}>{en ? "Download" : "下载"}</button><button disabled={uploading || sending || requirementBusy || hasActiveBackgroundTask} onClick={() => void withdrawAttachment(attachment)} aria-label={`${en ? "Withdraw" : "撤回"} ${attachment.name}`}>{en ? "Withdraw" : "撤回"}</button></div>
 							))}
 						</div>
 					)}
@@ -999,8 +1023,8 @@ function App() {
 								<div><dt>{en ? "Evaluation pass" : "评测通过"}</dt><dd>{requirementMetrics.rates.evaluationPass === null ? "—" : `${Math.round(requirementMetrics.rates.evaluationPass * 100)}%`}</dd></div>
 								<div><dt>{en ? "Needs input" : "需要补充"}</dt><dd>{requirementMetrics.totals.needsInput}</dd></div>
 								<div><dt>{en ? "Average fact confirmation" : "平均 Fact 确认"}</dt><dd>{requirementMetrics.averages.confirmationRate === null ? "—" : `${Math.round(requirementMetrics.averages.confirmationRate * 100)}%`}</dd></div>
-								<div><dt>{en ? "Candidate accuracy" : "候选确认准确率"}</dt><dd>{requirementMetrics.averages.confirmedCandidateAccuracy === null ? "—" : `${Math.round(requirementMetrics.averages.confirmedCandidateAccuracy * 100)}%`}</dd></div>
-								<div><dt>{en ? "Source coverage" : "来源覆盖"}</dt><dd>{requirementMetrics.averages.sourceCoverageRate === null ? "—" : `${Math.round(requirementMetrics.averages.sourceCoverageRate * 100)}%`}</dd></div>
+								<div><dt>{en ? "Confirmed unchanged" : "原样确认比例"}</dt><dd>{requirementMetrics.averages.confirmedCandidateAccuracy === null ? "—" : `${Math.round(requirementMetrics.averages.confirmedCandidateAccuracy * 100)}%`}</dd></div>
+								<div><dt>{en ? "Reference presence" : "引用填写率"}</dt><dd>{requirementMetrics.averages.sourceCoverageRate === null ? "—" : `${Math.round(requirementMetrics.averages.sourceCoverageRate * 100)}%`}</dd></div>
 								<div><dt>{en ? "Artifacts / clarification questions" : "Artifact / 澄清问题"}</dt><dd>{requirementMetrics.totals.artifactVersions} / {requirementMetrics.totals.clarificationQuestions}</dd></div>
 								<div><dt>{en ? "Queue recovery / failure rate" : "Queue 恢复 / 失败率"}</dt><dd>{requirementMetrics.queue.recoveryRate === null ? "—" : `${Math.round(requirementMetrics.queue.recoveryRate * 100)}%`} / {requirementMetrics.queue.failureRate === null ? "—" : `${Math.round(requirementMetrics.queue.failureRate * 100)}%`}</dd></div>
 								<div><dt>{en ? "Tool failure rate" : "Tool 失败率"}</dt><dd>{requirementMetrics.runtime.toolFailureRate === null ? "—" : `${Math.round(requirementMetrics.runtime.toolFailureRate * 100)}%`}</dd></div>
@@ -1044,6 +1068,7 @@ function App() {
 
 							<section className="proposal-section">
 								<div className="section-title"><strong>{en ? "Task overview" : "任务概览"}</strong><code>v{requirement.state.aggregateVersion}</code></div>
+								{requirementLeaseExpired && <p role="alert">{en ? "The worker heartbeat expired. Waiting for recovery checks; completion is not confirmed." : "执行心跳已过期，等待恢复检查；当前尚未确认完成。"}</p>}
 								<p role="status">{requirementRunning ? en ? "Organising your material. You can return later to review it." : "正在整理资料，完成后可核对草稿。" : requirement.state.stageStatus === "passed" ? en ? "Approved. Export the current delivery below." : "当前版本已批准，可在下方导出交付物。" : requirement.state.stageStatus === "waiting_approval" ? en ? "Review the draft and approve or reject this version below." : "请核对草稿，在下方批准或拒绝当前版本。" : en ? "Review missing information and unconfirmed fields below, then generate the next version." : "请在下方补充缺失信息、核对待确认字段，再生成新版本。"}</p>
 								<dl className="run-metadata">
 									<div><dt>{en ? "Industry" : "行业"}</dt><dd>{en ? "Packaging" : "包装"}</dd></div>
@@ -1056,11 +1081,12 @@ function App() {
 
 							<details className="proposal-section diagnostics"><summary>{en ? "This run's details" : "本次运行详情"}</summary>
 								<div className="section-title"><strong>{en ? "Product metrics" : "产品指标"}</strong><code>{requirement.metrics.schemaVersion}</code></div>
+								<p>{en ? "Confirmed unchanged measures adoption; reference presence only checks that a reference exists. Neither proves factual accuracy. Runtime latency excludes human review time." : "原样确认比例表示采纳情况；引用填写率只表示有引用。两者均不等于事实准确率。运行耗时不含人工核对时间。"}</p>
 								<dl className="run-metadata">
 									<div><dt>{en ? "Canonical match rate" : "Canonical 命中"}</dt><dd>{requirement.metrics.canonicalFactHitRate === null ? "—" : `${Math.round(requirement.metrics.canonicalFactHitRate * 100)}%`}</dd></div>
 									<div><dt>{en ? "Fact confirmation" : "Fact 确认"}</dt><dd>{Math.round(requirement.metrics.confirmationRate * 100)}% ({requirement.metrics.confirmedRequiredFacts}/{requirement.metrics.requiredFacts})</dd></div>
-									<div><dt>{en ? "Confirmed candidate accuracy" : "候选确认准确率"}</dt><dd>{requirement.metrics.confirmedCandidateAccuracy === null ? "—" : `${Math.round(requirement.metrics.confirmedCandidateAccuracy * 100)}%`}</dd></div>
-									<div><dt>{en ? "Source coverage" : "来源覆盖"}</dt><dd>{requirement.metrics.sourceCoverageRate === null ? "—" : `${Math.round(requirement.metrics.sourceCoverageRate * 100)}%`}</dd></div>
+									<div><dt>{en ? "Confirmed unchanged" : "原样确认比例"}</dt><dd>{requirement.metrics.confirmedCandidateAccuracy === null ? "—" : `${Math.round(requirement.metrics.confirmedCandidateAccuracy * 100)}%`}</dd></div>
+									<div><dt>{en ? "Reference presence" : "引用填写率"}</dt><dd>{requirement.metrics.sourceCoverageRate === null ? "—" : `${Math.round(requirement.metrics.sourceCoverageRate * 100)}%`}</dd></div>
 									<div><dt>{en ? "Missing facts" : "缺失 Fact"}</dt><dd>{requirement.metrics.missingRequiredFacts.length}</dd></div>
 									<div><dt>{en ? "Clarification rounds" : "澄清轮次"}</dt><dd>{requirement.metrics.clarificationRounds}</dd></div>
 									<div><dt>Token (in / out)</dt><dd>{requirement.metrics.runtime.usage ? `${requirement.metrics.runtime.usage.inputTokens} / ${requirement.metrics.runtime.usage.outputTokens}` : "—"}</dd></div>
@@ -1080,6 +1106,13 @@ function App() {
 											<small>{fieldLabel(fact.key)} · v{fact.version}</small>
 											<strong>{String(fact.value)}{fact.unit ? ` ${fact.unit}` : ""}</strong>
 											<small>{factStatus(fact.status)} · {fact.sourceType === "model_output" ? en ? "AI extracted" : "AI 提取" : fact.sourceType === "human_confirmation" ? en ? "Human confirmed" : "人工确认" : en ? "Human entered" : "人工输入"}</small>
+											<RequirementSource source={requirement.factSources?.[fact.key]} en={en} />
+											{content?.pendingChanges?.filter((change) => change.key === fact.key && change.currentFactVersion === fact.version).map((change) => <div className="fact-change" key={change.key}>
+												<strong>{en ? "Proposed change" : "新变更待确认"}: {String(change.value)} {change.unit}</strong>
+												<p>{en ? "The confirmed value above stays in effect until you review this change. Earlier deliveries need rechecking." : "核对前保留上方已确认值；旧交付物需重新核对。"}</p>
+												<RequirementSource source={requirement.proposalSources?.[fact.key]} en={en} />
+												<button type="button" disabled={requirementBusy || requirementRunning || requirementTerminal || requirement.state.currentProposal?.freshness !== "fresh"} onClick={() => { setFactKey(change.key); setFactValue(String(change.value)); setFactUnit(change.unit ?? ""); document.getElementById("requirement-fact-value")?.focus(); }}>{en ? "Copy to edit form" : "填入修改表"}</button>
+											</div>)}
 										</div>
 										{(fact.status === "suggested" || fact.status === "unverified") && (
 											<div className="fact-actions">
@@ -1091,12 +1124,14 @@ function App() {
 								))}
 								<form className="fact-form" onSubmit={(event) => void recordFact(event)}>
 									<select value={factKey} onChange={(event) => { setFactKey(event.target.value); setFactValue(""); }} aria-label={en ? "Requirement field" : "需求字段"} disabled={requirementTerminal}><option value="">{en ? "Choose a field to add" : "选择要补充的字段"}</option>{fieldOptions.map((key) => <option key={key} value={key}>{fieldLabel(key)}</option>)}</select>
-									<input value={factValue} type={factKey === "quantity" ? "number" : factKey === "target_delivery" ? "date" : "text"} min={factKey === "quantity" ? 1 : undefined} step={1} required onChange={(event) => setFactValue(event.target.value)} placeholder={factKey === "dimensions" ? en ? "Example: W 160 × H 230 + bottom 80 mm" : "例如：宽 160 × 高 230 + 底 80 mm" : en ? "Enter value" : "填写内容"} aria-label={en ? "Field value" : "字段内容"} disabled={requirementTerminal} />
+									<input id="requirement-fact-value" value={factValue} type={factKey === "quantity" ? "number" : factKey === "target_delivery" ? "date" : "text"} min={factKey === "quantity" ? 1 : undefined} step={1} required onChange={(event) => setFactValue(event.target.value)} placeholder={factKey === "dimensions" ? en ? "Example: W 160 × H 230 + bottom 80 mm" : "例如：宽 160 × 高 230 + 底 80 mm" : en ? "Enter value" : "填写内容"} aria-label={en ? "Field value" : "字段内容"} disabled={requirementTerminal} />
 									<input value={factUnit} onChange={(event) => setFactUnit(event.target.value)} placeholder={en ? "Unit (optional)" : "单位（可选）"} aria-label={en ? "Field unit" : "字段单位"} disabled={requirementTerminal} />
 									<button type="submit" disabled={requirementBusy || requirementRunning || requirementTerminal || !factKey.trim() || !factValue.trim()}>{en ? "Add unverified information" : "添加待确认信息"}</button>
 								</form>
 								<small>{en ? "Confirm new information item by item. Changes make earlier briefs stale, so generate a new version." : "新增信息需逐项确认。修改后旧需求单会失效，请重新生成。"}</small>
 							</section>
+
+							{active && <RequirementTrial key={requirement.runId} conversationId={active.conversationId} workspace={requirement} en={en} />}
 
 							{content && active && requirement.state.currentProposal && <DeliveryPreview conversationId={active.conversationId} versions={requirement.state.proposalVersions.map((item) => item.version)} currentVersion={requirement.state.currentProposal.version} revision={requirement.state.aggregateVersion} onSources={setParsedSources} language={language} />}
 

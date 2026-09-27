@@ -98,11 +98,68 @@ function harness() {
 	};
 }
 
+it("confirms the reviewed version only, preserves source excerpts and deduplicates retries", async () => {
+	const h = harness();
+	h.controller.start(context, h.conversationId, { requestId: "start-review", industry: "print" });
+	await h.scheduler.runNext();
+	const view = () => requirement(h.controller.get(context, h.conversationId));
+	h.controller.recordFact(context, h.conversationId, { requestId: "initial-quantity", key: "quantity", value: 5000 });
+	const first = view();
+	expect(first.factSources?.quantity).toMatchObject({ status: "available", text: expect.stringContaining("5000") });
+	const input = { requestId: "confirm-reviewed", decision: "verified", expectedFactVersion: first.state.facts.quantity.version, expectedAggregateVersion: first.state.aggregateVersion };
+	h.controller.recordFact(context, h.conversationId, { requestId: "changed-in-other-tab", key: "quantity", value: 6000 });
+	expect(h.controller.resolveFact(context, h.conversationId, "quantity", input)).toMatchObject({ status: 409, body: { code: "fact_review_stale" } });
+	expect(view().state.facts.quantity).toMatchObject({ value: 6000, status: "unverified" });
+	const current = view();
+	const corrected = { ...input, expectedFactVersion: current.state.facts.quantity.version, expectedAggregateVersion: current.state.aggregateVersion };
+	expect(h.controller.resolveFact(context, h.conversationId, "quantity", corrected).status).toBe(200);
+	const confirmed = view();
+	expect(confirmed.factSources?.quantity).toMatchObject({ status: "available", text: "6000", label: "人工录入 / Employee entry" });
+	expect(h.controller.resolveFact(context, h.conversationId, "quantity", corrected).status).toBe(200);
+	expect(view().state.aggregateVersion).toBe(confirmed.state.aggregateVersion);
+	expect(h.controller.resolveFact({ ...context, tenantId: "other" }, h.conversationId, "quantity", corrected).status).toBe(404);
+});
+
+it("stores review observations immutably with scope and version binding, without confirming business state", async () => {
+	const h = harness();
+	h.controller.start(context, h.conversationId, { requestId: "trial-start", industry: "print" });
+	await h.scheduler.runNext();
+	const before = requirement(h.controller.get(context, h.conversationId));
+	const input = { observationId: "observation-0001", caseId: "SYN-1", reviewerAlias: "operator-A", sourceKind: "synthetic", artifactVersion: 1, expectedAggregateVersion: before.state.aggregateVersion, startedAt: "2026-09-26T01:00:00.000Z", endedAt: "2026-09-26T01:01:00.000Z", recordedReviewMs: 30_000, interruptions: 1, correctionCount: 2, criticalErrorCount: 1, outcome: "needs_work", notes: "合成资料，手动计时。" };
+	expect(h.controller.saveTrialObservation(context, h.conversationId, { ...input, unexpected: true }).status).toBe(400);
+	expect(h.controller.saveTrialObservation(context, h.conversationId, { ...input, recordedReviewMs: 120_000 }).status).toBe(400);
+	expect(h.controller.saveTrialObservation(context, h.conversationId, { ...input, expectedAggregateVersion: 1 }).status).toBe(409);
+	const saved = h.controller.saveTrialObservation(context, h.conversationId, input);
+	expect(saved).toMatchObject({ status: 201, body: { observation: { measurement: "self_reported_review_timer", actorId: context.actorId, input } } });
+	expect(h.controller.saveTrialObservation(context, h.conversationId, input)).toMatchObject({ status: 200, body: saved.body });
+	expect(h.controller.saveTrialObservation(context, h.conversationId, { ...input, outcome: "usable" }).status).toBe(409);
+	expect(h.controller.trialObservation(context, h.conversationId, input.observationId)).toMatchObject({ status: 200, body: { observation: expect.objectContaining({ input }) } });
+	expect(h.controller.trialObservation({ ...context, tenantId: "other" }, h.conversationId, input.observationId).status).toBe(404);
+	expect(h.controller.saveTrialObservation({ ...context, actorId: "other" }, h.conversationId, input).status).toBe(409);
+	expect(requirement(h.controller.get(context, h.conversationId)).state).toEqual(before.state);
+});
+
 afterEach(() => {
 	for (const directory of directories.splice(0)) rmSync(directory, { recursive: true, force: true });
 });
 
 describe("RequirementBriefWorkspaceApiController", () => {
+	it("withdraws an owned attachment through the API, refuses active work and isolates other tenants", async () => {
+		const h = harness();
+		const source = h.attachments.put({ ...context, conversationId: h.conversationId }, { requestId: "upload", name: "spec.txt", mediaType: "text/plain", content: Buffer.from("dimensions: 200 x 100 mm") }).attachment;
+		const payload = { requestId: "withdraw", reason: "wrong order", sha256: source.sha256 };
+		expect(h.controller.withdrawAttachment({ ...context, tenantId: "other" }, h.conversationId, source.attachmentId, payload).status).toBe(404);
+		expect(h.controller.withdrawAttachment(context, h.conversationId, source.attachmentId, { reason: "missing request" }).status).toBe(400);
+		h.controller.start(context, h.conversationId, { requestId: "start", industry: "print" });
+		expect(h.controller.withdrawAttachment(context, h.conversationId, source.attachmentId, payload).status).toBe(409);
+		expect(h.attachments.list({ ...context, conversationId: h.conversationId })).toHaveLength(1);
+		await h.scheduler.runNext();
+		expect(h.controller.withdrawAttachment(context, h.conversationId, source.attachmentId, payload).status).toBe(200);
+		expect(h.controller.withdrawAttachment(context, h.conversationId, source.attachmentId, payload).status).toBe(200);
+		expect(h.attachments.list({ ...context, conversationId: h.conversationId })).toEqual([]);
+		expect(requirement(h.controller.get(context, h.conversationId)).state.currentProposal?.freshness).toBe("stale");
+	});
+
 	it("rejects new furniture requests and fields before creating any workflow", () => {
 		const { controller, conversationId } = harness();
 		expect(controller.start(context, conversationId, { requestId: "retired", industry: "furniture" })).toMatchObject({ status: 400 });
@@ -201,7 +258,10 @@ describe("RequirementBriefWorkspaceApiController", () => {
 				key,
 				value: key === "quantity" ? 5_000 : `confirmed-${key}`,
 			});
+			const review = requirement(controller.get(context, conversationId)).state;
 			const resolved = controller.resolveFact(context, conversationId, key, {
+				expectedFactVersion: review.facts[key].version,
+				expectedAggregateVersion: review.aggregateVersion,
 				requestId: `verify-${key}`,
 				decision: "verified",
 			});

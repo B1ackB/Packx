@@ -39,6 +39,7 @@ export interface ConversationSummary extends Omit<ConversationView, "revision" |
 }
 
 export interface ConversationAttachment {
+	withdrawal?: { requestId: string; actorId: string; reason: string; at: string; sha256: string };
 	attachmentId: string;
 	conversationId: string;
 	name: string;
@@ -94,6 +95,7 @@ export interface ProposalWorkspaceView {
 	};
 	job?: {
 		jobId: string;
+		leaseExpiresAt?: string;
 		status: "queued" | "leased" | "completed" | "dead_letter" | "cancelled";
 		failureCount: number;
 		lastFailure?: {
@@ -141,6 +143,16 @@ export interface RequirementBriefMetricsView {
 export interface RequirementBriefWorkspaceView extends ProposalWorkspaceView {
 	readOnlyReason?: string;
 	metrics: RequirementBriefMetricsView;
+	factSources?: Record<string, RequirementSourceView>;
+	proposalSources?: Record<string, RequirementSourceView>;
+}
+
+export interface RequirementSourceView {
+	ref: string;
+	label: string;
+	status: "available" | "unavailable" | "withdrawn";
+	text?: string;
+	truncated?: boolean;
 }
 
 export interface RequirementBriefRunMetricsPoint {

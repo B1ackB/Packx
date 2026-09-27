@@ -27,9 +27,9 @@ it("runs selected evidence through real tools/context, human confirmation, appro
 		expect((await h.api.handle({ ...h.context, tenantId: "other" }, h.conversationId, "view")).status).toBe(404);
 		for (const key of requiredRequirementFacts.print) {
 			expect(h.requirements.recordFact(h.context, h.conversationId, { requestId: `set-${key}`, key, value: key === "quantity" ? 5000 : `synthetic-confirmed-${key}` }).status).toBe(200);
-			expect(h.requirements.resolveFact(h.context, h.conversationId, key, { requestId: `confirm-${key}`, decision: "verified" }).status).toBe(200);
+			expect(h.requirements.resolveFact(h.context, h.conversationId, key, { requestId: `confirm-${key}`, decision: "verified", expectedFactVersion: view().state.facts[key].version, expectedAggregateVersion: view().state.aggregateVersion }).status).toBe(200);
 		}
-		expect(h.requirements.resolveFact(h.context, h.conversationId, "material_thickness", { requestId: "confirm-thickness", decision: "verified" }).status).toBe(200);
+		expect(h.requirements.resolveFact(h.context, h.conversationId, "material_thickness", { requestId: "confirm-thickness", decision: "verified", expectedFactVersion: view().state.facts.material_thickness.version, expectedAggregateVersion: view().state.aggregateVersion }).status).toBe(200);
 		expect(h.requirements.start(h.context, h.conversationId, { requestId: "regenerate", industry: "print" }).status).toBe(202);
 		expect(await h.scheduler.runNext()).toMatchObject({ status: "completed" });
 		expect(view().state.stageStatus).toBe("waiting_approval");

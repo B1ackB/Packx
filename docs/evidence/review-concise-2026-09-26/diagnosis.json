@@ -1,0 +1,65 @@
+{
+	"protocol": "review-concise-diagnosis.v1",
+	"sourceReportGzipSha256": "6e945ae1c17c247fb5113efd209f237468d69854f624b6fa2ff3b05ec8a03d3d",
+	"validResponses": 39,
+	"visibleTextCharactersMedian": 280,
+	"reportedOutputTokensMedian": 1358,
+	"receivedOutputLimits": [
+		{
+			"id": "boundary-received-limit-38-1-baseline",
+			"inputTokensIncludingCached": 2654,
+			"outputTokens": 8192
+		},
+		{
+			"id": "boundary-received-limit-38-1-candidate",
+			"inputTokensIncludingCached": 2807,
+			"outputTokens": 8192
+		},
+		{
+			"id": "boundary-received-limit-131-1-baseline",
+			"inputTokensIncludingCached": 2693,
+			"outputTokens": 8192
+		},
+		{
+			"id": "boundary-received-limit-131-1-candidate",
+			"inputTokensIncludingCached": 2846,
+			"outputTokens": 8192
+		},
+		{
+			"id": "boundary-received-limit-149-1-baseline",
+			"inputTokensIncludingCached": 1900,
+			"outputTokens": 8192
+		},
+		{
+			"id": "boundary-contradiction-control-1-candidate",
+			"inputTokensIncludingCached": 2052,
+			"outputTokens": 8192
+		},
+		{
+			"id": "boundary-scope-expansion-1-candidate",
+			"inputTokensIncludingCached": 2135,
+			"outputTokens": 8192
+		},
+		{
+			"id": "boundary-received-limit-38-2-candidate",
+			"inputTokensIncludingCached": 2807,
+			"outputTokens": 8192
+		},
+		{
+			"id": "boundary-received-limit-38-2-baseline",
+			"inputTokensIncludingCached": 2654,
+			"outputTokens": 8192
+		}
+	],
+	"candidateChange": {
+		"oldDomainInstructionCharacters": 2896,
+		"newDomainInstructionCharacters": 2232,
+		"oldWhitespaceWords": 356,
+		"newWhitespaceWords": 267
+	},
+	"limitations": [
+		"Visible text and reported output usage are different measurements; failed partial output is not available.",
+		"No reliable reasoning token split is available here. Small input size does not establish why the model exhausted its output budget.",
+		"The candidate rewrites domain instructions and includes action guidance; any observed effect is for this combined change."
+	]
+}

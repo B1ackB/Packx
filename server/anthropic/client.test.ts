@@ -2,6 +2,20 @@ import { describe, expect, it, vi } from "vitest";
 import { AnthropicMessagesClient } from "./client";
 
 describe("AnthropicMessagesClient", () => {
+	it.each(["createMessage", "countMessageTokens"] as const)("preserves a transport failure while reading %s JSON", async (method) => {
+		const broken = new TypeError("private address", { cause: Object.assign(new Error("private socket"), { code: "UND_ERR_SOCKET" }) });
+		const client = new AnthropicMessagesClient({ baseUrl: "https://example.invalid", apiKey: "test",
+			fetch: async () => new Response(new ReadableStream({ start(controller) { controller.error(broken); } }), { headers: { "content-type": "application/json" } }),
+		});
+		await expect(client[method]({ model: "model", max_tokens: 10, messages: [], stream: false })).rejects.toBe(broken);
+	});
+	it("preserves a received HTTP error even if its error body is unreadable", async () => {
+		const client = new AnthropicMessagesClient({ baseUrl: "https://example.invalid", apiKey: "test",
+			fetch: async () => new Response(new ReadableStream({ start(controller) { controller.error(new Error("private transport")); } }), { status: 401 }),
+		});
+		await expect(client.createMessage({ model: "model", max_tokens: 10, messages: [], stream: false })).rejects.toMatchObject({ providerStatus: 401 });
+	});
+
   it("uses Anthropic authentication headers without exposing the key in the body", async () => {
     const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
       new Response(

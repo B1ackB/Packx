@@ -34,6 +34,25 @@ const usage = {
 };
 
 describe("Packx Agent Runtime contract", () => {
+	it("honors an explicit empty tool list at the model and execution boundaries", async () => {
+		const state = new InMemoryAgentStateStore();
+		let attemptedTool = false;
+		const runtime = new BlackxAgentRuntime({ skills: new SkillRegistry(), sessions: state, snapshots: state,
+			provider: { async generate(input) {
+				expect(input.tools).toEqual([]);
+				return attemptedTool
+					? { text: "", toolCalls: [{ id: "forbidden-read", name: "context_read", input: { sourceRef: "latest" } }], usage }
+					: { text: '{"issues":[]}', toolCalls: [], usage };
+			} },
+		});
+		const closed = { ...request, allowedTools: [], limits: { maxIterations: 1, maxToolExecutions: 1, maxInputTokens: 24_000 } };
+		expect((await runtime.executeTurn(closed)).finalResponse).toBe('{"issues":[]}');
+		attemptedTool = true;
+		const denied = await runtime.executeTurn({ ...closed, idempotencyKey: "unexpected-tool" });
+		expect(denied.status).toBe("paused");
+		expect(denied.events).toContainEqual(expect.objectContaining({ type: "tool.completed", tool: "context_read", status: "denied", failureCode: "tool_not_allowed" }));
+	});
+
 	it("aborts approval waits and prevents late approval from executing a stopped turn", async () => {
 		let release!: (value: { approved: boolean; approvalId: string }) => void;
 		let approvalSignal: AbortSignal | undefined;
@@ -281,6 +300,17 @@ describe("Packx Agent Runtime contract", () => {
 		const running = runtime.executeTurn(request, controller.signal);
 		controller.abort(new Error("manual_abort"));
 		await expect(running).rejects.toMatchObject({ code: "cancelled", retryable: false } satisfies Partial<RuntimeFailure>);
+	});
+
+	it.each([false, true])("rejects a late provider response even before a delayed timer fires (tool=%s)", async (toolCall) => {
+		let clock = 0;
+		const execute = vi.fn(async () => "must not run");
+		const tool: AgentHostTool = { name: "write-test", description: "Side effect", inputSchema: { type: "object" }, execution: "host", risk: "write", idempotent: true, timeoutMs: 1000, maxResultChars: 100, validate: () => true, createIdempotencyKey: () => "once", execute };
+		const runtime = new BlackxAgentRuntime({ skills: new SkillRegistry(), tools: [tool], clockMs: () => clock, provider: {
+			async generate() { clock = 120_001; return { text: "late success", toolCalls: toolCall ? [{ id: "late", name: tool.name, input: {} }] : [], usage }; },
+		} });
+		await expect(runtime.executeTurn(request)).rejects.toMatchObject({ code: "timeout", retryable: true });
+		expect(execute).not.toHaveBeenCalled();
 	});
 
 	it("rejects unknown skills before calling the provider", async () => {

@@ -1,0 +1,103 @@
+{
+	"protocol": "scoring-v5",
+	"scoringProtocolSha256": "a0ebe80bc62799f0bfc1d6be4262176be827ad00fcfe1b50018f6cccaf812a5d",
+	"deltas": [
+		{
+			"label": "baseline",
+			"reportSha256": "2663ba5cf206715c13132d93648f27713b2661b39760b33259eefab994cad7d4",
+			"changes": [
+				{
+					"caseId": "RI-10",
+					"checkpointId": "clarified",
+					"captureSha256": "575cee8b4098a587ec8f2d9a43704cfba6b2428556e0ba7c5760ec1e33fc1cb4",
+					"checkId": "field:dimensions:source",
+					"before": "failed",
+					"after": "passed",
+					"expected": [
+						"RI-10-S04"
+					],
+					"actual": {
+						"persisted": "runtime:318cd976-d654-41dd-8aea-af02469fe348",
+						"resolved": [
+							"RI-10-S04"
+						]
+					}
+				}
+			],
+			"tasksPassed": 0,
+			"checkpointsPassed": 9,
+			"reached": 24
+		},
+		{
+			"label": "trial-a",
+			"reportSha256": "d3074ff69d14c5dfb77ef89b432aa0a956a5fbce8cd706dd47943d780486aa9a",
+			"changes": [],
+			"tasksPassed": 2,
+			"checkpointsPassed": 7,
+			"reached": 16
+		},
+		{
+			"label": "trial-b",
+			"reportSha256": "61556668c4cdb25a70699359a9608f41173a482f108e14d32583138ba15af24b",
+			"changes": [
+				{
+					"caseId": "RI-03",
+					"checkpointId": "draft",
+					"captureSha256": "eb05aac9ef04ee0f91b5afea3e676d63cc0d6e9d5d81e3c6c0468f98db3fdcfb",
+					"checkId": "field:material_thickness:value",
+					"before": "failed",
+					"after": "needs_review",
+					"expected": 0.06,
+					"actual": "0.06"
+				},
+				{
+					"caseId": "RI-03",
+					"checkpointId": "required_confirmed",
+					"captureSha256": "6b661b99e11094d3c1df73d607f1fc5057f32b75533833f8c87e73f97fca5484",
+					"checkId": "field:material_thickness:value",
+					"before": "failed",
+					"after": "needs_review",
+					"expected": 0.06,
+					"actual": "0.06"
+				}
+			],
+			"tasksPassed": 4,
+			"checkpointsPassed": 15,
+			"reached": 22
+		}
+	],
+	"additionalReviews": [
+		{
+			"caseId": "RI-03",
+			"checkpointId": "draft",
+			"captureSha256": "eb05aac9ef04ee0f91b5afea3e676d63cc0d6e9d5d81e3c6c0468f98db3fdcfb",
+			"checkId": "field:material_thickness:value",
+			"decision": "passed",
+			"reviewer": "Codex case-author review 2026-09-25",
+			"method": "codex_assisted",
+			"reason": "原文明确要求0.06 mm；实际字符串0.06与数值0.06在相同单位与来源下等价。只复核表示形式，不做单位换算或确认。",
+			"evidence": "RI-03-S01: The requested material thickness is 0.06 mm; 两份捕获均为value=\"0.06\", unit=\"mm\", unverified, sourceRef=RI-03-S01。"
+		},
+		{
+			"caseId": "RI-03",
+			"checkpointId": "required_confirmed",
+			"captureSha256": "6b661b99e11094d3c1df73d607f1fc5057f32b75533833f8c87e73f97fca5484",
+			"checkId": "field:material_thickness:value",
+			"decision": "passed",
+			"reviewer": "Codex case-author review 2026-09-25",
+			"method": "codex_assisted",
+			"reason": "原文明确要求0.06 mm；实际字符串0.06与数值0.06在相同单位与来源下等价。只复核表示形式，不做单位换算或确认。",
+			"evidence": "RI-03-S01: The requested material thickness is 0.06 mm; 两份捕获均为value=\"0.06\", unit=\"mm\", unverified, sourceRef=RI-03-S01。"
+		}
+	],
+	"afterExplicitReview": {
+		"trial": "trial-b",
+		"tasksPassed": 4,
+		"checkpointsPassed": 17,
+		"reached": 22,
+		"planned": 31,
+		"note": "原运行RI-03已终止，未生成后续检查点；任务通过仍4/12。只更正评分，不改变执行记录。"
+	},
+	"productionEvidence": "No new model calls or generated artifacts; original reports remain byte-identical.",
+	"scorerSha256": "ea459bd487cdce2b25dbd15d5b2f4e30df20b5177cabb961cd36bc2697828538"
+}

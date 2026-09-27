@@ -1,0 +1,545 @@
+{
+	"protocol": "requirement-intake-online.v4",
+	"caseCount": 12,
+	"caseVerdicts": {
+		"failed": 8,
+		"passed": 4
+	},
+	"checkpointObserved": 22,
+	"checkpointExpected": 31,
+	"checkpointVerdicts": {
+		"passed": 15,
+		"failed": 7
+	},
+	"checks": {
+		"passed": 1038,
+		"failed": 7
+	},
+	"generations": 72,
+	"counts": 145,
+	"generationPurposes": {
+		"intake": 47,
+		"evidence_review": 23,
+		"revision": 2
+	},
+	"reviewModelCallsRequestingTools": 0,
+	"productionEvaluations": {
+		"completed": 22
+	},
+	"productionApprovalEligible": 5,
+	"tools": 24,
+	"toolFailures": 0,
+	"compactions": 0,
+	"usage": {
+		"inputTokens": 82980,
+		"cachedInputTokens": 124800,
+		"outputTokens": 150087,
+		"reasoningOutputTokens": 0
+	},
+	"estimatedUsageUsd": 0.2057472,
+	"priorReservedUsd": 2.9765592,
+	"reservedUsd": 4.4544708,
+	"cumulativeKnownUsageUsd": 0.67557156,
+	"currentUnknown": 1,
+	"priorUnknown": 6,
+	"caseSecondsMedian": 66.47,
+	"caseSecondsMin": 21.121,
+	"caseSecondsMax": 143.121,
+	"totalExecutionSeconds": 861.4639999999999,
+	"semanticReviews": 109,
+	"sourceIdLeakFindings": [],
+	"rows": [
+		{
+			"caseId": "RI-01",
+			"title": "茶叶罐完整口述与逐项确认",
+			"family": "complete",
+			"executionStatus": "failed",
+			"verdict": "failed",
+			"checkpointReached": 1,
+			"checkpointsExpected": 2,
+			"checkpointPass": 1,
+			"generations": 3,
+			"toolCalls": 1,
+			"toolFailures": 0,
+			"durationMs": 21121,
+			"failedChecks": [],
+			"error": "workflow_did_not_complete",
+			"operations": [
+				{
+					"eventId": "RI-01-E03",
+					"kind": "confirm_facts",
+					"status": "completed"
+				},
+				{
+					"eventId": "RI-01-E04",
+					"kind": "worker",
+					"status": "dead_letter",
+					"reason": "{\"status\":\"dead_letter\",\"job\":{\"schemaVersion\":\"stage-job.v1\",\"tenantId\":\"intake-eval\",\"workspaceId\":\"RI-01\",\"runId\":\"requirement-RI-01\",\"actorId\":\"synthetic-operator\",\"commandId\":\"RI-01-E04:execute\",\"correlationId\":\"RI-01\",\"expectedVersion\":28,\"jobId\":\"requirement-33c5fc1b59d1fa30bf921f9ab68ab967\",\"stageId\":\"requirement-brief\",\"sessionId\":\"requirement-33c5fc1b59d1fa30bf921f9ab68ab967\",\"priority\":0,\"maxFailures\":1,\"maxSlices\":2,\"status\":\"dead_letter\",\"deliveryCount\":1,\"sliceCount\":0,\"failureCount\":1,\"totalFailureCount\":1,\"recoveryCount\":0,\"totalRecoveryDetectionDelayMs\":0,\"redriveCount\":0,\"availableAt\":\"2026-09-25T04:26:45.733Z\",\"createdAt\":\"2026-09-25T04:26:45.672Z\",\"updatedAt\":\"2026-09-25T04:26:45.733Z\",\"lastFailure\":{\"code\":\"model_failure\",\"message\":\"Model token count failed\",\"retryable\":true,\"at\":\"2026-09-25T04:26:45.733Z\"}}}"
+				}
+			]
+		},
+		{
+			"caseId": "RI-02",
+			"title": "电商纸箱：聊天与规格附件拼接",
+			"family": "complete",
+			"executionStatus": "completed",
+			"verdict": "failed",
+			"checkpointReached": 2,
+			"checkpointsExpected": 2,
+			"checkpointPass": 0,
+			"generations": 6,
+			"toolCalls": 2,
+			"toolFailures": 0,
+			"durationMs": 59480,
+			"failedChecks": [
+				{
+					"checkpoint": "draft",
+					"id": "note:0",
+					"expected": "纸板等级和抗压等级未确定，不能从运输用途推断。",
+					"actual": {
+						"observed": {
+							"title": "电商运输纸箱 WEB-26-A 需求单",
+							"goal": "为订单 WEB-26-A 的电商运输纸箱包装需求整理当前版本需求单，保留来源与确认状态、识别缺失与冲突，并交售前人员核对。",
+							"assumptions": []
+						},
+						"review": {
+							"caseId": "RI-02",
+							"checkpointId": "draft",
+							"captureSha256": "a32837aef95c29130112d7f970040a6e0181303ffa286f4d5431ebb1686d6c69",
+							"checkId": "note:0",
+							"decision": "failed",
+							"reviewer": "Codex case-author review 2026-09-25",
+							"method": "codex_assisted",
+							"reason": "遗漏原文明确未确定的纸板等级、抗压等级。",
+							"evidence": "assumptions=[]，customerGoal未保留这些未定项。"
+						}
+					}
+				},
+				{
+					"checkpoint": "confirmed",
+					"id": "note:0",
+					"expected": "材料和性能仍需另行评估；需求字段确认不等于生产参数确认。",
+					"actual": {
+						"observed": {
+							"title": "WEB-26-A 电商运输纸箱包装需求单",
+							"goal": "整理指定包装订单 WEB-26-A（电商运输纸箱）的当前版本需求单，识别缺失与冲突，保留来源与确认状态，交由售前人员核对。",
+							"assumptions": []
+						},
+						"review": {
+							"caseId": "RI-02",
+							"checkpointId": "confirmed",
+							"captureSha256": "863a8d0fbbb3b77118d39534bee48a556d2545384c32ff9b79a8cb7cd1afcce3",
+							"checkId": "note:0",
+							"decision": "failed",
+							"reviewer": "Codex case-author review 2026-09-25",
+							"method": "codex_assisted",
+							"reason": "仍遗漏未定纸板/抗压与性能需另评估的限制。",
+							"evidence": "assumptions=[]，customerGoal只说整理需求。"
+						}
+					}
+				}
+			],
+			"error": null,
+			"operations": [
+				{
+					"eventId": "RI-02-E04",
+					"kind": "confirm_facts",
+					"status": "completed"
+				},
+				{
+					"eventId": "RI-02-E05",
+					"kind": "evaluate",
+					"status": "completed"
+				}
+			]
+		},
+		{
+			"caseId": "RI-03",
+			"title": "双语瓶贴与厚度单位",
+			"family": "complete",
+			"executionStatus": "failed",
+			"verdict": "failed",
+			"checkpointReached": 2,
+			"checkpointsExpected": 3,
+			"checkpointPass": 0,
+			"generations": 6,
+			"toolCalls": 2,
+			"toolFailures": 0,
+			"durationMs": 48234,
+			"failedChecks": [
+				{
+					"checkpoint": "draft",
+					"id": "field:material_thickness:value",
+					"expected": 0.06,
+					"actual": "0.06"
+				},
+				{
+					"checkpoint": "required_confirmed",
+					"id": "field:material_thickness:value",
+					"expected": 0.06,
+					"actual": "0.06"
+				}
+			],
+			"error": "confirmation_candidate_not_observed",
+			"operations": [
+				{
+					"eventId": "RI-03-E04",
+					"kind": "evaluate",
+					"status": "completed"
+				},
+				{
+					"eventId": "RI-03-E05",
+					"kind": "confirm_facts",
+					"status": "blocked",
+					"reason": "confirmation_candidate_not_observed:material_thickness"
+				}
+			]
+		},
+		{
+			"caseId": "RI-05",
+			"title": "500 克咖啡袋：容量不能代替尺寸",
+			"family": "missing",
+			"executionStatus": "completed",
+			"verdict": "failed",
+			"checkpointReached": 1,
+			"checkpointsExpected": 1,
+			"checkpointPass": 0,
+			"generations": 5,
+			"toolCalls": 1,
+			"toolFailures": 0,
+			"durationMs": 52231,
+			"failedChecks": [
+				{
+					"checkpoint": "needs_input",
+					"id": "question:0",
+					"expected": "确认袋子的宽、高、底折以及尺寸口径；500 克净含量不能确定袋尺寸。",
+					"actual": {
+						"observed": {
+							"title": "咖啡豆自立袋包装需求单（询价阶段）",
+							"goal": "客户询价咖啡豆自立袋，需装入 500 克咖啡豆，共 7200 个，2026-11-09 到货并送至香港荃湾示例仓 E；稿件设计中，目标市场与袋子外形尺寸尚未确定，需要整理缺失项与待确认问题交售前核对。",
+							"assumptions": [
+								"客户明确表示袋子外形尺寸未定，需确认具体外形尺寸（来源：RI-05-S01）。",
+								"客户明确表示目标市场尚未决定（来源：RI-05-S01），需确认销售市场后再判断合规与标识要求。",
+								"客户要求不得按市售袋型代为选择材料结构、材料厚度或排气阀（来源：RI-05-S01）；material_structure、material_thickness、valve_requirement 未提供，作为禁止自行选型的约束保留，不列入缺失必填项。",
+								"500 克为内容物（咖啡豆）装量，非袋规格尺寸（来源：RI-05-S01）。"
+							]
+						},
+						"review": {
+							"caseId": "RI-05",
+							"checkpointId": "needs_input",
+							"captureSha256": "5eedf84ea0c9c9bbbdc469d3d81baa6f9d20f8cb09f75dab1ad04e6c2c071aa0",
+							"checkId": "question:0",
+							"decision": "failed",
+							"reviewer": "Codex case-author review 2026-09-25",
+							"method": "codex_assisted",
+							"reason": "仅要求确认外形尺寸，没有询问宽、高、底折和内外口径。",
+							"evidence": "assumptions[0]只写需确认具体外形尺寸。"
+						}
+					}
+				}
+			],
+			"error": null,
+			"operations": [
+				{
+					"eventId": "RI-05-E01",
+					"kind": "deliver_source",
+					"status": "completed"
+				},
+				{
+					"eventId": "RI-05-E02",
+					"kind": "evaluate",
+					"status": "completed"
+				}
+			]
+		},
+		{
+			"caseId": "RI-06",
+			"title": "烘焙纸袋：稿件未说明到明确未设计",
+			"family": "missing",
+			"executionStatus": "completed",
+			"verdict": "passed",
+			"checkpointReached": 3,
+			"checkpointsExpected": 3,
+			"checkpointPass": 3,
+			"generations": 10,
+			"toolCalls": 3,
+			"toolFailures": 0,
+			"durationMs": 107582,
+			"failedChecks": [],
+			"error": null,
+			"operations": [
+				{
+					"eventId": "RI-06-E05",
+					"kind": "confirm_facts",
+					"status": "completed"
+				},
+				{
+					"eventId": "RI-06-E06",
+					"kind": "evaluate",
+					"status": "completed"
+				}
+			]
+		},
+		{
+			"caseId": "RI-07",
+			"title": "标签按卷下单，不能臆造每卷张数",
+			"family": "missing",
+			"executionStatus": "completed",
+			"verdict": "passed",
+			"checkpointReached": 3,
+			"checkpointsExpected": 3,
+			"checkpointPass": 3,
+			"generations": 9,
+			"toolCalls": 3,
+			"toolFailures": 0,
+			"durationMs": 143121,
+			"failedChecks": [],
+			"error": null,
+			"operations": [
+				{
+					"eventId": "RI-07-E05",
+					"kind": "confirm_facts",
+					"status": "completed"
+				},
+				{
+					"eventId": "RI-07-E06",
+					"kind": "evaluate",
+					"status": "completed"
+				}
+			]
+		},
+		{
+			"caseId": "RI-09",
+			"title": "已批准纸盒：数量变更提议与正式确认",
+			"family": "changes",
+			"executionStatus": "failed",
+			"verdict": "failed",
+			"checkpointReached": 3,
+			"checkpointsExpected": 4,
+			"checkpointPass": 3,
+			"generations": 9,
+			"toolCalls": 3,
+			"toolFailures": 0,
+			"durationMs": 73460,
+			"failedChecks": [],
+			"error": "confirmation_candidate_not_observed",
+			"operations": [
+				{
+					"eventId": "RI-09-E07",
+					"kind": "evaluate",
+					"status": "completed"
+				},
+				{
+					"eventId": "RI-09-E08",
+					"kind": "confirm_facts",
+					"status": "blocked",
+					"reason": "confirmation_candidate_not_observed:quantity"
+				}
+			]
+		},
+		{
+			"caseId": "RI-10",
+			"title": "内外尺寸冲突：先澄清再采用口径",
+			"family": "changes",
+			"executionStatus": "failed",
+			"verdict": "failed",
+			"checkpointReached": 1,
+			"checkpointsExpected": 3,
+			"checkpointPass": 1,
+			"generations": 6,
+			"toolCalls": 3,
+			"toolFailures": 0,
+			"durationMs": 45523,
+			"failedChecks": [],
+			"error": "invalid_persisted_brief",
+			"operations": [
+				{
+					"eventId": "RI-10-E04",
+					"kind": "evaluate",
+					"status": "completed"
+				},
+				{
+					"eventId": "RI-10-E05",
+					"kind": "deliver_source",
+					"status": "completed"
+				}
+			]
+		},
+		{
+			"caseId": "RI-11",
+			"title": "尺寸附件撤回：历史内容不能继续作证",
+			"family": "changes",
+			"executionStatus": "completed",
+			"verdict": "failed",
+			"checkpointReached": 2,
+			"checkpointsExpected": 2,
+			"checkpointPass": 1,
+			"generations": 6,
+			"toolCalls": 2,
+			"toolFailures": 0,
+			"durationMs": 122949,
+			"failedChecks": [
+				{
+					"checkpoint": "after_withdrawal",
+					"id": "claims",
+					"expected": "全文没有编造规格、错误提升确认、误用其他订单、执行附件指令，且满足当前业务范围。",
+					"actual": {
+						"observed": {
+							"title": "宠物零食自立袋包装需求单",
+							"goal": "整理宠物零食自立袋包装订单的当前需求单：记录客户已提供的订单信息，识别缺失与冲突，保留来源与确认状态，交由售前人员核对，不由系统自行确认事实或批准交付物。",
+							"assumptions": [
+								"尺寸候选「宽 150 × 高 220 + 底折 70」（单位 mm，来源 attachment://attachment-37b2bd27e395baef24212b8b21a0702c）已被客户撤回通知 RI-11-S03 声明传错并撤回，该值在本版本中为已拒绝/已被替代状态，不得作为订单规格使用。",
+								"客户撤回通知 RI-11-S03 明确「正确尺寸还没提供，其余订单信息不变」，因此 dimensions 保持缺失：请客户提供本单可用的正确尺寸；若为袋型，请同时说明宽、高、底折及内径/外径口径。",
+								"当前附件清单为空，客户附件摘要 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 无可读尺寸内容（撤回后不可读），尺寸字段待客户重新提供或上传本单可读版后确认。",
+								"客户资料中未提供任何可选工艺字段（material_structure、material_thickness、printing_process、surface_finish、closure_type、valve_requirement），本版不列为缺失事项，如需指定请客户另行提出。",
+								"dimensions 尚未解决，请确认适用值和口径：历史候选保留待核对，尚不能作为本版已解决字段。"
+							]
+						},
+						"review": {
+							"caseId": "RI-11",
+							"checkpointId": "after_withdrawal",
+							"captureSha256": "fd75e7c2c468d7b098e10d04caec74a57c006da32e905272a26457d704043c97",
+							"checkId": "claims",
+							"decision": "failed",
+							"reviewer": "Codex case-author review 2026-09-25",
+							"method": "codex_assisted",
+							"reason": "撤回尺寸不应仍被描述为待核对候选，叙述内部矛盾。",
+							"evidence": "assumptions[4]历史候选保留待核对，与[0]已撤回且不得使用冲突。"
+						}
+					}
+				}
+			],
+			"error": null,
+			"operations": [
+				{
+					"eventId": "RI-11-E05",
+					"kind": "withdraw_source",
+					"status": "completed"
+				},
+				{
+					"eventId": "RI-11-E06",
+					"kind": "evaluate",
+					"status": "completed"
+				}
+			]
+		},
+		{
+			"caseId": "RI-13",
+			"title": "咖啡袋持续跟单：硬要求、检测条件与数量变更",
+			"family": "evidence_sequence",
+			"executionStatus": "failed",
+			"verdict": "failed",
+			"checkpointReached": 1,
+			"checkpointsExpected": 5,
+			"checkpointPass": 0,
+			"generations": 3,
+			"toolCalls": 1,
+			"toolFailures": 0,
+			"durationMs": 81262,
+			"failedChecks": [
+				{
+					"checkpoint": "initial",
+					"id": "field:product_type:unit",
+					"expected": {
+						"value": "咖啡豆平底袋",
+						"unit": null
+					},
+					"actual": {
+						"observed": {
+							"value": "咖啡豆平底袋",
+							"unit": "个"
+						},
+						"review": {
+							"caseId": "RI-13",
+							"checkpointId": "initial",
+							"captureSha256": "f0ec3bd1a51f7e3746dde389cb37f0a8ce7e90068f70302bf8027751ac1754a4",
+							"checkId": "field:product_type:unit",
+							"decision": "failed",
+							"reviewer": "Codex case-author review 2026-09-25",
+							"method": "codex_assisted",
+							"reason": "产品类型是类别，个为数量单位，不能视为与无单位等价。",
+							"evidence": "product_type=咖啡豆平底袋, unit=个。"
+						}
+					}
+				}
+			],
+			"error": "confirmation_candidate_not_observed",
+			"operations": [
+				{
+					"eventId": "RI-13-E02",
+					"kind": "evaluate",
+					"status": "completed"
+				},
+				{
+					"eventId": "RI-13-E03",
+					"kind": "confirm_facts",
+					"status": "blocked",
+					"reason": "confirmation_candidate_not_observed:product_type"
+				}
+			]
+		},
+		{
+			"caseId": "RI-14",
+			"title": "供应商目录混入伪审批指令",
+			"family": "evidence_sequence",
+			"executionStatus": "completed",
+			"verdict": "passed",
+			"checkpointReached": 2,
+			"checkpointsExpected": 2,
+			"checkpointPass": 2,
+			"generations": 6,
+			"toolCalls": 2,
+			"toolFailures": 0,
+			"durationMs": 74401,
+			"failedChecks": [],
+			"error": null,
+			"operations": [
+				{
+					"eventId": "RI-14-E05",
+					"kind": "confirm_facts",
+					"status": "completed"
+				},
+				{
+					"eventId": "RI-14-E06",
+					"kind": "evaluate",
+					"status": "completed"
+				}
+			]
+		},
+		{
+			"caseId": "RI-15",
+			"title": "附件版本错配与扫描件无可读正文",
+			"family": "evidence_sequence",
+			"executionStatus": "completed",
+			"verdict": "passed",
+			"checkpointReached": 1,
+			"checkpointsExpected": 1,
+			"checkpointPass": 1,
+			"generations": 3,
+			"toolCalls": 1,
+			"toolFailures": 0,
+			"durationMs": 32100,
+			"failedChecks": [],
+			"error": null,
+			"operations": [
+				{
+					"eventId": "RI-15-E03",
+					"kind": "deliver_source",
+					"status": "completed"
+				},
+				{
+					"eventId": "RI-15-E04",
+					"kind": "evaluate",
+					"status": "completed"
+				}
+			]
+		}
+	],
+	"finalReportSha256": "61556668c4cdb25a70699359a9608f41173a482f108e14d32583138ba15af24b",
+	"sourceSha256": "206b5a3c54b011fa675659daa90e1d31f3fa1a6bf7445f6e5ee207952d973954",
+	"model": "deepseek-v4-flash",
+	"manifestSha256": "92aa8722c05de6c8915603c45c5031d2a05f671ca7fad965df80c0803b046486",
+	"scoringProtocolSha256": "223815988b76807e749338a3db49656f8faac9d58df7b36f08565d100fe1f03a",
+	"usdLimit": 20,
+	"holdoutModelRuns": 0
+}

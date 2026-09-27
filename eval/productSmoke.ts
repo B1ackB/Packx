@@ -18,6 +18,7 @@ import type { ConversationView, RequirementBriefWorkspaceView, RuntimeActivity }
 import type { RequirementDelivery } from "../src/manufacturing/requirementDelivery";
 import type { ConversationFilesView, LocalFileLocations } from "../src/runtime/conversationFiles";
 import type { AnthropicMessageRequest } from "../server/anthropic/types";
+import type { RequirementTrialObservation } from "../src/manufacturing/requirementTrial";
 import { FileAgentStateStore } from "../server/runtime/fileAgentStateStore";
 import { FileCronScheduleStore } from "../server/enterprise/fileCronScheduleStore";
 import { FileEnterpriseEventStore } from "../server/enterprise/fileEventStore";
@@ -63,9 +64,9 @@ const provider = createServer(async (request, response) => {
 		content = [{ type: "tool_use", id: `source-${Date.now()}`, name: "project_source_read", input: { sourceId: "customer-brief" } }, ...ids.map((attachmentId) => ({ type: "tool_use", id: `inspect-${attachmentId}-${Date.now()}`, name: "asset_metadata_inspect", input: { attachmentId } }))];
 	} else if (requirement) {
 		const raw = JSON.stringify(blocks);
-		const sourceRef = raw.match(/attachment:\/\/[^\s"\\]+/g)?.[0]?.replace(/#page=\d+$/, "") ?? "runtime:fixture";
+		const sourceRef = raw.match(/attachment:\/\/[^\s"\\]+/g)?.[0]?.replace(/#page=\d+$/, "");
 		const values: Record<string, string | number> = { product_type: "咖啡豆自立袋", quantity: 5000, dimensions: "160 × 230 + 80 mm", target_market: "香港", target_delivery: "2026-11-30", delivery_location: "香港九龙", artwork_status: "品牌稿待提供" };
-		content = [{ type: "text", text: JSON.stringify(createRequirementBrief({ industry: "print", title: "咖啡包装需求单", customerGoal: "整理客户资料，确认数量、尺寸与交付要求。", facts: requiredRequirementFacts.print.map((key) => ({ key, version: 1, value: values[key]!, status: "unverified", sourceType: "model_output", sourceRef: `${sourceRef}#page=1` })) })) }];
+		content = [{ type: "text", text: JSON.stringify(createRequirementBrief({ industry: "print", title: "咖啡包装需求单", customerGoal: "整理客户资料，确认数量、尺寸与交付要求。", facts: requiredRequirementFacts.print.map((key) => ({ key, version: 1, value: values[key]!, status: "unverified", sourceType: "model_output", sourceRef: sourceRef ? `${sourceRef}#page=1` : "customer-brief" })) })) }];
 	} else if (JSON.stringify(last).includes("Attached source references") && !last.some((block) => block.type === "tool_result")) {
 		const id = JSON.stringify(last).match(/attachment-[a-f0-9]+/)?.[0];
 		content = [{ type: "tool_use", id: "document-read", name: "document_read", input: { attachmentId: id } }];
@@ -281,7 +282,10 @@ try {
 	assert.equal((await api(`${planBriefPath}/versions/1`)).delivery.sourcePlan, `plan:${planId}:version:1`);
 	if (!serve) {
 		await api(`${planBriefPath}/facts`, { requestId: "plan-material", key: "material_structure", value: "模拟材料要求，供演示核对" });
-		for (const key of [...requiredRequirementFacts.print, "material_structure"]) await api(`${planBriefPath}/facts/${key}/decision`, { requestId: `plan-confirm-${key}`, decision: "verified" });
+		for (const key of [...requiredRequirementFacts.print, "material_structure"]) {
+			const { state } = (await api(planBriefPath)).requirementBrief;
+			await api(`${planBriefPath}/facts/${key}/decision`, { requestId: `plan-confirm-${key}`, decision: "verified", expectedFactVersion: state.facts[key].version, expectedAggregateVersion: state.aggregateVersion });
+		}
 		await api(planBriefPath, { ...importBody, requestId: "plan-regenerate" });
 		assert.equal((await settlePlanBrief()).state.stageStatus, "waiting_approval");
 		await api(`${planBriefPath}/approval`, { requestId: "plan-approve-delivery", decision: "approved" });
@@ -416,13 +420,28 @@ try {
 	assert.equal((await fetch(`${baseUrl}${path}/model-calls`, { headers: { ...headers, "x-blackx-tenant-id": "other" } })).status, 403);
 	assert(!JSON.stringify(metrics).includes("offline-fixture-only"));
 
+	const trialWorkspace = (await api(`${path}/requirement-brief`)).requirementBrief;
+	assert.equal(trialWorkspace.factSources?.quantity.status, "available");
+	assert(trialWorkspace.factSources?.quantity.text?.includes("5000"));
+	const observationInput = { observationId: "smoke-observation", caseId: "SMOKE-SYNTHETIC", reviewerAlias: "automated-fixture", sourceKind: "synthetic", artifactVersion: 1, expectedAggregateVersion: trialWorkspace.state.aggregateVersion, startedAt: "2026-09-26T01:00:00.000Z", endedAt: "2026-09-26T01:01:00.000Z", recordedReviewMs: 30000, interruptions: 1, correctionCount: 0, criticalErrorCount: 0, outcome: "needs_work", notes: "Offline API fixture. Not a human trial." };
+	const observationsPath = `${path}/requirement-brief/trial-observations`;
+	const observation = (await api<{ observation: RequirementTrialObservation }>(observationsPath, observationInput)).observation;
+	assert.deepEqual((await api<{ observation: RequirementTrialObservation }>(observationsPath, observationInput)).observation, observation);
+	assert.deepEqual((await api<{ observation: RequirementTrialObservation }>(`${observationsPath}/smoke-observation`)).observation, observation);
+	assert.equal((await fetch(`${baseUrl}${observationsPath}/smoke-observation`)).status, 403);
+	assert.equal((await fetch(`${baseUrl}${observationsPath}/smoke-observation`, { headers: { ...headers, "x-blackx-actor-id": "other" } })).status, 403);
+	assert.equal((await api(`${path}/requirement-brief`)).requirementBrief.state.aggregateVersion, trialWorkspace.state.aggregateVersion);
+
 	if (serve) {
 		for (const name of ["packaging.docx", "packaging.xlsx"]) writeFileSync(join(documents, name), readFileSync(`server/testing/documents/${name}`));
 		writeFileSync(localDocument, "# 客户包装需求\n客户原文，尚未被 Agent 修改。");
 		console.log(JSON.stringify({ mode: "offline-browser-fixture", url: baseUrl, conversationId: id, fixtureDirectory: directory, localDirectory: documents, checks: "auth + real native PDF slice passed; draft ready" }));
 		await new Promise(() => {});
 	} else {
-		for (const key of requiredRequirementFacts.print) await api(`${path}/requirement-brief/facts/${key}/decision`, { requestId: `verify-${key}`, decision: "verified" });
+		for (const key of requiredRequirementFacts.print) {
+			const { state } = (await api(`${path}/requirement-brief`)).requirementBrief;
+			await api(`${path}/requirement-brief/facts/${key}/decision`, { requestId: `verify-${key}`, decision: "verified", expectedFactVersion: state.facts[key].version, expectedAggregateVersion: state.aggregateVersion });
+		}
 		await api(`${path}/requirement-brief`, { requestId: "smoke-revise", industry: "print" });
 		assert.equal((await settled()).state.stageStatus, "waiting_approval");
 		await api(`${path}/requirement-brief/approval`, { requestId: "smoke-approve", decision: "approved" });

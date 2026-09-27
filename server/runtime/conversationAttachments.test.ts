@@ -154,7 +154,8 @@ describe("FileConversationAttachmentStore", () => {
 			sourceRef: `conversation:${scope.conversationId}:attachments:${attachments.digest(scope)}`,
 		});
 
-		const result = await createProjectSourceReadTool(engine, attachments).execute(
+		const tool = createProjectSourceReadTool(engine, attachments);
+		const result = await tool.execute(
 			{ sourceId: "customer-brief" },
 			{
 				...runScope,
@@ -171,5 +172,11 @@ describe("FileConversationAttachmentStore", () => {
 			content: "quantity: 5000",
 			sourceRef: expect.stringMatching(/^attachment:\/\//),
 		})]);
+		const context = { ...runScope, stageId: "requirement-brief", actorId: "worker", executionId: "execution-a", toolCallId: "tool-a", idempotencyKey: "tool-a", signal: new AbortController().signal };
+		expect(() => tool.validateContextResult!({ sourceId: "customer-brief" }, JSON.stringify(result), context)).not.toThrow();
+		const source = attachments.list(scope)[0];
+		attachments.withdraw(scope, source.attachmentId, { requestId: "withdraw", actorId: "user-a", reason: "旧订单附件不再适用", sha256: source.sha256 });
+		expect(() => tool.validateContextResult!({ sourceId: "customer-brief" }, JSON.stringify(result), context)).toThrow();
+
 	});
 });

@@ -1,0 +1,16 @@
+{
+	"command": "npm run check",
+	"exitCode": 0,
+	"testFilesPassed": 92,
+	"testsPassed": 770,
+	"testsSkipped": 21,
+	"typecheck": "passed",
+	"productionBuild": "passed",
+	"logSha256": "e8211c9b5934b525b9fb87e17e59a85553b6aa0c8d7302a4f1380359917edb39",
+	"newTestsSincePriorCheck": 15,
+	"notes": [
+		"Same test suite includes offline boundary regression; these are not business task pass counts.",
+		"Reconstruct experimental code by extracting replay-base then its phase source overlay. Source archives contain no settings or API credentials.",
+		"Historical paid runners bind historical budgets. Do not use them to start another online run without carrying the newest complete budget and quarantined requests."
+	]
+}

@@ -1,0 +1,23 @@
+{
+	"protocol": "packx-local-delivery-check.v1",
+	"date": "2026-09-26",
+	"command": "npm run check:local",
+	"exitCode": 0,
+	"baseCommit": "ad2d2565c84ae9984dfadc28a5869897daea51a1",
+	"branch": "codex/requirement-evaluation-reliability",
+	"testFilesPassed": 94,
+	"testsPassed": 786,
+	"testsConditionallySkipped": 21,
+	"nativeTestsPassed": 30,
+	"nativeCountsOverlapMainSuite": true,
+	"typecheck": "passed",
+	"productionBuild": "passed",
+	"offlineEvaluations": "passed",
+	"nativeBuild": "passed",
+	"localHttpProductSmoke": "passed",
+	"newPaidModelCalls": 0,
+	"logPath": "docs/evidence/delivery-check-2026-09-26.log.gz",
+	"logGzipSha256": "b5bb2789025bb4efc6dfe46eacbcce26574c7ce7a0fdac316e2fa4bb09cf614d",
+	"logUncompressedSha256": "790152cc52120aa5171566f47afd062d27e8679fb0b91fa9be4841d3650f6d35",
+	"scope": "Local verification of the delivery worktree. Existing online reports retain their original incomplete/failed outcomes; no business success uplift is claimed."
+}

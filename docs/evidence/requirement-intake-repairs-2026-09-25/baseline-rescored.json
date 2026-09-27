@@ -1,0 +1,44 @@
+{
+	"protocol": "requirement-intake-scoring.v3",
+	"baselineReportSha256": "2663ba5cf206715c13132d93648f27713b2661b39760b33259eefab994cad7d4",
+	"manifestSha256": "92aa8722c05de6c8915603c45c5031d2a05f671ca7fad965df80c0803b046486",
+	"scoringProtocolSha256": "98f5d796d0c9663434cf6705d2c6d75684490d4d7e38be18a6ccf9d44987f5e0",
+	"passedTasks": 0,
+	"startedTasks": 12,
+	"passedCheckpoints": 9,
+	"reachedCheckpoints": 24,
+	"plannedCheckpoints": 31,
+	"changes": [
+		{
+			"caseId": "RI-10",
+			"checkpoint": "clarified",
+			"check": "field:dimensions:source",
+			"before": {
+				"id": "field:dimensions:source",
+				"category": "source",
+				"status": "failed",
+				"expected": [
+					"RI-10-S04"
+				],
+				"actual": {
+					"persisted": "runtime:318cd976-d654-41dd-8aea-af02469fe348",
+					"resolved": []
+				}
+			},
+			"after": {
+				"id": "field:dimensions:source",
+				"category": "source",
+				"status": "passed",
+				"expected": [
+					"RI-10-S04"
+				],
+				"actual": {
+					"persisted": "runtime:318cd976-d654-41dd-8aea-af02469fe348",
+					"resolved": [
+						"RI-10-S04"
+					]
+				}
+			}
+		}
+	]
+}

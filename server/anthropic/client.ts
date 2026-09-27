@@ -28,7 +28,11 @@ function record(value: unknown): value is Record<string, unknown> {
 }
 
 async function readJsonResponse(response: Response): Promise<Record<string, unknown>> {
-	const body: unknown = await response.json().catch(() => undefined);
+	const body: unknown = await response.json().catch((error: unknown) => {
+		// Do not disguise a broken success-response body as invalid JSON. Preserve known HTTP failures.
+		if (response.ok && !(error instanceof SyntaxError)) throw error;
+		return undefined;
+	});
 	if (!response.ok) {
 		const error = record(body) && record(body.error) ? body.error : undefined;
 		throw new AnthropicCompatibilityError(

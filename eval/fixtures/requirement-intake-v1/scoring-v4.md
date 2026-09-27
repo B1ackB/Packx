@@ -1,0 +1,9 @@
+# Requirement intake trial v4 — 2026-09-25
+
+Inputs, oracle, source boundaries and semantic scoring stay identical to v3. The original baseline remains frozen. Corrected baseline scores are 0/12 tasks and 9/24 reached checkpoints (31 planned). Preserve the intermediate v3 trial as trial-a, including its 2/12 tasks, 7/16 checkpoints and all unknowns; do not replace its failures with new outputs.
+
+V4 is a fresh full development-set trial after the observed v3 regressions: accept only a complete Markdown wrapper around otherwise valid JSON; reject genuinely malformed JSON without an unnecessary semantic-review call; ask clarification only for actual missing/conflicting input; avoid treating raw source bookkeeping or internal run IDs as customer requirements; retain verified fields when an unchanged text value already embeds the repeated unit. Facts and approvals remain controlled by the Host.
+
+The model alias, 12 cases, oracle, token limits, iteration limits, per-case generation/count limits and cumulative USD 20 reservation ceiling stay unchanged. The production evidence-review timeout increases from 60 to 120 seconds after two observed v3 timeouts; the intake timeout stays 120 seconds. This deadline change is part of the treatment and must be disclosed. This is a comparison of the combined repair, not an isolated causal estimate for one mechanism or an equal-deadline latency comparison.
+
+Carry every earlier reservation and every unresolved request into the new report. Never resume or relabel an unknown old call. New trial state is independent. Scores apply to the exact captured artifacts; reviews remain unblinded, uncalibrated Codex case-author judgments. Four holdouts stay unused. Do not claim production, multi-model, OCR, browser UI, crash-recovery or context-compaction performance from this trial.

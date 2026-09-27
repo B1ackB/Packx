@@ -1,0 +1,36 @@
+{
+	"schemaVersion": "requirement-intake-manifest.v1",
+	"suiteId": "requirement-intake.v1",
+	"status": "authored_not_model_evaluated",
+	"createdAt": "2026-09-25",
+	"caseCount": 16,
+	"checkpointCount": 43,
+	"development": [
+		"RI-01",
+		"RI-02",
+		"RI-03",
+		"RI-05",
+		"RI-06",
+		"RI-07",
+		"RI-09",
+		"RI-10",
+		"RI-11",
+		"RI-13",
+		"RI-14",
+		"RI-15"
+	],
+	"holdout": [
+		"RI-04",
+		"RI-08",
+		"RI-12",
+		"RI-16"
+	],
+	"holdoutPolicy": "Reserved for post-tuning validation, not blind to the author or repository readers. No hidden-set generalization claim.",
+	"provenance": "All inputs, attachments and operator actions are authored synthetic. No real customers, private data, professional production labels, actual PDF/OCR or online results.",
+	"files": {
+		"cases.json": "a4dd36723238207c14c0369ed1c6b78b47039ac4a532f765ad3c773a73f0943b",
+		"oracles.json": "9d01e8021078723869e26e77f16a8886fee2e4b4f1992288151992626b16c51c",
+		"CASEBOOK.md": "fee5fe18079347235e02c24328d35039497e38ecdcab18e80d1f0e1df1edd0a5",
+		"README.md": "cb967c4b38b1d75809daabf41baf0a6cf79fca50bd7d6d217be4a121d474bf99"
+	}
+}

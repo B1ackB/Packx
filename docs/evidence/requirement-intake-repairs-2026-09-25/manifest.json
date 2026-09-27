@@ -1,0 +1,136 @@
+{
+	"schemaVersion": "requirement-intake-repairs-evidence.v1",
+	"date": "2026-09-25",
+	"caseManifestSha256": "92aa8722c05de6c8915603c45c5031d2a05f671ca7fad965df80c0803b046486",
+	"finalSourceSha256": "8eeefbc01d1703176cb6ca1da531dfb4ad54e067c1603befe65ef103f5c0fb17",
+	"scoringProtocolSha256": "a0ebe80bc62799f0bfc1d6be4262176be827ad00fcfe1b50018f6cccaf812a5d",
+	"finalReportSha256": "f953fdb134f3b396ccaf5bca0ae6d1313fd9455c1358e62924f618aebce06b83",
+	"model": "deepseek-v4-flash",
+	"usdLimit": 20,
+	"cumulativeKnownUsageUsd": 0.89672628,
+	"retainedReservationUsd": 6.4163316,
+	"retainedUnknowns": 8,
+	"strictTasksPassed": 9,
+	"developmentCases": 12,
+	"plannedCheckpoints": 31,
+	"reachedCheckpoints": 29,
+	"passedCheckpoints": 27,
+	"holdoutModelRuns": 0,
+	"reviewMethod": "121 codex_assisted records; unblinded case-author review, not independent validation",
+	"sourceStillMatchesTestedCode": true,
+	"limitations": [
+		"synthetic development set",
+		"no repeated-seed confidence estimate",
+		"review timeout changed from 60 to 120 seconds after trial-a",
+		"no live browser/OCR/multimodel or real-model crash recovery claim",
+		"no compaction observed",
+		"unknown model usage is not a known invoice"
+	],
+	"files": [
+		{
+			"path": "baseline-rescored.json",
+			"bytes": 1097,
+			"sha256": "af83998085092381198b9465af515a887a51f504e47fa9f88bb48cfed1d6c694"
+		},
+		{
+			"path": "format-replay.json",
+			"bytes": 1477,
+			"sha256": "2417191265cc076d9e38541818099a5b3c4c7cb34bd3aa2036717a1e668ef8e8"
+		},
+		{
+			"path": "measurement-scripts.tar.gz",
+			"bytes": 5549,
+			"sha256": "d406ce3c461a75881c8b3e4b6c806f2ebcac85b217b2bd71d919d9a6308e3dc1"
+		},
+		{
+			"path": "scoring-v5-corrections.json",
+			"bytes": 3568,
+			"sha256": "f4dd827d2acd416cf0f5fa6c5c3f89c54b97b305efcb2d58be46668700e0e759"
+		},
+		{
+			"path": "trial-a.audit.json",
+			"bytes": 2085,
+			"sha256": "1269b9ae2d3497bd1c39dea7d9b70d5c5c78e5acd9a8defb6007d5ede0818af1"
+		},
+		{
+			"path": "trial-a.report.json.gz",
+			"bytes": 545435,
+			"sha256": "69fe938577599d786cef1a81c6449b8187a47ef8e4dbe060b7d00e9a7e863687"
+		},
+		{
+			"path": "trial-a.source.tar.gz",
+			"bytes": 394594,
+			"sha256": "5f315d346fdf6485df9d1af8a3bfb5fe78bfbddd910f200ea66c592e3651f895"
+		},
+		{
+			"path": "trial-a.state.tar.gz",
+			"bytes": 1462061,
+			"sha256": "95799289b64727cea1fa5ca86110ac5039477c643f3fd576d39cc13543024f98"
+		},
+		{
+			"path": "trial-a.summary.json",
+			"bytes": 34057,
+			"sha256": "9d9a2731c9d9f1cdc18688592f034f1dcfa6b5f7304010af03d41c3148d50549"
+		},
+		{
+			"path": "trial-b.audit.json",
+			"bytes": 2273,
+			"sha256": "c0b8011c8bc0dcd4dc917b9d0cbf06b13c5dd6dd67a40938612eba48e0bf964c"
+		},
+		{
+			"path": "trial-b.report.json.gz",
+			"bytes": 488655,
+			"sha256": "825d08b98e36f288da7600bd5994620c755e1969a4bf65b0b04fe3d8e44f45b9"
+		},
+		{
+			"path": "trial-b.source.tar.gz",
+			"bytes": 396163,
+			"sha256": "7dbadf24b9076fe749ab173903dfa633eb8f01e36bdef1939467a75b59e86b1a"
+		},
+		{
+			"path": "trial-b.state.tar.gz",
+			"bytes": 1253999,
+			"sha256": "55655b6caeb3b2713080b8f02d9f2398719dad7879df2438abda679a123b5dfc"
+		},
+		{
+			"path": "trial-b.summary.json",
+			"bytes": 17049,
+			"sha256": "6507745a0aa533de04f6505adf441604a9b96920d764dd252873f897ac9089d3"
+		},
+		{
+			"path": "trial-c.audit.json",
+			"bytes": 2472,
+			"sha256": "e918c9cfff8dd4b9df246ee8fc55f62630cd2c339cbc13ba31fcd51f3357af33"
+		},
+		{
+			"path": "trial-c.report.json.gz",
+			"bytes": 686613,
+			"sha256": "41ae4643ac002d5aa8313c697a29d4884579a2cadcaa259c292f399f9853f912"
+		},
+		{
+			"path": "trial-c.source.tar.gz",
+			"bytes": 398029,
+			"sha256": "4b9dda9940b0a5d3d4ade2e9412eec9cfb9415fd48344bbbe84e9546b3dee2d0"
+		},
+		{
+			"path": "trial-c.state.tar.gz",
+			"bytes": 1447471,
+			"sha256": "3b17e5ee376135bfd2069b7c8a5ca7190f4b9359303794a9cee1b88a30d3d1b8"
+		},
+		{
+			"path": "trial-c.summary.json",
+			"bytes": 13961,
+			"sha256": "d53210dea602dff24e7a38e471e7068af30e381984c791227eff52de3e31d2ea"
+		},
+		{
+			"path": "verification.json",
+			"bytes": 1186,
+			"sha256": "6ffb23a576193ec599d694720755625d154a0053230e2e27a789db4773183381"
+		},
+		{
+			"path": "verification.logs.tar.gz",
+			"bytes": 2745,
+			"sha256": "fbb4a98fd285d6ebcc3d2341f1141a741c041b182a87eb18e9efa2eb6d5b1e9c"
+		}
+	]
+}

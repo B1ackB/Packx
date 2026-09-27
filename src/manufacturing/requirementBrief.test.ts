@@ -3,6 +3,17 @@ import { requirementBriefFixtures } from "./requirementBrief.fixtures";
 import { createRequirementBrief, evaluateRequirementBrief, normalizeRequirementFactKey } from "./requirementBrief";
 
 describe("M2 Requirement Brief baseline", () => {
+	it("keeps specific required questions until their fields are supplied without reopening optional specifications", () => {
+		const baseline = structuredClone(requirementBriefFixtures[0].artifact);
+		const missing = createRequirementBrief({ ...baseline, facts: baseline.facts.filter((f) => !["dimensions", "quantity"].includes(f.key)), assumptions: ["不得使用 PVC"] });
+		expect(missing.assumptions.join()).toContain("宽、高、底折");
+		expect(missing.assumptions.join()).toContain("内尺寸或外尺寸");
+		expect(missing.assumptions.join()).toContain("每卷/箱数量");
+		expect(missing.assumptions.join()).not.toContain("厚度");
+		const supplied = createRequirementBrief({ ...baseline, assumptions: missing.assumptions });
+		expect(supplied.assumptions).toEqual(["不得使用 PVC"]);
+		expect(supplied.facts).toEqual(baseline.facts);
+	});
 	it("keeps optional packaging details in drafts and requires their explicit confirmation before approval", () => {
 		const baseline = structuredClone(requirementBriefFixtures[0].artifact);
 		const material = { ...baseline.facts[0], key: "material_structure", value: "模拟客户材料说明，尚待核对", status: "unverified" as const, sourceType: "model_output" as const };

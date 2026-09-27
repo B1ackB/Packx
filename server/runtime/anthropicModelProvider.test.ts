@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { AnthropicMessagesClient } from "../anthropic/client";
-import { AnthropicModelProvider } from "./anthropicModelProvider";
+import { AnthropicGenerationError, AnthropicModelProvider } from "./anthropicModelProvider";
 
 describe("AnthropicModelProvider", () => {
 	it("maps generic Agent messages, tools, schema, response and usage", async () => {
@@ -172,4 +172,25 @@ describe("AnthropicModelProvider", () => {
 			})).rejects.toBeDefined();
 		}
 	});
+});
+
+// Received failures must remain failures even if their partial body happens to be valid JSON.
+it.each(["max_tokens", "refusal", "pause_turn", "model_context_window_exceeded"])("retains sanitized accounting for %s without exposing partial content", async (stopReason) => {
+	const provider = new AnthropicModelProvider(new AnthropicMessagesClient({ baseUrl: "https://example.invalid", apiKey: "test-key",
+		fetch: async () => new Response(JSON.stringify({ model: "secret invalid model", stop_reason: stopReason,
+			content: [{ type: "text", text: '{"issues":[]}' }, { type: "thinking", thinking: "secret reasoning", signature: "secret signature" }, { type: "tool_use", id: "partial", name: "publish", input: { secret: true } }],
+			usage: { input_tokens: 100, output_tokens: 8192, cache_read_input_tokens: 20, output_tokens_details: { thinking_tokens: 8000 } },
+		}), { headers: { "content-type": "application/json" } }),
+	}), "configured-model");
+	const error = await provider.generate({ messages: [{ role: "user", content: "check" }], tools: [], fallbackOutput: "" }).catch((error: unknown) => error);
+	expect(error).toBeInstanceOf(AnthropicGenerationError);
+	expect(error).toMatchObject({ usage: { inputTokens: 100, cachedInputTokens: 20, outputTokens: 8192, reasoningOutputTokens: 8000 }, telemetry: { model: "configured-model", stopReason } });
+	expect(JSON.stringify(error)).not.toMatch(/secret|issues|publish|partial/);
+});
+
+it.each([{ input_tokens: -1, output_tokens: 5 }, { input_tokens: 1, output_tokens: 1.5 }, { input_tokens: 1, output_tokens: 5, cache_read_input_tokens: -2 }, { input_tokens: 1, output_tokens: 5, output_tokens_details: { thinking_tokens: "5" } }])("refuses invalid failure accounting: %j", async (usage) => {
+	const provider = new AnthropicModelProvider(new AnthropicMessagesClient({ baseUrl: "https://example.invalid", apiKey: "test-key",
+		fetch: async () => new Response(JSON.stringify({ stop_reason: "max_tokens", content: [], usage }), { headers: { "content-type": "application/json" } }),
+	}), "model");
+	await expect(provider.generate({ messages: [{ role: "user", content: "check" }], tools: [], fallbackOutput: "" })).rejects.toMatchObject({ code: "invalid_response" });
 });

@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { ModelTelemetryStore, type ObservedModelResponse } from "./modelTelemetry";
 import { summarizeModelCalls } from "../../src/runtime/modelTelemetry";
 import { AnthropicCompatibilityError } from "../anthropic/client";
+import { AnthropicGenerationError } from "./anthropicModelProvider";
 const roots: string[] = [];
 afterEach(() => { roots.splice(0).forEach((root) => rmSync(root, { recursive: true, force: true })); });
 const scope = { tenantId: "tenant", workspaceId: "workspace", runId: "conversation" };
@@ -58,4 +59,25 @@ describe("model call telemetry", () => {
 		expect(store.view(scope).calls.some((call) => call.id === "seed-0")).toBe(false);
 		expect(store.view(scope).calls).toHaveLength(200); expect(store.view(scope).truncated).toBe(true);
 	});
+});
+
+it("persists a received failure's usage across restart while keeping it failed and redacted", async () => {
+	const { root, store } = setup();
+	const error = new AnthropicGenerationError("output_limit", "secret error text", 422, result.usage, { ...result.telemetry!, stopReason: "max_tokens" });
+	const provider = store.wrap({ generate: async () => { throw error; } }, scope, "execution");
+	await expect(provider.generate(request)).rejects.toBe(error);
+	const calls = new ModelTelemetryStore(root, "configured-model").view(scope).calls;
+	expect(calls[0]).toMatchObject({ status: "failed", usage: result.usage, response: { stopReason: "max_tokens" } });
+	expect(summarizeModelCalls(calls)).toMatchObject({ failed: 1, succeeded: 0, responses: 1, outputTokens: 20 });
+	expect(JSON.stringify(calls)).not.toContain("secret");
+});
+
+it("persists a fixed transport category without inventing usage or retaining private errors", async () => {
+	const { root, store } = setup();
+	const error = new TypeError("secret URL", { cause: Object.assign(new Error("secret socket"), { code: "UND_ERR_SOCKET" }) });
+	await expect(store.wrap({ generate: async () => { throw error; } }, scope, "execution").generate(request)).rejects.toBe(error);
+	const call = new ModelTelemetryStore(root, "configured-model").view(scope).calls[0];
+	expect(call).toMatchObject({ status: "failed", failure: "transport_failure" });
+	expect(call.usage).toBeUndefined(); expect(call.response).toBeUndefined();
+	expect(JSON.stringify(call)).not.toContain("secret");
 });

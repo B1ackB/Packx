@@ -526,3 +526,18 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .task-name-form { margin-top: 8px; }
 .task-name-form button { padding: 6px 10px; border: 1px solid #c6baaa; border-radius: 5px; color: #26332d; background: #f8f2e8; cursor: pointer; }
 .sidebar-footer > .secondary-action { color: #26332d; margin: 0 0 12px; }
+
+.fact-source { margin-top: 6px; font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.fact-source summary { cursor: pointer; color: #605340; }
+.fact-source blockquote { margin: 8px 0; padding: 10px; border-left: 2px solid #b8aa97; background: #f1ede6; white-space: pre-wrap; max-height: 220px; overflow-y: auto; }
+.fact-change { margin-top: 8px; padding: 10px; border: 1px solid #ccb68e; background: #faf4e7; font-size: 12px; }
+.fact-change p { margin: 5px 0; }
+.fact-row > div:first-child { flex: 1; }
+
+.trial-recorder { font-size: 12px; line-height: 1.6; }
+.trial-recorder summary { cursor: pointer; }
+.trial-recorder fieldset { display: grid; gap: 8px; padding: 0; border: 0; }
+.trial-recorder label { display: grid; gap: 3px; }
+.trial-recorder input, .trial-recorder select, .trial-recorder textarea { box-sizing: border-box; width: 100%; padding: 7px; border: 1px solid #b8aa97; background: #fffcf7; color: inherit; font: inherit; }
+.trial-recorder button { padding: 7px; cursor: pointer; }
+.trial-recorder button:disabled { opacity: .5; cursor: default; }

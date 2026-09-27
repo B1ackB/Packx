@@ -1,0 +1,119 @@
+{
+	"protocol": "pending-change-repair-archive.v1",
+	"status": "completed",
+	"planSha256": "7fbb1eb7455d0595a61489e4609645ee4c58fbe298f8e21d845e5369d93d1021",
+	"reportSha256": "c31dccf3f25d2144f77dcff13a947d89282bd4eecd8cc5e5b558ca94a24182cf",
+	"priorArchive": "context.manifest.json",
+	"priorReportSha256": "14aa336808b3e55abfda63e661965470a684829462ba22ae41331c05307b2c7c",
+	"totalUsdLimit": 20,
+	"priorReservedUsd": 11.804662319999997,
+	"reservedUsd": 12.343839119999997,
+	"phaseKnownUsageUsd": 0.102160644,
+	"plannedAttempts": 6,
+	"recordedAttempts": 6,
+	"notes": [
+		"Six fresh development regressions selected after observed failures; not holdout and not an updated 12-case matrix.",
+		"Prior reservations and unresolved usage are retained without replay."
+	],
+	"files": [
+		{
+			"path": "repair.plan.json.gz",
+			"sha256": "e180226ec2b5cad623305c465e4ccc8ec48918de54013920e1313ad55274a2b1",
+			"uncompressedSha256": "7fbb1eb7455d0595a61489e4609645ee4c58fbe298f8e21d845e5369d93d1021"
+		},
+		{
+			"path": "repair.report.json.gz",
+			"sha256": "f260e4b08d9e2c97f23de76428999e348693c8307972c7396d71e2235ffa088c",
+			"uncompressedSha256": "c31dccf3f25d2144f77dcff13a947d89282bd4eecd8cc5e5b558ca94a24182cf"
+		},
+		{
+			"path": "repair.analysis.json.gz",
+			"sha256": "e2ea71756eb74b6dcb38ed23fbad4cb2da38864d44217a4660f9eb353156a140",
+			"uncompressedSha256": "c7a06c58df18e738c96760ad14a6e65eac7de93095e55d8ec9f55d74b310d3a9"
+		},
+		{
+			"path": "repair.analysis-source.py.gz",
+			"sha256": "4deecf77426b43582dfaa55c0f6d38b1e901763f5d40b51b4e895bd9fb39a62e",
+			"uncompressedSha256": "c6b372959a9561bde602449c3feb27cfe2e5e371f07e92ed3f4a99af60b57dfa"
+		},
+		{
+			"path": "repair.tool-reconciliation.json.gz",
+			"sha256": "a5d8717e375fdc0df1848f2ca81cc2f34f85d50f5107ba06a20cf068986aeae3",
+			"uncompressedSha256": "a18dca645539cc5ae0248e2a8e5027268bdbd15b6c73c039bb0b3a7c7b856522"
+		},
+		{
+			"path": "repair.tool-reconciliation-source.py.gz",
+			"sha256": "cf368312f056fe1f25b6f79c6cd4c30ea90dff0cae9f76c54fe6c6d9b420ea37",
+			"uncompressedSha256": "acae63aa089b95fc4f67d190443f45145ffb899e00d709c5d96801a04295901e"
+		},
+		{
+			"path": "repair-AI-09-1.json.gz",
+			"sha256": "952793e0694aaf4b2093f1f7677e092f25457537014a42f9cd143b4ded443390",
+			"uncompressedSha256": "8427c3beec0d580bbb7d257ec6cc246960f5d7a30eab4a01d65ffd023ba77612"
+		},
+		{
+			"path": "repair-AI-13-1.json.gz",
+			"sha256": "1469cec4451c80342785d44cf6f00186fe25c5409ddee8a5e7cc86b4140477e5",
+			"uncompressedSha256": "77bdac46fd8cdd89a1c1d5896a0f4dd2d71996068303bb54a9117cca0559ccc8"
+		},
+		{
+			"path": "repair-AI-09-2.json.gz",
+			"sha256": "980c4722c2066fe0f3cf907ce743e17e66e725eddba78d424752ca93b93312dd",
+			"uncompressedSha256": "c263a2d427e33db88dedfdb7d905c3f3036934b07ace0c5e86b757641a9a025b"
+		},
+		{
+			"path": "repair-AI-13-2.json.gz",
+			"sha256": "4308f8b0f704437da5413617e92481390ed371f66bccf44591f7be3e9334e0ab",
+			"uncompressedSha256": "d37c9cfa58df54568cfe2b736863603b73ab299369aa1755c405119c8dc000f3"
+		},
+		{
+			"path": "repair-AI-09-3.json.gz",
+			"sha256": "d8a663b650b73de43baf5da6d39abb940474652c94b88d786d64e411ba227221",
+			"uncompressedSha256": "9b80bcf74f8bd47dd3d764a093022cdb40f6bb7a884be3d570d5a6c38a93c7b5"
+		},
+		{
+			"path": "repair-AI-13-3.json.gz",
+			"sha256": "85df5ae0d271efde061201328a700b723b8a5d7f66ac50660e72b9c309eb7332",
+			"uncompressedSha256": "d0d8d4e87de83961d6e68d0ddb6232c422bbadd55f0ac65bde9e11f1b7fd270c"
+		},
+		{
+			"path": "repair.runner.ts.gz",
+			"sha256": "042611805df7816ca09a9f675cfd33b4cf0b3cbdd839450a71848b6803e98a57",
+			"uncompressedSha256": "68239f4bdcdbde7c4cc5ab6d8d3ca79ec6130994c9f07580a50fd0aaea5161ed"
+		},
+		{
+			"path": "repair.replay.ts.gz",
+			"sha256": "7e6bf2fada2abcdbb96ebb310a46d5aa386e01760f4288fafca1383a52d93e0f",
+			"uncompressedSha256": "a917e9e2ce639911976146b6351d55e64797bc037502619c3dce232a5db81d29"
+		},
+		{
+			"path": "repair.patch.gz",
+			"sha256": "b587ed70f7163e420abbc092e36ae1f31011003b8a9afdfab79d3ab799c25cf2",
+			"uncompressedSha256": "a102840df1e0f4005c34a4cd4c0fc2dc9f48dc29bed3f2798427054b64de868c"
+		},
+		{
+			"path": "repair.offline-verification.json.gz",
+			"sha256": "af1baa372f7afd4e9a94ed0204cd098e4fee4085508c6877a786187c208cbd23",
+			"uncompressedSha256": "7592342e865801500a4359ff83407b7f8c5e32b3406c2dc55ff7b0146d594e4a"
+		},
+		{
+			"path": "verification.log.gz",
+			"sha256": "f8a4eea15fcaa3b189840c5525502e04c64d6706d1bfb627e68f1e40bf797e5e",
+			"uncompressedSha256": "c3da8813b70a3cf4329b571b8cf83f892f8c44d55998434ee165e3a4ba140598"
+		},
+		{
+			"path": "verification.json.gz",
+			"sha256": "3d96d8bdc6cb49a6751ede467343639fda04d9855b76d6f6c627ac2065857921",
+			"uncompressedSha256": "b13c0c3aea1501f57bf66af48f85c4403e41d9b2d2cd8c52f4b785a4702dbc17"
+		},
+		{
+			"path": "repair.archive-source.py.gz",
+			"sha256": "b99c6c821259c38a5965a630876478e4fbbe4cbe98a9bee29ac424357d9e7fed",
+			"uncompressedSha256": "daebd25556aa1eeef614ded36c674872ba73d327e87217f84635479f0e295975"
+		},
+		{
+			"path": "repair.source.tar.gz",
+			"sha256": "b85dccf6b5ba8cf3c5a7a454cae4ddf391296d63cc56bf28c40ad412d15a6451"
+		}
+	]
+}

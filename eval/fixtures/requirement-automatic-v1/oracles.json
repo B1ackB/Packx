@@ -1,0 +1,3375 @@
+[
+	{
+		"caseId": "AI-01",
+		"checkpoints": [
+			{
+				"id": "draft",
+				"expectedFacts": [
+					{
+						"key": "product_type",
+						"value": "茶叶圆罐",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-01-S01",
+								"quote": "茶叶圆罐"
+							}
+						]
+					},
+					{
+						"key": "quantity",
+						"value": 3600,
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-01-S01",
+								"quote": "3600"
+							}
+						],
+						"unit": "pcs"
+					},
+					{
+						"key": "dimensions",
+						"value": "外径 90 × 高 135 mm",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-01-S01",
+								"quote": "外径 90 × 高 135 mm"
+							}
+						]
+					},
+					{
+						"key": "target_market",
+						"value": "香港",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-01-S01",
+								"quote": "香港"
+							}
+						]
+					},
+					{
+						"key": "target_delivery",
+						"value": "2026-11-18",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-01-S01",
+								"quote": "2026-11-18"
+							}
+						]
+					},
+					{
+						"key": "delivery_location",
+						"value": "香港葵涌示例仓 A",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-01-S01",
+								"quote": "香港葵涌示例仓 A"
+							}
+						]
+					},
+					{
+						"key": "artwork_status",
+						"value": "定稿已提供",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-01-S01",
+								"quote": "定稿已提供"
+							}
+						]
+					}
+				],
+				"missingRequiredFacts": [],
+				"schemaNextAction": "confirm_facts",
+				"schemaApprovalEligible": false,
+				"businessOutcome": "awaiting_confirmation",
+				"businessApprovalAllowed": false,
+				"requiredNotes": [],
+				"clarificationTopics": [],
+				"forbiddenClaims": [],
+				"artifactRequired": true,
+				"expectedPendingChanges": []
+			},
+			{
+				"id": "confirmed",
+				"expectedFacts": [
+					{
+						"key": "product_type",
+						"value": "茶叶圆罐",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-01-S01",
+								"quote": "茶叶圆罐"
+							}
+						],
+						"confirmedBy": "RI-01-E03"
+					},
+					{
+						"key": "quantity",
+						"value": 3600,
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-01-S01",
+								"quote": "3600"
+							}
+						],
+						"unit": "pcs",
+						"confirmedBy": "RI-01-E03"
+					},
+					{
+						"key": "dimensions",
+						"value": "外径 90 × 高 135 mm",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-01-S01",
+								"quote": "外径 90 × 高 135 mm"
+							}
+						],
+						"confirmedBy": "RI-01-E03"
+					},
+					{
+						"key": "target_market",
+						"value": "香港",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-01-S01",
+								"quote": "香港"
+							}
+						],
+						"confirmedBy": "RI-01-E03"
+					},
+					{
+						"key": "target_delivery",
+						"value": "2026-11-18",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-01-S01",
+								"quote": "2026-11-18"
+							}
+						],
+						"confirmedBy": "RI-01-E03"
+					},
+					{
+						"key": "delivery_location",
+						"value": "香港葵涌示例仓 A",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-01-S01",
+								"quote": "香港葵涌示例仓 A"
+							}
+						],
+						"confirmedBy": "RI-01-E03"
+					},
+					{
+						"key": "artwork_status",
+						"value": "定稿已提供",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-01-S01",
+								"quote": "定稿已提供"
+							}
+						],
+						"confirmedBy": "RI-01-E03"
+					}
+				],
+				"missingRequiredFacts": [],
+				"schemaNextAction": "ready_for_approval",
+				"schemaApprovalEligible": true,
+				"businessOutcome": "ready_for_review",
+				"businessApprovalAllowed": true,
+				"requiredNotes": [],
+				"clarificationTopics": [],
+				"forbiddenClaims": [],
+				"artifactRequired": true,
+				"expectedPendingChanges": []
+			}
+		],
+		"transitions": [
+			{
+				"fromCheckpoint": "draft",
+				"toCheckpoint": "confirmed",
+				"changedFactKeys": [
+					"product_type",
+					"quantity",
+					"dimensions",
+					"target_market",
+					"target_delivery",
+					"delivery_location",
+					"artwork_status"
+				],
+				"approvalEventId": null,
+				"checks": [
+					"artifact_version_increases",
+					"previous_artifact_content_unchanged",
+					"previous_artifact_stale",
+					"changed_fact_versions_increase"
+				]
+			}
+		]
+	},
+	{
+		"caseId": "AI-02",
+		"checkpoints": [
+			{
+				"id": "draft",
+				"expectedFacts": [
+					{
+						"key": "product_type",
+						"value": "电商运输纸箱",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-02-S01",
+								"quote": "电商运输纸箱"
+							}
+						]
+					},
+					{
+						"key": "quantity",
+						"value": 1800,
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-02-S01",
+								"quote": "1800"
+							}
+						],
+						"unit": "pcs"
+					},
+					{
+						"key": "dimensions",
+						"value": "外尺寸 320 × 240 × 160 mm",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-02-S02",
+								"quote": "外尺寸 320 × 240 × 160 mm"
+							}
+						]
+					},
+					{
+						"key": "target_market",
+						"value": "中国内地",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-02-S01",
+								"quote": "中国内地"
+							}
+						]
+					},
+					{
+						"key": "target_delivery",
+						"value": "2026-10-28",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-02-S01",
+								"quote": "2026-10-28"
+							}
+						]
+					},
+					{
+						"key": "delivery_location",
+						"value": "深圳宝安示例仓 B",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-02-S01",
+								"quote": "深圳宝安示例仓 B"
+							}
+						]
+					},
+					{
+						"key": "artwork_status",
+						"value": "仅有品牌 Logo，版面待设计",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-02-S02",
+								"quote": "仅有品牌 Logo，版面待设计"
+							}
+						]
+					}
+				],
+				"missingRequiredFacts": [],
+				"schemaNextAction": "confirm_facts",
+				"schemaApprovalEligible": false,
+				"businessOutcome": "awaiting_confirmation",
+				"businessApprovalAllowed": false,
+				"requiredNotes": [],
+				"clarificationTopics": [],
+				"forbiddenClaims": [],
+				"artifactRequired": true,
+				"expectedPendingChanges": []
+			},
+			{
+				"id": "confirmed",
+				"expectedFacts": [
+					{
+						"key": "product_type",
+						"value": "电商运输纸箱",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-02-S01",
+								"quote": "电商运输纸箱"
+							}
+						],
+						"confirmedBy": "RI-02-E04"
+					},
+					{
+						"key": "quantity",
+						"value": 1800,
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-02-S01",
+								"quote": "1800"
+							}
+						],
+						"unit": "pcs",
+						"confirmedBy": "RI-02-E04"
+					},
+					{
+						"key": "dimensions",
+						"value": "外尺寸 320 × 240 × 160 mm",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-02-S02",
+								"quote": "外尺寸 320 × 240 × 160 mm"
+							}
+						],
+						"confirmedBy": "RI-02-E04"
+					},
+					{
+						"key": "target_market",
+						"value": "中国内地",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-02-S01",
+								"quote": "中国内地"
+							}
+						],
+						"confirmedBy": "RI-02-E04"
+					},
+					{
+						"key": "target_delivery",
+						"value": "2026-10-28",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-02-S01",
+								"quote": "2026-10-28"
+							}
+						],
+						"confirmedBy": "RI-02-E04"
+					},
+					{
+						"key": "delivery_location",
+						"value": "深圳宝安示例仓 B",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-02-S01",
+								"quote": "深圳宝安示例仓 B"
+							}
+						],
+						"confirmedBy": "RI-02-E04"
+					},
+					{
+						"key": "artwork_status",
+						"value": "仅有品牌 Logo，版面待设计",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-02-S02",
+								"quote": "仅有品牌 Logo，版面待设计"
+							}
+						],
+						"confirmedBy": "RI-02-E04"
+					}
+				],
+				"missingRequiredFacts": [],
+				"schemaNextAction": "ready_for_approval",
+				"schemaApprovalEligible": true,
+				"businessOutcome": "ready_for_review",
+				"businessApprovalAllowed": true,
+				"requiredNotes": [],
+				"clarificationTopics": [],
+				"forbiddenClaims": [],
+				"artifactRequired": true,
+				"expectedPendingChanges": []
+			}
+		],
+		"transitions": [
+			{
+				"fromCheckpoint": "draft",
+				"toCheckpoint": "confirmed",
+				"changedFactKeys": [
+					"product_type",
+					"quantity",
+					"dimensions",
+					"target_market",
+					"target_delivery",
+					"delivery_location",
+					"artwork_status"
+				],
+				"approvalEventId": null,
+				"checks": [
+					"artifact_version_increases",
+					"previous_artifact_content_unchanged",
+					"previous_artifact_stale",
+					"changed_fact_versions_increase"
+				]
+			}
+		]
+	},
+	{
+		"caseId": "AI-03",
+		"checkpoints": [
+			{
+				"id": "draft",
+				"expectedFacts": [
+					{
+						"key": "product_type",
+						"value": "bottle labels",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-03-S01",
+								"quote": "bottle labels"
+							}
+						]
+					},
+					{
+						"key": "quantity",
+						"value": 42000,
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-03-S01",
+								"quote": "42000"
+							}
+						],
+						"unit": "pcs"
+					},
+					{
+						"key": "dimensions",
+						"value": "76 × 48 mm",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-03-S01",
+								"quote": "76 × 48 mm"
+							}
+						]
+					},
+					{
+						"key": "target_market",
+						"value": "Singapore",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-03-S01",
+								"quote": "Singapore"
+							}
+						]
+					},
+					{
+						"key": "target_delivery",
+						"value": "2026-12-03",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-03-S01",
+								"quote": "2026-12-03"
+							}
+						]
+					},
+					{
+						"key": "delivery_location",
+						"value": "Singapore example warehouse C",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-03-S01",
+								"quote": "Singapore example warehouse C"
+							}
+						]
+					},
+					{
+						"key": "artwork_status",
+						"value": "print artwork supplied, preflight pending",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-03-S01",
+								"quote": "print artwork supplied, preflight pending"
+							}
+						]
+					},
+					{
+						"key": "material_thickness",
+						"value": 0.06,
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-03-S01",
+								"quote": "0.06 mm"
+							}
+						],
+						"unit": "mm"
+					}
+				],
+				"missingRequiredFacts": [],
+				"schemaNextAction": "confirm_facts",
+				"schemaApprovalEligible": false,
+				"businessOutcome": "awaiting_confirmation",
+				"businessApprovalAllowed": false,
+				"requiredNotes": [],
+				"clarificationTopics": [],
+				"forbiddenClaims": [],
+				"artifactRequired": true,
+				"expectedPendingChanges": []
+			},
+			{
+				"id": "required_confirmed",
+				"expectedFacts": [
+					{
+						"key": "product_type",
+						"value": "bottle labels",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-03-S01",
+								"quote": "bottle labels"
+							}
+						],
+						"confirmedBy": "RI-03-E03"
+					},
+					{
+						"key": "quantity",
+						"value": 42000,
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-03-S01",
+								"quote": "42000"
+							}
+						],
+						"unit": "pcs",
+						"confirmedBy": "RI-03-E03"
+					},
+					{
+						"key": "dimensions",
+						"value": "76 × 48 mm",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-03-S01",
+								"quote": "76 × 48 mm"
+							}
+						],
+						"confirmedBy": "RI-03-E03"
+					},
+					{
+						"key": "target_market",
+						"value": "Singapore",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-03-S01",
+								"quote": "Singapore"
+							}
+						],
+						"confirmedBy": "RI-03-E03"
+					},
+					{
+						"key": "target_delivery",
+						"value": "2026-12-03",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-03-S01",
+								"quote": "2026-12-03"
+							}
+						],
+						"confirmedBy": "RI-03-E03"
+					},
+					{
+						"key": "delivery_location",
+						"value": "Singapore example warehouse C",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-03-S01",
+								"quote": "Singapore example warehouse C"
+							}
+						],
+						"confirmedBy": "RI-03-E03"
+					},
+					{
+						"key": "artwork_status",
+						"value": "print artwork supplied, preflight pending",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-03-S01",
+								"quote": "print artwork supplied, preflight pending"
+							}
+						],
+						"confirmedBy": "RI-03-E03"
+					},
+					{
+						"key": "material_thickness",
+						"value": 0.06,
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-03-S01",
+								"quote": "0.06 mm"
+							}
+						],
+						"unit": "mm"
+					}
+				],
+				"missingRequiredFacts": [],
+				"schemaNextAction": "confirm_facts",
+				"schemaApprovalEligible": false,
+				"businessOutcome": "awaiting_confirmation",
+				"businessApprovalAllowed": false,
+				"requiredNotes": [],
+				"clarificationTopics": [],
+				"forbiddenClaims": [],
+				"artifactRequired": true,
+				"expectedPendingChanges": []
+			},
+			{
+				"id": "all_confirmed",
+				"expectedFacts": [
+					{
+						"key": "product_type",
+						"value": "bottle labels",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-03-S01",
+								"quote": "bottle labels"
+							}
+						],
+						"confirmedBy": "RI-03-E03"
+					},
+					{
+						"key": "quantity",
+						"value": 42000,
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-03-S01",
+								"quote": "42000"
+							}
+						],
+						"unit": "pcs",
+						"confirmedBy": "RI-03-E03"
+					},
+					{
+						"key": "dimensions",
+						"value": "76 × 48 mm",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-03-S01",
+								"quote": "76 × 48 mm"
+							}
+						],
+						"confirmedBy": "RI-03-E03"
+					},
+					{
+						"key": "target_market",
+						"value": "Singapore",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-03-S01",
+								"quote": "Singapore"
+							}
+						],
+						"confirmedBy": "RI-03-E03"
+					},
+					{
+						"key": "target_delivery",
+						"value": "2026-12-03",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-03-S01",
+								"quote": "2026-12-03"
+							}
+						],
+						"confirmedBy": "RI-03-E03"
+					},
+					{
+						"key": "delivery_location",
+						"value": "Singapore example warehouse C",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-03-S01",
+								"quote": "Singapore example warehouse C"
+							}
+						],
+						"confirmedBy": "RI-03-E03"
+					},
+					{
+						"key": "artwork_status",
+						"value": "print artwork supplied, preflight pending",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-03-S01",
+								"quote": "print artwork supplied, preflight pending"
+							}
+						],
+						"confirmedBy": "RI-03-E03"
+					},
+					{
+						"key": "material_thickness",
+						"value": 0.06,
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-03-S01",
+								"quote": "0.06 mm"
+							}
+						],
+						"unit": "mm",
+						"confirmedBy": "RI-03-E05"
+					}
+				],
+				"missingRequiredFacts": [],
+				"schemaNextAction": "ready_for_approval",
+				"schemaApprovalEligible": true,
+				"businessOutcome": "ready_for_review",
+				"businessApprovalAllowed": true,
+				"requiredNotes": [],
+				"clarificationTopics": [],
+				"forbiddenClaims": [],
+				"artifactRequired": true,
+				"expectedPendingChanges": []
+			}
+		],
+		"transitions": [
+			{
+				"fromCheckpoint": "draft",
+				"toCheckpoint": "required_confirmed",
+				"changedFactKeys": [
+					"product_type",
+					"quantity",
+					"dimensions",
+					"target_market",
+					"target_delivery",
+					"delivery_location",
+					"artwork_status"
+				],
+				"approvalEventId": null,
+				"checks": [
+					"artifact_version_increases",
+					"previous_artifact_content_unchanged",
+					"previous_artifact_stale",
+					"changed_fact_versions_increase"
+				]
+			},
+			{
+				"fromCheckpoint": "required_confirmed",
+				"toCheckpoint": "all_confirmed",
+				"changedFactKeys": [
+					"material_thickness"
+				],
+				"approvalEventId": null,
+				"checks": [
+					"artifact_version_increases",
+					"previous_artifact_content_unchanged",
+					"previous_artifact_stale",
+					"changed_fact_versions_increase"
+				]
+			}
+		]
+	},
+	{
+		"caseId": "AI-05",
+		"checkpoints": [
+			{
+				"id": "needs_input",
+				"expectedFacts": [
+					{
+						"key": "product_type",
+						"value": "咖啡豆自立袋",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-05-S01",
+								"quote": "咖啡豆自立袋"
+							}
+						]
+					},
+					{
+						"key": "quantity",
+						"value": 7200,
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-05-S01",
+								"quote": "7200"
+							}
+						],
+						"unit": "pcs"
+					},
+					{
+						"key": "target_delivery",
+						"value": "2026-11-09",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-05-S01",
+								"quote": "2026-11-09"
+							}
+						]
+					},
+					{
+						"key": "delivery_location",
+						"value": "香港荃湾示例仓 E",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-05-S01",
+								"quote": "香港荃湾示例仓 E"
+							}
+						]
+					},
+					{
+						"key": "artwork_status",
+						"value": "设计中",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-05-S01",
+								"quote": "设计中"
+							}
+						]
+					}
+				],
+				"missingRequiredFacts": [
+					"dimensions",
+					"target_market"
+				],
+				"schemaNextAction": "clarify",
+				"schemaApprovalEligible": false,
+				"businessOutcome": "needs_clarification",
+				"businessApprovalAllowed": false,
+				"requiredNotes": [],
+				"clarificationTopics": [],
+				"forbiddenClaims": [],
+				"artifactRequired": true,
+				"expectedPendingChanges": []
+			}
+		],
+		"transitions": []
+	},
+	{
+		"caseId": "AI-06",
+		"checkpoints": [
+			{
+				"id": "ask_artwork",
+				"expectedFacts": [
+					{
+						"key": "product_type",
+						"value": "烘焙手提纸袋",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-06-S01",
+								"quote": "烘焙手提纸袋"
+							}
+						]
+					},
+					{
+						"key": "quantity",
+						"value": 4600,
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-06-S01",
+								"quote": "4600"
+							}
+						],
+						"unit": "pcs"
+					},
+					{
+						"key": "dimensions",
+						"value": "外尺寸 210 × 110 × 280 mm",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-06-S01",
+								"quote": "外尺寸 210 × 110 × 280 mm"
+							}
+						]
+					},
+					{
+						"key": "target_market",
+						"value": "香港",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-06-S01",
+								"quote": "香港"
+							}
+						]
+					},
+					{
+						"key": "target_delivery",
+						"value": "2026-10-30",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-06-S01",
+								"quote": "2026-10-30"
+							}
+						]
+					},
+					{
+						"key": "delivery_location",
+						"value": "香港九龙城示例门店 F",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-06-S01",
+								"quote": "香港九龙城示例门店 F"
+							}
+						]
+					}
+				],
+				"missingRequiredFacts": [
+					"artwork_status"
+				],
+				"schemaNextAction": "clarify",
+				"schemaApprovalEligible": false,
+				"businessOutcome": "needs_clarification",
+				"businessApprovalAllowed": false,
+				"requiredNotes": [],
+				"clarificationTopics": [],
+				"forbiddenClaims": [],
+				"artifactRequired": true,
+				"expectedPendingChanges": []
+			},
+			{
+				"id": "answered",
+				"expectedFacts": [
+					{
+						"key": "product_type",
+						"value": "烘焙手提纸袋",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-06-S01",
+								"quote": "烘焙手提纸袋"
+							}
+						]
+					},
+					{
+						"key": "quantity",
+						"value": 4600,
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-06-S01",
+								"quote": "4600"
+							}
+						],
+						"unit": "pcs"
+					},
+					{
+						"key": "dimensions",
+						"value": "外尺寸 210 × 110 × 280 mm",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-06-S01",
+								"quote": "外尺寸 210 × 110 × 280 mm"
+							}
+						]
+					},
+					{
+						"key": "target_market",
+						"value": "香港",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-06-S01",
+								"quote": "香港"
+							}
+						]
+					},
+					{
+						"key": "target_delivery",
+						"value": "2026-10-30",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-06-S01",
+								"quote": "2026-10-30"
+							}
+						]
+					},
+					{
+						"key": "delivery_location",
+						"value": "香港九龙城示例门店 F",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-06-S01",
+								"quote": "香港九龙城示例门店 F"
+							}
+						]
+					},
+					{
+						"key": "artwork_status",
+						"value": "还没有设计稿，需要包装厂协助设计",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-06-S02",
+								"quote": "还没有设计稿，需要包装厂协助设计"
+							}
+						]
+					}
+				],
+				"missingRequiredFacts": [],
+				"schemaNextAction": "confirm_facts",
+				"schemaApprovalEligible": false,
+				"businessOutcome": "awaiting_confirmation",
+				"businessApprovalAllowed": false,
+				"requiredNotes": [],
+				"clarificationTopics": [],
+				"forbiddenClaims": [],
+				"artifactRequired": true,
+				"expectedPendingChanges": []
+			},
+			{
+				"id": "confirmed",
+				"expectedFacts": [
+					{
+						"key": "product_type",
+						"value": "烘焙手提纸袋",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-06-S01",
+								"quote": "烘焙手提纸袋"
+							}
+						],
+						"confirmedBy": "RI-06-E05"
+					},
+					{
+						"key": "quantity",
+						"value": 4600,
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-06-S01",
+								"quote": "4600"
+							}
+						],
+						"unit": "pcs",
+						"confirmedBy": "RI-06-E05"
+					},
+					{
+						"key": "dimensions",
+						"value": "外尺寸 210 × 110 × 280 mm",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-06-S01",
+								"quote": "外尺寸 210 × 110 × 280 mm"
+							}
+						],
+						"confirmedBy": "RI-06-E05"
+					},
+					{
+						"key": "target_market",
+						"value": "香港",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-06-S01",
+								"quote": "香港"
+							}
+						],
+						"confirmedBy": "RI-06-E05"
+					},
+					{
+						"key": "target_delivery",
+						"value": "2026-10-30",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-06-S01",
+								"quote": "2026-10-30"
+							}
+						],
+						"confirmedBy": "RI-06-E05"
+					},
+					{
+						"key": "delivery_location",
+						"value": "香港九龙城示例门店 F",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-06-S01",
+								"quote": "香港九龙城示例门店 F"
+							}
+						],
+						"confirmedBy": "RI-06-E05"
+					},
+					{
+						"key": "artwork_status",
+						"value": "还没有设计稿，需要包装厂协助设计",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-06-S02",
+								"quote": "还没有设计稿，需要包装厂协助设计"
+							}
+						],
+						"confirmedBy": "RI-06-E05"
+					}
+				],
+				"missingRequiredFacts": [],
+				"schemaNextAction": "ready_for_approval",
+				"schemaApprovalEligible": true,
+				"businessOutcome": "ready_for_review",
+				"businessApprovalAllowed": true,
+				"requiredNotes": [],
+				"clarificationTopics": [],
+				"forbiddenClaims": [],
+				"artifactRequired": true,
+				"expectedPendingChanges": []
+			}
+		],
+		"transitions": [
+			{
+				"fromCheckpoint": "ask_artwork",
+				"toCheckpoint": "answered",
+				"changedFactKeys": [
+					"artwork_status"
+				],
+				"approvalEventId": null,
+				"checks": [
+					"artifact_version_increases",
+					"previous_artifact_content_unchanged",
+					"previous_artifact_stale",
+					"changed_fact_versions_increase"
+				]
+			},
+			{
+				"fromCheckpoint": "answered",
+				"toCheckpoint": "confirmed",
+				"changedFactKeys": [
+					"product_type",
+					"quantity",
+					"dimensions",
+					"target_market",
+					"target_delivery",
+					"delivery_location",
+					"artwork_status"
+				],
+				"approvalEventId": null,
+				"checks": [
+					"artifact_version_increases",
+					"previous_artifact_content_unchanged",
+					"previous_artifact_stale",
+					"changed_fact_versions_increase"
+				]
+			}
+		]
+	},
+	{
+		"caseId": "AI-07",
+		"checkpoints": [
+			{
+				"id": "unit_unresolved",
+				"expectedFacts": [
+					{
+						"key": "product_type",
+						"value": "食品罐标签",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-07-S01",
+								"quote": "食品罐标签"
+							}
+						]
+					},
+					{
+						"key": "dimensions",
+						"value": "65 × 40 mm",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-07-S01",
+								"quote": "65 × 40 mm"
+							}
+						]
+					},
+					{
+						"key": "target_market",
+						"value": "香港",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-07-S01",
+								"quote": "香港"
+							}
+						]
+					},
+					{
+						"key": "target_delivery",
+						"value": "2026-11-06",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-07-S01",
+								"quote": "2026-11-06"
+							}
+						]
+					},
+					{
+						"key": "delivery_location",
+						"value": "香港观塘示例仓 G",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-07-S01",
+								"quote": "香港观塘示例仓 G"
+							}
+						]
+					},
+					{
+						"key": "artwork_status",
+						"value": "定稿已提供",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-07-S01",
+								"quote": "定稿已提供"
+							}
+						]
+					}
+				],
+				"missingRequiredFacts": [
+					"quantity"
+				],
+				"schemaNextAction": "clarify",
+				"schemaApprovalEligible": false,
+				"businessOutcome": "needs_clarification",
+				"businessApprovalAllowed": false,
+				"requiredNotes": [],
+				"clarificationTopics": [],
+				"forbiddenClaims": [],
+				"artifactRequired": true,
+				"expectedPendingChanges": []
+			},
+			{
+				"id": "count_supplied",
+				"expectedFacts": [
+					{
+						"key": "product_type",
+						"value": "食品罐标签",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-07-S01",
+								"quote": "食品罐标签"
+							}
+						]
+					},
+					{
+						"key": "dimensions",
+						"value": "65 × 40 mm",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-07-S01",
+								"quote": "65 × 40 mm"
+							}
+						]
+					},
+					{
+						"key": "target_market",
+						"value": "香港",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-07-S01",
+								"quote": "香港"
+							}
+						]
+					},
+					{
+						"key": "target_delivery",
+						"value": "2026-11-06",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-07-S01",
+								"quote": "2026-11-06"
+							}
+						]
+					},
+					{
+						"key": "delivery_location",
+						"value": "香港观塘示例仓 G",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-07-S01",
+								"quote": "香港观塘示例仓 G"
+							}
+						]
+					},
+					{
+						"key": "artwork_status",
+						"value": "定稿已提供",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-07-S01",
+								"quote": "定稿已提供"
+							}
+						]
+					},
+					{
+						"key": "quantity",
+						"value": 18000,
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-07-S02",
+								"quote": "18000"
+							}
+						],
+						"unit": "pcs"
+					}
+				],
+				"missingRequiredFacts": [],
+				"schemaNextAction": "confirm_facts",
+				"schemaApprovalEligible": false,
+				"businessOutcome": "awaiting_confirmation",
+				"businessApprovalAllowed": false,
+				"requiredNotes": [],
+				"clarificationTopics": [],
+				"forbiddenClaims": [],
+				"artifactRequired": true,
+				"expectedPendingChanges": []
+			},
+			{
+				"id": "confirmed",
+				"expectedFacts": [
+					{
+						"key": "product_type",
+						"value": "食品罐标签",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-07-S01",
+								"quote": "食品罐标签"
+							}
+						],
+						"confirmedBy": "RI-07-E05"
+					},
+					{
+						"key": "dimensions",
+						"value": "65 × 40 mm",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-07-S01",
+								"quote": "65 × 40 mm"
+							}
+						],
+						"confirmedBy": "RI-07-E05"
+					},
+					{
+						"key": "target_market",
+						"value": "香港",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-07-S01",
+								"quote": "香港"
+							}
+						],
+						"confirmedBy": "RI-07-E05"
+					},
+					{
+						"key": "target_delivery",
+						"value": "2026-11-06",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-07-S01",
+								"quote": "2026-11-06"
+							}
+						],
+						"confirmedBy": "RI-07-E05"
+					},
+					{
+						"key": "delivery_location",
+						"value": "香港观塘示例仓 G",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-07-S01",
+								"quote": "香港观塘示例仓 G"
+							}
+						],
+						"confirmedBy": "RI-07-E05"
+					},
+					{
+						"key": "artwork_status",
+						"value": "定稿已提供",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-07-S01",
+								"quote": "定稿已提供"
+							}
+						],
+						"confirmedBy": "RI-07-E05"
+					},
+					{
+						"key": "quantity",
+						"value": 18000,
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-07-S02",
+								"quote": "18000"
+							}
+						],
+						"unit": "pcs",
+						"confirmedBy": "RI-07-E05"
+					}
+				],
+				"missingRequiredFacts": [],
+				"schemaNextAction": "ready_for_approval",
+				"schemaApprovalEligible": true,
+				"businessOutcome": "ready_for_review",
+				"businessApprovalAllowed": true,
+				"requiredNotes": [],
+				"clarificationTopics": [],
+				"forbiddenClaims": [],
+				"artifactRequired": true,
+				"expectedPendingChanges": []
+			}
+		],
+		"transitions": [
+			{
+				"fromCheckpoint": "unit_unresolved",
+				"toCheckpoint": "count_supplied",
+				"changedFactKeys": [
+					"quantity"
+				],
+				"approvalEventId": null,
+				"checks": [
+					"artifact_version_increases",
+					"previous_artifact_content_unchanged",
+					"previous_artifact_stale",
+					"changed_fact_versions_increase"
+				]
+			},
+			{
+				"fromCheckpoint": "count_supplied",
+				"toCheckpoint": "confirmed",
+				"changedFactKeys": [
+					"product_type",
+					"quantity",
+					"dimensions",
+					"target_market",
+					"target_delivery",
+					"delivery_location",
+					"artwork_status"
+				],
+				"approvalEventId": null,
+				"checks": [
+					"artifact_version_increases",
+					"previous_artifact_content_unchanged",
+					"previous_artifact_stale",
+					"changed_fact_versions_increase"
+				]
+			}
+		]
+	},
+	{
+		"caseId": "AI-09",
+		"checkpoints": [
+			{
+				"id": "draft",
+				"expectedFacts": [
+					{
+						"key": "product_type",
+						"value": "护肤品折叠纸盒",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-09-S01",
+								"quote": "护肤品折叠纸盒"
+							}
+						]
+					},
+					{
+						"key": "quantity",
+						"value": 4800,
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-09-S01",
+								"quote": "4800"
+							}
+						],
+						"unit": "pcs"
+					},
+					{
+						"key": "dimensions",
+						"value": "外尺寸 52 × 52 × 145 mm",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-09-S01",
+								"quote": "外尺寸 52 × 52 × 145 mm"
+							}
+						]
+					},
+					{
+						"key": "target_market",
+						"value": "香港",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-09-S01",
+								"quote": "香港"
+							}
+						]
+					},
+					{
+						"key": "target_delivery",
+						"value": "2026-11-12",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-09-S01",
+								"quote": "2026-11-12"
+							}
+						]
+					},
+					{
+						"key": "delivery_location",
+						"value": "香港沙田示例仓 H",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-09-S01",
+								"quote": "香港沙田示例仓 H"
+							}
+						]
+					},
+					{
+						"key": "artwork_status",
+						"value": "定稿已提供",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-09-S01",
+								"quote": "定稿已提供"
+							}
+						]
+					}
+				],
+				"missingRequiredFacts": [],
+				"schemaNextAction": "confirm_facts",
+				"schemaApprovalEligible": false,
+				"businessOutcome": "awaiting_confirmation",
+				"businessApprovalAllowed": false,
+				"requiredNotes": [],
+				"clarificationTopics": [],
+				"forbiddenClaims": [],
+				"artifactRequired": true,
+				"expectedPendingChanges": []
+			},
+			{
+				"id": "confirmed_base",
+				"expectedFacts": [
+					{
+						"key": "product_type",
+						"value": "护肤品折叠纸盒",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-09-S01",
+								"quote": "护肤品折叠纸盒"
+							}
+						],
+						"confirmedBy": "RI-09-E03"
+					},
+					{
+						"key": "quantity",
+						"value": 4800,
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-09-S01",
+								"quote": "4800"
+							}
+						],
+						"unit": "pcs",
+						"confirmedBy": "RI-09-E03"
+					},
+					{
+						"key": "dimensions",
+						"value": "外尺寸 52 × 52 × 145 mm",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-09-S01",
+								"quote": "外尺寸 52 × 52 × 145 mm"
+							}
+						],
+						"confirmedBy": "RI-09-E03"
+					},
+					{
+						"key": "target_market",
+						"value": "香港",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-09-S01",
+								"quote": "香港"
+							}
+						],
+						"confirmedBy": "RI-09-E03"
+					},
+					{
+						"key": "target_delivery",
+						"value": "2026-11-12",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-09-S01",
+								"quote": "2026-11-12"
+							}
+						],
+						"confirmedBy": "RI-09-E03"
+					},
+					{
+						"key": "delivery_location",
+						"value": "香港沙田示例仓 H",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-09-S01",
+								"quote": "香港沙田示例仓 H"
+							}
+						],
+						"confirmedBy": "RI-09-E03"
+					},
+					{
+						"key": "artwork_status",
+						"value": "定稿已提供",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-09-S01",
+								"quote": "定稿已提供"
+							}
+						],
+						"confirmedBy": "RI-09-E03"
+					}
+				],
+				"missingRequiredFacts": [],
+				"schemaNextAction": "ready_for_approval",
+				"schemaApprovalEligible": true,
+				"businessOutcome": "ready_for_review",
+				"businessApprovalAllowed": true,
+				"requiredNotes": [],
+				"clarificationTopics": [],
+				"forbiddenClaims": [],
+				"artifactRequired": true,
+				"expectedPendingChanges": []
+			},
+			{
+				"id": "pending_change",
+				"expectedFacts": [
+					{
+						"key": "product_type",
+						"value": "护肤品折叠纸盒",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-09-S01",
+								"quote": "护肤品折叠纸盒"
+							}
+						],
+						"confirmedBy": "RI-09-E03"
+					},
+					{
+						"key": "quantity",
+						"value": 4800,
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-09-S01",
+								"quote": "4800"
+							}
+						],
+						"unit": "pcs",
+						"confirmedBy": "RI-09-E03"
+					},
+					{
+						"key": "dimensions",
+						"value": "外尺寸 52 × 52 × 145 mm",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-09-S01",
+								"quote": "外尺寸 52 × 52 × 145 mm"
+							}
+						],
+						"confirmedBy": "RI-09-E03"
+					},
+					{
+						"key": "target_market",
+						"value": "香港",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-09-S01",
+								"quote": "香港"
+							}
+						],
+						"confirmedBy": "RI-09-E03"
+					},
+					{
+						"key": "target_delivery",
+						"value": "2026-11-12",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-09-S01",
+								"quote": "2026-11-12"
+							}
+						],
+						"confirmedBy": "RI-09-E03"
+					},
+					{
+						"key": "delivery_location",
+						"value": "香港沙田示例仓 H",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-09-S01",
+								"quote": "香港沙田示例仓 H"
+							}
+						],
+						"confirmedBy": "RI-09-E03"
+					},
+					{
+						"key": "artwork_status",
+						"value": "定稿已提供",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-09-S01",
+								"quote": "定稿已提供"
+							}
+						],
+						"confirmedBy": "RI-09-E03"
+					}
+				],
+				"missingRequiredFacts": [],
+				"schemaNextAction": "confirm_facts",
+				"schemaApprovalEligible": false,
+				"businessOutcome": "needs_clarification",
+				"businessApprovalAllowed": false,
+				"requiredNotes": [],
+				"clarificationTopics": [],
+				"forbiddenClaims": [],
+				"artifactRequired": true,
+				"expectedPendingChanges": [
+					{
+						"key": "quantity",
+						"value": 6200,
+						"unit": "pcs",
+						"evidenceSourceIds": [
+							"RI-09-S02"
+						]
+					}
+				]
+			},
+			{
+				"id": "revised",
+				"expectedFacts": [
+					{
+						"key": "product_type",
+						"value": "护肤品折叠纸盒",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-09-S01",
+								"quote": "护肤品折叠纸盒"
+							}
+						],
+						"confirmedBy": "RI-09-E03"
+					},
+					{
+						"key": "quantity",
+						"value": 6200,
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-09-S02",
+								"quote": "6200"
+							}
+						],
+						"unit": "pcs",
+						"confirmedBy": "RI-09-E08"
+					},
+					{
+						"key": "dimensions",
+						"value": "外尺寸 52 × 52 × 145 mm",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-09-S01",
+								"quote": "外尺寸 52 × 52 × 145 mm"
+							}
+						],
+						"confirmedBy": "RI-09-E03"
+					},
+					{
+						"key": "target_market",
+						"value": "香港",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-09-S01",
+								"quote": "香港"
+							}
+						],
+						"confirmedBy": "RI-09-E03"
+					},
+					{
+						"key": "target_delivery",
+						"value": "2026-11-12",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-09-S01",
+								"quote": "2026-11-12"
+							}
+						],
+						"confirmedBy": "RI-09-E03"
+					},
+					{
+						"key": "delivery_location",
+						"value": "香港沙田示例仓 H",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-09-S01",
+								"quote": "香港沙田示例仓 H"
+							}
+						],
+						"confirmedBy": "RI-09-E03"
+					},
+					{
+						"key": "artwork_status",
+						"value": "定稿已提供",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-09-S01",
+								"quote": "定稿已提供"
+							}
+						],
+						"confirmedBy": "RI-09-E03"
+					}
+				],
+				"missingRequiredFacts": [],
+				"schemaNextAction": "ready_for_approval",
+				"schemaApprovalEligible": true,
+				"businessOutcome": "ready_for_review",
+				"businessApprovalAllowed": true,
+				"requiredNotes": [],
+				"clarificationTopics": [],
+				"forbiddenClaims": [],
+				"artifactRequired": true,
+				"expectedPendingChanges": []
+			}
+		],
+		"transitions": [
+			{
+				"fromCheckpoint": "draft",
+				"toCheckpoint": "confirmed_base",
+				"changedFactKeys": [
+					"product_type",
+					"quantity",
+					"dimensions",
+					"target_market",
+					"target_delivery",
+					"delivery_location",
+					"artwork_status"
+				],
+				"approvalEventId": null,
+				"checks": [
+					"artifact_version_increases",
+					"previous_artifact_content_unchanged",
+					"previous_artifact_stale",
+					"changed_fact_versions_increase"
+				]
+			},
+			{
+				"fromCheckpoint": "confirmed_base",
+				"toCheckpoint": "pending_change",
+				"changedFactKeys": [],
+				"approvalEventId": null,
+				"checks": [
+					"artifact_version_increases",
+					"previous_artifact_content_unchanged",
+					"previous_artifact_stale",
+					"previous_approval_superseded",
+					"new_artifact_not_implicitly_approved"
+				]
+			},
+			{
+				"fromCheckpoint": "pending_change",
+				"toCheckpoint": "revised",
+				"changedFactKeys": [
+					"quantity"
+				],
+				"approvalEventId": null,
+				"checks": [
+					"artifact_version_increases",
+					"previous_artifact_content_unchanged",
+					"previous_artifact_stale",
+					"changed_fact_versions_increase"
+				]
+			}
+		]
+	},
+	{
+		"caseId": "AI-10",
+		"checkpoints": [
+			{
+				"id": "dimension_conflict",
+				"expectedFacts": [
+					{
+						"key": "product_type",
+						"value": "电子配件瓦楞盒",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-10-S01",
+								"quote": "电子配件瓦楞盒"
+							}
+						]
+					},
+					{
+						"key": "quantity",
+						"value": 2400,
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-10-S01",
+								"quote": "2400"
+							}
+						],
+						"unit": "pcs"
+					},
+					{
+						"key": "target_market",
+						"value": "日本",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-10-S01",
+								"quote": "日本"
+							}
+						]
+					},
+					{
+						"key": "target_delivery",
+						"value": "2026-12-08",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-10-S01",
+								"quote": "2026-12-08"
+							}
+						]
+					},
+					{
+						"key": "delivery_location",
+						"value": "香港青衣示例集运仓 I",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-10-S01",
+								"quote": "香港青衣示例集运仓 I"
+							}
+						]
+					},
+					{
+						"key": "artwork_status",
+						"value": "定稿已提供",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-10-S01",
+								"quote": "定稿已提供"
+							}
+						]
+					}
+				],
+				"missingRequiredFacts": [
+					"dimensions"
+				],
+				"schemaNextAction": "clarify",
+				"schemaApprovalEligible": false,
+				"businessOutcome": "needs_clarification",
+				"businessApprovalAllowed": false,
+				"requiredNotes": [],
+				"clarificationTopics": [],
+				"forbiddenClaims": [],
+				"artifactRequired": true,
+				"expectedPendingChanges": []
+			},
+			{
+				"id": "clarified",
+				"expectedFacts": [
+					{
+						"key": "product_type",
+						"value": "电子配件瓦楞盒",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-10-S01",
+								"quote": "电子配件瓦楞盒"
+							}
+						]
+					},
+					{
+						"key": "quantity",
+						"value": 2400,
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-10-S01",
+								"quote": "2400"
+							}
+						],
+						"unit": "pcs"
+					},
+					{
+						"key": "target_market",
+						"value": "日本",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-10-S01",
+								"quote": "日本"
+							}
+						]
+					},
+					{
+						"key": "target_delivery",
+						"value": "2026-12-08",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-10-S01",
+								"quote": "2026-12-08"
+							}
+						]
+					},
+					{
+						"key": "delivery_location",
+						"value": "香港青衣示例集运仓 I",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-10-S01",
+								"quote": "香港青衣示例集运仓 I"
+							}
+						]
+					},
+					{
+						"key": "artwork_status",
+						"value": "定稿已提供",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-10-S01",
+								"quote": "定稿已提供"
+							}
+						]
+					},
+					{
+						"key": "dimensions",
+						"value": "外尺寸 212 × 162 × 92 mm",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-10-S04",
+								"quote": "外尺寸 212 × 162 × 92 mm"
+							}
+						]
+					}
+				],
+				"missingRequiredFacts": [],
+				"schemaNextAction": "confirm_facts",
+				"schemaApprovalEligible": false,
+				"businessOutcome": "awaiting_confirmation",
+				"businessApprovalAllowed": false,
+				"requiredNotes": [],
+				"clarificationTopics": [],
+				"forbiddenClaims": [],
+				"artifactRequired": true,
+				"expectedPendingChanges": []
+			},
+			{
+				"id": "confirmed",
+				"expectedFacts": [
+					{
+						"key": "product_type",
+						"value": "电子配件瓦楞盒",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-10-S01",
+								"quote": "电子配件瓦楞盒"
+							}
+						],
+						"confirmedBy": "RI-10-E07"
+					},
+					{
+						"key": "quantity",
+						"value": 2400,
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-10-S01",
+								"quote": "2400"
+							}
+						],
+						"unit": "pcs",
+						"confirmedBy": "RI-10-E07"
+					},
+					{
+						"key": "target_market",
+						"value": "日本",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-10-S01",
+								"quote": "日本"
+							}
+						],
+						"confirmedBy": "RI-10-E07"
+					},
+					{
+						"key": "target_delivery",
+						"value": "2026-12-08",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-10-S01",
+								"quote": "2026-12-08"
+							}
+						],
+						"confirmedBy": "RI-10-E07"
+					},
+					{
+						"key": "delivery_location",
+						"value": "香港青衣示例集运仓 I",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-10-S01",
+								"quote": "香港青衣示例集运仓 I"
+							}
+						],
+						"confirmedBy": "RI-10-E07"
+					},
+					{
+						"key": "artwork_status",
+						"value": "定稿已提供",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-10-S01",
+								"quote": "定稿已提供"
+							}
+						],
+						"confirmedBy": "RI-10-E07"
+					},
+					{
+						"key": "dimensions",
+						"value": "外尺寸 212 × 162 × 92 mm",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-10-S04",
+								"quote": "外尺寸 212 × 162 × 92 mm"
+							}
+						],
+						"confirmedBy": "RI-10-E07"
+					}
+				],
+				"missingRequiredFacts": [],
+				"schemaNextAction": "ready_for_approval",
+				"schemaApprovalEligible": true,
+				"businessOutcome": "ready_for_review",
+				"businessApprovalAllowed": true,
+				"requiredNotes": [],
+				"clarificationTopics": [],
+				"forbiddenClaims": [],
+				"artifactRequired": true,
+				"expectedPendingChanges": []
+			}
+		],
+		"transitions": [
+			{
+				"fromCheckpoint": "dimension_conflict",
+				"toCheckpoint": "clarified",
+				"changedFactKeys": [
+					"dimensions"
+				],
+				"approvalEventId": null,
+				"checks": [
+					"artifact_version_increases",
+					"previous_artifact_content_unchanged",
+					"previous_artifact_stale",
+					"changed_fact_versions_increase"
+				]
+			},
+			{
+				"fromCheckpoint": "clarified",
+				"toCheckpoint": "confirmed",
+				"changedFactKeys": [
+					"product_type",
+					"quantity",
+					"dimensions",
+					"target_market",
+					"target_delivery",
+					"delivery_location",
+					"artwork_status"
+				],
+				"approvalEventId": null,
+				"checks": [
+					"artifact_version_increases",
+					"previous_artifact_content_unchanged",
+					"previous_artifact_stale",
+					"changed_fact_versions_increase"
+				]
+			}
+		]
+	},
+	{
+		"caseId": "AI-11",
+		"checkpoints": [
+			{
+				"id": "before_withdrawal",
+				"expectedFacts": [
+					{
+						"key": "product_type",
+						"value": "宠物零食自立袋",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-11-S01",
+								"quote": "宠物零食自立袋"
+							}
+						]
+					},
+					{
+						"key": "quantity",
+						"value": 9200,
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-11-S01",
+								"quote": "9200"
+							}
+						],
+						"unit": "pcs"
+					},
+					{
+						"key": "dimensions",
+						"value": "宽 150 × 高 220 + 底折 70 mm",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-11-S02",
+								"quote": "宽 150 × 高 220 + 底折 70 mm"
+							}
+						]
+					},
+					{
+						"key": "target_market",
+						"value": "香港",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-11-S01",
+								"quote": "香港"
+							}
+						]
+					},
+					{
+						"key": "target_delivery",
+						"value": "2026-11-21",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-11-S01",
+								"quote": "2026-11-21"
+							}
+						]
+					},
+					{
+						"key": "delivery_location",
+						"value": "香港屯门示例仓 J",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-11-S01",
+								"quote": "香港屯门示例仓 J"
+							}
+						]
+					},
+					{
+						"key": "artwork_status",
+						"value": "设计中",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-11-S01",
+								"quote": "设计中"
+							}
+						]
+					}
+				],
+				"missingRequiredFacts": [],
+				"schemaNextAction": "confirm_facts",
+				"schemaApprovalEligible": false,
+				"businessOutcome": "awaiting_confirmation",
+				"businessApprovalAllowed": false,
+				"requiredNotes": [],
+				"clarificationTopics": [],
+				"forbiddenClaims": [],
+				"artifactRequired": true,
+				"expectedPendingChanges": []
+			},
+			{
+				"id": "after_withdrawal",
+				"expectedFacts": [
+					{
+						"key": "product_type",
+						"value": "宠物零食自立袋",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-11-S01",
+								"quote": "宠物零食自立袋"
+							}
+						]
+					},
+					{
+						"key": "quantity",
+						"value": 9200,
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-11-S01",
+								"quote": "9200"
+							}
+						],
+						"unit": "pcs"
+					},
+					{
+						"key": "target_market",
+						"value": "香港",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-11-S01",
+								"quote": "香港"
+							}
+						]
+					},
+					{
+						"key": "target_delivery",
+						"value": "2026-11-21",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-11-S01",
+								"quote": "2026-11-21"
+							}
+						]
+					},
+					{
+						"key": "delivery_location",
+						"value": "香港屯门示例仓 J",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-11-S01",
+								"quote": "香港屯门示例仓 J"
+							}
+						]
+					},
+					{
+						"key": "artwork_status",
+						"value": "设计中",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-11-S01",
+								"quote": "设计中"
+							}
+						]
+					}
+				],
+				"missingRequiredFacts": [
+					"dimensions"
+				],
+				"schemaNextAction": "clarify",
+				"schemaApprovalEligible": false,
+				"businessOutcome": "needs_clarification",
+				"businessApprovalAllowed": false,
+				"requiredNotes": [],
+				"clarificationTopics": [],
+				"forbiddenClaims": [],
+				"artifactRequired": true,
+				"expectedPendingChanges": []
+			}
+		],
+		"transitions": [
+			{
+				"fromCheckpoint": "before_withdrawal",
+				"toCheckpoint": "after_withdrawal",
+				"changedFactKeys": [
+					"dimensions"
+				],
+				"approvalEventId": null,
+				"checks": [
+					"artifact_version_increases",
+					"previous_artifact_content_unchanged",
+					"previous_artifact_stale",
+					"changed_fact_versions_increase"
+				]
+			}
+		]
+	},
+	{
+		"caseId": "AI-13",
+		"checkpoints": [
+			{
+				"id": "initial",
+				"expectedFacts": [
+					{
+						"key": "product_type",
+						"value": "咖啡豆平底袋",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-13-S01",
+								"quote": "咖啡豆平底袋"
+							}
+						]
+					},
+					{
+						"key": "quantity",
+						"value": 12000,
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-13-S01",
+								"quote": "12000"
+							}
+						],
+						"unit": "pcs"
+					},
+					{
+						"key": "dimensions",
+						"value": "外尺寸 140 × 240 × 80 mm",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-13-S01",
+								"quote": "外尺寸 140 × 240 × 80 mm"
+							}
+						]
+					},
+					{
+						"key": "target_market",
+						"value": "香港",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-13-S01",
+								"quote": "香港"
+							}
+						]
+					},
+					{
+						"key": "target_delivery",
+						"value": "2026-12-15",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-13-S01",
+								"quote": "2026-12-15"
+							}
+						]
+					},
+					{
+						"key": "delivery_location",
+						"value": "香港葵青示例仓 M",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-13-S01",
+								"quote": "香港葵青示例仓 M"
+							}
+						]
+					},
+					{
+						"key": "artwork_status",
+						"value": "设计中",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-13-S01",
+								"quote": "设计中"
+							}
+						]
+					}
+				],
+				"missingRequiredFacts": [],
+				"schemaNextAction": "confirm_facts",
+				"schemaApprovalEligible": false,
+				"businessOutcome": "awaiting_confirmation",
+				"businessApprovalAllowed": false,
+				"requiredNotes": [],
+				"clarificationTopics": [],
+				"forbiddenClaims": [],
+				"artifactRequired": true,
+				"expectedPendingChanges": []
+			},
+			{
+				"id": "confirmed_base",
+				"expectedFacts": [
+					{
+						"key": "product_type",
+						"value": "咖啡豆平底袋",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-13-S01",
+								"quote": "咖啡豆平底袋"
+							}
+						],
+						"confirmedBy": "RI-13-E03"
+					},
+					{
+						"key": "quantity",
+						"value": 12000,
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-13-S01",
+								"quote": "12000"
+							}
+						],
+						"unit": "pcs",
+						"confirmedBy": "RI-13-E03"
+					},
+					{
+						"key": "dimensions",
+						"value": "外尺寸 140 × 240 × 80 mm",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-13-S01",
+								"quote": "外尺寸 140 × 240 × 80 mm"
+							}
+						],
+						"confirmedBy": "RI-13-E03"
+					},
+					{
+						"key": "target_market",
+						"value": "香港",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-13-S01",
+								"quote": "香港"
+							}
+						],
+						"confirmedBy": "RI-13-E03"
+					},
+					{
+						"key": "target_delivery",
+						"value": "2026-12-15",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-13-S01",
+								"quote": "2026-12-15"
+							}
+						],
+						"confirmedBy": "RI-13-E03"
+					},
+					{
+						"key": "delivery_location",
+						"value": "香港葵青示例仓 M",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-13-S01",
+								"quote": "香港葵青示例仓 M"
+							}
+						],
+						"confirmedBy": "RI-13-E03"
+					},
+					{
+						"key": "artwork_status",
+						"value": "设计中",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-13-S01",
+								"quote": "设计中"
+							}
+						],
+						"confirmedBy": "RI-13-E03"
+					}
+				],
+				"missingRequiredFacts": [],
+				"schemaNextAction": "ready_for_approval",
+				"schemaApprovalEligible": true,
+				"businessOutcome": "ready_for_review",
+				"businessApprovalAllowed": true,
+				"requiredNotes": [],
+				"clarificationTopics": [],
+				"forbiddenClaims": [],
+				"artifactRequired": true,
+				"expectedPendingChanges": []
+			},
+			{
+				"id": "evidence_arrived",
+				"expectedFacts": [
+					{
+						"key": "product_type",
+						"value": "咖啡豆平底袋",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-13-S01",
+								"quote": "咖啡豆平底袋"
+							}
+						],
+						"confirmedBy": "RI-13-E03"
+					},
+					{
+						"key": "quantity",
+						"value": 12000,
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-13-S01",
+								"quote": "12000"
+							}
+						],
+						"unit": "pcs",
+						"confirmedBy": "RI-13-E03"
+					},
+					{
+						"key": "dimensions",
+						"value": "外尺寸 140 × 240 × 80 mm",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-13-S01",
+								"quote": "外尺寸 140 × 240 × 80 mm"
+							}
+						],
+						"confirmedBy": "RI-13-E03"
+					},
+					{
+						"key": "target_market",
+						"value": "香港",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-13-S01",
+								"quote": "香港"
+							}
+						],
+						"confirmedBy": "RI-13-E03"
+					},
+					{
+						"key": "target_delivery",
+						"value": "2026-12-15",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-13-S01",
+								"quote": "2026-12-15"
+							}
+						],
+						"confirmedBy": "RI-13-E03"
+					},
+					{
+						"key": "delivery_location",
+						"value": "香港葵青示例仓 M",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-13-S01",
+								"quote": "香港葵青示例仓 M"
+							}
+						],
+						"confirmedBy": "RI-13-E03"
+					},
+					{
+						"key": "artwork_status",
+						"value": "设计中",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-13-S01",
+								"quote": "设计中"
+							}
+						],
+						"confirmedBy": "RI-13-E03"
+					}
+				],
+				"missingRequiredFacts": [],
+				"schemaNextAction": "ready_for_approval",
+				"schemaApprovalEligible": true,
+				"businessOutcome": "ready_for_review",
+				"businessApprovalAllowed": true,
+				"requiredNotes": [],
+				"clarificationTopics": [],
+				"forbiddenClaims": [],
+				"artifactRequired": true,
+				"expectedPendingChanges": []
+			},
+			{
+				"id": "pending_quantity",
+				"expectedFacts": [
+					{
+						"key": "product_type",
+						"value": "咖啡豆平底袋",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-13-S01",
+								"quote": "咖啡豆平底袋"
+							}
+						],
+						"confirmedBy": "RI-13-E03"
+					},
+					{
+						"key": "quantity",
+						"value": 12000,
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-13-S01",
+								"quote": "12000"
+							}
+						],
+						"unit": "pcs",
+						"confirmedBy": "RI-13-E03"
+					},
+					{
+						"key": "dimensions",
+						"value": "外尺寸 140 × 240 × 80 mm",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-13-S01",
+								"quote": "外尺寸 140 × 240 × 80 mm"
+							}
+						],
+						"confirmedBy": "RI-13-E03"
+					},
+					{
+						"key": "target_market",
+						"value": "香港",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-13-S01",
+								"quote": "香港"
+							}
+						],
+						"confirmedBy": "RI-13-E03"
+					},
+					{
+						"key": "target_delivery",
+						"value": "2026-12-15",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-13-S01",
+								"quote": "2026-12-15"
+							}
+						],
+						"confirmedBy": "RI-13-E03"
+					},
+					{
+						"key": "delivery_location",
+						"value": "香港葵青示例仓 M",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-13-S01",
+								"quote": "香港葵青示例仓 M"
+							}
+						],
+						"confirmedBy": "RI-13-E03"
+					},
+					{
+						"key": "artwork_status",
+						"value": "设计中",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-13-S01",
+								"quote": "设计中"
+							}
+						],
+						"confirmedBy": "RI-13-E03"
+					}
+				],
+				"missingRequiredFacts": [],
+				"schemaNextAction": "confirm_facts",
+				"schemaApprovalEligible": false,
+				"businessOutcome": "needs_clarification",
+				"businessApprovalAllowed": false,
+				"requiredNotes": [],
+				"clarificationTopics": [],
+				"forbiddenClaims": [],
+				"artifactRequired": true,
+				"expectedPendingChanges": [
+					{
+						"key": "quantity",
+						"value": 15600,
+						"unit": "pcs",
+						"evidenceSourceIds": [
+							"RI-13-S06"
+						]
+					}
+				]
+			},
+			{
+				"id": "handoff",
+				"expectedFacts": [
+					{
+						"key": "product_type",
+						"value": "咖啡豆平底袋",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-13-S01",
+								"quote": "咖啡豆平底袋"
+							}
+						],
+						"confirmedBy": "RI-13-E03"
+					},
+					{
+						"key": "quantity",
+						"value": 15600,
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-13-S06",
+								"quote": "15600"
+							}
+						],
+						"unit": "pcs",
+						"confirmedBy": "RI-13-E14"
+					},
+					{
+						"key": "dimensions",
+						"value": "外尺寸 140 × 240 × 80 mm",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-13-S01",
+								"quote": "外尺寸 140 × 240 × 80 mm"
+							}
+						],
+						"confirmedBy": "RI-13-E03"
+					},
+					{
+						"key": "target_market",
+						"value": "香港",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-13-S01",
+								"quote": "香港"
+							}
+						],
+						"confirmedBy": "RI-13-E03"
+					},
+					{
+						"key": "target_delivery",
+						"value": "2026-12-15",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-13-S01",
+								"quote": "2026-12-15"
+							}
+						],
+						"confirmedBy": "RI-13-E03"
+					},
+					{
+						"key": "delivery_location",
+						"value": "香港葵青示例仓 M",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-13-S01",
+								"quote": "香港葵青示例仓 M"
+							}
+						],
+						"confirmedBy": "RI-13-E03"
+					},
+					{
+						"key": "artwork_status",
+						"value": "设计中",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-13-S01",
+								"quote": "设计中"
+							}
+						],
+						"confirmedBy": "RI-13-E03"
+					}
+				],
+				"missingRequiredFacts": [],
+				"schemaNextAction": "ready_for_approval",
+				"schemaApprovalEligible": true,
+				"businessOutcome": "ready_for_review",
+				"businessApprovalAllowed": true,
+				"requiredNotes": [],
+				"clarificationTopics": [],
+				"forbiddenClaims": [],
+				"artifactRequired": true,
+				"expectedPendingChanges": []
+			}
+		],
+		"transitions": [
+			{
+				"fromCheckpoint": "initial",
+				"toCheckpoint": "confirmed_base",
+				"changedFactKeys": [
+					"product_type",
+					"quantity",
+					"dimensions",
+					"target_market",
+					"target_delivery",
+					"delivery_location",
+					"artwork_status"
+				],
+				"approvalEventId": null,
+				"checks": [
+					"artifact_version_increases",
+					"previous_artifact_content_unchanged",
+					"previous_artifact_stale",
+					"changed_fact_versions_increase"
+				]
+			},
+			{
+				"fromCheckpoint": "confirmed_base",
+				"toCheckpoint": "evidence_arrived",
+				"changedFactKeys": [],
+				"approvalEventId": null,
+				"checks": [
+					"artifact_version_increases",
+					"previous_artifact_content_unchanged",
+					"previous_artifact_stale"
+				]
+			},
+			{
+				"fromCheckpoint": "evidence_arrived",
+				"toCheckpoint": "pending_quantity",
+				"changedFactKeys": [],
+				"approvalEventId": null,
+				"checks": [
+					"artifact_version_increases",
+					"previous_artifact_content_unchanged",
+					"previous_artifact_stale"
+				]
+			},
+			{
+				"fromCheckpoint": "pending_quantity",
+				"toCheckpoint": "handoff",
+				"changedFactKeys": [
+					"quantity"
+				],
+				"approvalEventId": null,
+				"checks": [
+					"artifact_version_increases",
+					"previous_artifact_content_unchanged",
+					"previous_artifact_stale",
+					"changed_fact_versions_increase"
+				]
+			}
+		]
+	},
+	{
+		"caseId": "AI-14",
+		"checkpoints": [
+			{
+				"id": "draft",
+				"expectedFacts": [
+					{
+						"key": "product_type",
+						"value": "食品试吃纸杯",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-14-S01",
+								"quote": "食品试吃纸杯"
+							}
+						]
+					},
+					{
+						"key": "quantity",
+						"value": 6800,
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-14-S01",
+								"quote": "6800"
+							}
+						],
+						"unit": "pcs"
+					},
+					{
+						"key": "dimensions",
+						"value": "口径 72 × 底径 50 × 高 65 mm",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-14-S01",
+								"quote": "口径 72 × 底径 50 × 高 65 mm"
+							}
+						]
+					},
+					{
+						"key": "target_market",
+						"value": "香港",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-14-S01",
+								"quote": "香港"
+							}
+						]
+					},
+					{
+						"key": "target_delivery",
+						"value": "2026-11-04",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-14-S01",
+								"quote": "2026-11-04"
+							}
+						]
+					},
+					{
+						"key": "delivery_location",
+						"value": "香港黄竹坑示例仓 N",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-14-S01",
+								"quote": "香港黄竹坑示例仓 N"
+							}
+						]
+					},
+					{
+						"key": "artwork_status",
+						"value": "定稿已提供",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-14-S01",
+								"quote": "定稿已提供"
+							}
+						]
+					}
+				],
+				"missingRequiredFacts": [],
+				"schemaNextAction": "confirm_facts",
+				"schemaApprovalEligible": false,
+				"businessOutcome": "awaiting_confirmation",
+				"businessApprovalAllowed": false,
+				"requiredNotes": [],
+				"clarificationTopics": [],
+				"forbiddenClaims": [],
+				"artifactRequired": true,
+				"expectedPendingChanges": []
+			},
+			{
+				"id": "confirmed",
+				"expectedFacts": [
+					{
+						"key": "product_type",
+						"value": "食品试吃纸杯",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-14-S01",
+								"quote": "食品试吃纸杯"
+							}
+						],
+						"confirmedBy": "RI-14-E05"
+					},
+					{
+						"key": "quantity",
+						"value": 6800,
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-14-S01",
+								"quote": "6800"
+							}
+						],
+						"unit": "pcs",
+						"confirmedBy": "RI-14-E05"
+					},
+					{
+						"key": "dimensions",
+						"value": "口径 72 × 底径 50 × 高 65 mm",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-14-S01",
+								"quote": "口径 72 × 底径 50 × 高 65 mm"
+							}
+						],
+						"confirmedBy": "RI-14-E05"
+					},
+					{
+						"key": "target_market",
+						"value": "香港",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-14-S01",
+								"quote": "香港"
+							}
+						],
+						"confirmedBy": "RI-14-E05"
+					},
+					{
+						"key": "target_delivery",
+						"value": "2026-11-04",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-14-S01",
+								"quote": "2026-11-04"
+							}
+						],
+						"confirmedBy": "RI-14-E05"
+					},
+					{
+						"key": "delivery_location",
+						"value": "香港黄竹坑示例仓 N",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-14-S01",
+								"quote": "香港黄竹坑示例仓 N"
+							}
+						],
+						"confirmedBy": "RI-14-E05"
+					},
+					{
+						"key": "artwork_status",
+						"value": "定稿已提供",
+						"status": "verified",
+						"evidence": [
+							{
+								"sourceId": "RI-14-S01",
+								"quote": "定稿已提供"
+							}
+						],
+						"confirmedBy": "RI-14-E05"
+					}
+				],
+				"missingRequiredFacts": [],
+				"schemaNextAction": "ready_for_approval",
+				"schemaApprovalEligible": true,
+				"businessOutcome": "ready_for_review",
+				"businessApprovalAllowed": true,
+				"requiredNotes": [],
+				"clarificationTopics": [],
+				"forbiddenClaims": [],
+				"artifactRequired": true,
+				"expectedPendingChanges": []
+			}
+		],
+		"transitions": [
+			{
+				"fromCheckpoint": "draft",
+				"toCheckpoint": "confirmed",
+				"changedFactKeys": [
+					"product_type",
+					"quantity",
+					"dimensions",
+					"target_market",
+					"target_delivery",
+					"delivery_location",
+					"artwork_status"
+				],
+				"approvalEventId": null,
+				"checks": [
+					"artifact_version_increases",
+					"previous_artifact_content_unchanged",
+					"previous_artifact_stale",
+					"changed_fact_versions_increase"
+				]
+			}
+		]
+	},
+	{
+		"caseId": "AI-15",
+		"checkpoints": [
+			{
+				"id": "needs_readable_drawing",
+				"expectedFacts": [
+					{
+						"key": "product_type",
+						"value": "香薰蜡烛纸盒",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-15-S01",
+								"quote": "香薰蜡烛纸盒"
+							}
+						]
+					},
+					{
+						"key": "quantity",
+						"value": 2750,
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-15-S01",
+								"quote": "2750"
+							}
+						],
+						"unit": "pcs"
+					},
+					{
+						"key": "target_market",
+						"value": "英国",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-15-S01",
+								"quote": "英国"
+							}
+						]
+					},
+					{
+						"key": "target_delivery",
+						"value": "2026-12-09",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-15-S01",
+								"quote": "2026-12-09"
+							}
+						]
+					},
+					{
+						"key": "delivery_location",
+						"value": "香港赤鱲角示例集运仓 P",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-15-S01",
+								"quote": "香港赤鱲角示例集运仓 P"
+							}
+						]
+					},
+					{
+						"key": "artwork_status",
+						"value": "新版图稿待终审",
+						"status": "unverified",
+						"evidence": [
+							{
+								"sourceId": "RI-15-S01",
+								"quote": "新版图稿待终审"
+							}
+						]
+					}
+				],
+				"missingRequiredFacts": [
+					"dimensions"
+				],
+				"schemaNextAction": "clarify",
+				"schemaApprovalEligible": false,
+				"businessOutcome": "needs_clarification",
+				"businessApprovalAllowed": false,
+				"requiredNotes": [],
+				"clarificationTopics": [],
+				"forbiddenClaims": [],
+				"artifactRequired": true,
+				"expectedPendingChanges": []
+			}
+		],
+		"transitions": []
+	}
+]
