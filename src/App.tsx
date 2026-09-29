@@ -722,6 +722,7 @@ function App() {
 	const hasUserMessage = Boolean(active?.messages.some((message) => message.role === "user"));
 	const content = requirementContent(requirement?.artifact?.content);
 	const evaluation = evaluationReport(requirement?.evaluation?.report);
+	const reviewRecovery = evaluation?.decision === "recover_review";
 	const facts = Object.values(requirement?.state.facts ?? {})
 		.filter((fact) => packagingFactKeys.includes(fact.key))
 		.sort((left, right) => left.key.localeCompare(right.key));
@@ -1005,7 +1006,7 @@ function App() {
 					</div>
 					{panelTab === "requirement" && requirement && (
 						<span className={`proposal-status ${requirement.state.stageStatus}`}>
-							{stageLabel(requirement.state.stageStatus)}
+							{reviewRecovery && requirement.state.stageStatus === "needs_input" ? (en ? "Review needs recovery" : "复核待恢复") : stageLabel(requirement.state.stageStatus)}
 						</span>
 					)}
 				</header>
@@ -1021,7 +1022,7 @@ function App() {
 								<div><dt>{en ? "Workflow completion" : "工作流完成"}</dt><dd>{requirementMetrics.rates.workflowCompletion === null ? "—" : `${Math.round(requirementMetrics.rates.workflowCompletion * 100)}%`}</dd></div>
 								<div><dt>{en ? "Stage pass" : "Stage 通过"}</dt><dd>{requirementMetrics.rates.stagePass === null ? "—" : `${Math.round(requirementMetrics.rates.stagePass * 100)}%`}</dd></div>
 								<div><dt>{en ? "Evaluation pass" : "评测通过"}</dt><dd>{requirementMetrics.rates.evaluationPass === null ? "—" : `${Math.round(requirementMetrics.rates.evaluationPass * 100)}%`}</dd></div>
-								<div><dt>{en ? "Needs input" : "需要补充"}</dt><dd>{requirementMetrics.totals.needsInput}</dd></div>
+								<div><dt>{en ? "Waiting for action" : "等待处理"}</dt><dd>{requirementMetrics.totals.needsInput}</dd></div>
 								<div><dt>{en ? "Average fact confirmation" : "平均 Fact 确认"}</dt><dd>{requirementMetrics.averages.confirmationRate === null ? "—" : `${Math.round(requirementMetrics.averages.confirmationRate * 100)}%`}</dd></div>
 								<div><dt>{en ? "Confirmed unchanged" : "原样确认比例"}</dt><dd>{requirementMetrics.averages.confirmedCandidateAccuracy === null ? "—" : `${Math.round(requirementMetrics.averages.confirmedCandidateAccuracy * 100)}%`}</dd></div>
 								<div><dt>{en ? "Reference presence" : "引用填写率"}</dt><dd>{requirementMetrics.averages.sourceCoverageRate === null ? "—" : `${Math.round(requirementMetrics.averages.sourceCoverageRate * 100)}%`}</dd></div>
@@ -1041,7 +1042,7 @@ function App() {
 					)}
 					{requirement?.readOnlyReason ? (
 						<section className="proposal-empty"><strong>{en ? "Historical requirement (read-only)" : "历史需求（只读）"}</strong><p>{requirement.readOnlyReason}</p>
-							<p>{en ? "Historical status: " : "历史状态："}{stageLabel(requirement.state.stageStatus)} · {requirement.state.proposalVersions.length} {en ? "delivery versions" : "个交付版本"}</p>
+							<p>{en ? "Historical status: " : "历史状态："}{reviewRecovery && requirement.state.stageStatus === "needs_input" ? (en ? "Review needs recovery" : "复核待恢复") : stageLabel(requirement.state.stageStatus)} · {requirement.state.proposalVersions.length} {en ? "delivery versions" : "个交付版本"}</p>
 							{!requirementTerminal && <button className="secondary-action" disabled={requirementBusy} onClick={() => void cancelRequirement()}>{en ? "Cancel historical task" : "取消历史任务"}</button>}
 						</section>
 					) : !requirement ? (
@@ -1069,11 +1070,11 @@ function App() {
 							<section className="proposal-section">
 								<div className="section-title"><strong>{en ? "Task overview" : "任务概览"}</strong><code>v{requirement.state.aggregateVersion}</code></div>
 								{requirementLeaseExpired && <p role="alert">{en ? "The worker heartbeat expired. Waiting for recovery checks; completion is not confirmed." : "执行心跳已过期，等待恢复检查；当前尚未确认完成。"}</p>}
-								<p role="status">{requirementRunning ? en ? "Organising your material. You can return later to review it." : "正在整理资料，完成后可核对草稿。" : requirement.state.stageStatus === "passed" ? en ? "Approved. Export the current delivery below." : "当前版本已批准，可在下方导出交付物。" : requirement.state.stageStatus === "waiting_approval" ? en ? "Review the draft and approve or reject this version below." : "请核对草稿，在下方批准或拒绝当前版本。" : en ? "Review missing information and unconfirmed fields below, then generate the next version." : "请在下方补充缺失信息、核对待确认字段，再生成新版本。"}</p>
+								<p role="status">{requirementRunning ? en ? "Organising your material. You can return later to review it." : "正在整理资料，完成后可核对草稿。" : requirement.state.stageStatus === "passed" ? en ? "Approved. Export the current delivery below." : "当前版本已批准，可在下方导出交付物。" : requirement.state.stageStatus === "waiting_approval" ? en ? "Review the draft and approve or reject this version below." : "请核对草稿，在下方批准或拒绝当前版本。" : reviewRecovery ? en ? "Review did not finish. Your draft is saved. Check the failure details, then explicitly start a new execution; no customer clarification is needed for this system failure." : "复核未完成，草稿已保存。请检查下方失败原因后重新执行；系统故障无需补充客户资料。" : en ? "Review missing information and unconfirmed fields below, then generate the next version." : "请在下方补充缺失信息、核对待确认字段，再生成新版本。"}</p>
 								<dl className="run-metadata">
 									<div><dt>{en ? "Industry" : "行业"}</dt><dd>{en ? "Packaging" : "包装"}</dd></div>
 									{requirement.state.facts.plan_source && <div><dt>{en ? "Source" : "资料来源"}</dt><dd>Plan v{requirement.state.facts.plan_source.sourceRef.split(":version:")[1]}</dd></div>}
-									<div><dt>{en ? "Status" : "状态"}</dt><dd>{stageLabel(requirement.state.stageStatus)}</dd></div>
+									<div><dt>{en ? "Status" : "状态"}</dt><dd>{reviewRecovery && requirement.state.stageStatus === "needs_input" ? (en ? "Review needs recovery" : "复核待恢复") : stageLabel(requirement.state.stageStatus)}</dd></div>
 									<div><dt>{en ? "Version" : "版本"}</dt><dd>{requirement.state.currentProposal?.version ?? "—"}</dd></div>
 									<div><dt>{en ? "Queue" : "队列"}</dt><dd>{requirement.job ? ({ queued: en ? "Queued" : "排队中", leased: en ? "Running" : "执行中", completed: en ? "Completed" : "已完成", cancelled: en ? "Cancelled" : "已取消", dead_letter: en ? "Failed" : "执行失败" }[requirement.job.status]) : "—"}</dd></div>
 								</dl>
@@ -1148,6 +1149,10 @@ function App() {
 									{evaluation.issues.length === 0
 										? <p>{en ? `Structure and authoritative-state checks passed. ${evaluation.approvalEligible ? "Ready for approval." : "More information or confirmation is still needed."}` : `结构和权威状态检查通过。${evaluation.approvalEligible ? "可以审批。" : "仍需补充或确认 信息。"}`}</p>
 										: evaluation.issues.map((issue, index) => <p key={`${issue.code}-${index}`}>{validationText(issue, language)}</p>)}
+									{evaluation.extractionCorrections?.map((correction, index) => <details key={index}>
+										<summary>{en ? "Extraction corrected; confirmation still needed" : "已纠正提取错误，仍待确认"} · {fieldLabel(correction.field)}: {String(correction.previousValue)} → {correction.value} {correction.unit}</summary>
+										<p>{en ? "Original source" : "原始资料"}: {correction.sourceRef}</p><blockquote>{correction.quote}</blockquote>
+									</details>)}
 									{evaluation.evidenceReview && <>
 										<p>{en ? "Evidence review" : "证据复核"} · v{evaluation.evidenceReview.artifactVersion} · {evaluation.evidenceReview.status === "failed" ? (en ? "Incomplete — approval blocked" : "未完成，已阻止审批") : (en ? "Completed" : "已完成")}</p>
 										{evaluation.evidenceReview.issues.map((issue, index) => <div key={index}>
@@ -1194,7 +1199,7 @@ function App() {
 									? progressLabel(requirementActivity)
 									: requirement.state.stageStatus === "cancelled"
 										? en ? "Re-review requirement brief" : "重新审查需求单"
-										: en ? "Generate a new version with the latest information" : "用最新信息生成新版本"}
+										: reviewRecovery ? en ? "Start a new execution (may incur model usage)" : "重新执行（会产生模型用量）" : en ? "Generate a new version with the latest information" : "用最新信息生成新版本"}
 							</button>
 						</>
 					)}

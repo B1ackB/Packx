@@ -30,6 +30,7 @@ import type {
 } from "../../src/runtime/contracts";
 import { RuntimeFailure } from "../../src/runtime/contracts";
 import { AnthropicCompatibilityError } from "../anthropic/client";
+import { defaultContextBudget } from "../../src/agent/tokenBudget";
 
 export interface BlackxAgentRuntimeOptions extends AgentLoopOptions {
 	telemetry?: Pick<ModelTelemetryStore, "wrap">;
@@ -68,8 +69,11 @@ function classifyFailure(error: unknown, timedOut: boolean, cancelled: boolean):
 			if (cause.code === "context_window_exceeded") {
 				return new RuntimeFailure("budget_exceeded", "Model context window was exceeded", false, { cause: error });
 			}
-			if (cause.code === "output_limit" || cause.code === "refusal") {
-				return new RuntimeFailure("invalid_output", "Model did not produce a complete usable response", cause.code === "output_limit", { cause: error });
+			if (cause.code === "output_limit") {
+				return new RuntimeFailure("output_limit", "Model output reached its token limit; a new bounded execution requires an explicit budget decision", false, { cause: error });
+			}
+			if (cause.code === "refusal") {
+				return new RuntimeFailure("invalid_output", "Model did not produce a complete usable response", false, { cause: error });
 			}
 			if (cause.providerStatus === 401 || cause.providerStatus === 403) {
 				return new RuntimeFailure("authentication", "Model provider authentication failed", false, { cause: error });
@@ -133,6 +137,14 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 			throw new RuntimeFailure("invalid_output", "Runtime accepts up to 8 image references and no inline image data", false);
 		}
 		if (request.limits && [request.limits.maxIterations, request.limits.maxToolExecutions, request.limits.maxInputTokens].some((value) => !Number.isInteger(value) || value < 1)) throw new RuntimeFailure("invalid_output", "Runtime limits must be positive integers", false);
+		const outputLimit = request.limits?.maxOutputTokens;
+		const outputCeiling = this.options.reservedOutputTokens ?? defaultContextBudget.reservedOutputTokens;
+		if (outputLimit !== undefined && (!Number.isSafeInteger(outputLimit) || outputLimit < 1)) throw new RuntimeFailure("invalid_output", "Output limit must be a positive safe integer", false);
+		if (outputLimit !== undefined && outputLimit > outputCeiling) throw new RuntimeFailure("budget_exceeded", "Stage output limit exceeds the configured model ceiling", false);
+		const expectedFields = request.expectedOutputFields === undefined ? undefined : structuredClone(request.expectedOutputFields);
+		if (expectedFields !== undefined && (!expectedFields || typeof expectedFields !== "object" || Array.isArray(expectedFields) || Object.keys(expectedFields).length > 32 || Object.entries(expectedFields).some(([key, value]) =>
+			!/^[A-Za-z][A-Za-z0-9_]{0,63}$/.test(key) || !(value === null || typeof value === "boolean" || typeof value === "string" && value.length <= 2000 || typeof value === "number" && Number.isFinite(value))))) throw new RuntimeFailure("invalid_output", "Expected output fields must be bounded literal Host values", false);
+		const outputContractDigest = expectedFields === undefined && outputLimit === undefined ? undefined : createHash("sha256").update(JSON.stringify({ fields: Object.entries(expectedFields ?? {}).sort(([a], [b]) => a.localeCompare(b)), outputLimit: outputLimit ?? null })).digest("hex");
 		const timeout = new AbortController();
 		let timedOut = false;
 		const timer = setTimeout(() => {
@@ -170,6 +182,8 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 		let guard = new RuntimeLoopGuard();
 		try {
 			combinedSignal.throwIfAborted();
+			const originalExecution = this.traces.listTraces(scope).find(trace => trace.stageId === request.stageId && trace.idempotencyKey === request.idempotencyKey && trace.sessionId === sessionId && trace.failure?.code !== "session_conflict");
+			if (originalExecution && originalExecution.outputContractDigest !== outputContractDigest) throw new RuntimeFailure("session_conflict", "Turn output contract changed; start a new execution", false);
 			const previous = this.traces.listTraces(scope)
 				.filter((trace) => trace.stageId === request.stageId && trace.idempotencyKey === request.idempotencyKey && trace.sessionId === sessionId && trace.loopGuard)
 				.sort((a, b) => b.loopGuard!.sequence - a.loopGuard!.sequence)[0]?.loopGuard;
@@ -189,6 +203,17 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 				const current = this.options.readTaskContext?.(request) ?? request.taskContext;
 				if (current?.binding !== taskContext?.binding) throw new RuntimeFailure("context_failure", "Task facts or source versions changed during execution", false);
 			};
+			const validateOutput = (text: string) => {
+				if (expectedFields === undefined) return;
+				let value: unknown;
+				try { value = JSON.parse(text); } catch { /* Invalid JSON fails the same exact-field gate. */ }
+				const object = value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : undefined;
+				const fields = Object.keys(expectedFields).filter((key) => !object || !Object.hasOwn(object, key) || !Object.is(object[key], expectedFields[key]));
+				if (!object || fields.length) {
+					traceEvents.push({ type: "output.rejected", reason: "current_fact_mismatch", fields });
+					throw new RuntimeFailure("invalid_output", "Structured answer disagrees with current Host fields", false);
+				}
+			};
 			const replyId = `reply-${createHash("sha256").update(request.idempotencyKey).digest("hex")}`;
 			const priorReply = session.transcript?.find((message) => message.messageId === replyId);
 			if (priorReply) {
@@ -196,6 +221,8 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 				if (priorInput && (priorInput.content !== request.input || JSON.stringify(priorInput.attachments ?? []) !== JSON.stringify(request.attachments ?? []))) throw new RuntimeFailure("session_conflict", "Turn idempotency key was reused with different input", false);
 				const trace = this.traces.listTraces(scope).findLast((item) => item.sessionId === sessionId && item.idempotencyKey === request.idempotencyKey && item.status === "completed");
 				if (!trace) throw new RuntimeFailure("context_failure", "Completed dialogue is missing execution evidence; review required", false);
+				if (trace.outputContractDigest !== outputContractDigest) throw new RuntimeFailure("session_conflict", "Turn output contract changed; start a new execution", false);
+				validateContext(); validateOutput(priorReply.content);
 				return { adapter: "blackx-agent", status: "completed", sessionId, executionId: trace.executionId, finalResponse: priorReply.content, events: trace.events, usage: trace.usage, contextSnapshotId: trace.contextSnapshotId };
 			}
 			const hydrate = async (attachment: AgentImageAttachment): Promise<AgentImageAttachment> => {
@@ -361,6 +388,7 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 			let partialText = "";
 			hooks.on("model.delta", (event) => {
 				combinedSignal.throwIfAborted();
+				if (expectedFields !== undefined) return;
 				partialText = (partialText + event.text).slice(0, 128_000);
 				progress("model", { iteration: event.iteration, partialText });
 			});
@@ -477,7 +505,7 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 				},
 				context: this.options.context,
 				contextWindowTokens: this.options.contextWindowTokens,
-				reservedOutputTokens: this.options.reservedOutputTokens,
+				reservedOutputTokens: outputLimit ?? this.options.reservedOutputTokens,
 				safetyMarginTokens: this.options.safetyMarginTokens,
 				summarizer: this.options.summarizer,
 				approval: this.options.approval,
@@ -512,6 +540,8 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 				fallbackOutput: request.fallbackOutput,
 			}, combinedSignal), combinedSignal);
 			combinedSignal.throwIfAborted();
+			validateContext();
+			if (result.stopReason === "completed") validateOutput(result.finalText);
 			saveWorking(result.messages, result.stopReason === "slice_limit");
 			const response: RuntimeTurnResult = {
 				executionId,
@@ -564,6 +594,7 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 				executionId,
 				idempotencyKey: request.idempotencyKey,
 				status: response.status,
+				...(outputContractDigest ? { outputContractDigest } : {}),
 				startedAt,
 				completedAt: this.now(),
 				durationMs: Math.max(0, this.clockMs() - startedMs),
@@ -595,6 +626,7 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 				executionId,
 				idempotencyKey: request.idempotencyKey,
 				status: "failed",
+				...(outputContractDigest ? { outputContractDigest } : {}),
 				startedAt,
 				completedAt: this.now(),
 				durationMs: Math.max(0, this.clockMs() - startedMs),

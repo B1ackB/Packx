@@ -119,6 +119,7 @@ function toolExecutionRecord(value: unknown): value is AgentToolExecutionRecord 
 function runtimeTrace(value: unknown): value is RuntimeTraceRecord {
 	if (!record(value) || value.schemaVersion !== "runtime-trace.v1") return false;
 	if (value.loopGuard !== undefined && !validLoopGuard(value.loopGuard)) return false;
+	if (value.outputContractDigest !== undefined && (typeof value.outputContractDigest !== "string" || !/^[a-f0-9]{64}$/.test(value.outputContractDigest))) return false;
 	const usage = value.usage;
 	return ["tenantId", "workspaceId", "runId", "stageId", "actorId", "executionId", "idempotencyKey"]
 		.every((key) => typeof value[key] === "string" && /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(String(value[key]))) &&

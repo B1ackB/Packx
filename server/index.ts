@@ -36,7 +36,8 @@ import {
 	ProposalApiController,
 	type ProposalApiContext,
 } from "./enterprise/proposalApi";
-import { createRuntime } from "./runtime/createRuntime";
+import { createRuntime, runtimeContextSettings } from "./runtime/createRuntime";
+import { requirementReviewOutputLimit } from "./manufacturing/requirementEvidencePolicy";
 import {
 	automationToolNames,
 	automationWriteToolNames,
@@ -225,6 +226,7 @@ const requirementBriefWorker = new RequirementBriefWorker(
 	conversationAttachments,
 	assetInspection,
 	knowledge,
+	requirementReviewOutputLimit(process.env.PACKX_REVIEW_MAX_OUTPUT_TOKENS, runtimeContextSettings(process.env).reservedOutputTokens),
 );
 const stageJobScheduler = new StageJobScheduler(
 	stageJobQueue,

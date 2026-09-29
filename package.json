@@ -20,6 +20,7 @@
 		"eval:process-recovery": "node --import tsx eval/processRecovery.ts",
 		"eval:recovery-windows": "node --import tsx eval/recoveryWindows.ts",
 		"eval:context-continuous": "node --env-file-if-exists=.env --import tsx eval/contextContinuous.ts",
+		"eval:reliability-repairs": "node --import tsx eval/reliabilityRepairs.ts",
 		"eval:recovery": "node --import tsx eval/reliabilityRecovery.ts",
 		"eval:offline": "node --import tsx eval/run.ts",
 		"eval:online": "node --import tsx eval/run.ts --online",

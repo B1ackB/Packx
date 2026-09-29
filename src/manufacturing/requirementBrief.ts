@@ -49,10 +49,24 @@ export function pendingChangeNotes(facts: RequirementFactV1[], changes: Requirem
 	});
 }
 
+export interface RequirementExtractionCorrection {
+	field: string;
+	previousValue: string | number | boolean;
+	value: number;
+	unit?: string;
+	status: "unverified";
+	sourceRef: string;
+	sourceVersion: string | number;
+	quote: string;
+	reason: "explicit_original_quantity";
+	previousFactVersion: number | null;
+}
+
 export interface RequirementBriefEvaluation {
 	schemaVersion: "requirement-brief-evaluation.v1";
 	evidenceReview?: EvidenceReviewReport;
-	decision?: "continue" | "revise" | "request_input" | "reconfirm_plan";
+	extractionCorrections?: RequirementExtractionCorrection[];
+	decision?: "continue" | "revise" | "request_input" | "reconfirm_plan" | "recover_review";
 	passed: boolean;
 	approvalEligible: boolean;
 	issues: Array<{ code: string; message: string }>;

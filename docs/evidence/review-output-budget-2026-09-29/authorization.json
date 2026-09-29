@@ -1,0 +1,18 @@
+{
+	"date": "2026-09-29",
+	"userMessage": "批准",
+	"approvedAction": "Independent read-only 8192 vs 16384 output-budget comparison, at most USD 2, same model and inputs, no replay of historical unknowns.",
+	"usdLimit": 2,
+	"priorBudget": "Separate and unchanged",
+	"pricing": {
+		"url": "https://api-docs.deepseek.com/quick_start/pricing/",
+		"verifiedOn": "2026-09-29",
+		"ratesPerMillion": {
+			"input": 0.3,
+			"cached": 0.006,
+			"output": 1.2
+		},
+		"basis": "Peak ceiling estimate, not invoice"
+	},
+	"preparation": "A first prepare-only plan failed TypeScript checking; no calls were made. The corrected frozen plan is r2."
+}

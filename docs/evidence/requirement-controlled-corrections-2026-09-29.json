@@ -1,0 +1,131 @@
+{
+	"protocol": "requirement-controlled-corrections.v1",
+	"mode": "offline-historical-component-replay",
+	"date": "2026-09-29",
+	"policyVersion": "packaging-requirement-evidence.v2.6",
+	"source": "docs/evidence/review-output-budget-2026-09-29/report.json.gz",
+	"sourceSha256": "0a46b87a6b20c577322cd2d06903c64fae64b1721db5452b86874d3a2f6d9412",
+	"codeSha256": {
+		"server/manufacturing/requirementCorrections.ts": "5dedd55ee9f9a04705aa0d815166ec0d3c8416b05f811140b142e9529aa371cb",
+		"server/manufacturing/requirementEvidencePolicy.ts": "c9e4794c9d67922ca828a847beb82a70f6f016194570100a7a2e62b08d7e0faf",
+		"server/manufacturing/requirementBriefWorker.ts": "f0bf4daa35a7057b3b17d4be3f15f0e5832ae2beed96b842aa1f500f7353a12e",
+		"server/enterprise/evidenceReviewWorkflow.ts": "3e118a926e3e9ee64c0e8e2ca07492fc259c205715f775905c983b28ababfe8c",
+		"server/manufacturing/requirementCorrections.test.ts": "ec8f4070263fe323dddcfc5a38b481f1143675f3b1a70b1b1144be114e162be0",
+		"server/manufacturing/requirementIntake.regression.test.ts": "93fc8e2b69f0097d1911198a370aabbd8f1abc6d3648ab606b29107b6c991870",
+		"server/enterprise/evidenceReviewWorkflow.test.ts": "9b34d4afaa4636e9c727eea761782be30b0c3b28e17fb80f8ac7ddc629206313",
+		"eval/evidenceReviewBoundary.test.ts": "a4975b4fabb5204ff5be120cd236b3bec55ecd455706198b5ba298fa55672d33"
+	},
+	"newModelCalls": 0,
+	"onlineSemanticQuality": "NOT_EVALUATED",
+	"cases": [
+		{
+			"id": "budget-contradiction-control-1-16384",
+			"component": "restricted_narrative_revision",
+			"v25Allowed": true,
+			"v26Allowed": true,
+			"patchSource": "scripted_offline_patch",
+			"factsUnchanged": true,
+			"modelRereviewExecuted": false
+		},
+		{
+			"id": "budget-contradiction-control-1-8192",
+			"component": "restricted_narrative_revision",
+			"v25Allowed": true,
+			"v26Allowed": true,
+			"patchSource": "scripted_offline_patch",
+			"factsUnchanged": true,
+			"modelRereviewExecuted": false
+		},
+		{
+			"id": "budget-fact-contradiction-1-8192",
+			"component": "deterministic_candidate_correction",
+			"v25CorrectionAvailable": false,
+			"v26CorrectionAvailable": true,
+			"field": "quantity",
+			"previousValue": 12500,
+			"value": 12000,
+			"unit": "个",
+			"status": "unverified",
+			"sourceRef": "CC-fact-contradiction-S01",
+			"sourceVersion": 1,
+			"quote": "咖啡豆平底袋 12000 个，外尺寸 140 × 240 × 80 mm，销售市场香港，2026-12-15 到货，送香港葵青示例仓 M。稿件状态：设计中。全程禁止使用 PVC，这条要求不能因后续材料介绍被忽略。材料结构和厚度暂不确定。",
+			"reason": "explicit_original_quantity",
+			"previousFactVersion": 1
+		},
+		{
+			"id": "budget-fact-contradiction-1-16384",
+			"component": "deterministic_candidate_correction",
+			"v25CorrectionAvailable": false,
+			"v26CorrectionAvailable": true,
+			"field": "quantity",
+			"previousValue": 12500,
+			"value": 12000,
+			"unit": "个",
+			"status": "unverified",
+			"sourceRef": "CC-fact-contradiction-S01",
+			"sourceVersion": 1,
+			"quote": "咖啡豆平底袋 12000 个，外尺寸 140 × 240 × 80 mm，销售市场香港，2026-12-15 到货，送香港葵青示例仓 M。稿件状态：设计中。全程禁止使用 PVC，这条要求不能因后续材料介绍被忽略。材料结构和厚度暂不确定。",
+			"reason": "explicit_original_quantity",
+			"previousFactVersion": 1
+		},
+		{
+			"id": "budget-omission-control-2-8192",
+			"component": "restricted_narrative_revision",
+			"v25Allowed": false,
+			"v26Allowed": true,
+			"patchSource": "scripted_offline_patch",
+			"factsUnchanged": true,
+			"modelRereviewExecuted": false
+		},
+		{
+			"id": "budget-contradiction-control-2-8192",
+			"component": "restricted_narrative_revision",
+			"v25Allowed": true,
+			"v26Allowed": true,
+			"patchSource": "scripted_offline_patch",
+			"factsUnchanged": true,
+			"modelRereviewExecuted": false
+		},
+		{
+			"id": "budget-contradiction-control-2-16384",
+			"component": "restricted_narrative_revision",
+			"v25Allowed": false,
+			"v26Allowed": true,
+			"patchSource": "scripted_offline_patch",
+			"factsUnchanged": true,
+			"modelRereviewExecuted": false
+		},
+		{
+			"id": "budget-fact-contradiction-2-16384",
+			"component": "deterministic_candidate_correction",
+			"v25CorrectionAvailable": false,
+			"v26CorrectionAvailable": true,
+			"field": "quantity",
+			"previousValue": 12500,
+			"value": 12000,
+			"unit": "个",
+			"status": "unverified",
+			"sourceRef": "CC-fact-contradiction-S01",
+			"sourceVersion": 1,
+			"quote": "咖啡豆平底袋 12000 个，外尺寸 140 × 240 × 80 mm，销售市场香港，2026-12-15 到货，送香港葵青示例仓 M。稿件状态：设计中。全程禁止使用 PVC，这条要求不能因后续材料介绍被忽略。材料结构和厚度暂不确定。",
+			"reason": "explicit_original_quantity",
+			"previousFactVersion": 1
+		},
+		{
+			"id": "budget-fact-contradiction-2-8192",
+			"component": "deterministic_candidate_correction",
+			"v25CorrectionAvailable": false,
+			"v26CorrectionAvailable": true,
+			"field": "quantity",
+			"previousValue": 12500,
+			"value": 12000,
+			"unit": "个",
+			"status": "unverified",
+			"sourceRef": "CC-fact-contradiction-S01",
+			"sourceVersion": 1,
+			"quote": "咖啡豆平底袋 12000 个，外尺寸 140 × 240 × 80 mm，销售市场香港，2026-12-15 到货，送香港葵青示例仓 M。稿件状态：设计中。全程禁止使用 PVC，这条要求不能因后续材料介绍被忽略。材料结构和厚度暂不确定。",
+			"reason": "explicit_original_quantity",
+			"previousFactVersion": 1
+		}
+	]
+}

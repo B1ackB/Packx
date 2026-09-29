@@ -12,7 +12,7 @@ import type { EvidenceReviewIssue } from "../../src/enterprise/evidenceReview";
 import { RuntimeFailure, type AgentRuntimePort, type RuntimeTurnRequest } from "../../src/runtime/contracts";
 import { FileArtifactContentStore } from "../artifacts/fileArtifactStore";
 import { RequirementBriefWorker } from "../manufacturing/requirementBriefWorker";
-import { requirementEvidencePolicy } from "../manufacturing/requirementEvidencePolicy";
+import { requirementEvidencePolicy, requirementReviewOutputLimit } from "../manufacturing/requirementEvidencePolicy";
 import { FileEnterpriseEventStore } from "./fileEventStore";
 
 const dirs: string[] = [];
@@ -25,7 +25,7 @@ const issue = (patch: Partial<EvidenceReviewIssue> = {}): EvidenceReviewIssue =>
 const pass = { issues: [] };
 const revised = { title: fixture.artifact.title, customerGoal: "保留品牌原稿，整理包装需求。", assumptions: [] };
 
-function harness(outputs: Array<unknown | Error>, candidate: RequirementBriefV1 = structuredClone(fixture.artifact)) {
+function harness(outputs: Array<unknown | Error>, candidate: RequirementBriefV1 = structuredClone(fixture.artifact), source = `${fixture.input} 保留品牌原稿。`) {
 	const directory = mkdtempSync(join(tmpdir(), "packx-evidence-review-")); dirs.push(directory);
 	const engine = new ProposalRunEngine(new FileEnterpriseEventStore(join(directory, "events.json")), "requirement-brief");
 	const artifacts = new FileArtifactContentStore(join(directory, "artifacts"));
@@ -35,7 +35,7 @@ function harness(outputs: Array<unknown | Error>, candidate: RequirementBriefV1 
 	engine.create(envelope()); engine.startProposal(envelope());
 	for (const fact of [
 		{ key: "industry", value: "print", status: "verified" as const, sourceType: "enterprise_source" as const, sourceRef: "domain:print" },
-		{ key: "customer_brief", value: `${fixture.input} 保留品牌原稿。`, status: "unverified" as const, sourceType: "user_input" as const, sourceRef: "source:brief:v1" },
+		{ key: "customer_brief", value: source, status: "unverified" as const, sourceType: "user_input" as const, sourceRef: "source:brief:v1" },
 		...fixture.artifact.facts,
 	]) engine.recordFactVersion({ ...envelope(), factKey: fact.key, factVersion: 1, value: fact.value, ...("unit" in fact ? { unit: fact.unit } : {}), status: fact.status, sourceType: fact.sourceType, sourceRef: fact.sourceRef });
 	const requests: RuntimeTurnRequest[] = [];
@@ -57,6 +57,26 @@ function harness(outputs: Array<unknown | Error>, candidate: RequirementBriefV1 
 }
 
 describe("requirement evidence review boundary", () => {
+	it("preserves truncation as a durable blocked result and does not repurchase review on resume", async () => {
+		const h = harness([new RuntimeFailure("output_limit", "truncated", false)]);
+		await h.run(); await h.run();
+		expect(h.report()).toMatchObject({ passed: false, approvalEligible: false, decision: "recover_review", evidenceReview: { failure: "output_limit" } });
+		expect(h.report().issues).toContainEqual({ code: "output_limit", message: expect.stringContaining("当前草稿已保留") });
+		expect(h.engine.load(h.scope).approval).toBeUndefined();
+		expect(h.requests).toHaveLength(2);
+	});
+
+	it("binds an explicitly configured review budget to the saved input and call intent", async () => {
+		const h = harness([pass]);
+		await new RequirementBriefWorker(h.engine, h.runtime, h.artifacts, undefined, undefined, undefined, 16384).execute(h.command);
+		expect(h.requests[0].limits?.maxOutputTokens).toBeUndefined();
+		expect(h.requests[1].limits?.maxOutputTokens).toBe(16384);
+		expect(h.read("requirement-brief-review-input")).toMatchObject({ maxOutputTokens: 16384 });
+		expect(h.read("requirement-brief-review-call-intent")).toMatchObject({ maxCalls: 1, maxOutputTokens: 16384 });
+		expect(requirementReviewOutputLimit(undefined, 8192)).toBeUndefined();
+		expect(requirementReviewOutputLimit("8192", 16384)).toBe(8192);
+		for (const value of ["0", "-1", "NaN", "1.5", "16385"]) expect(() => requirementReviewOutputLimit(value, 16384)).toThrow();
+	});
 	it.each(["intake", "revision"])("blocks an unsupported narrative number introduced during %s", async (phase) => {
 		const candidate = structuredClone(fixture.artifact);
 		if (phase === "intake") candidate.customerGoal = "总数量为 6085 个。";
@@ -91,6 +111,70 @@ describe("requirement evidence review boundary", () => {
 		expect(h.requests.map((r) => r.stageId)).toEqual(["requirement-brief", "requirement-brief-review-call", "requirement-brief-revision-call", "requirement-brief-review-call"]);
 	});
 
+	it("directly corrects a PVC narrative contradiction into a new reviewed version without asking the customer again", async () => {
+		const candidate = { ...structuredClone(fixture.artifact), customerGoal: "本订单允许使用 PVC。" };
+		const finding = issue({ kind: "contradiction", reason: "客户原文禁止 PVC，草稿写成允许 PVC。" });
+		const correction = { title: candidate.title, customerGoal: "本订单全程禁止使用 PVC。", assumptions: candidate.assumptions };
+		const h = harness([{ issues: [finding] }, correction, pass], candidate, `${fixture.input} 本订单全程禁止使用 PVC。`);
+		const before = h.engine.load(h.scope).facts;
+		await h.run();
+		expect(h.engine.load(h.scope)).toMatchObject({ stageStatus: "waiting_approval", currentProposal: { version: 2 }, approval: { artifactVersion: 2, status: "requested" }, facts: before });
+		expect(h.read("requirement-brief", 1)).toEqual(candidate);
+		expect(h.read("requirement-brief", 2)).toMatchObject({ ...correction, facts: candidate.facts });
+		expect(h.read("requirement-brief-evaluation", 1)).toMatchObject({ decision: "revise", passed: false });
+		expect(h.report()).toMatchObject({ decision: "continue", passed: true });
+		expect(h.read("requirement-brief-review-input", 2)).toMatchObject({ policyVersion: "packaging-requirement-evidence.v2.6" });
+		expect(h.requests).toHaveLength(4);
+		await h.run(); expect(h.requests).toHaveLength(4);
+	});
+
+	it.each([false, true])("repairs a source-backed /facts omission without modifying Facts (mixed=%s)", async mixed => {
+		const candidate = { ...structuredClone(fixture.artifact), customerGoal: mixed ? "本订单允许使用 PVC。" : "整理包装需求。" };
+		const omission = issue({ location: "/facts", reason: "遗漏原文的禁用 PVC 要求。" });
+		const findings = mixed ? [issue({ kind: "contradiction" }), omission] : [omission];
+		const correction = { title: candidate.title, customerGoal: mixed ? "本订单全程禁止使用 PVC。" : candidate.customerGoal, assumptions: candidate.assumptions };
+		const source = `${fixture.input} 本订单全程禁止使用 PVC。`;
+		const h = harness([{ issues: findings }, correction, pass], candidate, source);
+		const before = h.engine.load(h.scope).facts;
+		await h.run();
+		expect(h.engine.load(h.scope)).toMatchObject({ stageStatus: "waiting_approval", facts: before, approval: { artifactVersion: 2 } });
+		expect(h.read("requirement-brief", 1)).toEqual(candidate);
+		expect(h.read("requirement-brief", 2)).toMatchObject({ ...correction, assumptions: expect.arrayContaining([`客户原文引用（source:brief:v1）：${source}`]) });
+		expect(h.read("requirement-brief-review", 1)).toMatchObject({ issues: findings });
+		expect(JSON.parse(h.requests[3].input)).toMatchObject({ priorIssues: findings, retainedIssues: [] });
+		await h.run(); expect(h.requests).toHaveLength(4);
+	});
+
+	it.each(["contradiction", "insufficient_evidence"] as const)("retains a real %s even if the second reviewer omits it after a partial repair", async kind => {
+		const blocked = issue({ kind, location: "/facts/quantity", suggestedAction: "request_input" });
+		const h = harness([{ issues: [issue(), blocked] }, revised, pass]);
+		await h.run();
+		expect(h.report()).toMatchObject({ decision: "request_input", passed: false, retainedIssues: [blocked] });
+		expect(h.engine.load(h.scope)).toMatchObject({ stageStatus: "needs_input", currentProposal: { version: 2 } });
+		expect(h.engine.load(h.scope).approval).toBeUndefined();
+		expect(JSON.parse(h.requests[3].input)).toMatchObject({ retainedIssues: [blocked] });
+		await h.run(); expect(h.requests).toHaveLength(4);
+	});
+
+	it("treats a no-op patch as a recoverable system failure without another review", async () => {
+		const candidate = structuredClone(fixture.artifact);
+		const h = harness([{ issues: [issue()] }, { title: candidate.title, customerGoal: candidate.customerGoal, assumptions: candidate.assumptions }]);
+		await h.run();
+		expect(h.report()).toMatchObject({ decision: "recover_review", revisionFailure: "revision_no_progress", passed: false });
+		expect(h.engine.load(h.scope).currentProposal?.version).toBe(1);
+		await h.run(); expect(h.requests).toHaveLength(3);
+	});
+
+	it("asks for input when a narrative contradiction remains after the single automatic correction", async () => {
+		const finding = issue({ kind: "contradiction" });
+		const h = harness([{ issues: [finding] }, revised, { issues: [finding] }]);
+		await h.run();
+		expect(h.report()).toMatchObject({ decision: "request_input", passed: false });
+		expect(h.engine.load(h.scope)).toMatchObject({ stageStatus: "needs_input", currentProposal: { version: 2 } });
+		expect(h.engine.load(h.scope).approval).toBeUndefined();
+		await h.run(); expect(h.requests).toHaveLength(4);
+	});
+
 	it("stops after the second review even when the model asks for another revision", async () => {
 		const h = harness([{ issues: [issue()] }, revised, { issues: [issue()] }]); await h.run();
 		expect(h.engine.load(h.scope)).toMatchObject({ stageStatus: "needs_input", currentProposal: { version: 2 }, evaluation: { passed: false } });
@@ -100,13 +184,11 @@ describe("requirement evidence review boundary", () => {
 	});
 
 	it.each([
+		issue({ kind: "contradiction", suggestedAction: "request_input", reason: "两份客户原始资料的 PVC 要求相反，需客户决定。" }),
 		issue({ kind: "contradiction", location: "/facts/quantity", suggestedAction: "revise" }),
 		issue({ kind: "insufficient_evidence", evidenceRefs: [], suggestedAction: "request_input", reason: "缺少供应商原始测试报告，不能证实材料性能。" }),
 		issue({ kind: "scope_change", suggestedAction: "reconfirm_plan" }),
 		issue({ location: "/facts/quantity" }),
-		// Online low/disabled review found a missing narrative constraint but targeted Facts.
-		// Keep the detection, block automatic rewriting of authoritative state.
-		issue({ location: "/facts", reason: "Original customer source forbids PVC, but the narrative omits that constraint." }),
 	])("routes $kind / $location to the user without revising Facts or running tools", async (finding) => {
 		const h = harness([{ issues: [finding] }]); const before = h.engine.load(h.scope).facts;
 		await h.run();
@@ -135,7 +217,7 @@ describe("requirement evidence review boundary", () => {
 
 	it("a model pass cannot override failed deterministic validation", async () => {
 		const h = harness([pass], { ...fixture.artifact, schemaVersion: "wrong" } as unknown as RequirementBriefV1);
-		await h.run(); expect(h.report().passed).toBe(false); expect(h.engine.load(h.scope).approval).toBeUndefined();
+		await h.run(); expect(h.report()).toMatchObject({ passed: false, decision: "recover_review" }); expect(h.engine.load(h.scope).approval).toBeUndefined();
 		expect(h.requests).toHaveLength(1);
 		expect(h.report().evidenceReview).toMatchObject({ status: "failed", failure: "deterministic_validation_failed" });
 	});

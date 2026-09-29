@@ -5,6 +5,7 @@ import { afterAll, beforeAll, expect, it } from "vitest";
 import type { AgentModelProvider } from "../src/agent/contracts";
 import { createRequirementBrief } from "../src/manufacturing/requirementBrief";
 import { equivalentField, loadAutomaticSuite, scoreAutomatic } from "./requirementAutomatic";
+import { scoreAutomaticV2 } from "./requirementAutomaticV2";
 import { executeIntakeCase, jsonDigest, newIntakeResult, verdict, type CheckpointResult, type IntakeResult } from "./requirementIntake";
 
 const suite = loadAutomaticSuite(), root = mkdtempSync(join(tmpdir(), "packx-automatic-qualification-"));
@@ -26,7 +27,7 @@ beforeAll(async () => {
 			});
 			return { text: JSON.stringify(createRequirementBrief({ industry: "print", title: "离线参考结果", customerGoal: "整理结构化需求供人工核对", facts, assumptions: [] })), toolCalls: [], usage: { inputTokens: 0, outputTokens: 0, cachedInputTokens: 0, reasoningOutputTokens: 0 } };
 		} };
-		await executeIntakeCase({ input, oracle, result, directory: join(root, input.id), provider, score: scoreAutomatic, save() {} });
+		await executeIntakeCase({ input, oracle, result, directory: join(root, input.id), provider, score: scoreAutomaticV2, save() {} });
 		runs.push(result);
 	}
 }, 30_000);
@@ -84,4 +85,24 @@ it("keeps unknown wording unresolved and refuses review injection", () => {
 	expect(result.checks.find((c) => c.id === "field:product_type:value")?.status).toBe("needs_review");
 	expect(result.verdict).not.toBe("passed");
 	expect(() => scoreAutomatic(capture, oracle.checkpoints[0], oracle, [] as CheckpointResult[], [{} as never])).toThrow("automatic_scoring_refuses_reviews");
+});
+
+it("separates known errors, unresolved wording and equivalent representations under the new protocol", () => {
+	const oracle = suite.oracles[0];
+	for (const [value, unit, status, reason] of [["999", "pcs", "failed", "numeric_mismatch"], ["3600 pcs", undefined, "needs_review", "missing_unit"]] as const) {
+		const capture = structuredClone(runs[0].checkpoints[0].capture);
+		Object.assign(capture.brief.facts.find(fact => fact.key === "quantity")!, { value, unit });
+		capture.artifactVersions[0].sha256 = jsonDigest(capture.brief);
+		const check = scoreAutomaticV2(capture, oracle.checkpoints[0], oracle, []).checks.find(check => check.id === "field:quantity:value");
+		expect(check).toMatchObject({ status, reason });
+	}
+	const capture = structuredClone(runs[0].checkpoints[0].capture);
+	const quantity = capture.brief.facts.find(fact => fact.key === "quantity")!;
+	quantity.value = String(quantity.value); quantity.unit = "个";
+	capture.artifactVersions[0].sha256 = jsonDigest(capture.brief);
+	expect(scoreAutomaticV2(capture, oracle.checkpoints[0], oracle, []).checks.find(check => check.id === "field:quantity:value")).toMatchObject({ status: "passed", reason: "same_representation" });
+	quantity.sourceRef = "other-tenant-source";
+	capture.artifactVersions[0].sha256 = jsonDigest(capture.brief);
+	expect(scoreAutomaticV2(capture, oracle.checkpoints[0], oracle, []).verdict).toBe("failed");
+	expect(() => scoreAutomaticV2(capture, oracle.checkpoints[0], oracle, [], [{} as never])).toThrow("automatic_scoring_refuses_reviews");
 });

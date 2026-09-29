@@ -261,6 +261,25 @@ describe("FileAgentStateStore", () => {
 		expect(state.listTraces({ ...scope, tenantId: "tenant-b" })).toEqual([]);
 	});
 
+	it("retains the output contract across a paused turn, restart and a rejected contract change", async () => {
+		const { root, state } = store();
+		let calls = 0;
+		const provider: AgentModelProvider = { async generate() {
+			calls += 1;
+			return { text: calls === 1 ? "" : '{"quantity":5201}', toolCalls: calls === 1 ? [{ id: "forbidden", name: "not-allowed", input: {} }] : [], usage: { inputTokens: 10, outputTokens: 5, cachedInputTokens: 0, reasoningOutputTokens: 0 } };
+		} };
+		const request = { ...scope, actorId: "eval", stageId: "structured", idempotencyKey: "guarded-turn", input: "Current quantity", fallbackOutput: "{}", allowedTools: [], expectedOutputFields: { quantity: 5201 }, limits: { maxIterations: 1, maxToolExecutions: 1, maxInputTokens: 24000, maxOutputTokens: 4096 }, policy: { sandboxMode: "read-only" as const, approvalPolicy: "never" as const, timeoutMs: 5000 } };
+		const first = new BlackxAgentRuntime({ skills: new SkillRegistry(), provider, sessions: state, traces: state, snapshots: state });
+		expect((await first.executeTurn(request)).status).toBe("paused");
+		const reopened = new FileAgentStateStore(root);
+		expect(reopened.listTraces(scope)[0].outputContractDigest).toMatch(/^[a-f0-9]{64}$/);
+		const resumed = new BlackxAgentRuntime({ skills: new SkillRegistry(), provider, sessions: reopened, traces: reopened, snapshots: reopened });
+		await expect(resumed.executeTurn({ ...request, resume: true, expectedOutputFields: { quantity: 5301 } })).rejects.toMatchObject({ code: "session_conflict" });
+		expect(calls).toBe(1);
+		expect((await resumed.executeTurn({ ...request, resume: true })).finalResponse).toBe('{"quantity":5201}');
+		expect(calls).toBe(2);
+	});
+
 	it("normalizes undefined optional Runtime event fields before persistence", () => {
 		const { root, state } = store();
 		state.putTrace({

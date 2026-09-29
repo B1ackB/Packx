@@ -5,7 +5,7 @@ import { AgentHooks } from "../../src/agent/hooks";
 import { SkillRegistry } from "../../src/agent/skills";
 import { InMemoryAgentStateStore } from "../../src/agent/state";
 import { RuntimeFailure } from "../../src/runtime/contracts";
-import { AnthropicMessagesClient } from "../anthropic/client";
+import { AnthropicCompatibilityError, AnthropicMessagesClient } from "../anthropic/client";
 import { BlackxAgentRuntime } from "./agentRuntime";
 import { AnthropicModelProvider } from "./anthropicModelProvider";
 import { FakeAgentRuntime } from "./fakeAgentRuntime";
@@ -34,6 +34,63 @@ const usage = {
 };
 
 describe("Packx Agent Runtime contract", () => {
+	it("reports received output truncation distinctly without automatically retrying the same budget", async () => {
+		const state = new InMemoryAgentStateStore();
+		const generate = vi.fn(async () => { throw new AnthropicCompatibilityError("output_limit", "Model reached limit", { adapterStatus: 422 }); });
+		const runtime = new BlackxAgentRuntime({ skills: new SkillRegistry(), traces: state, provider: { generate } });
+		await expect(runtime.executeTurn(request)).rejects.toMatchObject({ code: "output_limit", retryable: false });
+		expect(generate).toHaveBeenCalledTimes(1);
+		expect(state.listTraces(request)[0].failure).toMatchObject({ code: "output_limit", retryable: false });
+	});
+	it("uses the stage output budget for generation and token counting, bounded by the operator ceiling", async () => {
+		const budgets: number[] = [];
+		const runtime = new BlackxAgentRuntime({ skills: new SkillRegistry(), reservedOutputTokens: 16384, provider: {
+			async countTokens(input) { budgets.push(input.maxOutputTokens!); return 100; },
+			async generate(input) { budgets.push(input.maxOutputTokens!); return { text: "done", toolCalls: [], usage }; },
+		} });
+		const limited = { ...request, limits: { maxIterations: 1, maxToolExecutions: 1, maxInputTokens: 24000, maxOutputTokens: 8192 } };
+		await runtime.executeTurn(limited);
+		expect(budgets.length).toBeGreaterThanOrEqual(2);
+		expect(budgets.every(value => value === 8192)).toBe(true);
+		const calls = budgets.length;
+		await expect(runtime.executeTurn({ ...limited, limits: { ...limited.limits, maxOutputTokens: 16385 } })).rejects.toMatchObject({ code: "budget_exceeded", retryable: false });
+		expect(budgets).toHaveLength(calls);
+	});
+
+	it.each(["stale", "missing", "string", "malformed"])("rejects %s current-state output before publishing or saving a successful reply", async kind => {
+		const state = new InMemoryAgentStateStore(), activity = vi.fn();
+		const expected = { confirmedQuantity: 5201, pendingQuantity: 6201, supplierQualified: false };
+		const answer = kind === "stale" ? { ...expected, confirmedQuantity: 5101 } : kind === "missing" ? { confirmedQuantity: 5201 } : { ...expected, confirmedQuantity: "5201" };
+		const runtime = new BlackxAgentRuntime({ skills: new SkillRegistry(), sessions: state, snapshots: state, traces: state, onActivity: activity, provider: {
+			async generate(input) { await input.onText?.("unverified partial"); return { text: kind === "malformed" ? "{broken" : JSON.stringify(answer), toolCalls: [], usage }; },
+		} });
+		await expect(runtime.executeTurn({ ...request, sessionId: "guarded", expectedOutputFields: expected })).rejects.toMatchObject({ code: "invalid_output", retryable: false });
+		expect(state.load({ ...request, sessionId: "guarded" }).transcript?.some(message => message.messageId?.startsWith("reply-")) ?? false).toBe(false);
+		const trace = state.listTraces(request)[0];
+		expect(trace.status).toBe("failed");
+		expect(trace.events).toContainEqual(expect.objectContaining({ type: "output.rejected", reason: "current_fact_mismatch" }));
+		expect(trace.events.some(event => event.type === "message.completed")).toBe(false);
+		expect(activity.mock.calls.some(([, value]) => value.partialText === "unverified partial")).toBe(false);
+	});
+
+	it("replays only the same current-state output contract and checks live context before accepting a result", async () => {
+		const state = new InMemoryAgentStateStore(), generate = vi.fn(async () => ({ text: '{"quantity":5201}', toolCalls: [], usage }));
+		const runtime = new BlackxAgentRuntime({ skills: new SkillRegistry(), sessions: state, traces: state, provider: { generate } });
+		const guarded = { ...request, sessionId: "guarded", expectedOutputFields: { quantity: 5201 } };
+		await runtime.executeTurn(guarded); await runtime.executeTurn(guarded);
+		expect(generate).toHaveBeenCalledTimes(1);
+		await expect(runtime.executeTurn({ ...guarded, expectedOutputFields: { quantity: 5301 } })).rejects.toMatchObject({ code: "session_conflict" });
+		expect(generate).toHaveBeenCalledTimes(1);
+	});
+
+	it("rejects a late otherwise-correct answer when Host facts changed during generation", async () => {
+		let binding = "v2";
+		const runtime = new BlackxAgentRuntime({ skills: new SkillRegistry(), readTaskContext: () => ({ content: "current facts", binding }), provider: {
+			async generate() { binding = "v3"; return { text: '{"quantity":5201}', toolCalls: [], usage }; },
+		} });
+		await expect(runtime.executeTurn({ ...request, expectedOutputFields: { quantity: 5201 } })).rejects.toMatchObject({ code: "context_failure", retryable: false });
+	});
+
 	it("honors an explicit empty tool list at the model and execution boundaries", async () => {
 		const state = new InMemoryAgentStateStore();
 		let attemptedTool = false;
