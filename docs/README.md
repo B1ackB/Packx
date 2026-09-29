@@ -1,6 +1,8 @@
 # Packx 文档导航
 
-整理日期：2026-09-22。文档按用途组织；机制文档说明当前行为，ADR 记录决策，日期报告保留当时证据。历史报告的测试数量、产品范围和待办不自动代表当前实现。
+整理日期：2026-09-29。文档按用途组织；机制文档说明当前行为，ADR 记录决策，日期报告保留当时证据。历史报告的测试数量、产品范围和待办不自动代表当前实现。
+
+第一次阅读建议从[项目首页](../README.zh-CN.md)开始，先看[需求单流程图](../README.zh-CN.md#从询价到需求单)、[当前架构图](../README.zh-CN.md#项目架构)与[验证边界](../README.zh-CN.md#验证到了哪一步)，再按下表进入具体机制。英文入口见 [README](../README.md)。
 
 ## 按问题找文档
 
@@ -13,7 +15,8 @@
 | 报错后谁重试、哪些操作不能重做 | [错误处理与恢复](reliability-recovery.md) | [恢复 ADR-0025](adr/0025-evidence-bound-recovery-and-explicit-degradation.md) |
 | 哪些节点可以回滚、哪里仍有缺口 | [40 节点故障审计](failure-handling-audit.md) | [Harness 故障测试记录](harness-error-handling-tests.md) |
 | Plan、子任务、重规划怎样受控 | [Plan 模式](plan-mode.md) | [ADR-0015](adr/0015-confirmed-plans-and-bounded-subagents.md)、[停止与预算 ADR-0023](adr/0023-loop-guards-and-task-plan-budgets.md) |
-| Reviewer 能改什么、如何防止无限反思 | [需求单证据复核](requirement-evidence-review.md) | [业务完成原则](architecture/principles.md) |
+| Reviewer 能改什么、何时转人工、复核失败怎样恢复 | [需求单证据复核](requirement-evidence-review.md) | [受限纠错 ADR-0029](adr/0029-controlled-requirement-corrections.md)、[当前策略离线验证](evidence/requirement-controlled-corrections-2026-09-29.md) |
+| 输出截断或回答使用旧事实时如何阻断 | [预算与输出合同 ADR-0028](adr/0028-bounded-review-and-current-output-contract.md) | [可靠性修复回放](evidence/requirement-reliability-2026-09-29.md)、[历史 v2.2 预算对照](evidence/review-output-budget-2026-09-29.md) |
 | 如何衡量完整需求澄清任务是否完成 | [任务集与评分协议](../eval/fixtures/requirement-intake-v1/README.md)、[执行与评分](requirement-intake-evaluation.md) | [16 个独立合成案例](../eval/fixtures/requirement-intake-v1/CASEBOOK.md)、[首轮真实模型基线](evidence/requirement-intake-baseline-2026-09-25.md)、[逐项修复与复测](evidence/requirement-intake-repairs-2026-09-25.md) |
 | 暂无人工评审时如何评测，哪些证据仍缺失 | [自动任务评测与可靠性计划](task-evaluation-plan.md)、[自动任务协议](../eval/fixtures/requirement-automatic-v1/README.md) | [真实模型任务对照](evidence/automatic-online-2026-09-26.md)、[复核输出与费用](evidence/review-output-2026-09-26.md)、[位置与动作边界](evidence/review-boundary-2026-09-26.md)、[精简指令与传输停止](evidence/review-concise-2026-09-26.md)、[联网前验证](evidence/automatic-eval-2026-09-26.md)、[历史结果审计](evidence/requirement-intake-automatic-audit-2026-09-26.json) |
 | 资料如何检索、来源是否适用 | [知识系统入口](knowledge/README.md)、[证据规则](knowledge/evidence.md) | [RAG ADR-0018](adr/0018-packaging-evidence-retrieval.md)、[重排对照](knowledge/overlap-rerank.md) |
@@ -29,4 +32,4 @@
 - `adr/`：为什么做出这个决定、替代方案和边界；不用于承诺所有规划已完成。
 - 主题机制文档：实现、入口、运维与限制的主要解释。
 
-这次通过统一导航和专题归纳整理文档，保留原文件路径与历史证据，避免移动文档使已有引用失效。
+更新首页和导航时保留原文件路径与历史证据。修复后的离线回放、旧策略的真实模型实验、真实用户试用应分别说明，不能合并成一个成功率。
