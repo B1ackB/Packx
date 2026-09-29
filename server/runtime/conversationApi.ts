@@ -105,7 +105,7 @@ function scope(context: ConversationApiContext, conversationId: unknown): AgentS
 function failureStatus(code: RuntimeFailureCode): number {
 	if (code === "authentication") return 401;
 	if (code === "rate_limit") return 429;
-	if (code === "repeated_actions" || code === "consecutive_tool_failures") return 422;
+	if (code === "repeated_actions" || code === "consecutive_tool_failures" || code === "output_limit") return 422;
 	if (code === "invalid_output" || code === "permission_denied") return 400;
 	return 502;
 }

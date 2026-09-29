@@ -46,7 +46,7 @@ export function loadIntakeSuite() {
 }
 
 export type CheckStatus = "passed" | "failed" | "needs_review";
-export interface Check { id: string; category: "structure" | "field" | "source" | "state" | "semantic" | "safety"; status: CheckStatus; expected: unknown; actual?: unknown }
+export interface Check { id: string; category: "structure" | "field" | "source" | "state" | "semantic" | "safety"; status: CheckStatus; expected: unknown; actual?: unknown; reason?: string }
 export interface Review { caseId: string; checkpointId: string; captureSha256: string; checkId: string; decision: "passed" | "failed"; reviewer: string; method: "human" | "codex_assisted"; reason: string; evidence: string }
 export interface Capture {
 	id: string;
@@ -229,7 +229,8 @@ export async function executeIntakeCase(options: {
 		sessions: stateStore, snapshots: stateStore, traces: stateStore, executions: stateStore,
 		maxIterations: intakeLimits.maxIterations, maxToolExecutions: intakeLimits.maxToolExecutions,
 	});
-	const worker = new RequirementBriefWorker(engine, runtime, artifacts, attachments);
+	const worker = new RequirementBriefWorker(engine, runtime, artifacts, attachments, undefined, undefined,
+		options.environment?.PACKX_REVIEW_MAX_OUTPUT_TOKENS === undefined ? undefined : Number(options.environment.PACKX_REVIEW_MAX_OUTPUT_TOKENS));
 	const outbox = new StageJobOutbox(engine, store, queue, { maxFailures: 1, maxSlices: intakeLimits.maxSlices });
 	const signal = AbortSignal.timeout(intakeLimits.caseTimeoutMs);
 	const scheduler = new StageJobScheduler(queue, { workerId: `eval-${input.id}`, handlers: { "requirement-brief": (lease, jobSignal, guard) => worker.executeLease(lease, AbortSignal.any([signal, jobSignal]), guard) }, dispatchOutbox: () => outbox.dispatchOne() });

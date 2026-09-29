@@ -1,0 +1,428 @@
+{
+	"protocol": "review-output-budget.v1",
+	"authorization": "User approved on 2026-09-29: independent USD 2 read-only comparison of 8192 vs 16384 output tokens",
+	"usdLimit": 2,
+	"maxInputTokens": 24000,
+	"timeoutMs": 120000,
+	"sourceHashes": {
+		"eval/evidenceReviewOutputBudget.ts": "14e9c0944f4a5bd71072da4484a5864f9fd3ff027f4c7e036402fd820db95435",
+		"eval/evidenceReviewOutputBudget.test.ts": "bca92a98f1a77e329a7c0796d6aae6a2c205b225979265d5b3907e1702a6d015",
+		"eval/fixtures/evidence-review-concise/cases.json": "8d67623281eedba3c7a86d5db3990d5709f297182d38e9d645087902a9b7ec11",
+		"eval/evidenceReviewBoundary.ts": "0e7aff4d7372b3135c8483a3fbe2bf68864c5ddcd6271fe674c2562f9dfa51be",
+		"eval/evidenceReviewComparison.ts": "11be9cdbb20cf08003662d304140441511d46b3a9575a4357604749b4f4afac4",
+		"eval/requirementIntakeRun.ts": "8a25150ec4e31f4435f0cec4da165150573ecf02bace745319400ef2d9adf545",
+		"eval/requirementAutomaticRun.ts": "91069b1835692ab055db425e03c5574150588ba90450e92f5d10d3bec23b94e7",
+		"eval/requirementIntake.ts": "741a849aafaf6084f08f6b738f18beb4ecc1f5a7c9dc704144819080d9aa10d1",
+		"server/runtime/modelFailure.ts": "051c30f3b80ec2c8577efd55b90a361f02a58e4e942088f8b589041dfb7c24b9",
+		"server/runtime/anthropicModelProvider.ts": "bf679a4588327e9c99c1abb43c3f1d84ca5d2cbc6921475b194e2dd2bede388e",
+		"server/anthropic/client.ts": "dbb02fd45b36bce8310f272794a3b020e61222bac3fe7eed1f7f1520f1c5ff95",
+		"server/anthropic/types.ts": "74ab5cae0d0ce718697bf5e72cd4dbe5216f9f7346adc516b56fa65714615473",
+		"server/anthropic/stream.ts": "e9c1933b91f329945d4f73ab434eea08e723f34c5e77ae900d84da1010c5c729",
+		"server/modelSettings.ts": "6911f6e849e5a01172c19839e4ca6e1290f47dca182b74845a65b69bae5a4477",
+		"server/manufacturing/requirementEvidencePolicy.ts": "919bb3bf740467e9a44e8dfdcf38371ab5ef996772f33c36be6bb0a49d5b5caa",
+		"src/manufacturing/requirementBrief.ts": "49011b5d5e871cb8c33d777f6da8767509e295e5a3487e8b40836575e5d30f8e",
+		"src/enterprise/evidenceReview.ts": "ef25bcfde886223d2a9a69e34b593aa8c09a8ff8bf4571bfff85adb84256d42c",
+		"package.json": "3e4ba05e41a869aed026a129373c057155e31612072ba6b6cc550853b742c2dc",
+		"package-lock.json": "e31caa2b279c10c6029b3f3962da622817c0a5e9692de3fa8e9b9eedd4af2dc5"
+	},
+	"retainedPriorHashes": {
+		"docs/evidence/review-output-2026-09-26/low.report.json.gz": "0be84a017a0f8ef81f0b3e6c9c3c08ebe7c82653a4638297d7157cfe3939ce6c",
+		"docs/evidence/review-concise-2026-09-26/report.json.gz": "15261aa3099f99d0ddad87ce8709bae754d3aa8218843148ad45c70b9363d5ae",
+		"docs/evidence/review-concise-2026-09-26/budget.json": "cb19e3a3d482d1f62d779c1d1522a3a702ca3d6b1641b75cf7de3a97166b69a4"
+	},
+	"retainedPriorUnknown": [
+		{
+			"source": "docs/evidence/review-output-2026-09-26/low.report.json.gz",
+			"caseId": "received-limit-83-2-low",
+			"requestSha256": "2f3757207ab15c2e46fe91901ca1d15fcfb11eb03954d926cb0f843891e62854",
+			"error": "inspect_saved_trace",
+			"reservationUsd": 0.011235
+		},
+		{
+			"source": "docs/evidence/review-concise-2026-09-26/report.json.gz",
+			"caseId": "concise-clean-control-1-baseline",
+			"requestSha256": "2a5f110022cf2baeadd617d3bc2743b71377b10ae6542def5b4bc48120f2e9e2",
+			"error": "transport_failure",
+			"reservationUsd": 0.0104106
+		}
+	],
+	"excludedCaseIds": [
+		"received-limit-83",
+		"clean-control"
+	],
+	"model": "deepseek-v4-flash",
+	"servedModelNotice": "Official pricing: legacy alias is served by V4.1-Flash; compare both arms now, not against historical model quality",
+	"rates": {
+		"input": 0.3,
+		"cached": 0.006,
+		"output": 1.2
+	},
+	"priceVerifiedOn": "2026-09-29",
+	"priceSource": "https://api-docs.deepseek.com/quick_start/pricing/",
+	"priceBasis": "Peak ceiling estimate, not invoice",
+	"attempts": [
+		{
+			"id": "budget-received-limit-38-1-8192",
+			"caseId": "received-limit-38",
+			"repeat": 1,
+			"maxOutputTokens": 8192
+		},
+		{
+			"id": "budget-received-limit-38-1-16384",
+			"caseId": "received-limit-38",
+			"repeat": 1,
+			"maxOutputTokens": 16384
+		},
+		{
+			"id": "budget-received-limit-104-1-16384",
+			"caseId": "received-limit-104",
+			"repeat": 1,
+			"maxOutputTokens": 16384
+		},
+		{
+			"id": "budget-received-limit-104-1-8192",
+			"caseId": "received-limit-104",
+			"repeat": 1,
+			"maxOutputTokens": 8192
+		},
+		{
+			"id": "budget-received-limit-131-1-8192",
+			"caseId": "received-limit-131",
+			"repeat": 1,
+			"maxOutputTokens": 8192
+		},
+		{
+			"id": "budget-received-limit-131-1-16384",
+			"caseId": "received-limit-131",
+			"repeat": 1,
+			"maxOutputTokens": 16384
+		},
+		{
+			"id": "budget-received-limit-149-1-16384",
+			"caseId": "received-limit-149",
+			"repeat": 1,
+			"maxOutputTokens": 16384
+		},
+		{
+			"id": "budget-received-limit-149-1-8192",
+			"caseId": "received-limit-149",
+			"repeat": 1,
+			"maxOutputTokens": 8192
+		},
+		{
+			"id": "budget-omission-control-1-8192",
+			"caseId": "omission-control",
+			"repeat": 1,
+			"maxOutputTokens": 8192
+		},
+		{
+			"id": "budget-omission-control-1-16384",
+			"caseId": "omission-control",
+			"repeat": 1,
+			"maxOutputTokens": 16384
+		},
+		{
+			"id": "budget-contradiction-control-1-16384",
+			"caseId": "contradiction-control",
+			"repeat": 1,
+			"maxOutputTokens": 16384
+		},
+		{
+			"id": "budget-contradiction-control-1-8192",
+			"caseId": "contradiction-control",
+			"repeat": 1,
+			"maxOutputTokens": 8192
+		},
+		{
+			"id": "budget-unsupported-control-1-8192",
+			"caseId": "unsupported-control",
+			"repeat": 1,
+			"maxOutputTokens": 8192
+		},
+		{
+			"id": "budget-unsupported-control-1-16384",
+			"caseId": "unsupported-control",
+			"repeat": 1,
+			"maxOutputTokens": 16384
+		},
+		{
+			"id": "budget-logo-clean-1-16384",
+			"caseId": "logo-clean",
+			"repeat": 1,
+			"maxOutputTokens": 16384
+		},
+		{
+			"id": "budget-logo-clean-1-8192",
+			"caseId": "logo-clean",
+			"repeat": 1,
+			"maxOutputTokens": 8192
+		},
+		{
+			"id": "budget-logo-omission-1-8192",
+			"caseId": "logo-omission",
+			"repeat": 1,
+			"maxOutputTokens": 8192
+		},
+		{
+			"id": "budget-logo-omission-1-16384",
+			"caseId": "logo-omission",
+			"repeat": 1,
+			"maxOutputTokens": 16384
+		},
+		{
+			"id": "budget-seal-omission-1-16384",
+			"caseId": "seal-omission",
+			"repeat": 1,
+			"maxOutputTokens": 16384
+		},
+		{
+			"id": "budget-seal-omission-1-8192",
+			"caseId": "seal-omission",
+			"repeat": 1,
+			"maxOutputTokens": 8192
+		},
+		{
+			"id": "budget-scope-expansion-1-8192",
+			"caseId": "scope-expansion",
+			"repeat": 1,
+			"maxOutputTokens": 8192
+		},
+		{
+			"id": "budget-scope-expansion-1-16384",
+			"caseId": "scope-expansion",
+			"repeat": 1,
+			"maxOutputTokens": 16384
+		},
+		{
+			"id": "budget-optional-undecided-1-16384",
+			"caseId": "optional-undecided",
+			"repeat": 1,
+			"maxOutputTokens": 16384
+		},
+		{
+			"id": "budget-optional-undecided-1-8192",
+			"caseId": "optional-undecided",
+			"repeat": 1,
+			"maxOutputTokens": 8192
+		},
+		{
+			"id": "budget-fact-contradiction-1-8192",
+			"caseId": "fact-contradiction",
+			"repeat": 1,
+			"maxOutputTokens": 8192
+		},
+		{
+			"id": "budget-fact-contradiction-1-16384",
+			"caseId": "fact-contradiction",
+			"repeat": 1,
+			"maxOutputTokens": 16384
+		},
+		{
+			"id": "budget-confirmation-not-certification-1-16384",
+			"caseId": "confirmation-not-certification",
+			"repeat": 1,
+			"maxOutputTokens": 16384
+		},
+		{
+			"id": "budget-confirmation-not-certification-1-8192",
+			"caseId": "confirmation-not-certification",
+			"repeat": 1,
+			"maxOutputTokens": 8192
+		},
+		{
+			"id": "budget-missing-original-1-8192",
+			"caseId": "missing-original",
+			"repeat": 1,
+			"maxOutputTokens": 8192
+		},
+		{
+			"id": "budget-missing-original-1-16384",
+			"caseId": "missing-original",
+			"repeat": 1,
+			"maxOutputTokens": 16384
+		},
+		{
+			"id": "budget-received-limit-38-2-16384",
+			"caseId": "received-limit-38",
+			"repeat": 2,
+			"maxOutputTokens": 16384
+		},
+		{
+			"id": "budget-received-limit-38-2-8192",
+			"caseId": "received-limit-38",
+			"repeat": 2,
+			"maxOutputTokens": 8192
+		},
+		{
+			"id": "budget-received-limit-104-2-8192",
+			"caseId": "received-limit-104",
+			"repeat": 2,
+			"maxOutputTokens": 8192
+		},
+		{
+			"id": "budget-received-limit-104-2-16384",
+			"caseId": "received-limit-104",
+			"repeat": 2,
+			"maxOutputTokens": 16384
+		},
+		{
+			"id": "budget-received-limit-131-2-16384",
+			"caseId": "received-limit-131",
+			"repeat": 2,
+			"maxOutputTokens": 16384
+		},
+		{
+			"id": "budget-received-limit-131-2-8192",
+			"caseId": "received-limit-131",
+			"repeat": 2,
+			"maxOutputTokens": 8192
+		},
+		{
+			"id": "budget-received-limit-149-2-8192",
+			"caseId": "received-limit-149",
+			"repeat": 2,
+			"maxOutputTokens": 8192
+		},
+		{
+			"id": "budget-received-limit-149-2-16384",
+			"caseId": "received-limit-149",
+			"repeat": 2,
+			"maxOutputTokens": 16384
+		},
+		{
+			"id": "budget-omission-control-2-16384",
+			"caseId": "omission-control",
+			"repeat": 2,
+			"maxOutputTokens": 16384
+		},
+		{
+			"id": "budget-omission-control-2-8192",
+			"caseId": "omission-control",
+			"repeat": 2,
+			"maxOutputTokens": 8192
+		},
+		{
+			"id": "budget-contradiction-control-2-8192",
+			"caseId": "contradiction-control",
+			"repeat": 2,
+			"maxOutputTokens": 8192
+		},
+		{
+			"id": "budget-contradiction-control-2-16384",
+			"caseId": "contradiction-control",
+			"repeat": 2,
+			"maxOutputTokens": 16384
+		},
+		{
+			"id": "budget-unsupported-control-2-16384",
+			"caseId": "unsupported-control",
+			"repeat": 2,
+			"maxOutputTokens": 16384
+		},
+		{
+			"id": "budget-unsupported-control-2-8192",
+			"caseId": "unsupported-control",
+			"repeat": 2,
+			"maxOutputTokens": 8192
+		},
+		{
+			"id": "budget-logo-clean-2-8192",
+			"caseId": "logo-clean",
+			"repeat": 2,
+			"maxOutputTokens": 8192
+		},
+		{
+			"id": "budget-logo-clean-2-16384",
+			"caseId": "logo-clean",
+			"repeat": 2,
+			"maxOutputTokens": 16384
+		},
+		{
+			"id": "budget-logo-omission-2-16384",
+			"caseId": "logo-omission",
+			"repeat": 2,
+			"maxOutputTokens": 16384
+		},
+		{
+			"id": "budget-logo-omission-2-8192",
+			"caseId": "logo-omission",
+			"repeat": 2,
+			"maxOutputTokens": 8192
+		},
+		{
+			"id": "budget-seal-omission-2-8192",
+			"caseId": "seal-omission",
+			"repeat": 2,
+			"maxOutputTokens": 8192
+		},
+		{
+			"id": "budget-seal-omission-2-16384",
+			"caseId": "seal-omission",
+			"repeat": 2,
+			"maxOutputTokens": 16384
+		},
+		{
+			"id": "budget-scope-expansion-2-16384",
+			"caseId": "scope-expansion",
+			"repeat": 2,
+			"maxOutputTokens": 16384
+		},
+		{
+			"id": "budget-scope-expansion-2-8192",
+			"caseId": "scope-expansion",
+			"repeat": 2,
+			"maxOutputTokens": 8192
+		},
+		{
+			"id": "budget-optional-undecided-2-8192",
+			"caseId": "optional-undecided",
+			"repeat": 2,
+			"maxOutputTokens": 8192
+		},
+		{
+			"id": "budget-optional-undecided-2-16384",
+			"caseId": "optional-undecided",
+			"repeat": 2,
+			"maxOutputTokens": 16384
+		},
+		{
+			"id": "budget-fact-contradiction-2-16384",
+			"caseId": "fact-contradiction",
+			"repeat": 2,
+			"maxOutputTokens": 16384
+		},
+		{
+			"id": "budget-fact-contradiction-2-8192",
+			"caseId": "fact-contradiction",
+			"repeat": 2,
+			"maxOutputTokens": 8192
+		},
+		{
+			"id": "budget-confirmation-not-certification-2-8192",
+			"caseId": "confirmation-not-certification",
+			"repeat": 2,
+			"maxOutputTokens": 8192
+		},
+		{
+			"id": "budget-confirmation-not-certification-2-16384",
+			"caseId": "confirmation-not-certification",
+			"repeat": 2,
+			"maxOutputTokens": 16384
+		},
+		{
+			"id": "budget-missing-original-2-16384",
+			"caseId": "missing-original",
+			"repeat": 2,
+			"maxOutputTokens": 16384
+		},
+		{
+			"id": "budget-missing-original-2-8192",
+			"caseId": "missing-original",
+			"repeat": 2,
+			"maxOutputTokens": 8192
+		}
+	],
+	"gate": "Complete 60 attempts. Candidate passes all 22 controls and every routing check on valid output. Candidate valid outputs >= baseline, truncations < baseline. Response model identities must match. Otherwise do not adopt.",
+	"unknownPolicy": "No retry or resume. Stop on any ambiguous call; complete received output_limit may continue to the next independent attempt. Retain all reservations, including failures. Historical budgets remain separate and unchanged.",
+	"semanticQuality": "NOT_EVALUATED beyond authored narrow controls"
+}

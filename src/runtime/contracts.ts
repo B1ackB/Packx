@@ -6,6 +6,7 @@ export type RuntimeFailureCode =
   | "authentication"
   | "rate_limit"
 	| "model_failure"
+	| "output_limit"
   | "timeout"
   | "cancelled"
   | "invalid_output"
@@ -29,6 +30,7 @@ export interface RuntimeUsage {
 
 export type RuntimeExecutionEvent =
 	| { type: "context.rebuilt"; reason: "history_binding_changed"; discardedMessages: number }
+	| { type: "output.rejected"; reason: "current_fact_mismatch"; fields: string[] }
 	| { type: "session.started"; sessionId: string }
 	| { type: "turn.started" }
 	| { type: "model.started"; iteration: number; attempt: number }
@@ -74,7 +76,9 @@ export interface RuntimeTurnRequest {
   input: string;
 	attachments?: AgentImageAttachment[];
   outputSchema?: Record<string, unknown>;
-	limits?: { maxIterations: number; maxToolExecutions: number; maxInputTokens: number };
+	/** Host-owned exact top-level JSON fields. Never populated from model output. */
+	expectedOutputFields?: Record<string, string | number | boolean | null>;
+	limits?: { maxIterations: number; maxToolExecutions: number; maxInputTokens: number; maxOutputTokens?: number };
   fallbackOutput: string;
   policy: {
 		sandboxMode: "read-only" | "workspace-write";
@@ -103,6 +107,7 @@ export interface RuntimeTraceRecord {
 	actorId: string;
 	executionId: string;
 	idempotencyKey: string;
+	outputContractDigest?: string;
 	status: "completed" | "paused" | "failed";
 	startedAt: string;
 	completedAt: string;

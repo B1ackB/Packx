@@ -1,9 +1,59 @@
 import { readFileSync } from "node:fs";
+import { gunzipSync } from "node:zlib";
 import { expect, it } from "vitest";
 import type { EvidenceReviewIssue } from "../src/enterprise/evidenceReview";
 import { candidateReviewRequest, routingPassed } from "./evidenceReviewBoundary";
 import { requirementEvidencePolicy } from "../server/manufacturing/requirementEvidencePolicy";
 import { scoreReview, type ReviewCase } from "./evidenceReviewComparison";
+import { correctExtractedQuantity } from "../server/manufacturing/requirementCorrections";
+import type { RequirementBriefV1 } from "../src/manufacturing/requirementBrief";
+import type { ReviewEvidence } from "../server/enterprise/evidenceReviewWorkflow";
+
+it("requires original evidence to repair broad omissions and preserves the old experiment score", () => {
+	const report = JSON.parse(gunzipSync(readFileSync("docs/evidence/review-output-budget-2026-09-29/report.json.gz")).toString()) as { results: Array<{ caseId: string; issues?: EvidenceReviewIssue[]; routingPassed: boolean }> };
+	const contradictions = report.results.filter(result => result.caseId === "contradiction-control");
+	expect(contradictions).toHaveLength(4);
+	for (const result of contradictions) {
+		expect(result.routingPassed).toBe(false);
+		expect(routingPassed(result.issues!)).toBe(false);
+		const finding = result.issues!.find(issue => issue.kind === "contradiction" && issue.location === "/customerGoal")!;
+		expect(requirementEvidencePolicy.canRevise([finding])).toBe(true);
+		expect(requirementEvidencePolicy.canRevise([{ ...finding, evidenceRefs: [] }])).toBe(false);
+		expect(requirementEvidencePolicy.canRevise([finding, { ...finding, kind: "insufficient_evidence", suggestedAction: "request_input" }])).toBe(false);
+	}
+	// With no original evidence supplied, a /facts omission still cannot be repaired.
+	expect(contradictions.filter(result => requirementEvidencePolicy.canRevise(result.issues!))).toHaveLength(3);
+});
+
+it("replays the exact archived PVC and quantity cases through restricted corrections, not a new model evaluation", () => {
+	const report = JSON.parse(gunzipSync(readFileSync("docs/evidence/review-output-budget-2026-09-29/report.json.gz")).toString()) as {
+		results: Array<{ id: string; caseId: string; issues?: EvidenceReviewIssue[] }>;
+		calls: Array<{ caseId: string; kind: string; request: { messages: Array<{ content: string }> } }>;
+	};
+	let pvc = 0, quantities = 0;
+	for (const result of report.results) {
+		const call = report.calls.find(call => call.kind === "generate" && call.caseId === result.id)!;
+		const { candidate, evidence } = JSON.parse(call.request.messages[1].content) as { candidate: RequirementBriefV1; evidence: ReviewEvidence[] };
+		const before = structuredClone(candidate);
+		if (result.caseId === "contradiction-control" || result.id === "budget-omission-control-2-8192") {
+			expect(requirementEvidencePolicy.canRevise(result.issues!, evidence), result.id).toBe(true);
+			const patch = { title: candidate.title, customerGoal: candidate.customerGoal.replace("本订单允许使用 PVC。", "本订单全程禁止使用 PVC。"), assumptions: candidate.assumptions };
+			const revised = requirementEvidencePolicy.applyRevision(candidate, JSON.stringify(patch), result.issues!, evidence) as RequirementBriefV1;
+			expect(revised.facts).toEqual(before.facts);
+			expect(revised.customerGoal).not.toContain("本订单允许使用 PVC。");
+			expect([revised.customerGoal, ...revised.assumptions].join()).toContain("全程禁止使用 PVC");
+			pvc++;
+		}
+		if (result.caseId === "fact-contradiction") {
+			const fact = candidate.facts.find(fact => fact.key === "quantity")!;
+			const correction = correctExtractedQuantity(fact, fact, evidence, String(candidate.facts.find(fact => fact.key === "product_type")!.value));
+			expect(correction, result.id).toMatchObject({ fact: { value: 12000, status: "unverified", sourceRef: fact.sourceRef }, audit: { previousValue: 12500 } });
+			quantities++;
+		}
+		expect(candidate).toEqual(before);
+	}
+	expect({ pvc, quantities }).toEqual({ pvc: 5, quantities: 4 });
+});
 
 it("measures action safety without correcting the model's path or granting revision authority", () => {
 	const issue: EvidenceReviewIssue = { kind: "omission", location: "/facts", evidenceRefs: ["source"], reason: "missing narrative", suggestedAction: "revise" };

@@ -57,10 +57,10 @@ describe("error handling fault-injection audit", () => {
 			}), "offline-model");
 			const telemetry = new ModelTelemetryStore(directory, "offline-model");
 			const runtime = new BlackxAgentRuntime({ provider, telemetry, skills: new SkillRegistry(), sessions: state, traces: state, tools: [{ ...tool, execute }], approval, audit });
-			await expect(runtime.executeTurn(writeRequest)).rejects.toMatchObject({ code: "invalid_output", retryable: true });
+			await expect(runtime.executeTurn(writeRequest)).rejects.toMatchObject({ code: "output_limit", retryable: false });
 			expect(execute).not.toHaveBeenCalled();
 			expect(state.load(scope).transcript ?? []).not.toContainEqual(expect.objectContaining({ role: "assistant" }));
-			expect(state.listTraces(request)).toMatchObject([{ status: "failed", failure: { code: "invalid_output" } }]);
+			expect(state.listTraces(request)).toMatchObject([{ status: "failed", failure: { code: "output_limit", retryable: false } }]);
 			expect(new ModelTelemetryStore(directory, "offline-model").view(request).calls.filter(call => call.kind === "generate")).toMatchObject([{ status: "failed", usage: { outputTokens: 8192 }, response: { stopReason: "max_tokens" } }]);
 		} finally { rmSync(directory, { recursive: true, force: true }); }
 	});

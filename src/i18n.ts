@@ -71,6 +71,7 @@ const errors: Record<string, [string, string]> = {
 	timeout: ["操作超时，请检查服务并重试。", "The operation timed out. Check the service and retry."],
 	model_failure: ["模型调用失败，请检查模型状态后重试。", "The model call failed. Check model status and retry."],
 	invalid_output: ["返回内容未通过校验，请检查文件格式或模型状态后重试。", "The response failed validation. Check the document format or model status and retry."],
+	output_limit: ["模型输出达到上限，未接受不完整结果。请检查输出预算后明确发起新执行。", "The model reached its output limit. The incomplete result was rejected; review the output budget before starting a new execution."],
 	invalid_conversation_request: ["消息或附件参数无效，请重新选择文件并发送。", "Invalid message or attachment parameters. Select the files again and send."],
 	model_metrics_unavailable: ["模型统计暂时不可用，请稍后重试。", "Model statistics are temporarily unavailable. Try again shortly."],
 };

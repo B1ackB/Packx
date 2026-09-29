@@ -15,8 +15,9 @@ import { sha256 } from "./requirementIntake";
 import { scoreReview, type ReviewCase } from "./evidenceReviewComparison";
 
 export function routingPassed(issues: EvidenceReviewIssue[]) {
+	// Frozen v2.2-v2.4 experiment scorer: later production policy must not regrade old results.
 	return issues.every(issue => issue.kind === "scope_change" ? issue.suggestedAction === "reconfirm_plan"
-		: issue.suggestedAction === "revise" ? requirementEvidencePolicy.canRevise([issue])
+		: issue.suggestedAction === "revise" ? ["omission", "unsupported"].includes(issue.kind) && /^\/(title|customerGoal|assumptions(?:\/\d+)?)$/.test(issue.location)
 		: issue.suggestedAction === "request_input");
 }
 

@@ -1,0 +1,13 @@
+{
+	"protocol": "review-output-budget-archive.v1",
+	"files": {
+		"plan.json": "61725fd3dfa90adab8a4b7e17073efdbe9a22e116e4eb2cf656e7ab4de71ac58",
+		"authorization.json": "4c09863b861a9926a3acfc2b73774c85dabf74a215a37f72222077b3e816e4c2",
+		"source.tar.gz": "6538b9c5d87a842e8f1842cc841ec92d05f34a78423184d0e75b1b5b362177cd",
+		"report.json.gz": "0a46b87a6b20c577322cd2d06903c64fae64b1721db5452b86874d3a2f6d9412",
+		"summary.json": "0bd536e71d77115908f6f6acf0e09d124534985e33401cde176ea12dacb7440c",
+		"budget.json": "90ea7194aabf3d2a887f0b8a303cf92998954876c73d4cf381c57d00208afdbd",
+		"verification.json": "0ce87bc047aaa07e7b49646da21b57f7c33ea0aea959c08566d9ff11276d9840",
+		"verification.log.gz": "2c93425e8ea9d2c9592ae0b5ab5d3951e207c6da7b9aa59fe1b14d3cb130dcaa"
+	}
+}

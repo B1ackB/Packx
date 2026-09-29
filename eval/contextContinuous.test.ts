@@ -46,7 +46,21 @@ it("records malformed completed model output as a sequence failure without gener
 	await expect(runSequence(() => {
 		requestedWaves++;
 		return { async countTokens() { return 100; }, async generate() { return { text: "{broken", toolCalls: [], usage: { inputTokens: 0, cachedInputTokens: 0, outputTokens: 0, reasoningOutputTokens: 0 } }; } };
-	}, configurations[1], 1, (wave) => recorded.push(wave))).rejects.toThrow("invalid_response_json");
+	}, configurations[1], 1, (wave) => recorded.push(wave))).rejects.toMatchObject({ code: "invalid_output" });
 	expect(requestedWaves).toBe(1);
-	expect(recorded[0]).toMatchObject({ status: "failed", error: "invalid_response_json", passed: false });
+	expect(recorded[0]).toMatchObject({ status: "failed", passed: false });
+});
+
+it("stops stale Host quantities before a successful reply or the next wave", async () => {
+	const waves: Array<Record<string, unknown>> = [];
+	const requested: number[] = [];
+	await expect(runSequence(wave => {
+		requested.push(wave);
+		return { async countTokens() { return 100; }, async generate() {
+			return { text: JSON.stringify({ confirmedQuantity: 5001, pendingQuantity: 6001, materialAllowed: false, supplierQualified: false }), toolCalls: [], usage: { inputTokens: 0, cachedInputTokens: 0, outputTokens: 0, reasoningOutputTokens: 0 } };
+		} };
+	}, configurations[1], 1, wave => waves.push(wave))).rejects.toMatchObject({ code: "invalid_output", retryable: false });
+	expect(requested).toEqual([1]);
+	expect(waves[0]).toMatchObject({ status: "failed", passed: false });
+	expect(waves[0].events).toContainEqual(expect.objectContaining({ type: "output.rejected", fields: ["confirmedQuantity", "pendingQuantity"] }));
 });

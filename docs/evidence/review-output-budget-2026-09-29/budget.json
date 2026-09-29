@@ -1,0 +1,20 @@
+{
+	"protocol": "review-output-budget-accounting.v1",
+	"generationCalls": 60,
+	"countCalls": 60,
+	"receivedOutputLimits": 5,
+	"ambiguousCalls": 0,
+	"unavailableUsageCalls": 0,
+	"knownUsagePeakEstimateUsd": 0.207517512,
+	"reservedUsd": 0.9223176000000001,
+	"usdLimit": 2,
+	"rates": {
+		"input": 0.3,
+		"cached": 0.006,
+		"output": 1.2
+	},
+	"priceSource": "https://api-docs.deepseek.com/quick_start/pricing/",
+	"priceVerifiedOn": "2026-09-29",
+	"priorBudgetTreatment": "Separate unchanged historical authorization; no refunds or replay. All current failure reservations retained.",
+	"note": "Peak-price estimate, not invoice. USD 2 limit was never reset."
+}

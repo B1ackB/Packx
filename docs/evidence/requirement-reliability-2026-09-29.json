@@ -1,0 +1,2102 @@
+{
+	"protocol": "requirement-reliability-repairs.v1",
+	"mode": "offline-historical-output-gate-replay",
+	"modelCalls": 0,
+	"semanticQuality": "NOT_EVALUATED",
+	"fieldProtocol": "packaging-field-representation.v2",
+	"sourceHashes": {
+		"eval/reliabilityRepairs.ts": "c763c4fbd3de176289ef316b8f9b196a7716a493a80fa33e655ad98d8d7cf360",
+		"server/runtime/agentRuntime.ts": "581b06d34e4be9bc477ef94c8cfd0ede15481f1f5628b7e68f6c55d4d39e1878",
+		"server/runtime/fileAgentStateStore.ts": "0569dc215c8da93ac71ae7de8ca37869d535f0a034fc3389d78898a583532550",
+		"src/runtime/contracts.ts": "f95a1a17e29792801bc78c65431e54182839357d9a0a7877d07ce69241dc62e9",
+		"src/manufacturing/requirementField.ts": "5d0dfcf0ef6af0e5d7ad3113b676da912987b6776e7bdb662dba9ec7b55dbc62",
+		"eval/requirementAutomaticV2.ts": "3d9193f1df9839e815a84811421c372ed6ce70aeb1de951db2f06666dcc4d7d6",
+		"eval/requirementAutomatic.ts": "b9f7c8b911628a3f447dbc2771f2ee15f5a8a1f7e0866788e4e3bbf0c0466276",
+		"eval/requirementIntake.ts": "741a849aafaf6084f08f6b738f18beb4ecc1f5a7c9dc704144819080d9aa10d1"
+	},
+	"replay": {
+		"source": "docs/evidence/automatic-online-2026-09-26/context.report.json.gz",
+		"sourceSha256": "8770d9a66e34c7d6f8e5cafda8fe9322fb4c36a2f56ea45733717f07c489bc57",
+		"finalTextSha256": "a64092d94d4da0c7db431d4228321fddb03b1c6a5c8680d18bc452e350f3ef63",
+		"observed": {
+			"confirmedQuantity": 5101,
+			"pendingQuantity": 6101,
+			"materialAllowed": false,
+			"supplierQualified": false,
+			"firstCode": "LAB-d6b5915c4605",
+			"latestCode": "LAB-673aeeb08cfb",
+			"firstConditions": "21 C; 42% RH",
+			"latestConditions": "22 C; 43% RH"
+		},
+		"expected": {
+			"confirmedQuantity": 5201,
+			"pendingQuantity": 6201,
+			"materialAllowed": false,
+			"supplierQualified": false
+		},
+		"outcomes": [
+			{
+				"guarded": false,
+				"failure": null,
+				"savedReply": true,
+				"rejections": []
+			},
+			{
+				"guarded": true,
+				"failure": "invalid_output",
+				"savedReply": false,
+				"rejections": [
+					{
+						"type": "output.rejected",
+						"reason": "current_fact_mismatch",
+						"fields": [
+							"confirmedQuantity",
+							"pendingQuantity"
+						]
+					}
+				]
+			}
+		]
+	},
+	"comparisons": [
+		{
+			"key": "quantity",
+			"actual": {
+				"value": "5201",
+				"unit": "pcs"
+			},
+			"expected": {
+				"value": 5101,
+				"unit": "pcs"
+			},
+			"comparison": {
+				"status": "different",
+				"reason": "numeric_mismatch"
+			}
+		},
+		{
+			"key": "quantity",
+			"actual": {
+				"value": "5201",
+				"unit": "个"
+			},
+			"expected": {
+				"value": 5201,
+				"unit": "pcs"
+			},
+			"comparison": {
+				"status": "equivalent",
+				"reason": "same_representation"
+			}
+		},
+		{
+			"key": "target_delivery",
+			"actual": {
+				"value": "2026-10-15 到货"
+			},
+			"expected": {
+				"value": "2026-10-15"
+			},
+			"comparison": {
+				"status": "needs_review",
+				"reason": "delivery_basis_requires_confirmation"
+			}
+		}
+	],
+	"rescoring": {
+		"protocol": "requirement-automatic.v2",
+		"suiteSha256": "ec7dcd7b5561841d424222c25e48aeb5f39d49708c9f55c6f6fa1d9ea6aec9e1",
+		"attempts": 108,
+		"checkpoints": 166,
+		"observations": [
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-baseline-AI-01-2.json.gz",
+				"sourceSha256": "df75570ae7e18de9cd2276006e70007e64d2aa476ae8e55f0dc70efeff896abd",
+				"attempt": "flash-baseline-AI-01-2",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "draft",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "confirmed",
+						"originalVerdict": "failed",
+						"rescoredVerdict": "failed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-baseline-AI-01-3.json.gz",
+				"sourceSha256": "c483bea8c76ee369cd92ea65f039ad7b236aec515cdbb087d369d2782e31412d",
+				"attempt": "flash-baseline-AI-01-3",
+				"executionStatus": "needs_review",
+				"originalError": "confirmation_value_requires_review",
+				"checkpoints": [
+					{
+						"id": "draft",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-baseline-AI-02-2.json.gz",
+				"sourceSha256": "a2454c31baf8077ebb3d1367ba258728ffd82dd819c65ac93038c435c9b0a623",
+				"attempt": "flash-baseline-AI-02-2",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "draft",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "confirmed",
+						"originalVerdict": "failed",
+						"rescoredVerdict": "failed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-baseline-AI-02-3.json.gz",
+				"sourceSha256": "45e7977a380134ceef897d5452da9e5e7fa3d7356493288313436c52583b5525",
+				"attempt": "flash-baseline-AI-02-3",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "draft",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "confirmed",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-baseline-AI-03-1.json.gz",
+				"sourceSha256": "fa591ba075255aa78e807e8cab10a3e30951f736c2efeae2df4152d4a4268917",
+				"attempt": "flash-baseline-AI-03-1",
+				"executionStatus": "failed",
+				"originalError": "workflow_did_not_complete",
+				"checkpoints": [
+					{
+						"id": "draft",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "required_confirmed",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-baseline-AI-03-2.json.gz",
+				"sourceSha256": "cbd74a41a001ed1780e311eb56ad41670f466c45ec796229ea032012c9229a9d",
+				"attempt": "flash-baseline-AI-03-2",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "draft",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "required_confirmed",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "all_confirmed",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-baseline-AI-03-3.json.gz",
+				"sourceSha256": "db428922aa98d7d6c8961c99389391f39176b6286e68d4dccbd083faec0eed1a",
+				"attempt": "flash-baseline-AI-03-3",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "draft",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "required_confirmed",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "all_confirmed",
+						"originalVerdict": "failed",
+						"rescoredVerdict": "failed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-baseline-AI-05-1.json.gz",
+				"sourceSha256": "c1a21543f26050f1437187a561e2d7aa3829e80f8aa46915a096fac3ec1a6f13",
+				"attempt": "flash-baseline-AI-05-1",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "needs_input",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-baseline-AI-05-2.json.gz",
+				"sourceSha256": "dae8876e243cc0888123c11fcaf5920f9815f7bad1f832add3e8b7fcf873b0d1",
+				"attempt": "flash-baseline-AI-05-2",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "needs_input",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-baseline-AI-05-3.json.gz",
+				"sourceSha256": "9fd6e6bac40c8f317ceeb3f45c1883ba16195ac417a89bc174d16fbe5c1f8673",
+				"attempt": "flash-baseline-AI-05-3",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "needs_input",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-baseline-AI-06-1.json.gz",
+				"sourceSha256": "6d66533bc9aa57b95fc77bc4f7362aff12ae82d7c1263239d5f193c567879f96",
+				"attempt": "flash-baseline-AI-06-1",
+				"executionStatus": "needs_review",
+				"originalError": "confirmation_value_requires_review",
+				"checkpoints": [
+					{
+						"id": "ask_artwork",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "answered",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-baseline-AI-06-2.json.gz",
+				"sourceSha256": "6eaba45975a83a8a2674f078173b3607bf128209f4ec1951ad73d01cfd7a55ac",
+				"attempt": "flash-baseline-AI-06-2",
+				"executionStatus": "needs_review",
+				"originalError": "confirmation_value_requires_review",
+				"checkpoints": [
+					{
+						"id": "ask_artwork",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "failed",
+						"changes": [
+							{
+								"id": "field:dimensions:value",
+								"before": "needs_review",
+								"after": "failed",
+								"reason": "unit_mismatch"
+							},
+							{
+								"id": "field:dimensions:unit",
+								"before": "needs_review",
+								"after": "failed",
+								"reason": "unit_mismatch"
+							}
+						]
+					},
+					{
+						"id": "answered",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "failed",
+						"changes": [
+							{
+								"id": "field:dimensions:value",
+								"before": "needs_review",
+								"after": "failed",
+								"reason": "unit_mismatch"
+							},
+							{
+								"id": "field:dimensions:unit",
+								"before": "needs_review",
+								"after": "failed",
+								"reason": "unit_mismatch"
+							}
+						]
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-baseline-AI-06-3.json.gz",
+				"sourceSha256": "b354434396b51f9e75a9a77539476addb2454ad71bb559632866451374b9f086",
+				"attempt": "flash-baseline-AI-06-3",
+				"executionStatus": "failed",
+				"originalError": "workflow_did_not_complete",
+				"checkpoints": [
+					{
+						"id": "ask_artwork",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-baseline-AI-07-1.json.gz",
+				"sourceSha256": "bda1149afc23eb40828e60258dfa2170a6c48cbee75bb64278cdc5a4d068d0f8",
+				"attempt": "flash-baseline-AI-07-1",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "unit_unresolved",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "count_supplied",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "confirmed",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-baseline-AI-07-2.json.gz",
+				"sourceSha256": "bf33e4ac4857d378f26699ba9ac81993a583a7089ba523615797ba350d120b46",
+				"attempt": "flash-baseline-AI-07-2",
+				"executionStatus": "failed",
+				"originalError": "workflow_did_not_complete",
+				"checkpoints": [
+					{
+						"id": "unit_unresolved",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-baseline-AI-07-3.json.gz",
+				"sourceSha256": "db1ef9920db8ff777c52fc4192ece474439d7c793d9c576b026ea0020119f4a8",
+				"attempt": "flash-baseline-AI-07-3",
+				"executionStatus": "failed",
+				"originalError": "workflow_did_not_complete",
+				"checkpoints": [
+					{
+						"id": "unit_unresolved",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-baseline-AI-09-1.json.gz",
+				"sourceSha256": "ba749591e813b32f790df8a50154cf0a714106ee11f37519a4f57ca41ccda307",
+				"attempt": "flash-baseline-AI-09-1",
+				"executionStatus": "needs_review",
+				"originalError": "confirmation_value_requires_review",
+				"checkpoints": [
+					{
+						"id": "draft",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-baseline-AI-09-2.json.gz",
+				"sourceSha256": "88cdf26ba32099797f1b7ee92c5202dae8db13aa4dfd0243f881f2240949bc8b",
+				"attempt": "flash-baseline-AI-09-2",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "draft",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "confirmed_base",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "pending_change",
+						"originalVerdict": "failed",
+						"rescoredVerdict": "failed",
+						"changes": []
+					},
+					{
+						"id": "revised",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-baseline-AI-09-3.json.gz",
+				"sourceSha256": "670e2a2d2a0bf710589771953e9c5cdfc9c5f4ae13b0d2d1eb76b267bec29814",
+				"attempt": "flash-baseline-AI-09-3",
+				"executionStatus": "failed",
+				"originalError": "workflow_did_not_complete",
+				"checkpoints": [
+					{
+						"id": "draft",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-baseline-AI-10-1.json.gz",
+				"sourceSha256": "1146c2516836473c1e24cb50f86817df35c3820ec84a591d7db67d7b90aa289b",
+				"attempt": "flash-baseline-AI-10-1",
+				"executionStatus": "needs_review",
+				"originalError": "confirmation_value_requires_review",
+				"checkpoints": [
+					{
+						"id": "dimension_conflict",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					},
+					{
+						"id": "clarified",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-baseline-AI-10-2.json.gz",
+				"sourceSha256": "bc9472009219b0532ad58d54fcc18214f79db2aaeaa629eaa862428eacea9da6",
+				"attempt": "flash-baseline-AI-10-2",
+				"executionStatus": "needs_review",
+				"originalError": "confirmation_value_requires_review",
+				"checkpoints": [
+					{
+						"id": "dimension_conflict",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "clarified",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-baseline-AI-10-3.json.gz",
+				"sourceSha256": "1f3bced693b32fbde07a389dda23d341598483c9bc874dd5608f5a66389e5f08",
+				"attempt": "flash-baseline-AI-10-3",
+				"executionStatus": "failed",
+				"originalError": "workflow_did_not_complete",
+				"checkpoints": [
+					{
+						"id": "dimension_conflict",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-baseline-AI-11-1.json.gz",
+				"sourceSha256": "63cfb35391c6844ca85f57b89b949e64856a2675b699f8c05101668ad961b6ce",
+				"attempt": "flash-baseline-AI-11-1",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "before_withdrawal",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "after_withdrawal",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-baseline-AI-11-2.json.gz",
+				"sourceSha256": "70e00e041aa7d2f9fbf8ae6cd5535c544ae93a6bdfa4ccd1c0f6b296dc6ff012",
+				"attempt": "flash-baseline-AI-11-2",
+				"executionStatus": "failed",
+				"originalError": "invalid_persisted_brief",
+				"checkpoints": []
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-baseline-AI-11-3.json.gz",
+				"sourceSha256": "022766c1641e2c9f44fe76a33247936760b2a7543174a9432e836bd536ab19cb",
+				"attempt": "flash-baseline-AI-11-3",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "before_withdrawal",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "after_withdrawal",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-baseline-AI-13-1.json.gz",
+				"sourceSha256": "23a6987cd65f12f3722cc181fd8b62657374ef5ca7a67c38ff0ecb986b6a3076",
+				"attempt": "flash-baseline-AI-13-1",
+				"executionStatus": "needs_review",
+				"originalError": "confirmation_value_requires_review",
+				"checkpoints": [
+					{
+						"id": "initial",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-baseline-AI-13-2.json.gz",
+				"sourceSha256": "93e7609f87eb93873736d6720abe92ee295165ec8679368ed5d6b641790b5d4c",
+				"attempt": "flash-baseline-AI-13-2",
+				"executionStatus": "needs_review",
+				"originalError": "confirmation_value_requires_review",
+				"checkpoints": [
+					{
+						"id": "initial",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-baseline-AI-13-3.json.gz",
+				"sourceSha256": "a0219b46dbbe62d6d8406f04b0a0d5c95b92c76c3e10c533dfb3bb94de2decbb",
+				"attempt": "flash-baseline-AI-13-3",
+				"executionStatus": "needs_review",
+				"originalError": "confirmation_value_requires_review",
+				"checkpoints": [
+					{
+						"id": "initial",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-baseline-AI-14-1.json.gz",
+				"sourceSha256": "2eb5911875adaa6c1e12c2266f1555deb9a4c83c38db066b53476f0fc9d899cf",
+				"attempt": "flash-baseline-AI-14-1",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "draft",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "confirmed",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-baseline-AI-14-2.json.gz",
+				"sourceSha256": "97f3d9e8c4f97ce6cd8a99ce854fc388a2bee03bf1ab9b4e9e9013be4ba89f04",
+				"attempt": "flash-baseline-AI-14-2",
+				"executionStatus": "failed",
+				"originalError": "invalid_persisted_brief",
+				"checkpoints": []
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-baseline-AI-14-3.json.gz",
+				"sourceSha256": "bf5a451f1b098b80439a31f3aa2ee8d295d245230c3d8b452d81792d14e29434",
+				"attempt": "flash-baseline-AI-14-3",
+				"executionStatus": "needs_review",
+				"originalError": "confirmation_value_requires_review",
+				"checkpoints": [
+					{
+						"id": "draft",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-baseline-AI-15-1.json.gz",
+				"sourceSha256": "c6e2e8cdfebdd6c0cec4615aa416ba45894302e0d532e64cd87706c1b29c2dcf",
+				"attempt": "flash-baseline-AI-15-1",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "needs_readable_drawing",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-baseline-AI-15-2.json.gz",
+				"sourceSha256": "ed6c37723199055d4a7bbce0fedf97d4be617ec53d90d82e9dca29e97d82b3b4",
+				"attempt": "flash-baseline-AI-15-2",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "needs_readable_drawing",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-baseline-AI-15-3.json.gz",
+				"sourceSha256": "ce078ceb155a5524b1895b97c267744e394f74730fab01fb481205946327df1b",
+				"attempt": "flash-baseline-AI-15-3",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "needs_readable_drawing",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-candidate-AI-01-2.json.gz",
+				"sourceSha256": "c7cb5c485f30074614df2b633be0ea4fb0b5b3954079e248a6fc6fa570c34f56",
+				"attempt": "flash-candidate-AI-01-2",
+				"executionStatus": "needs_review",
+				"originalError": "confirmation_value_requires_review",
+				"checkpoints": [
+					{
+						"id": "draft",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-candidate-AI-01-3.json.gz",
+				"sourceSha256": "3a8da0cbf2f778d3b18e9ce33d3753086e26ad8b8d26152ffec9ebdcaa158d23",
+				"attempt": "flash-candidate-AI-01-3",
+				"executionStatus": "needs_review",
+				"originalError": "confirmation_value_requires_review",
+				"checkpoints": [
+					{
+						"id": "draft",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-candidate-AI-02-2.json.gz",
+				"sourceSha256": "4e65c76a56e14fa6461a64763e1c081e08c0ea8ab1a159483de94fbba17b942e",
+				"attempt": "flash-candidate-AI-02-2",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "draft",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "confirmed",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-candidate-AI-02-3.json.gz",
+				"sourceSha256": "94d535d97b0ad3dd58879b6597b9c83064d888116bf8f295f98d24e6d0f17ff8",
+				"attempt": "flash-candidate-AI-02-3",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "draft",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "confirmed",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-candidate-AI-03-1.json.gz",
+				"sourceSha256": "07d4f038cdbf28d58b2d01a2ccae887cf7b3bf1c3a7443c8149b6fd6f52dc1c1",
+				"attempt": "flash-candidate-AI-03-1",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "draft",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "required_confirmed",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "all_confirmed",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-candidate-AI-03-2.json.gz",
+				"sourceSha256": "6c20f5aa0d0e9686d6c1a3236724207a8fd637ebc9246e0776b818991ce6e279",
+				"attempt": "flash-candidate-AI-03-2",
+				"executionStatus": "needs_review",
+				"originalError": "confirmation_value_requires_review",
+				"checkpoints": [
+					{
+						"id": "draft",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-candidate-AI-03-3.json.gz",
+				"sourceSha256": "40bd59a0cf1bf87a05b3a28e1487ac4a4ca5c96235ed8fb60344df188f29234e",
+				"attempt": "flash-candidate-AI-03-3",
+				"executionStatus": "needs_review",
+				"originalError": "confirmation_value_requires_review",
+				"checkpoints": [
+					{
+						"id": "draft",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-candidate-AI-05-1.json.gz",
+				"sourceSha256": "59a14064e0fd4758ddc1d69f417da9ac2b7f36537a8a9a0ee0f660f140b4d227",
+				"attempt": "flash-candidate-AI-05-1",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "needs_input",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-candidate-AI-05-2.json.gz",
+				"sourceSha256": "048266c893413982bb1392212c47740a0ae98927b96e2cad99c457a44bafe283",
+				"attempt": "flash-candidate-AI-05-2",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "needs_input",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-candidate-AI-05-3.json.gz",
+				"sourceSha256": "6226ad82d60f2e899a7b8dc4abd1c6f2a98bd04dd046b52d01a19744464f3ced",
+				"attempt": "flash-candidate-AI-05-3",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "needs_input",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-candidate-AI-06-1.json.gz",
+				"sourceSha256": "d2e6158b331eb3e6f09da989ffac1148abba855cd06fe6908c0df260e4dd083f",
+				"attempt": "flash-candidate-AI-06-1",
+				"executionStatus": "needs_review",
+				"originalError": "confirmation_value_requires_review",
+				"checkpoints": [
+					{
+						"id": "ask_artwork",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "answered",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-candidate-AI-06-2.json.gz",
+				"sourceSha256": "8ceae62344b5153ce6c933f97c156ba52e93eff977d3a65f1717e4e905c2193c",
+				"attempt": "flash-candidate-AI-06-2",
+				"executionStatus": "needs_review",
+				"originalError": "confirmation_value_requires_review",
+				"checkpoints": [
+					{
+						"id": "ask_artwork",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "answered",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-candidate-AI-06-3.json.gz",
+				"sourceSha256": "3d962cd021c22bd022f8bc1c967e95963668c3457bb82de0df2c0c889e6fd5d3",
+				"attempt": "flash-candidate-AI-06-3",
+				"executionStatus": "needs_review",
+				"originalError": "confirmation_value_requires_review",
+				"checkpoints": [
+					{
+						"id": "ask_artwork",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "answered",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-candidate-AI-07-1.json.gz",
+				"sourceSha256": "cb19f1baf21b1a104fc32013f563cc6948c3e26c1a817987d12d7b425d3f6503",
+				"attempt": "flash-candidate-AI-07-1",
+				"executionStatus": "failed",
+				"originalError": "invalid_persisted_brief",
+				"checkpoints": [
+					{
+						"id": "unit_unresolved",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-candidate-AI-07-2.json.gz",
+				"sourceSha256": "ed6b055430afdf65b2ff26bd10012345560d256a03950964f7359499198540fe",
+				"attempt": "flash-candidate-AI-07-2",
+				"executionStatus": "failed",
+				"originalError": "workflow_did_not_complete",
+				"checkpoints": [
+					{
+						"id": "unit_unresolved",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "count_supplied",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-candidate-AI-07-3.json.gz",
+				"sourceSha256": "7f751cf90a8de92dcabe02fad3f38f080d3b58d6bbe159735ee7a5acb53f5f81",
+				"attempt": "flash-candidate-AI-07-3",
+				"executionStatus": "failed",
+				"originalError": "invalid_persisted_brief",
+				"checkpoints": [
+					{
+						"id": "unit_unresolved",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "count_supplied",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-candidate-AI-09-1.json.gz",
+				"sourceSha256": "f29235ffac37029e7b6fb1cf4f6e11353d125d36a92eab25c5af16f0f9c9ab82",
+				"attempt": "flash-candidate-AI-09-1",
+				"executionStatus": "needs_review",
+				"originalError": "confirmation_value_requires_review",
+				"checkpoints": [
+					{
+						"id": "draft",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-candidate-AI-09-2.json.gz",
+				"sourceSha256": "c1c1956232cceb975a5419e57eb36f15bf551b523b8a4f9147e0ed4b3759d9ca",
+				"attempt": "flash-candidate-AI-09-2",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "draft",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "confirmed_base",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "pending_change",
+						"originalVerdict": "failed",
+						"rescoredVerdict": "failed",
+						"changes": []
+					},
+					{
+						"id": "revised",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-candidate-AI-09-3.json.gz",
+				"sourceSha256": "2da9f9723b5ffc369f0a79de643e5026bd55f0901b4d98f4e0a9eab0ed3910c8",
+				"attempt": "flash-candidate-AI-09-3",
+				"executionStatus": "needs_review",
+				"originalError": "confirmation_value_requires_review",
+				"checkpoints": [
+					{
+						"id": "draft",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-candidate-AI-10-1.json.gz",
+				"sourceSha256": "aa948000f7fc3a00b43522617b1940712ee1ec06df2004bc388ab7f74a43fa7c",
+				"attempt": "flash-candidate-AI-10-1",
+				"executionStatus": "needs_review",
+				"originalError": "confirmation_value_requires_review",
+				"checkpoints": [
+					{
+						"id": "dimension_conflict",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					},
+					{
+						"id": "clarified",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-candidate-AI-10-2.json.gz",
+				"sourceSha256": "568698ab14a45e4ef9a3a52b041a06921e562c8fcc4ce148d6af8f6a12eb6a5d",
+				"attempt": "flash-candidate-AI-10-2",
+				"executionStatus": "needs_review",
+				"originalError": "confirmation_value_requires_review",
+				"checkpoints": [
+					{
+						"id": "dimension_conflict",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					},
+					{
+						"id": "clarified",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-candidate-AI-10-3.json.gz",
+				"sourceSha256": "c1f1763eb312c24b295289ce09b2253eb53163356026d54e9413fa6551db970c",
+				"attempt": "flash-candidate-AI-10-3",
+				"executionStatus": "failed",
+				"originalError": "invalid_persisted_brief",
+				"checkpoints": []
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-candidate-AI-11-1.json.gz",
+				"sourceSha256": "303e436b214a5a011edd801ab769101a44755b78f35c091ae4c7da0ae39fc6e1",
+				"attempt": "flash-candidate-AI-11-1",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "before_withdrawal",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					},
+					{
+						"id": "after_withdrawal",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-candidate-AI-11-2.json.gz",
+				"sourceSha256": "110f93cf048c1ffab55dac03feb2abe7748549381cbf7e87814559fc277c987b",
+				"attempt": "flash-candidate-AI-11-2",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "before_withdrawal",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "after_withdrawal",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-candidate-AI-11-3.json.gz",
+				"sourceSha256": "f6bc4f0bf1a58fcd29d4a93021a104017682e3eddc179beea4b1a4eafd52a524",
+				"attempt": "flash-candidate-AI-11-3",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "before_withdrawal",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "after_withdrawal",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-candidate-AI-13-1.json.gz",
+				"sourceSha256": "27f136ff0c873a44226c3cc0a30f06a0c779532efd07e658ff1aecda3a660437",
+				"attempt": "flash-candidate-AI-13-1",
+				"executionStatus": "needs_review",
+				"originalError": "confirmation_value_requires_review",
+				"checkpoints": [
+					{
+						"id": "initial",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-candidate-AI-13-2.json.gz",
+				"sourceSha256": "70ecc6555fb51addedaf2488d0234984b45cc677aeade9042c760a6f1317c8f1",
+				"attempt": "flash-candidate-AI-13-2",
+				"executionStatus": "failed",
+				"originalError": "invalid_persisted_brief",
+				"checkpoints": []
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-candidate-AI-13-3.json.gz",
+				"sourceSha256": "4fafc67b3e04071d8ba25c8bdf300015b0d90be40c3af755c8a71bb26cffcc8b",
+				"attempt": "flash-candidate-AI-13-3",
+				"executionStatus": "needs_review",
+				"originalError": "confirmation_value_requires_review",
+				"checkpoints": [
+					{
+						"id": "initial",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-candidate-AI-14-1.json.gz",
+				"sourceSha256": "ec7efe3c155b63b7f245e8cf471c7989cac0fb8011d57de96becb1d44882c09e",
+				"attempt": "flash-candidate-AI-14-1",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "draft",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "confirmed",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-candidate-AI-14-2.json.gz",
+				"sourceSha256": "b14885428bd11fbaeb793a0a4c3d23a525b279f2a1e0a49d276f3e11d8fa8577",
+				"attempt": "flash-candidate-AI-14-2",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "draft",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "confirmed",
+						"originalVerdict": "failed",
+						"rescoredVerdict": "failed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-candidate-AI-14-3.json.gz",
+				"sourceSha256": "28acda7fbf46e3c3aa904f49cef344811bde3d3dd902aa36fd870e3aa034f22f",
+				"attempt": "flash-candidate-AI-14-3",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "draft",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "confirmed",
+						"originalVerdict": "failed",
+						"rescoredVerdict": "failed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-candidate-AI-15-1.json.gz",
+				"sourceSha256": "4ab317e935e46170dd7f4d3e64df13fce6f8430dcdecd521419e9e183d0bd89f",
+				"attempt": "flash-candidate-AI-15-1",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "needs_readable_drawing",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-candidate-AI-15-2.json.gz",
+				"sourceSha256": "614df5c42bb5d0650d3a7a2d729dc42faab8e7ddb8621bf53bad8a501b28d3d3",
+				"attempt": "flash-candidate-AI-15-2",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "needs_readable_drawing",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/flash-candidate-AI-15-3.json.gz",
+				"sourceSha256": "faa934712be3d152d8f697e5d31defe7d821babf24f4b4bddbf8caa29920920f",
+				"attempt": "flash-candidate-AI-15-3",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "needs_readable_drawing",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/initial.flash-baseline-AI-01-1.json.gz",
+				"sourceSha256": "41f541a3592015aba41a2801394c265b2d7511df067ddc878617c055a795b166",
+				"attempt": "flash-baseline-AI-01-1",
+				"executionStatus": "needs_review",
+				"originalError": "confirmation_value_requires_review",
+				"checkpoints": [
+					{
+						"id": "draft",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/initial.flash-baseline-AI-02-1.json.gz",
+				"sourceSha256": "8e7a767429de9c4abad76215514351c3da8bcdb9415ba0575902b67a064356d1",
+				"attempt": "flash-baseline-AI-02-1",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "draft",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "confirmed",
+						"originalVerdict": "failed",
+						"rescoredVerdict": "failed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/initial.flash-candidate-AI-01-1.json.gz",
+				"sourceSha256": "3f1bcbfd7fdfdd1bde870ad6d6ef49f028f4b3b7b30ba135889626c3437d322f",
+				"attempt": "flash-candidate-AI-01-1",
+				"executionStatus": "needs_review",
+				"originalError": "confirmation_value_requires_review",
+				"checkpoints": [
+					{
+						"id": "draft",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/initial.flash-candidate-AI-02-1.json.gz",
+				"sourceSha256": "8d68d9f2b81e7d16e21f57f7eb246af17d08fcada440611ac828386d9f5bc8f3",
+				"attempt": "flash-candidate-AI-02-1",
+				"executionStatus": "needs_review",
+				"originalError": "confirmation_value_requires_review",
+				"checkpoints": [
+					{
+						"id": "draft",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/pro-candidate-AI-01-1.json.gz",
+				"sourceSha256": "0124c9cf6fc9222f3c0882ede4c29657429f293049331c4b2c9d057b7c038bb9",
+				"attempt": "pro-candidate-AI-01-1",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "draft",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "confirmed",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/pro-candidate-AI-01-2.json.gz",
+				"sourceSha256": "a4180c935348ff1619d0e48d7935aea959b829de9a86ee3054859316df6a0e88",
+				"attempt": "pro-candidate-AI-01-2",
+				"executionStatus": "needs_review",
+				"originalError": "confirmation_value_requires_review",
+				"checkpoints": [
+					{
+						"id": "draft",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/pro-candidate-AI-01-3.json.gz",
+				"sourceSha256": "6be4baf1331d4f74653b1a29da1c891d7ad4e2f291666151bf66ebaa5b2625f4",
+				"attempt": "pro-candidate-AI-01-3",
+				"executionStatus": "needs_review",
+				"originalError": "confirmation_value_requires_review",
+				"checkpoints": [
+					{
+						"id": "draft",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/pro-candidate-AI-02-1.json.gz",
+				"sourceSha256": "125bc5e761d5681c670b8fa38f4b82eb056ca4dcea4badbd5ec26d42430ad389",
+				"attempt": "pro-candidate-AI-02-1",
+				"executionStatus": "needs_review",
+				"originalError": "confirmation_value_requires_review",
+				"checkpoints": [
+					{
+						"id": "draft",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/pro-candidate-AI-02-2.json.gz",
+				"sourceSha256": "d13ce9b2cc15e9bba21e2ed8106f146532fbcd03345acb848ed08dfefd0dc52c",
+				"attempt": "pro-candidate-AI-02-2",
+				"executionStatus": "needs_review",
+				"originalError": "confirmation_value_requires_review",
+				"checkpoints": [
+					{
+						"id": "draft",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/pro-candidate-AI-02-3.json.gz",
+				"sourceSha256": "2c0f70894a874d57a5651d7f05b8357c6d39872afea7e50e8731e35198580342",
+				"attempt": "pro-candidate-AI-02-3",
+				"executionStatus": "needs_review",
+				"originalError": "confirmation_value_requires_review",
+				"checkpoints": [
+					{
+						"id": "draft",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/pro-candidate-AI-03-1.json.gz",
+				"sourceSha256": "2621a0eb838d26aea1a3a93ad2904062f68c94ac34fa4f19429e4b578e3d4099",
+				"attempt": "pro-candidate-AI-03-1",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "draft",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "required_confirmed",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "all_confirmed",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/pro-candidate-AI-03-2.json.gz",
+				"sourceSha256": "e7f4143c8eb2ceba927310e88e3c2aa66049bc14e07babb2b42e6eedb0f7c0b4",
+				"attempt": "pro-candidate-AI-03-2",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "draft",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "required_confirmed",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "all_confirmed",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/pro-candidate-AI-03-3.json.gz",
+				"sourceSha256": "462428aacd00d8d84d350a93dfc523fea12bfabd1ba98bf114a74c199fc6f6a3",
+				"attempt": "pro-candidate-AI-03-3",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "draft",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "required_confirmed",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "all_confirmed",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/pro-candidate-AI-05-1.json.gz",
+				"sourceSha256": "923b0a24fbd2f3b4cf8561df7185e4e335c6ef1ee299bad90ec362b4a4866318",
+				"attempt": "pro-candidate-AI-05-1",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "needs_input",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/pro-candidate-AI-05-2.json.gz",
+				"sourceSha256": "a66d34d171e934aaf4b64393baaf29deda0f191130ab3fa15bcce8691d0dbe4c",
+				"attempt": "pro-candidate-AI-05-2",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "needs_input",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/pro-candidate-AI-05-3.json.gz",
+				"sourceSha256": "c3bbe21b46440b602b25302bd8363971c26c06328d46e0bc8a6b070c554bfcbe",
+				"attempt": "pro-candidate-AI-05-3",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "needs_input",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/pro-candidate-AI-06-1.json.gz",
+				"sourceSha256": "b6aa1d565ab83969bdfacc7cfa12d41eba84d60eb5bca6158467f898cfb575b3",
+				"attempt": "pro-candidate-AI-06-1",
+				"executionStatus": "failed",
+				"originalError": "workflow_did_not_complete",
+				"checkpoints": [
+					{
+						"id": "ask_artwork",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/pro-candidate-AI-06-2.json.gz",
+				"sourceSha256": "7cf3c3eea79ccfeb746a02e0f6cbd58a8c07b520274c5a918103693a512ea378",
+				"attempt": "pro-candidate-AI-06-2",
+				"executionStatus": "needs_review",
+				"originalError": "confirmation_value_requires_review",
+				"checkpoints": [
+					{
+						"id": "ask_artwork",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					},
+					{
+						"id": "answered",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/pro-candidate-AI-06-3.json.gz",
+				"sourceSha256": "f78f066ce32d53e370c97eb38b6a5269817d571662a747ba02c1a7e7f0262d1b",
+				"attempt": "pro-candidate-AI-06-3",
+				"executionStatus": "needs_review",
+				"originalError": "confirmation_value_requires_review",
+				"checkpoints": [
+					{
+						"id": "ask_artwork",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					},
+					{
+						"id": "answered",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/pro-candidate-AI-07-1.json.gz",
+				"sourceSha256": "19d5f37dcf25920cf21b7ff9bc7c48392ca356c7b43d01483c3f308ac55dd76a",
+				"attempt": "pro-candidate-AI-07-1",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "unit_unresolved",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "count_supplied",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "confirmed",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/pro-candidate-AI-07-2.json.gz",
+				"sourceSha256": "a405b788f7554f3a56b699a251fcc0634150fa8dbc01cee0936665840104b99c",
+				"attempt": "pro-candidate-AI-07-2",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "unit_unresolved",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "count_supplied",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "confirmed",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/pro-candidate-AI-07-3.json.gz",
+				"sourceSha256": "277b4b5f1ba7d9dd839523579d4ac5324c8c772dab1cc35e4794ee2ea3939a0d",
+				"attempt": "pro-candidate-AI-07-3",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "unit_unresolved",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "count_supplied",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "confirmed",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/pro-candidate-AI-09-1.json.gz",
+				"sourceSha256": "0f9a0686e21e7e6def1888d9e277ec26dd40e334bedb1793243ece2c3d6e80cc",
+				"attempt": "pro-candidate-AI-09-1",
+				"executionStatus": "failed",
+				"originalError": "workflow_did_not_complete",
+				"checkpoints": [
+					{
+						"id": "draft",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "confirmed_base",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "pending_change",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/pro-candidate-AI-09-2.json.gz",
+				"sourceSha256": "7f99426a8b507d24f26f1f4e1026008c67e11f733c205b640c5aecefbbbc460c",
+				"attempt": "pro-candidate-AI-09-2",
+				"executionStatus": "failed",
+				"originalError": "workflow_did_not_complete",
+				"checkpoints": []
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/pro-candidate-AI-09-3.json.gz",
+				"sourceSha256": "2c33cb80970fc2cff6a247cb2f9727197651960f25ebb1b9c45de392dc8c744b",
+				"attempt": "pro-candidate-AI-09-3",
+				"executionStatus": "needs_review",
+				"originalError": "confirmation_value_requires_review",
+				"checkpoints": [
+					{
+						"id": "draft",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/pro-candidate-AI-10-1.json.gz",
+				"sourceSha256": "27b04debea08ebb4bad2fcc05edc4c4dee4734b68d18fdecfebbbcb4473d6b53",
+				"attempt": "pro-candidate-AI-10-1",
+				"executionStatus": "needs_review",
+				"originalError": "confirmation_value_requires_review",
+				"checkpoints": [
+					{
+						"id": "dimension_conflict",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "clarified",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/pro-candidate-AI-10-2.json.gz",
+				"sourceSha256": "439ccdc42a1b7f276eee92553ee18b7a864c1169dd7e25fd818db8837c4693d5",
+				"attempt": "pro-candidate-AI-10-2",
+				"executionStatus": "failed",
+				"originalError": "workflow_did_not_complete",
+				"checkpoints": [
+					{
+						"id": "dimension_conflict",
+						"originalVerdict": "failed",
+						"rescoredVerdict": "failed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/pro-candidate-AI-10-3.json.gz",
+				"sourceSha256": "4fe9d3bf80a764d9cd4dd15241bf0fd59d8d7ca447c3df55fe867dd45031ae5a",
+				"attempt": "pro-candidate-AI-10-3",
+				"executionStatus": "needs_review",
+				"originalError": "confirmation_value_requires_review",
+				"checkpoints": [
+					{
+						"id": "dimension_conflict",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "clarified",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/pro-candidate-AI-11-1.json.gz",
+				"sourceSha256": "caf059630ec0756b07361d5a82fe5120b46844d2e2e4eb6ad71f3382bdb1d241",
+				"attempt": "pro-candidate-AI-11-1",
+				"executionStatus": "failed",
+				"originalError": "workflow_did_not_complete",
+				"checkpoints": [
+					{
+						"id": "before_withdrawal",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/pro-candidate-AI-11-2.json.gz",
+				"sourceSha256": "7a0146d16f61250a1733d9e8262869fe90f44167ef46ede9dfb84562c1a095b9",
+				"attempt": "pro-candidate-AI-11-2",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "before_withdrawal",
+						"originalVerdict": "failed",
+						"rescoredVerdict": "failed",
+						"changes": []
+					},
+					{
+						"id": "after_withdrawal",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/pro-candidate-AI-11-3.json.gz",
+				"sourceSha256": "29fefc0cc820b410189c60ae7abe45eb07ce793918e759b875c62628e27d2304",
+				"attempt": "pro-candidate-AI-11-3",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "before_withdrawal",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "after_withdrawal",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/pro-candidate-AI-13-1.json.gz",
+				"sourceSha256": "1a5195bfccfe5f25c8e163bc9bc8689da789f4dd9e91272ad7ada9ade40ed82a",
+				"attempt": "pro-candidate-AI-13-1",
+				"executionStatus": "needs_review",
+				"originalError": "confirmation_value_requires_review",
+				"checkpoints": [
+					{
+						"id": "initial",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/pro-candidate-AI-13-2.json.gz",
+				"sourceSha256": "fc0ec76f3d9b5ad6e70ec073b25827deb44ced83f9d8239d9284c3395b666317",
+				"attempt": "pro-candidate-AI-13-2",
+				"executionStatus": "needs_review",
+				"originalError": "confirmation_value_requires_review",
+				"checkpoints": [
+					{
+						"id": "initial",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/pro-candidate-AI-13-3.json.gz",
+				"sourceSha256": "96f962f0423154058612ca9f7007c8b7941646136fc77f5050cd6b8e6c53c405",
+				"attempt": "pro-candidate-AI-13-3",
+				"executionStatus": "needs_review",
+				"originalError": "confirmation_value_requires_review",
+				"checkpoints": [
+					{
+						"id": "initial",
+						"originalVerdict": "needs_review",
+						"rescoredVerdict": "needs_review",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/pro-candidate-AI-14-1.json.gz",
+				"sourceSha256": "53bbd7632b26b3135680bac0b5f4af8af8f24d25e9cdb34cbce69e7127758859",
+				"attempt": "pro-candidate-AI-14-1",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "draft",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "confirmed",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/pro-candidate-AI-14-2.json.gz",
+				"sourceSha256": "2aa9f49304f3892f3ce530cc914c34d3ba4ef60e8de79c1952b61a9a9e3fb8a5",
+				"attempt": "pro-candidate-AI-14-2",
+				"executionStatus": "failed",
+				"originalError": "invalid_persisted_brief",
+				"checkpoints": []
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/pro-candidate-AI-14-3.json.gz",
+				"sourceSha256": "6748b48f57ace6b5b58809846ad1c76f4cbe6e0faf2c6af813c50bea59cfc28b",
+				"attempt": "pro-candidate-AI-14-3",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "draft",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					},
+					{
+						"id": "confirmed",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/pro-candidate-AI-15-1.json.gz",
+				"sourceSha256": "59bff4a4c004c70b4a2a285dc6c81ffa894e13c39ca4fd6bd7d9540891363107",
+				"attempt": "pro-candidate-AI-15-1",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "needs_readable_drawing",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/pro-candidate-AI-15-2.json.gz",
+				"sourceSha256": "95eccd50e2764ba10d45586c2b446cf6ef7c043cdef0a6da702f0928205ccea3",
+				"attempt": "pro-candidate-AI-15-2",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "needs_readable_drawing",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					}
+				]
+			},
+			{
+				"source": "docs/evidence/automatic-online-2026-09-26/pro-candidate-AI-15-3.json.gz",
+				"sourceSha256": "f0c10c22fd246e0a44881ca3a1e5c49c85cb3c8092c0cbfcf081e87ebcee9974",
+				"attempt": "pro-candidate-AI-15-3",
+				"executionStatus": "completed",
+				"originalError": null,
+				"checkpoints": [
+					{
+						"id": "needs_readable_drawing",
+						"originalVerdict": "passed",
+						"rescoredVerdict": "passed",
+						"changes": []
+					}
+				]
+			}
+		]
+	}
+}

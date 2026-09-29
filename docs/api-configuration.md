@@ -319,3 +319,11 @@ unset BLACKX_EVENT_STORE_PATH BLACKX_ARTIFACT_STORE_PATH BLACKX_ATTACHMENT_STORE
 ## 图形配置入口
 
 运行 Packx 后点击侧栏“配置模型”，填写兼容 Anthropic Messages 的地址、模型 ID 和 API Key，保存后停止并重新启动。保存与诊断不调用模型。设置保存在本机私密文件 `.packx-settings.json`，优先于 `.env` 中对应的 Provider 项；留空 Key 保留已有凭据，显式清除会同时屏蔽环境变量中的 Key。文件不进入业务备份，也不会返回给浏览器。完整说明见[本地操作](local-operations.md)。
+
+## 复核专用输出预算（2026-09-29）
+
+可选 `PACKX_REVIEW_MAX_OUTPUT_TOKENS` 只作用于需求单的证据复核和允许的一次叙述修订。它必须是正整数，且不超过 `PACKX_MODEL_MAX_OUTPUT_TOKENS`。不设置时保留原预算；配置保存不代表授权执行付费实验。
+
+例如模型上限已被操作者设为 16384 时，可以显式使用同样的复核预算。模型上限也约束其他 Turn，修改前应考虑整体费用。16384 已完成[限定在线对照](evidence/review-output-budget-2026-09-29.md)，虽减少了本批截断，但未达到控制质量与动作边界门槛，不能作为已验证推荐值。它不能保证不再截断。
+
+收到 `output_limit` 后，当前草稿保留且不能审批，不会自动扩大预算或重试。调整预算后须发起新执行，旧调用意图、报告及未知费用保留。详见[复核说明](requirement-evidence-review.md)。

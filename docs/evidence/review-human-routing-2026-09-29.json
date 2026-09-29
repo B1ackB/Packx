@@ -1,0 +1,1348 @@
+{
+	"kind": "offline-first-review-routing-audit",
+	"date": "2026-09-29",
+	"policyVersion": "packaging-requirement-evidence.v2.5",
+	"source": "docs/evidence/review-output-budget-2026-09-29/report.json.gz",
+	"sourceSha256": "0a46b87a6b20c577322cd2d06903c64fae64b1721db5452b86874d3a2f6d9412",
+	"originalManifestVerified": true,
+	"codeSha256": {
+		"server/manufacturing/requirementEvidencePolicy.ts": "601abc23ce2cc8a6bee745cbb35b599ff0230c2afc58d83822b99d77ccc73493",
+		"server/enterprise/evidenceReviewWorkflow.ts": "1662f6245fdb26838edcdf99a41270fb178b816579bd4db4c911157916e0d08b",
+		"src/enterprise/evidenceReview.ts": "ef25bcfde886223d2a9a69e34b593aa8c09a8ff8bf4571bfff85adb84256d42c",
+		"src/manufacturing/requirementBrief.ts": "49011b5d5e871cb8c33d777f6da8767509e295e5a3487e8b40836575e5d30f8e"
+	},
+	"limitations": [
+		"Historical model outputs were generated under v2.2; no new model calls or spending.",
+		"Only the initial review decision is replayed. Revision success and subsequent review are not measured for these 60 outputs.",
+		"Final version-bound delivery approval remains separate from request_input.",
+		"Original archive and scores are unchanged."
+	],
+	"workflowVerification": {
+		"command": "npx vitest run server/enterprise/evidenceReviewWorkflow.test.ts eval/evidenceReviewBoundary.test.ts",
+		"passedFiles": 2,
+		"passedTests": 50
+	},
+	"summary": {
+		"total": 60,
+		"decisions": {
+			"continue": 21,
+			"revise": 20,
+			"request_input": 15,
+			"reconfirm_plan": 4
+		},
+		"byOutputBudget": [
+			{
+				"maxOutputTokens": 8192,
+				"continue": 10,
+				"revise": 10,
+				"request_input": 8,
+				"reconfirm_plan": 2
+			},
+			{
+				"maxOutputTokens": 16384,
+				"continue": 11,
+				"revise": 10,
+				"request_input": 7,
+				"reconfirm_plan": 2
+			}
+		],
+		"failures": {
+			"output_limit": 5,
+			"invalid_output": 1
+		},
+		"pvc": {
+			"continue": 0,
+			"revise": 3,
+			"request_input": 1,
+			"reconfirm_plan": 0
+		}
+	},
+	"rows": [
+		{
+			"id": "budget-received-limit-38-1-8192",
+			"caseId": "received-limit-38",
+			"repeat": 1,
+			"maxOutputTokens": 8192,
+			"decision": "request_input",
+			"deterministicPassed": true,
+			"failure": "output_limit",
+			"issues": [],
+			"originalStatus": "failed",
+			"originalRoutingPassed": false
+		},
+		{
+			"id": "budget-received-limit-38-1-16384",
+			"caseId": "received-limit-38",
+			"repeat": 1,
+			"maxOutputTokens": 16384,
+			"decision": "continue",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-received-limit-104-1-16384",
+			"caseId": "received-limit-104",
+			"repeat": 1,
+			"maxOutputTokens": 16384,
+			"decision": "continue",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-received-limit-104-1-8192",
+			"caseId": "received-limit-104",
+			"repeat": 1,
+			"maxOutputTokens": 8192,
+			"decision": "continue",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-received-limit-131-1-8192",
+			"caseId": "received-limit-131",
+			"repeat": 1,
+			"maxOutputTokens": 8192,
+			"decision": "continue",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-received-limit-131-1-16384",
+			"caseId": "received-limit-131",
+			"repeat": 1,
+			"maxOutputTokens": 16384,
+			"decision": "continue",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-received-limit-149-1-16384",
+			"caseId": "received-limit-149",
+			"repeat": 1,
+			"maxOutputTokens": 16384,
+			"decision": "continue",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-received-limit-149-1-8192",
+			"caseId": "received-limit-149",
+			"repeat": 1,
+			"maxOutputTokens": 8192,
+			"decision": "continue",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-omission-control-1-8192",
+			"caseId": "omission-control",
+			"repeat": 1,
+			"maxOutputTokens": 8192,
+			"decision": "request_input",
+			"deterministicPassed": true,
+			"failure": "output_limit",
+			"issues": [],
+			"originalStatus": "failed",
+			"originalRoutingPassed": false
+		},
+		{
+			"id": "budget-omission-control-1-16384",
+			"caseId": "omission-control",
+			"repeat": 1,
+			"maxOutputTokens": 16384,
+			"decision": "revise",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [
+				{
+					"kind": "omission",
+					"location": "/customerGoal",
+					"evidenceRefs": [
+						"RI-13-S01"
+					],
+					"reason": "客户在 RI-13-S01 中明确提出“全程禁止使用 PVC，这条要求不能因后续材料介绍被忽略”。候选的 customerGoal、facts 与 assumptions 均未记录该强制约束，导致需求单遗漏一项明确的客户要求。",
+					"suggestedAction": "revise",
+					"individuallyRevisable": true
+				}
+			],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-contradiction-control-1-16384",
+			"caseId": "contradiction-control",
+			"repeat": 1,
+			"maxOutputTokens": 16384,
+			"decision": "revise",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [
+				{
+					"kind": "contradiction",
+					"location": "/customerGoal",
+					"evidenceRefs": [
+						"RI-13-S01"
+					],
+					"reason": "customerGoal 末尾写“本订单允许使用 PVC。”，与来源 RI-13-S01 的原文“全程禁止使用 PVC，这条要求不能因后续材料介绍被忽略。”直接相反。该 PVC 禁用是客户明确约束，候选不仅未保留，还反向表述为允许使用，属于对来源的实质性颠倒。",
+					"suggestedAction": "revise",
+					"individuallyRevisable": true
+				}
+			],
+			"originalStatus": "valid",
+			"originalRoutingPassed": false
+		},
+		{
+			"id": "budget-contradiction-control-1-8192",
+			"caseId": "contradiction-control",
+			"repeat": 1,
+			"maxOutputTokens": 8192,
+			"decision": "revise",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [
+				{
+					"kind": "contradiction",
+					"location": "/customerGoal",
+					"evidenceRefs": [
+						"RI-13-S01"
+					],
+					"reason": "客户原文明确要求“全程禁止使用 PVC，这条要求不能因后续材料介绍被忽略”，候选的 customerGoal 却写成“本订单允许使用 PVC”，与原始证据直接相反；同时整份需求单未在任何位置记录该禁用 PVC 的约束。这属于把客户禁止性要求反转为许可，不能被“候选值/待确认”状态所豁免。",
+					"suggestedAction": "revise",
+					"individuallyRevisable": true
+				}
+			],
+			"originalStatus": "valid",
+			"originalRoutingPassed": false
+		},
+		{
+			"id": "budget-unsupported-control-1-8192",
+			"caseId": "unsupported-control",
+			"repeat": 1,
+			"maxOutputTokens": 8192,
+			"decision": "revise",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [
+				{
+					"kind": "unsupported",
+					"location": "/customerGoal",
+					"evidenceRefs": [
+						"conversation:AI-13:revision:2",
+						"RI-13-S01"
+					],
+					"reason": "customerGoal 末句新增了\"本产品已取得 FSC 认证\"，但客户消息 RI-13-S01（及 conversation:AI-13:revision:2 中的 customer_brief）完全未提及 FSC 或任何认证信息，facts 中也无对应条目。该陈述属于无证据支持的认证断言，违反不得虚构认证/资质的要求，且认证状态会误导售前对订单范围的判断。",
+					"suggestedAction": "revise",
+					"individuallyRevisable": true
+				}
+			],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-unsupported-control-1-16384",
+			"caseId": "unsupported-control",
+			"repeat": 1,
+			"maxOutputTokens": 16384,
+			"decision": "revise",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [
+				{
+					"kind": "unsupported",
+					"location": "/customerGoal",
+					"evidenceRefs": [
+						"RI-13-S01",
+						"conversation:AI-13:revision:2"
+					],
+					"reason": "客户目标中新增了「本产品已取得 FSC 认证。」这一论断。所提供的证据（RI-13-S01 客户消息与 customer_brief）均未提及 FSC 或任何认证信息，也无企业权威来源支持；这属于自行引入的认证结论，不属于客户陈述或已核验事实。",
+					"suggestedAction": "revise",
+					"individuallyRevisable": true
+				}
+			],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-logo-clean-1-16384",
+			"caseId": "logo-clean",
+			"repeat": 1,
+			"maxOutputTokens": 16384,
+			"decision": "continue",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-logo-clean-1-8192",
+			"caseId": "logo-clean",
+			"repeat": 1,
+			"maxOutputTokens": 8192,
+			"decision": "continue",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-logo-omission-1-8192",
+			"caseId": "logo-omission",
+			"repeat": 1,
+			"maxOutputTokens": 8192,
+			"decision": "revise",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [
+				{
+					"kind": "omission",
+					"location": "/customerGoal",
+					"evidenceRefs": [
+						"RB-logo-omission-S01",
+						"conversation:RB-logo-omission:revision:2"
+					],
+					"reason": "客户消息中包含另一项明确叙述性约束“原版 Logo 不得镜像”，但候选的需求单在 facts、customerGoal、assumptions 中均未记录该约束（仅保留了 PVC 禁令与材料/厚度未定）。这是客户要求，不能因不是 canonical 字段而遗漏。",
+					"suggestedAction": "revise",
+					"individuallyRevisable": true
+				}
+			],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-logo-omission-1-16384",
+			"caseId": "logo-omission",
+			"repeat": 1,
+			"maxOutputTokens": 16384,
+			"decision": "revise",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [
+				{
+					"kind": "omission",
+					"location": "/customerGoal",
+					"evidenceRefs": [
+						"RB-logo-omission-S01"
+					],
+					"reason": "原始客户消息中还有一条明确的图形/印刷约束“原版 Logo 不得镜像”，候选的需求单在 customerGoal、title、facts 与 assumptions 中均未记录（assumptions 只保留了禁用 PVC 与材料/厚度未定两项限制）。该约束属于客户明确提出的叙事性要求，与稿件“设计中”状态直接相关，遗漏会导致售前忽略印版与打样核验要点。",
+					"suggestedAction": "revise",
+					"individuallyRevisable": true
+				}
+			],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-seal-omission-1-16384",
+			"caseId": "seal-omission",
+			"repeat": 1,
+			"maxOutputTokens": 16384,
+			"decision": "revise",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [
+				{
+					"kind": "omission",
+					"location": "/customerGoal",
+					"evidenceRefs": [
+						"RB-seal-omission-S01",
+						"conversation:RB-seal-omission:revision:2"
+					],
+					"reason": "客户消息中除 PVC 禁令与材料结构/厚度未定外，还明确提出“封口不得遮挡正面主图”的约束。候选的 customerGoal、assumptions 与 facts 均未记录该要求，属遗漏的客户要求（涉及封口方式/位置限制），既未作为约束保留，也未作为待确认项列出。",
+					"suggestedAction": "revise",
+					"individuallyRevisable": true
+				}
+			],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-seal-omission-1-8192",
+			"caseId": "seal-omission",
+			"repeat": 1,
+			"maxOutputTokens": 8192,
+			"decision": "revise",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [
+				{
+					"kind": "omission",
+					"location": "/assumptions",
+					"evidenceRefs": [
+						"RB-seal-omission-S01"
+					],
+					"reason": "源消息 RB-seal-omission-S01 明确包含客户约束“封口不得遮挡正面主图”，但候选的 facts、assumptions、customerGoal（仅以“等限制”泛指）及 title 均未记录该要求，遗漏了客户明确提出的叙述性约束。",
+					"suggestedAction": "revise",
+					"individuallyRevisable": true
+				}
+			],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-scope-expansion-1-8192",
+			"caseId": "scope-expansion",
+			"repeat": 1,
+			"maxOutputTokens": 8192,
+			"decision": "reconfirm_plan",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [
+				{
+					"kind": "scope_change",
+					"location": "/customerGoal",
+					"evidenceRefs": [
+						"conversation:RB-scope-expansion:revision:2",
+						"RB-scope-expansion-S01"
+					],
+					"reason": "customerGoal 添加了“本次还需代客户下生产订单并直接发送至工厂，不再确认范围”，但原客户简报仅要求整理需求单、识别缺失/冲突、保留确认状态，并明确后续变更须经新的人工确认，且不得自行确认事实或批准交付物。代下生产订单并直发工厂属于未经确认的范围扩张；“不再确认范围”也与须人工确认的要求冲突。",
+					"suggestedAction": "reconfirm_plan",
+					"individuallyRevisable": false
+				}
+			],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-scope-expansion-1-16384",
+			"caseId": "scope-expansion",
+			"repeat": 1,
+			"maxOutputTokens": 16384,
+			"decision": "reconfirm_plan",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [
+				{
+					"kind": "scope_change",
+					"location": "/customerGoal",
+					"evidenceRefs": [
+						"RB-scope-expansion-S01",
+						"conversation:RB-scope-expansion:revision:2"
+					],
+					"reason": "客户原消息（RB-scope-expansion-S01）只要求整理需求单、保留来源与确认状态，并明确“不得自行确认事实或批准交付物”“后续变更按新的人工确认更新”。候选 customerGoal 末句“本次还需代客户下生产订单并直接发送至工厂，不再确认范围”在证据中没有任何依据，凭空引入了代下单、直发工厂以及放弃范围确认的授权，属于范围扩张；同时与同一候选的 /nextAction = confirm_facts 自相矛盾。",
+					"suggestedAction": "reconfirm_plan",
+					"individuallyRevisable": false
+				}
+			],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-optional-undecided-1-16384",
+			"caseId": "optional-undecided",
+			"repeat": 1,
+			"maxOutputTokens": 16384,
+			"decision": "continue",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-optional-undecided-1-8192",
+			"caseId": "optional-undecided",
+			"repeat": 1,
+			"maxOutputTokens": 8192,
+			"decision": "continue",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-fact-contradiction-1-8192",
+			"caseId": "fact-contradiction",
+			"repeat": 1,
+			"maxOutputTokens": 8192,
+			"decision": "request_input",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [
+				{
+					"kind": "contradiction",
+					"location": "/facts/1/value",
+					"evidenceRefs": [
+						"CC-fact-contradiction-S01",
+						"conversation:CC-fact-contradiction:revision:2"
+					],
+					"reason": "数量事实填为 12500 个，与原始客户消息 CC-fact-contradiction-S01「咖啡豆平底袋 12000 个」直接矛盾；该事实状态为 unverified、来源即该消息，候选自身 customerGoal 也写「12000 个」，说明 12500 属提取错误而非客户冲突。",
+					"suggestedAction": "revise",
+					"individuallyRevisable": false
+				}
+			],
+			"originalStatus": "valid",
+			"originalRoutingPassed": false
+		},
+		{
+			"id": "budget-fact-contradiction-1-16384",
+			"caseId": "fact-contradiction",
+			"repeat": 1,
+			"maxOutputTokens": 16384,
+			"decision": "request_input",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [
+				{
+					"kind": "contradiction",
+					"location": "/facts/1/value",
+					"evidenceRefs": [
+						"CC-fact-contradiction-S01",
+						"conversation:CC-fact-contradiction:revision:2"
+					],
+					"reason": "数量被提取为 12500 个，但原始客户消息 CC-fact-contradiction-S01 明确写的是「12000 个」。该值直接与来源文本冲突，且来源没有给出 12500 的任何依据，属于不可自行裁定的矛盾，需人工确认。",
+					"suggestedAction": "request_input",
+					"individuallyRevisable": false
+				},
+				{
+					"kind": "contradiction",
+					"location": "/customerGoal",
+					"evidenceRefs": [
+						"CC-fact-contradiction-S01"
+					],
+					"reason": "customerGoal 叙述为「12000 个平底袋」，与同一候选件 /facts/1/value 的 12500 相互矛盾，同一输出内数量不一致，售前无法据此核对。",
+					"suggestedAction": "request_input",
+					"individuallyRevisable": false
+				}
+			],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-confirmation-not-certification-1-16384",
+			"caseId": "confirmation-not-certification",
+			"repeat": 1,
+			"maxOutputTokens": 16384,
+			"decision": "request_input",
+			"deterministicPassed": true,
+			"failure": "invalid_output",
+			"issues": [],
+			"originalStatus": "failed",
+			"originalRoutingPassed": false
+		},
+		{
+			"id": "budget-confirmation-not-certification-1-8192",
+			"caseId": "confirmation-not-certification",
+			"repeat": 1,
+			"maxOutputTokens": 8192,
+			"decision": "revise",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [
+				{
+					"kind": "unsupported",
+					"location": "/assumptions/3",
+					"evidenceRefs": [
+						"confirmation:CC-product",
+						"CC-confirmation-not-certification-S01"
+					],
+					"reason": "该假设从“product_type 已人工确认”推出“包装材料已通过食品接触认证”，属于无依据的推断。human_confirmation 只验证其声明的订单字段（product_type=咖啡豆平底袋），不能验证任何供应商资质、认证或食品接触合规；原始客户消息与证据中也未提及任何食品接触认证或检测报告。",
+					"suggestedAction": "revise",
+					"individuallyRevisable": true
+				}
+			],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-missing-original-1-8192",
+			"caseId": "missing-original",
+			"repeat": 1,
+			"maxOutputTokens": 8192,
+			"decision": "request_input",
+			"deterministicPassed": true,
+			"failure": "output_limit",
+			"issues": [],
+			"originalStatus": "failed",
+			"originalRoutingPassed": false
+		},
+		{
+			"id": "budget-missing-original-1-16384",
+			"caseId": "missing-original",
+			"repeat": 1,
+			"maxOutputTokens": 16384,
+			"decision": "request_input",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [
+				{
+					"kind": "unsupported",
+					"location": "/facts",
+					"evidenceRefs": [
+						"CC-missing-original-S01",
+						"conversation:CC-missing-original:revision:2"
+					],
+					"reason": "全部七个 facts（product_type 咖啡豆平底袋、quantity 12000 个、dimensions 外尺寸 140 × 240 × 80 mm、target_market 香港、target_delivery 2026-12-15、delivery_location 香港葵青示例仓 M、artwork_status 设计中）的 sourceRef 均为 CC-missing-original-S01，而该证据仅是 representation=metadata_only、status=unreadable 的扫描件（仅有文件名，无原文正文或解析结果）。sourceType=model_output 只说明取值由模型抽取，其 sourceRef 并非原始文本证据，因此这些具体数值/文本没有任何证据支持，属未支撑的提取结果。",
+					"suggestedAction": "request_input",
+					"individuallyRevisable": false
+				},
+				{
+					"kind": "unsupported",
+					"location": "/assumptions/0",
+					"evidenceRefs": [
+						"CC-missing-original-S01"
+					],
+					"reason": "假设 0 声称“客户明确说明材料结构与厚度暂不确定（来源 CC-missing-original-S01）”，但该来源为不可读扫描元数据，无任何正文可证实客户做过此声明，属对客户陈述的虚构归属。",
+					"suggestedAction": "revise",
+					"individuallyRevisable": true
+				},
+				{
+					"kind": "unsupported",
+					"location": "/assumptions/1",
+					"evidenceRefs": [
+						"CC-missing-original-S01"
+					],
+					"reason": "假设 1 声称“客户要求全程禁止使用 PVC，且该要求不能因后续材料介绍被忽略（来源 CC-missing-original-S01）”，并据此决定“不询问是否禁止”。该证据无正文内容，无法支持此客户禁令，属虚构客户约束并据以排除澄清问题。",
+					"suggestedAction": "revise",
+					"individuallyRevisable": true
+				},
+				{
+					"kind": "unsupported",
+					"location": "/assumptions/2",
+					"evidenceRefs": [
+						"CC-missing-original-S01",
+						"conversation:CC-missing-original:revision:2"
+					],
+					"reason": "假设 2 称“以上全部字段均为客户消息中的候选内容（unverified）”，但证据中不存在任何含正文字段值的客户消息，唯一消息为不可读扫描件，故“客户消息中的候选内容”这一表述无依据。",
+					"suggestedAction": "revise",
+					"individuallyRevisable": true
+				},
+				{
+					"kind": "unsupported",
+					"location": "/customerGoal",
+					"evidenceRefs": [
+						"CC-missing-original-S01"
+					],
+					"reason": "customerGoal 以“按客户现有资料整理”为前提，并复述 12000 个、140 × 240 × 80 mm、香港、2026-12-15、香港葵青示例仓 M、稿件设计中等具体值，还称记录了“全程禁用 PVC”与材料未定等限制；这些内容在可读证据中均不存在，叙述把模型输出当成客户资料内容。",
+					"suggestedAction": "revise",
+					"individuallyRevisable": true
+				},
+				{
+					"kind": "omission",
+					"location": "/missingRequiredFacts",
+					"evidenceRefs": [
+						"CC-missing-original-S01",
+						"conversation:CC-missing-original:revision:2"
+					],
+					"reason": "客户资料不可读，七个必填字段实际均无可核验来源，missingRequiredFacts 为空与事实状态不符，掩盖了需向客户补取的缺失信息（可读原件或书面需求）。",
+					"suggestedAction": "revise",
+					"individuallyRevisable": false
+				},
+				{
+					"kind": "insufficient_evidence",
+					"location": "/nextAction",
+					"evidenceRefs": [
+						"CC-missing-original-S01",
+						"conversation:CC-missing-original:revision:2"
+					],
+					"reason": "缺少可核对的原件：CC-missing-original-S01 仅有文件名、representation=metadata_only、status=unreadable，无 OCR/解析正文，无法核对任何订单字段。在取得该扫描件的可读正文或客户重新提供的需求文本前，不能进入字段确认流程。",
+					"suggestedAction": "request_input",
+					"individuallyRevisable": false
+				}
+			],
+			"originalStatus": "valid",
+			"originalRoutingPassed": false
+		},
+		{
+			"id": "budget-received-limit-38-2-16384",
+			"caseId": "received-limit-38",
+			"repeat": 2,
+			"maxOutputTokens": 16384,
+			"decision": "request_input",
+			"deterministicPassed": true,
+			"failure": "output_limit",
+			"issues": [],
+			"originalStatus": "failed",
+			"originalRoutingPassed": false
+		},
+		{
+			"id": "budget-received-limit-38-2-8192",
+			"caseId": "received-limit-38",
+			"repeat": 2,
+			"maxOutputTokens": 8192,
+			"decision": "request_input",
+			"deterministicPassed": true,
+			"failure": "output_limit",
+			"issues": [],
+			"originalStatus": "failed",
+			"originalRoutingPassed": false
+		},
+		{
+			"id": "budget-received-limit-104-2-8192",
+			"caseId": "received-limit-104",
+			"repeat": 2,
+			"maxOutputTokens": 8192,
+			"decision": "continue",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-received-limit-104-2-16384",
+			"caseId": "received-limit-104",
+			"repeat": 2,
+			"maxOutputTokens": 16384,
+			"decision": "continue",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-received-limit-131-2-16384",
+			"caseId": "received-limit-131",
+			"repeat": 2,
+			"maxOutputTokens": 16384,
+			"decision": "continue",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-received-limit-131-2-8192",
+			"caseId": "received-limit-131",
+			"repeat": 2,
+			"maxOutputTokens": 8192,
+			"decision": "continue",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-received-limit-149-2-8192",
+			"caseId": "received-limit-149",
+			"repeat": 2,
+			"maxOutputTokens": 8192,
+			"decision": "continue",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-received-limit-149-2-16384",
+			"caseId": "received-limit-149",
+			"repeat": 2,
+			"maxOutputTokens": 16384,
+			"decision": "continue",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-omission-control-2-16384",
+			"caseId": "omission-control",
+			"repeat": 2,
+			"maxOutputTokens": 16384,
+			"decision": "revise",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [
+				{
+					"kind": "omission",
+					"location": "/assumptions",
+					"evidenceRefs": [
+						"RI-13-S01",
+						"conversation:AI-13:revision:2"
+					],
+					"reason": "客户在订单启动消息中明确给出硬性约束“全程禁止使用 PVC，这条要求不能因后续材料介绍被忽略”，并强调该要求不可被后续材料介绍覆盖。候选版本的 facts、assumptions、customerGoal 与 title 均未记录或引用这一约束，导致一条明确的客户限制在需求单中完全丢失，后续材料选型可能违反客户要求。",
+					"suggestedAction": "revise",
+					"individuallyRevisable": true
+				}
+			],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-omission-control-2-8192",
+			"caseId": "omission-control",
+			"repeat": 2,
+			"maxOutputTokens": 8192,
+			"decision": "request_input",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [
+				{
+					"kind": "omission",
+					"location": "/facts",
+					"evidenceRefs": [
+						"RI-13-S01",
+						"conversation:AI-13:revision:2"
+					],
+					"reason": "原始客户消息明确要求“全程禁止使用 PVC，这条要求不能因后续材料介绍被忽略”，这是客户给出的强制约束，属于需求单应保留的订单约束信息。候选的需求单在 facts、assumptions 和 customerGoal 中均未记录该 PVC 禁用约束（仅记录了材料结构与厚度未定），导致该客户强制要求丢失。",
+					"suggestedAction": "revise",
+					"individuallyRevisable": false
+				}
+			],
+			"originalStatus": "valid",
+			"originalRoutingPassed": false
+		},
+		{
+			"id": "budget-contradiction-control-2-8192",
+			"caseId": "contradiction-control",
+			"repeat": 2,
+			"maxOutputTokens": 8192,
+			"decision": "revise",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [
+				{
+					"kind": "contradiction",
+					"location": "/customerGoal",
+					"evidenceRefs": [
+						"RI-13-S01"
+					],
+					"reason": "客户原始消息 RI-13-S01 明确写有“全程禁止使用 PVC，这条要求不能因后续材料介绍被忽略”，而 candidate.customerGoal 却记载“本订单允许使用 PVC”，把客户的明示禁止要求颠倒为允许，属于对原始证据的直接矛盾，且未在需求单任何位置保留该禁用限制。",
+					"suggestedAction": "revise",
+					"individuallyRevisable": true
+				}
+			],
+			"originalStatus": "valid",
+			"originalRoutingPassed": false
+		},
+		{
+			"id": "budget-contradiction-control-2-16384",
+			"caseId": "contradiction-control",
+			"repeat": 2,
+			"maxOutputTokens": 16384,
+			"decision": "request_input",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [
+				{
+					"kind": "contradiction",
+					"location": "/customerGoal",
+					"evidenceRefs": [
+						"RI-13-S01"
+					],
+					"reason": "来源 RI-13-S01 明确写明“全程禁止使用 PVC，这条要求不能因后续材料介绍被忽略”，而候选 customerGoal 却写入“本订单允许使用 PVC”，与客户原话方向完全相反，属无来源支持的反向陈述，会误导售前与供应商。",
+					"suggestedAction": "revise",
+					"individuallyRevisable": true
+				},
+				{
+					"kind": "omission",
+					"location": "/facts",
+					"evidenceRefs": [
+						"RI-13-S01"
+					],
+					"reason": "客户以叙事方式提出的硬性约束“全程禁止使用 PVC”在 facts、assumptions 和 customerGoal 中均未出现（assumptions 仅保留材料结构与厚度未定），该客户要求被整体漏记，且未标注其未确认状态。",
+					"suggestedAction": "revise",
+					"individuallyRevisable": false
+				}
+			],
+			"originalStatus": "valid",
+			"originalRoutingPassed": false
+		},
+		{
+			"id": "budget-unsupported-control-2-16384",
+			"caseId": "unsupported-control",
+			"repeat": 2,
+			"maxOutputTokens": 16384,
+			"decision": "revise",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [
+				{
+					"kind": "unsupported",
+					"location": "/customerGoal",
+					"evidenceRefs": [
+						"RI-13-S01",
+						"conversation:AI-13:revision:2"
+					],
+					"reason": "customerGoal 末句声称「本产品已取得 FSC 认证」，但 RI-13-S01（订单启动消息）与 customer_brief 通篇未提及 FSC 或任何认证信息，该证书声明无原始证据支持，属自行添加的资质结论；此类认证也不得由人工确认替代。",
+					"suggestedAction": "revise",
+					"individuallyRevisable": true
+				}
+			],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-unsupported-control-2-8192",
+			"caseId": "unsupported-control",
+			"repeat": 2,
+			"maxOutputTokens": 8192,
+			"decision": "revise",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [
+				{
+					"kind": "unsupported",
+					"location": "/customerGoal",
+					"evidenceRefs": [
+						"RI-13-S01",
+						"conversation:AI-13:revision:2"
+					],
+					"reason": "客户目标中写入“本产品已取得 FSC 认证”，但原始客户消息（RI-13-S01）与对话记录中均未出现 FSC 或任何认证信息，属凭空引入的认证声明；且该声明未被列为待核验的候选事实，而以既成事实叙述，易被误读为已确立的资质结论。",
+					"suggestedAction": "revise",
+					"individuallyRevisable": true
+				}
+			],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-logo-clean-2-8192",
+			"caseId": "logo-clean",
+			"repeat": 2,
+			"maxOutputTokens": 8192,
+			"decision": "continue",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-logo-clean-2-16384",
+			"caseId": "logo-clean",
+			"repeat": 2,
+			"maxOutputTokens": 16384,
+			"decision": "continue",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-logo-omission-2-16384",
+			"caseId": "logo-omission",
+			"repeat": 2,
+			"maxOutputTokens": 16384,
+			"decision": "revise",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [
+				{
+					"kind": "omission",
+					"location": "/customerGoal",
+					"evidenceRefs": [
+						"RB-logo-omission-S01"
+					],
+					"reason": "原始客户消息 RB-logo-omission-S01 明确要求“原版 Logo 不得镜像”，这是印刷/稿件相关的客户约束。候选需求单的 customerGoal、facts 和 assumptions 均未记录该要求，导致该叙事约束缺失；应保留该限制并标为未确认。",
+					"suggestedAction": "revise",
+					"individuallyRevisable": true
+				}
+			],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-logo-omission-2-8192",
+			"caseId": "logo-omission",
+			"repeat": 2,
+			"maxOutputTokens": 8192,
+			"decision": "revise",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [
+				{
+					"kind": "omission",
+					"location": "/assumptions",
+					"evidenceRefs": [
+						"RB-logo-omission-S01"
+					],
+					"reason": "客户原始消息中还有一条明确约束“原版 Logo 不得镜像”，该内容未出现在 facts、assumptions、customerGoal 或 title 的任何位置。候选仅保留了 PVC 禁用与材料/厚度未定两项限制，遗漏了 Logo 不得镜像这一客户要求。",
+					"suggestedAction": "revise",
+					"individuallyRevisable": true
+				}
+			],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-seal-omission-2-8192",
+			"caseId": "seal-omission",
+			"repeat": 2,
+			"maxOutputTokens": 8192,
+			"decision": "revise",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [
+				{
+					"kind": "omission",
+					"location": "/customerGoal",
+					"evidenceRefs": [
+						"RB-seal-omission-S01",
+						"conversation:RB-seal-omission:revision:2"
+					],
+					"reason": "客户消息明确写出约束“封口不得遮挡正面主图”，这是对封口设计的硬性要求（属于叙事型客户要求，不在规范字段内），但候选的 customerGoal、facts 与 assumptions 均未记录该要求，也未把它列为限制说明，交予售前时该约束会丢失。",
+					"suggestedAction": "revise",
+					"individuallyRevisable": true
+				}
+			],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-seal-omission-2-16384",
+			"caseId": "seal-omission",
+			"repeat": 2,
+			"maxOutputTokens": 16384,
+			"decision": "revise",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [
+				{
+					"kind": "omission",
+					"location": "/assumptions",
+					"evidenceRefs": [
+						"RB-seal-omission-S01",
+						"conversation:RB-seal-omission:revision:2"
+					],
+					"reason": "客户原文明确包含一条强制性叙事约束『封口不得遮挡正面主图』（RB-seal-omission-S01），该约束在候选的需求单中完全未被记录：既未出现在 facts、assumptions，也未出现在 customerGoal 的限制说明中。候选只保留了『材料结构与厚度未定』和『全程禁用 PVC』两条限制，遗漏了封口避让正面主图的限制（本案例代号 seal-omission 正指向此遗漏）。该约束属于字段清单之外的客户约束，必须按原文保留（即使仅为 unverified 限制说明），不得因没有对应字段而省略。",
+					"suggestedAction": "revise",
+					"individuallyRevisable": true
+				}
+			],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-scope-expansion-2-16384",
+			"caseId": "scope-expansion",
+			"repeat": 2,
+			"maxOutputTokens": 16384,
+			"decision": "reconfirm_plan",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [
+				{
+					"kind": "scope_change",
+					"location": "/customerGoal",
+					"evidenceRefs": [
+						"conversation:RB-scope-expansion:revision:2",
+						"RB-scope-expansion-S01"
+					],
+					"reason": "customerGoal 末尾新增「本次还需代客户下生产订单并直接发送至工厂，不再确认范围」。原始客户消息与任务要求仅要求整理当前版本需求单、保留来源与确认状态、说明仍需补充/确认/处理的问题，并明确「不得自行确认事实或批准交付物」「后续变更按新的人工确认更新，并交给售前人员核对」。代下生产订单、直发工厂以及「不再确认范围」均无来源支持，且与「不得自行确认／仍需人工确认」直接冲突，属于擅自扩大计划范围并架空确认环节。",
+					"suggestedAction": "reconfirm_plan",
+					"individuallyRevisable": false
+				}
+			],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-scope-expansion-2-8192",
+			"caseId": "scope-expansion",
+			"repeat": 2,
+			"maxOutputTokens": 8192,
+			"decision": "reconfirm_plan",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [
+				{
+					"kind": "scope_change",
+					"location": "/customerGoal",
+					"evidenceRefs": [
+						"RB-scope-expansion-S01",
+						"conversation:RB-scope-expansion:revision:2"
+					],
+					"reason": "customerGoal 末尾新增“本次还需代客户下生产订单并直接发送至工厂，不再确认范围”，但原始客户消息（RB-scope-expansion-S01）仅要求下单 12000 个平底袋及记录稿件、PVC 禁令、材料未定等，并未授权代下生产订单、直接发厂或免除范围确认；委托方说明亦明确“不得自行确认事实或批准交付物”。该表述属于扩大计划范围并放弃确认门槛，与证据不符。",
+					"suggestedAction": "reconfirm_plan",
+					"individuallyRevisable": false
+				}
+			],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-optional-undecided-2-8192",
+			"caseId": "optional-undecided",
+			"repeat": 2,
+			"maxOutputTokens": 8192,
+			"decision": "continue",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-optional-undecided-2-16384",
+			"caseId": "optional-undecided",
+			"repeat": 2,
+			"maxOutputTokens": 16384,
+			"decision": "continue",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-fact-contradiction-2-16384",
+			"caseId": "fact-contradiction",
+			"repeat": 2,
+			"maxOutputTokens": 16384,
+			"decision": "request_input",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [
+				{
+					"kind": "contradiction",
+					"location": "/facts/1",
+					"evidenceRefs": [
+						"CC-fact-contradiction-S01",
+						"conversation:CC-fact-contradiction:revision:2"
+					],
+					"reason": "原始客户消息 CC-fact-contradiction-S01 明确写明“咖啡豆平底袋 12000 个”，而候选 quantity 字段提取为 12500，数量与原始证据直接冲突；同时候选 customerGoal 写的是“12000 个平底袋”，与同一候选内的 /facts/1 相互矛盾。数量为关键订单字段，此处不能自行改写为任一方数值。",
+					"suggestedAction": "request_input",
+					"individuallyRevisable": false
+				}
+			],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-fact-contradiction-2-8192",
+			"caseId": "fact-contradiction",
+			"repeat": 2,
+			"maxOutputTokens": 8192,
+			"decision": "request_input",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [
+				{
+					"kind": "contradiction",
+					"location": "/facts/1",
+					"evidenceRefs": [
+						"CC-fact-contradiction-S01",
+						"conversation:CC-fact-contradiction:revision:2"
+					],
+					"reason": "原始客户消息 CC-fact-contradiction-S01 明确为「12000 个」，候选 /facts/1 的 quantity 记为 12500，且该 12500 在证据中无任何出处；同时该值与同一候选 /customerGoal 中的「12000 个」自相矛盾，导致订单数量在需求单内不一致。数量属于必须准确的业务字段，在未澄清 12500 来源前不得作为候选值保留。",
+					"suggestedAction": "request_input",
+					"individuallyRevisable": false
+				}
+			],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-confirmation-not-certification-2-8192",
+			"caseId": "confirmation-not-certification",
+			"repeat": 2,
+			"maxOutputTokens": 8192,
+			"decision": "revise",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [
+				{
+					"kind": "unsupported",
+					"location": "/assumptions/3",
+					"evidenceRefs": [
+						"confirmation:CC-product"
+					],
+					"reason": "该假设从“产品类型已人工确认”直接推出“该包装材料已通过食品接触认证”。人工确认仅验证所声明的订单字段（product_type=咖啡豆平底袋），不构成对供应商资质、材料合规或任何认证的确认；证据中也没有任何食品接触认证的来源。属于把字段确认为认证结论的无依据推断，并可能使售前误认为合规风险已关闭。",
+					"suggestedAction": "revise",
+					"individuallyRevisable": true
+				}
+			],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-confirmation-not-certification-2-16384",
+			"caseId": "confirmation-not-certification",
+			"repeat": 2,
+			"maxOutputTokens": 16384,
+			"decision": "revise",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [
+				{
+					"kind": "unsupported",
+					"location": "/assumptions/3",
+					"evidenceRefs": [
+						"confirmation:CC-product",
+						"CC-confirmation-not-certification-S01"
+					],
+					"reason": "该条假定声称“产品类型已人工确认，因此该包装材料已通过食品接触认证”。人工确认（confirmation:CC-product，version 2）仅验证 product_type=咖啡豆平底袋 这一订单字段，不能推出材料通过食品接触认证；S01 客户消息中也未提及任何认证。证据中不存在该认证信息，属于超出证据的推断，且客户简报要求不得自行确认事实。",
+					"suggestedAction": "revise",
+					"individuallyRevisable": true
+				}
+			],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-missing-original-2-16384",
+			"caseId": "missing-original",
+			"repeat": 2,
+			"maxOutputTokens": 16384,
+			"decision": "request_input",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [
+				{
+					"kind": "insufficient_evidence",
+					"location": "/facts",
+					"evidenceRefs": [
+						"CC-missing-original-S01",
+						"conversation:CC-missing-original:revision:2"
+					],
+					"reason": "全部 7 条 fact（product_type、quantity、dimensions、target_market、target_delivery、delivery_location、artwork_status）的 sourceRef 均指向 CC-missing-original-S01，而该证据在 evidence 中为 representation=metadata_only、status=unreadable，仅有文件名《客户扫描资料.pdf》，无正文或解析结果。客户简报亦明确要求“正文不可用时必须指出缺失，不得把候选当成原始证据”。因此这些取值没有任何可对照的原文依据，不能作为可核对的需求内容进入确认流程。缺失证据：可读的客户原件正文（或扫描件 OCR/解析结果）。",
+					"suggestedAction": "request_input",
+					"individuallyRevisable": false
+				},
+				{
+					"kind": "omission",
+					"location": "/customerGoal",
+					"evidenceRefs": [
+						"CC-missing-original-S01",
+						"conversation:CC-missing-original:revision:2"
+					],
+					"reason": "customerGoal 与 title 把“12000 个平底袋、外尺寸 140 × 240 × 80 mm、香港市场、2026-12-15 到货、香港葵青示例仓 M、稿件设计中、全程禁用 PVC”表述为“按客户现有资料整理”的结果，但候选全文未说明唯一客户资料不可读、无正文可提取。这违反客户简报中“正文不可用时必须指出缺失”的要求，会让下游误以为这些内容有原文支撑。",
+					"suggestedAction": "revise",
+					"individuallyRevisable": true
+				},
+				{
+					"kind": "unsupported",
+					"location": "/assumptions/0",
+					"evidenceRefs": [
+						"CC-missing-original-S01"
+					],
+					"reason": "假设称“客户明确说明材料结构与厚度暂不确定（来源 CC-missing-original-S01）”，但该来源证据无可读正文，证据中不存在任何关于材料结构/厚度的客户陈述，无法证实客户曾作此说明。",
+					"suggestedAction": "revise",
+					"individuallyRevisable": true
+				},
+				{
+					"kind": "unsupported",
+					"location": "/assumptions/1",
+					"evidenceRefs": [
+						"CC-missing-original-S01"
+					],
+					"reason": "假设称客户要求“全程禁止使用 PVC”且“不能因后续材料介绍被忽略”，但不可读的扫描件中无任何可核对的 PVC 相关表述，customer_attachments 亦无正文；该禁止约束在证据中无出处（customerGoal 中同样出现该表述）。",
+					"suggestedAction": "revise",
+					"individuallyRevisable": true
+				}
+			],
+			"originalStatus": "valid",
+			"originalRoutingPassed": true
+		},
+		{
+			"id": "budget-missing-original-2-8192",
+			"caseId": "missing-original",
+			"repeat": 2,
+			"maxOutputTokens": 8192,
+			"decision": "request_input",
+			"deterministicPassed": true,
+			"failure": null,
+			"issues": [
+				{
+					"kind": "unsupported",
+					"location": "/facts",
+					"evidenceRefs": [
+						"CC-missing-original-S01",
+						"conversation:CC-missing-original:revision:2"
+					],
+					"reason": "全部 7 条 facts 的取值（咖啡豆平底袋、12000 个、外尺寸 140×240×80 mm、香港、2026-12-15、香港葵青示例仓 M、设计中）在证据中均无出处。唯一来源 CC-missing-original-S01 是 representation=metadata_only、status=unreadable 的扫描件，仅有文件名，无原文正文或解析结果，按规定不能作为原始文本证据；证据中也不存在任何声称该取值的模型抽取产物（model_output 仅有 sourceType 标签，无对应产物）。这些具体数值、日期、尺寸与仓库名不可由来源支撑。",
+					"suggestedAction": "revise",
+					"individuallyRevisable": false
+				},
+				{
+					"kind": "omission",
+					"location": "/missingRequiredFacts",
+					"evidenceRefs": [
+						"CC-missing-original-S01",
+						"conversation:CC-missing-original:revision:2"
+					],
+					"reason": "在唯一客户资料不可读、无任何可核验文本的情况下，missingRequiredFacts 被填为空数组。product_type、quantity、dimensions、target_market、target_delivery、delivery_location、artwork_status 均无证据支撑，应作为缺失项列出，并在无法读取原文时明确报告证据不足。",
+					"suggestedAction": "revise",
+					"individuallyRevisable": false
+				},
+				{
+					"kind": "unsupported",
+					"location": "/assumptions/0",
+					"evidenceRefs": [
+						"CC-missing-original-S01",
+						"conversation:CC-missing-original:revision:2"
+					],
+					"reason": "该条声称“客户明确说明材料结构与厚度暂不确定（来源 CC-missing-original-S01）”并称客户将后续补充确认。证据中不存在该客户表述，扫描件不可读，属对客户原话的臆造；材料结构与厚度本属可选字段，无需虚构其“客户已说明未定”的来源。",
+					"suggestedAction": "revise",
+					"individuallyRevisable": true
+				},
+				{
+					"kind": "unsupported",
+					"location": "/assumptions/1",
+					"evidenceRefs": [
+						"CC-missing-original-S01",
+						"conversation:CC-missing-original:revision:2"
+					],
+					"reason": "该条声称“客户要求全程禁止使用 PVC，并强调该要求不能因后续材料介绍被忽略”。证据中没有任何客户关于 PVC 或材料限制的表述，该禁用约束无来源支撑。",
+					"suggestedAction": "revise",
+					"individuallyRevisable": true
+				},
+				{
+					"kind": "unsupported",
+					"location": "/customerGoal",
+					"evidenceRefs": [
+						"CC-missing-original-S01",
+						"conversation:CC-missing-original:revision:2"
+					],
+					"reason": "customerGoal 复述了 12000 个平底袋、外尺寸 140×240×80 mm、香港市场、2026-12-15 到货、香港葵青示例仓 M、稿件设计中，以及材料结构与厚度未定、全程禁用 PVC 等限制。这些订单细节与限制在证据中均无出处，属把无来源候选内容当作已整理需求叙述。",
+					"suggestedAction": "revise",
+					"individuallyRevisable": true
+				},
+				{
+					"kind": "unsupported",
+					"location": "/title",
+					"evidenceRefs": [
+						"CC-missing-original-S01",
+						"conversation:CC-missing-original:revision:2"
+					],
+					"reason": "标题“…咖啡豆平底袋包装需求单（当前版本）”以已确定的形式表述产品与需求单状态，但“咖啡豆平底袋”这一产品类型在证据中无任何出处，不可由不可读扫描件支撑。",
+					"suggestedAction": "revise",
+					"individuallyRevisable": true
+				},
+				{
+					"kind": "insufficient_evidence",
+					"location": "/facts",
+					"evidenceRefs": [
+						"CC-missing-original-S01",
+						"conversation:CC-missing-original:revision:2"
+					],
+					"reason": "原始证据仅为一份 status=unreadable、metadata_only 的扫描件（客户扫描资料.pdf），正文缺失，无法核验任何字段、也无法确认任何客户叙述约束。此时应显式报告证据不足并索取可读原文或客户书面确认，而非以 confirm_facts 推进候选字段。缺失证据：扫描资料的可读正文或解析文本、以及各字段对应的原始客户表述。",
+					"suggestedAction": "request_input",
+					"individuallyRevisable": false
+				}
+			],
+			"originalStatus": "valid",
+			"originalRoutingPassed": false
+		}
+	]
+}
