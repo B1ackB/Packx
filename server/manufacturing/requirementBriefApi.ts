@@ -25,7 +25,7 @@ import {
 } from "../enterprise/proposalWorkspaceApi";
 import { ConversationApiController } from "../runtime/conversationApi";
 import { ConversationAttachmentError, FileConversationAttachmentStore } from "../runtime/conversationAttachments";
-import { reconcileRequirementAttachments } from "./requirementSourceLifecycle";
+import { reconcileRequirementAttachments, reconcileRequirementMessages, requirementMessageDigest } from "./requirementSourceLifecycle";
 import { StageJobOutbox } from "../workers/stageJobOutbox";
 import { StageJobScheduler } from "../workers/stageJobScheduler";
 import type { PlanScope, PlanWorkspace } from "../../src/enterprise/agentPlan";
@@ -72,19 +72,22 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 			stageId: "requirement-brief",
 			jobPrefix: "requirement",
 			evaluationArtifactId: "requirement-brief-evaluation",
-			protectedFactKeys: ["industry", "customer_brief", "customer_attachments", "plan_source", "knowledge_source"],
+			protectedFactKeys: ["industry", "customer_brief", "customer_messages", "customer_attachments", "plan_source", "knowledge_source"],
 			assertWritable: (state) => {
 				if (state.aggregateVersion > 0 && state.facts.industry?.value !== "print") throw new ProposalWorkspaceValidationError("历史非包装需求已停用，请新建包装会话；原始资料与交付版本保留。");
 			},
 			prepareStart: (payload, conversation, scope) => {
+				reconcileRequirementMessages(requirementEngine, scope, conversation);
 				if (attachments) {
 					const previous = requirementEngine.load(scope);
-					if (previous.stageStatus === "cancelled" && attachments.list({ ...scope, conversationId: conversation.conversationId }, { includeWithdrawn: true }).some((item) => item.withdrawal)) {
+					if (previous.stageStatus === "cancelled" && !requirementEngine.hasCommand(scope, `${(payload as { requestId: string }).requestId}:execute`) && attachments.list({ ...scope, conversationId: conversation.conversationId }, { includeWithdrawn: true }).some((item) => item.withdrawal)) {
 						requirementEngine.restartProposal({ ...scope, actorId: "source-reconciliation", commandId: `withdrawal-resume-${previous.aggregateVersion}`, correlationId: "source-reconciliation", expectedVersion: previous.aggregateVersion });
 					}
 					reconcileRequirementAttachments(requirementEngine, attachments, { ...scope, conversationId: conversation.conversationId });
 				}
 				const facts: ArtifactWorkspaceStartFact[] = industryFact(payload, conversation);
+				const messageDigest = requirementMessageDigest(conversation);
+				facts.push({ key: "customer_messages", value: messageDigest, status: "unverified", sourceType: "source_document", sourceRef: `conversation:${conversation.conversationId}:messages:${messageDigest}` });
 				const selected = knowledge?.store.selected({ ...scope, runId: conversation.conversationId });
 				if (selected?.unavailable.length) throw new ProposalWorkspaceValidationError("已选证据过期或不可用，请在证据面板重新选择。", "evidence_unavailable");
 				try { knowledge?.assertFacts(requirementEngine.load(scope), requirementEngine, selected?.hits ?? []); }
@@ -124,6 +127,7 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 	override get(context: Parameters<ConversationApiController["get"]>[0], conversationId: unknown) {
 		return this.respond(() => {
 			const { scope, conversation } = this.target(context, conversationId);
+			reconcileRequirementMessages(this.requirementEngine, scope, conversation);
 			if (this.attachments) reconcileRequirementAttachments(this.requirementEngine, this.attachments, { ...scope, conversationId: conversation.conversationId });
 			this.knowledge?.refreshRun(this.requirementEngine, scope);
 			return super.get(context, conversationId);
@@ -133,6 +137,7 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 	override resolveApproval(context: Parameters<ConversationApiController["get"]>[0], conversationId: unknown, payload: unknown) {
 		return this.respond(() => {
 			const { scope, conversation } = this.target(context, conversationId);
+			reconcileRequirementMessages(this.requirementEngine, scope, conversation);
 			if (this.attachments) reconcileRequirementAttachments(this.requirementEngine, this.attachments, { ...scope, conversationId: conversation.conversationId });
 			this.knowledge?.refreshRun(this.requirementEngine, scope);
 			try { this.knowledge?.assertRun(this.requirementEngine.load(scope), this.requirementEngine); }
@@ -144,6 +149,7 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 	withdrawAttachment(context: Parameters<ConversationApiController["get"]>[0], conversationId: unknown, attachmentId: string, payload: unknown) {
 		return this.respond(() => {
 			const { scope, conversation } = this.target(context, conversationId);
+			reconcileRequirementMessages(this.requirementEngine, scope, conversation);
 			if (!this.attachments || !payload || typeof payload !== "object" || !context.actorId) throw new ProposalWorkspaceValidationError("需要撤回请求、原因和附件版本。");
 			if (this.requirementScheduler.jobsForRun(scope).some((job) => job.status === "queued" || job.status === "leased")) return { status: 409, body: { code: "attachment_withdrawal_busy", message: "需求单正在执行，请先停止任务再撤回附件。" } };
 			const input = payload as { requestId: string; reason: string; sha256: string };
@@ -170,6 +176,7 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 	override resolveFact(context: Parameters<ConversationApiController["get"]>[0], conversationId: unknown, key: unknown, payload: unknown) {
 		return this.respond(() => {
 			const { scope, conversation } = this.target(context, conversationId);
+			reconcileRequirementMessages(this.requirementEngine, scope, conversation);
 			if (this.attachments) reconcileRequirementAttachments(this.requirementEngine, this.attachments, { ...scope, conversationId: conversation.conversationId });
 			this.knowledge?.refreshRun(this.requirementEngine, scope);
 			const input = payload as { requestId?: string; expectedFactVersion?: number; expectedAggregateVersion?: number } | null;
@@ -217,6 +224,7 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 	delivery(context: Parameters<ConversationApiController["get"]>[0], conversationId: unknown, version: number) {
 		return this.respond(() => {
 			const { scope, conversation } = this.target(context, conversationId);
+			reconcileRequirementMessages(this.requirementEngine, scope, conversation);
 			if (this.attachments) reconcileRequirementAttachments(this.requirementEngine, this.attachments, { ...scope, conversationId: conversation.conversationId });
 			this.knowledge?.refreshRun(this.requirementEngine, scope);
 			const state = this.requirementEngine.load(scope);

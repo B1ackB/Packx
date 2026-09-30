@@ -54,7 +54,7 @@ import { FileArtifactContentStore } from "./artifacts/fileArtifactStore";
 import { ProposalWorker } from "./workers/proposalWorker";
 import { ProposalWorkerApiController } from "./workers/proposalWorkerApi";
 import { StageJobOutbox } from "./workers/stageJobOutbox";
-import { StageJobScheduler } from "./workers/stageJobScheduler";
+import { StageJobScheduler, reconcileIndependently } from "./workers/stageJobScheduler";
 import { BackgroundConversationWorker } from "./workers/backgroundConversationWorker";
 import { BackgroundTaskApiController } from "./workers/backgroundTaskApi";
 import { CronDispatcher } from "./workers/cronScheduler";
@@ -227,8 +227,9 @@ const requirementBriefWorker = new RequirementBriefWorker(
 	assetInspection,
 	knowledge,
 	requirementReviewOutputLimit(process.env.PACKX_REVIEW_MAX_OUTPUT_TOKENS, runtimeContextSettings(process.env).reservedOutputTokens),
+	conversationApi,
 );
-const stageJobScheduler = new StageJobScheduler(
+const stageJobScheduler: StageJobScheduler = new StageJobScheduler(
 	stageJobQueue,
 	{
 		workerId: process.env.BLACKX_WORKER_ID ?? `local-${process.pid}`,
@@ -241,17 +242,26 @@ const stageJobScheduler = new StageJobScheduler(
 			"plan-subagents": (lease, signal, assertActive) => planWorkflow.execute(lease, signal, assertActive),
 			"conversation-background": (lease, signal, assertActive) => backgroundConversationWorker.execute(lease, signal, assertActive),
 		},
-		dispatchOutbox: () => {
-			if (knowledge.reconcile(localAccess.identity).length) knowledgeApi.refreshAffected(localAccess.identity);
-			planWorkflow.reconcile();
-			conversationDeletion.reconcile(localAccess.identity);
-			stageJobOutbox.dispatchOne();
-			requirementBriefOutbox.dispatchOne();
-			cronDispatcher.dispatchDue();
-			conversationDeletion.reconcile(localAccess.identity);
+		assertRunnable: (lease) => {
+			if (lease.stageId === "knowledge-import") return; // Knowledge Worker checks document lifecycle before committing.
+			let conversationId = lease.runId;
+			if (lease.stageId === "proposal" || lease.stageId === "requirement-brief") {
+				const state = (lease.stageId === "proposal" ? proposalEngine : requirementBriefEngine).load(lease);
+				conversationId = /^conversation:(.+):revision:\d+$/.exec(state.facts.customer_brief?.sourceRef ?? "")?.[1] ?? "";
+			}
+			if (!conversationId || !agentState.getSession({ ...lease, runId: conversationId, sessionId: conversationId })) throw new RuntimeFailure("cancelled", "Job conversation is unavailable or deleted", false);
 		},
+		dispatchOutbox: () => reconcileIndependently({
+			knowledge: () => { if (knowledge.reconcile(localAccess.identity).length) knowledgeApi.refreshAffected(localAccess.identity); },
+			plans: () => planWorkflow.reconcile(),
+			deletions: () => conversationDeletion.reconcile(localAccess.identity),
+			proposal: () => stageJobOutbox.dispatchOne(),
+			requirements: () => requirementBriefOutbox.dispatchOne(),
+			cron: () => cronDispatcher.dispatchDue(),
+			lateDeletions: () => conversationDeletion.reconcile(localAccess.identity),
+		}),
 		onError: (error) => {
-			const code = error instanceof Error ? error.name : "unknown_error";
+			const code = error instanceof AggregateError ? "reconciliation_failed" : error instanceof Error ? error.name : "unknown_error";
 			console.error(`[stage-job-scheduler] ${code}`);
 		},
 	},

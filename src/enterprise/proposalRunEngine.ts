@@ -50,6 +50,8 @@ export interface LinkProposalRuntimeCommand extends CommandEnvelope {
 
 export interface CreateProposalArtifactCommand extends CommandEnvelope {
 	artifactId: string;
+	/** An abandoned checkpoint may reserve a version without publishing it. Versions remain monotonic. */
+	artifactVersion?: number;
 	schemaVersion: string;
 	contentRef: string;
 	inputFactVersions: Record<string, number>;
@@ -369,10 +371,11 @@ export class ProposalRunEngine {
 
 	createProposalArtifact(command: CreateProposalArtifactCommand): ProposalRunState {
 		const state = this.load(command);
-		const artifactVersion =
+		const nextVersion =
 			(state.proposalVersions
 				.filter((artifact) => artifact.artifactId === command.artifactId)
 				.at(-1)?.version ?? 0) + 1;
+		const artifactVersion = command.artifactVersion ?? nextVersion;
 		return this.execute(command, [{
 			type: "artifact.version_created",
 			artifactId: command.artifactId,
@@ -383,6 +386,7 @@ export class ProposalRunEngine {
 			runtimeExecutionId: command.runtimeExecutionId,
 			contextSnapshotId: command.contextSnapshotId,
 		}], (latest) => {
+			if (!Number.isSafeInteger(artifactVersion) || artifactVersion < nextVersion) illegal("Artifact version must increase monotonically");
 			if (latest.stageStatus !== "running") illegal("Proposal stage is not running");
 			if (latest.lastRuntimeExecutionId !== command.runtimeExecutionId) {
 				illegal("Proposal Artifact must use the linked Runtime execution");

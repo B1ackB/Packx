@@ -87,7 +87,7 @@ it("keeps the plan and dispatch intent intact after an input read outage", async
 	const h = harness(); h.generate();
 	const before = h.store.read(scope);
 	h.failInput(new PlanError("context_store_unavailable", 503));
-	await expect(h.scheduler.runNext()).rejects.toThrow("context_store_unavailable");
+	await expect(h.scheduler.runNext()).rejects.toMatchObject({ errors: [expect.objectContaining({ code: "context_store_unavailable" })] });
 	expect(h.store.read(scope)).toEqual(before);
 	expect(h.queue.list()[0].status).toBe("queued");
 	expect(h.requests).toHaveLength(0);
@@ -339,4 +339,34 @@ it("clears consecutive plan failures only after a subtask passes its checkpoint"
 	expect(h.store.read(scope).consecutiveFailures).toBe(1);
 	h.command({ action: "resume", version: 1 }); await h.scheduler.runNext();
 	expect(h.store.read(scope).consecutiveFailures).toBe(0);
+});
+
+
+it("continues other plan scopes and healthy jobs while preserving reconciliation errors", async () => {
+	const h = harness(); h.generate();
+	h.failInput(new PlanError("context_store_unavailable", 503));
+	const healthyScope = { ...scope, runId: "healthy-plan" };
+	// Two independent scope checks must both run even when the first throws.
+	const dispatch = h.workflow.dispatch.bind(h.workflow), visited: string[] = [];
+	h.store.scopes = () => [scope, healthyScope];
+	h.workflow.dispatch = target => { visited.push(target.runId); if (target.runId === scope.runId) dispatch(target); };
+	h.queue.enqueue({ ...healthyScope, jobId: "healthy-job", stageId: "healthy", commandId: "healthy-command", correlationId: "healthy", sessionId: "healthy-session", expectedVersion: 0, priority: 100 });
+	const failures: unknown[] = [], completed: string[] = [];
+	const scheduler = new StageJobScheduler(h.queue, { workerId: "isolated", dispatchOutbox: () => h.workflow.reconcile(), onError: error => failures.push(error), handlers: {
+		healthy: async lease => { completed.push(lease.runId); return { status: "completed" }; },
+		"plan-subagents": (lease, signal, guard) => h.workflow.execute(lease, signal, guard),
+	} });
+	expect((await scheduler.runNext()).status).toBe("completed");
+	expect(visited).toEqual([scope.runId, healthyScope.runId]);
+	expect(completed).toEqual([healthyScope.runId]);
+	expect(failures).toEqual([expect.objectContaining({ errors: [expect.objectContaining({ code: "context_store_unavailable" })] })]);
+	expect(h.store.read(scope).versions[0].status).toBe("planning");
+	// Isolation never bypasses the affected job's own source check or marks its Plan successful.
+	await scheduler.runNext();
+	expect(h.store.read(scope).versions[0]).toMatchObject({ status: "failed", calls: 0, failure: { code: "context_store_unavailable" } });
+	expect(h.requests).toHaveLength(0);
+	h.failInput(); h.workflow.dispatch = dispatch; h.store.scopes = () => [scope];
+	h.command({ action: "replan", version: 1 });
+	expect((await h.scheduler.runNext()).status).toBe("completed");
+	expect(h.store.read(scope).versions.at(-1)!.status).toBe("awaiting_confirmation");
 });

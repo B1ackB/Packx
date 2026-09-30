@@ -193,6 +193,7 @@ export class ProposalWorkspaceApiController {
 			const extraStartFacts = prepared?.facts ?? [];
 			const correlationId = `${id}:${this.options.stageId}`;
 			let state = this.engine.load(scope);
+			const executionRequested = this.engine.hasCommand(scope, `${id}:execute`);
 			if (state.aggregateVersion === 0) {
 				state = this.engine.create({
 					...scope,
@@ -210,6 +211,15 @@ export class ProposalWorkspaceApiController {
 					correlationId,
 					expectedVersion: state.aggregateVersion,
 				});
+			}
+			// An explicit new execution revises a completed delivery; replaying the old request does not.
+			if (state.stageStatus === "passed" && !executionRequested) {
+				state = this.engine.invalidateSource({ ...scope, actorId, commandId: `${id}:revision`, correlationId,
+					expectedVersion: state.aggregateVersion, reason: "Employee requested a new delivery revision" });
+			}
+			// Source writes must happen after leaving cancelled, before any new Worker is dispatched.
+			if (state.stageStatus === "cancelled" && !executionRequested) {
+				state = this.engine.restartProposal({ ...scope, actorId, commandId: `${id}:resume`, correlationId, expectedVersion: state.aggregateVersion });
 			}
 
 			const sourceRef = `conversation:${conversation.conversationId}:revision:${conversation.revision}`;
@@ -251,12 +261,12 @@ export class ProposalWorkspaceApiController {
 					sourceRef: fact.sourceRef,
 				});
 			}
-			if (
+			if (!executionRequested && (
 				state.stageStatus === "needs_input" ||
 				state.stageStatus === "revision_required" ||
 				state.stageStatus === "retryable_failed" ||
 				state.stageStatus === "cancelled"
-			) {
+			)) {
 				state = this.engine.restartProposal({
 					...scope,
 					actorId,
@@ -397,7 +407,7 @@ export class ProposalWorkspaceApiController {
 			const { scope, conversation } = this.target(context, conversationId);
 			this.options.assertWritable?.(this.engine.load(scope));
 			const actorId = requiredId(context.actorId, "actorId");
-			const state = this.engine.load(scope);
+			let state = this.engine.load(scope);
 			if (state.aggregateVersion === 0) {
 				throw new EnterpriseKernelError("illegal_transition", "Proposal Run does not exist");
 			}
@@ -409,6 +419,10 @@ export class ProposalWorkspaceApiController {
 					"concurrency_conflict",
 					"requestId is already bound to another Fact candidate",
 				);
+			}
+			if (!recorded && state.stageStatus === "passed") {
+				state = this.engine.invalidateSource({ ...scope, actorId, commandId: `${id}:fact-revision`, correlationId: `${id}:fact-update`,
+					expectedVersion: state.aggregateVersion, reason: "Employee supplied a revised Fact candidate" });
 			}
 			const next = recorded
 				? state

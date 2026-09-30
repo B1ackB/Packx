@@ -348,3 +348,17 @@ describe("ProposalRunEngine", () => {
 		expect(recovered).toEqual(expected);
 	});
 });
+
+
+it("accepts a reserved version gap but rejects invalid or reused Artifact versions", () => {
+	const { engine } = harness();
+	engine.create(command("gap-create", 0)); engine.startProposal(command("gap-start", 1));
+	engine.linkProposalRuntime({ ...command("gap-runtime", 2), executionId: "runtime-gap", adapterId: "fake" });
+	const artifact = { artifactId: "brief", schemaVersion: "brief.v1", contentRef: "artifact://brief/v3", inputFactVersions: {}, runtimeExecutionId: "runtime-gap" };
+	for (const version of [0, -1, 1.5, Number.MAX_SAFE_INTEGER + 1]) expect(() => engine.createProposalArtifact({ ...command(`invalid-${version}`, 3), ...artifact, artifactVersion: version })).toThrow("monotonically");
+	const created = engine.createProposalArtifact({ ...command("gap-artifact", 3), ...artifact, artifactVersion: 3 });
+	expect(created.currentProposal?.version).toBe(3);
+	const invalidated = engine.invalidateSource({ ...command("gap-invalidate", created.aggregateVersion), reason: "source change" });
+	const restarted = engine.restartProposal(command("gap-restart", invalidated.aggregateVersion));
+	for (const version of [1, 2, 3]) expect(() => engine.createProposalArtifact({ ...command(`reuse-${version}`, restarted.aggregateVersion), ...artifact, artifactVersion: version })).toThrow("monotonically");
+});

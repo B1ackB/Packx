@@ -15,7 +15,7 @@ import { ConversationApiController } from "../runtime/conversationApi";
 import { FileAgentStateStore } from "../runtime/fileAgentStateStore";
 import { BackgroundConversationWorker } from "./backgroundConversationWorker";
 import { StageJobOutbox } from "./stageJobOutbox";
-import { StageJobScheduler } from "./stageJobScheduler";
+import { StageJobScheduler, reconcileIndependently } from "./stageJobScheduler";
 
 const directories: string[] = [];
 const closers: Array<() => void> = [];
@@ -236,4 +236,23 @@ describe("SQLite queue commit recovery", () => {
 			queue.close();
 		}
 	});
+});
+
+
+it("isolates all maintenance steps and still checks each job before execution", async () => {
+	const queue = new InMemoryStageJobQueue(), reported: unknown[] = [], steps: string[] = [];
+	queue.enqueue(jobInput);
+	const unavailable = new Error("maintenance unavailable"), handler = vi.fn(async () => ({ status: "completed" as const }));
+	const scheduler = new StageJobScheduler(queue, { workerId: "isolation-test", handlers: { audit: handler },
+		dispatchOutbox: () => reconcileIndependently({
+			broken: () => { steps.push("broken"); throw unavailable; },
+			healthy: () => { steps.push("healthy"); },
+		}),
+		onError: error => reported.push(error),
+		assertRunnable: () => { throw new RuntimeFailure("cancelled", "Conversation deleted", false); },
+	});
+	expect(await scheduler.runNext()).toMatchObject({ status: "dead_letter", job: { lastFailure: { code: "cancelled" } } });
+	expect(steps).toEqual(["broken", "healthy"]);
+	expect(reported).toEqual([expect.objectContaining({ errors: [unavailable] })]);
+	expect(handler).not.toHaveBeenCalled();
 });

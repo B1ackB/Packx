@@ -1,8 +1,29 @@
 import { createHash } from "node:crypto";
 import type { AggregateScope, ProposalRunState } from "../../src/enterprise/contracts";
+import type { ConversationView } from "../../src/runtime/conversationContracts";
 import { ProposalRunEngine } from "../../src/enterprise/proposalRunEngine";
 import { factSourceReference } from "../knowledge/service";
 import { FileConversationAttachmentStore, type ConversationAttachmentScope } from "../runtime/conversationAttachments";
+
+export function requirementMessageDigest(conversation: ConversationView): string {
+	return createHash("sha256").update(JSON.stringify(conversation.messages.filter(message => message.role === "user").map(({ messageId, content, attachments }) => ({ messageId, content, attachments })))).digest("hex");
+}
+
+export function requirementMessagesChanged(state: ProposalRunState, conversation: ConversationView): boolean {
+	if (!state.facts.customer_brief) return false;
+	if (state.facts.customer_messages) return state.facts.customer_messages.value !== requirementMessageDigest(conversation);
+	// Legacy text briefs can be compared directly; imported plans only retained a conversation revision.
+	if (state.facts.plan_source) return state.facts.customer_brief.sourceRef !== `conversation:${conversation.conversationId}:revision:${conversation.revision}`;
+	return state.facts.customer_brief.value !== conversation.messages.filter(message => message.role === "user").map(message => message.content).join("\n\n");
+}
+
+export function reconcileRequirementMessages(engine: ProposalRunEngine, scope: AggregateScope, conversation: ConversationView) {
+	const state = engine.load(scope);
+	if (state.currentProposal?.freshness === "fresh" && requirementMessagesChanged(state, conversation)) {
+		engine.invalidateSource({ ...scope, actorId: "source-reconciliation", commandId: `message-snapshot-stale-${state.currentProposal.version}-${state.aggregateVersion}`,
+			correlationId: "source-reconciliation", expectedVersion: state.aggregateVersion, reason: "聊天中的需求来源已变化；原交付物和审批需要重新核对。" });
+	}
+}
 
 export function requirementAttachmentSnapshotChanged(state: ProposalRunState, attachments: FileConversationAttachmentStore, scope: ConversationAttachmentScope) {
 	return state.facts.customer_attachments?.value !== attachments.digest(scope);
