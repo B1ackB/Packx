@@ -1,3 +1,4 @@
+import { FileWriteLockError, withFileWriteLock } from "../fileWriteLock";
 import {
 	chmodSync,
 	closeSync,
@@ -7,7 +8,6 @@ import {
 	openSync,
 	readFileSync,
 	renameSync,
-	rmdirSync,
 	unlinkSync,
 	writeFileSync,
 } from "node:fs";
@@ -462,21 +462,10 @@ export class FileEnterpriseEventStore implements EnterpriseEventStore {
 	}
 
 	private withWriteLock<T>(operation: () => T): T {
-		const lockPath = `${this.filePath}.lock`;
-		mkdirSync(dirname(this.filePath), { recursive: true, mode: 0o700 });
-		try {
-			mkdirSync(lockPath, { mode: 0o700 });
-		} catch (error) {
-			throw new EnterpriseKernelError(
-				"concurrency_conflict",
-				"Persistent Event Store is locked by another writer",
-				{ cause: error },
-			);
-		}
-		try {
-			return operation();
-		} finally {
-			rmdirSync(lockPath);
+		try { return withFileWriteLock(this.filePath, operation); }
+		catch (error) {
+			if (error instanceof FileWriteLockError) throw new EnterpriseKernelError("concurrency_conflict", "Persistent Event Store is locked or unavailable", { cause: error });
+			throw error;
 		}
 	}
 }

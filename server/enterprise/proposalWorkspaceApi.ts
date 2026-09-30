@@ -297,18 +297,31 @@ export class ProposalWorkspaceApiController {
 			const actorId = requiredId(context.actorId, "actorId");
 			let state = this.engine.load(scope);
 			const approval = state.approval;
+			const reviewed = payload as { approvalId?: unknown; artifactVersion?: unknown; expectedAggregateVersion?: unknown };
+			if (typeof reviewed.approvalId !== "string" || !reviewed.approvalId ||
+				!Number.isSafeInteger(reviewed.artifactVersion) || Number(reviewed.artifactVersion) < 1 ||
+				!Number.isSafeInteger(reviewed.expectedAggregateVersion) || Number(reviewed.expectedAggregateVersion) < 1) {
+				throw new ProposalWorkspaceValidationError("请重新打开交付版本，核对后再审批。", "approval_review_version_required");
+			}
 			if (!approval || !state.currentProposal) {
 				throw new EnterpriseKernelError("illegal_transition", "Proposal has no active approval");
 			}
 			const commandId = `${id}:approval`;
-			if (this.engine.hasCommand(scope, commandId)) {
-				if (approval.status !== selectedDecision) {
+			const previous = this.engine.readEvents(scope).find((event) => event.commandId === commandId && event.data.type === "approval.resolved");
+			if (previous?.data.type === "approval.resolved") {
+				if (previous.data.decision !== selectedDecision || previous.data.approvalId !== reviewed.approvalId ||
+					previous.data.artifactVersion !== reviewed.artifactVersion || previous.actorId !== actorId ||
+					previous.aggregateVersion !== Number(reviewed.expectedAggregateVersion) + 1) {
 					throw new EnterpriseKernelError(
 						"concurrency_conflict",
 						"requestId is already bound to another approval decision",
 					);
 				}
 			} else {
+				if (approval.approvalId !== reviewed.approvalId || approval.artifactVersion !== reviewed.artifactVersion ||
+					state.aggregateVersion !== reviewed.expectedAggregateVersion || state.currentProposal.freshness !== "fresh" || approval.status !== "requested") {
+					return { status: 409, body: { code: "approval_review_stale", message: "交付版本或来源已变化，请刷新并重新核对；本次没有批准任何内容。" } };
+				}
 				state = this.engine.resolveApproval({
 					...scope,
 					actorId,
@@ -321,7 +334,8 @@ export class ProposalWorkspaceApiController {
 					decision: selectedDecision,
 				});
 			}
-			if (selectedDecision === "approved") {
+			if (selectedDecision === "approved" && state.stageStatus === "waiting_approval" && state.currentProposal?.freshness === "fresh" &&
+				state.approval?.approvalId === reviewed.approvalId && state.approval.status === "approved" && !this.engine.hasCommand(scope, `${id}:gate`)) {
 				this.requestJob({
 					...scope,
 					commandId: `${id}:gate`,

@@ -24,7 +24,7 @@ function harness(includeAttachments = true) {
 	const engine = new ProposalRunEngine(new InMemoryEnterpriseEventStore(), "requirement-brief");
 	const artifacts = new FileArtifactContentStore(join(directory, "artifacts"));
 	const attachments = new FileConversationAttachmentStore(join(directory, "attachments"));
-	const source = attachments.put(scope, { requestId: "spec", name: "spec.txt", mediaType: "text/plain", content: Buffer.from("外尺寸 212 × 162 × 92 mm；厚度 0.06 mm") }).attachment;
+	const source = includeAttachments ? attachments.put(scope, { requestId: "spec", name: "spec.txt", mediaType: "text/plain", content: Buffer.from("外尺寸 212 × 162 × 92 mm；厚度 0.06 mm") }).attachment : undefined;
 	let sequence = 0;
 	const command = () => ({ ...scope, actorId: "employee", commandId: `command-${++sequence}`, correlationId: "test", expectedVersion: engine.load(scope).aggregateVersion });
 	engine.create(command()); engine.startProposal(command());
@@ -42,7 +42,7 @@ function harness(includeAttachments = true) {
 	} };
 	const read = () => artifacts.readJson({ ...scope, artifactId: "requirement-brief", artifactVersion: engine.load(scope).currentProposal!.version }) as RequirementBriefV1;
 	const evaluation = () => artifacts.readJson({ ...scope, artifactId: "requirement-brief-evaluation", artifactVersion: engine.load(scope).currentProposal!.version }) as RequirementBriefEvaluation;
-	return { scope, engine, artifacts, attachments, source, requests, record, command, read, evaluation,
+	return { scope, engine, artifacts, attachments, source: source!, requests, record, command, read, evaluation,
 		async run(facts: RequirementFactV1[], missing?: string[], callback?: () => void, executeCommand = command()) {
 			candidate = createRequirementBrief({ industry: "print", title: "需求单", customerGoal: "核对本订单", facts });
 			if (missing) candidate.missingRequiredFacts = missing;

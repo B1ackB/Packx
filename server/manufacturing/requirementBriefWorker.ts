@@ -1,3 +1,4 @@
+import { reconcileRequirementAttachments, requirementAttachmentSnapshotChanged } from "./requirementSourceLifecycle";
 import { createHash } from "node:crypto";
 import { correctExtractedQuantity } from "./requirementCorrections";
 import { buildTaskContext } from "../enterprise/taskContext";
@@ -167,6 +168,14 @@ export class RequirementBriefWorker {
 	): Promise<RequirementBriefWorkerResult> {
 		assertActive();
 		let state = this.engine.load(command);
+		const conversationId = /^conversation:(.+):revision:\d+$/.exec(state.facts.customer_brief?.sourceRef ?? "")?.[1];
+		const assertAttachmentSnapshot = () => {
+			if (this.attachments && conversationId && requirementAttachmentSnapshotChanged(this.engine.load(command), this.attachments, { ...command, conversationId })) {
+				reconcileRequirementAttachments(this.engine, this.attachments, { ...command, conversationId });
+				throw new RuntimeFailure("context_failure", "Requirement attachment sources changed; start a new review", false);
+			}
+		};
+		assertAttachmentSnapshot();
 		const evidence = this.validateKnowledge(state);
 		if (state.facts.industry?.value !== "print") throw new RuntimeFailure("invalid_output", "历史非包装需求已停用，不能继续执行。", false);
 		const runtimeCommandId = `${command.commandId}:runtime`;
@@ -203,9 +212,6 @@ export class RequirementBriefWorker {
 		}
 		const industry = industryValue;
 		const attachmentFact = state.facts.customer_attachments;
-		const conversationId = /^conversation:(.+):revision:\d+$/.exec(
-			state.facts.customer_brief?.sourceRef ?? "",
-		)?.[1];
 		const inspectionScope = attachmentFact && this.assetInspection ? this.assetInspection.scope(command) : undefined;
 		const inspectIds = inspectionScope ? this.attachments!.list(inspectionScope).map((item) => item.attachmentId) : [];
 		let imageAttachments: AgentImageAttachment[] | undefined;
@@ -226,7 +232,7 @@ export class RequirementBriefWorker {
 		const assertLeaseActive = assertActive;
 		assertActive = () => {
 			assertLeaseActive();
-			if (attachmentFact && conversationId && this.attachments?.digest({ ...command, conversationId }) !== attachmentFact.value) throw new RuntimeFailure("context_failure", "Requirement sources changed during execution", false);
+			assertAttachmentSnapshot();
 		};
 		const createdEvent = this.engine.readEvents(command).find((event) => event.commandId === artifactCommandId && event.data.type === "artifact.version_created");
 		const artifactVersion = createdEvent?.data.type === "artifact.version_created"

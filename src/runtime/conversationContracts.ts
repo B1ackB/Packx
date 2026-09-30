@@ -1,6 +1,12 @@
 import type { ProposalRunState } from "../enterprise/contracts";
 import type { RuntimeUsage } from "./contracts";
 
+export interface ArtifactApprovalReview {
+	approvalId: string;
+	artifactVersion: number;
+	expectedAggregateVersion: number;
+}
+
 export interface RuntimeActivity {
 	executionId: string;
 	phase: "starting" | "model" | "tool" | "completed" | "paused" | "failed";

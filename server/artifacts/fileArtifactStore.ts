@@ -1,10 +1,10 @@
+import { FileWriteLockError, withFileWriteLock } from "../fileWriteLock";
 import {
 	chmodSync,
 	existsSync,
 	mkdirSync,
 	readFileSync,
 	renameSync,
-	rmdirSync,
 	unlinkSync,
 	writeFileSync,
 } from "node:fs";
@@ -99,21 +99,10 @@ export class FileArtifactContentStore implements ArtifactContentStore {
 	}
 
 	private withLock<T>(path: string, operation: () => T): T {
-		const lockPath = `${path}.lock`;
-		mkdirSync(dirname(path), { recursive: true, mode: 0o700 });
-		try {
-			mkdirSync(lockPath);
-		} catch (error) {
-			throw new ArtifactStoreError(
-				"artifact_store_unavailable",
-				"Artifact version is locked by another writer",
-				{ cause: error },
-			);
-		}
-		try {
-			return operation();
-		} finally {
-			rmdirSync(lockPath);
+		try { return withFileWriteLock(path, operation); }
+		catch (error) {
+			if (error instanceof FileWriteLockError) throw new ArtifactStoreError("artifact_store_unavailable", "Artifact version is locked or unavailable", { cause: error });
+			throw error;
 		}
 	}
 }

@@ -25,7 +25,7 @@ import {
 } from "../enterprise/proposalWorkspaceApi";
 import { ConversationApiController } from "../runtime/conversationApi";
 import { ConversationAttachmentError, FileConversationAttachmentStore } from "../runtime/conversationAttachments";
-import { reconcileRequirementWithdrawals } from "./requirementSourceLifecycle";
+import { reconcileRequirementAttachments } from "./requirementSourceLifecycle";
 import { StageJobOutbox } from "../workers/stageJobOutbox";
 import { StageJobScheduler } from "../workers/stageJobScheduler";
 import type { PlanScope, PlanWorkspace } from "../../src/enterprise/agentPlan";
@@ -82,7 +82,7 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 					if (previous.stageStatus === "cancelled" && attachments.list({ ...scope, conversationId: conversation.conversationId }, { includeWithdrawn: true }).some((item) => item.withdrawal)) {
 						requirementEngine.restartProposal({ ...scope, actorId: "source-reconciliation", commandId: `withdrawal-resume-${previous.aggregateVersion}`, correlationId: "source-reconciliation", expectedVersion: previous.aggregateVersion });
 					}
-					reconcileRequirementWithdrawals(requirementEngine, attachments, { ...scope, conversationId: conversation.conversationId });
+					reconcileRequirementAttachments(requirementEngine, attachments, { ...scope, conversationId: conversation.conversationId });
 				}
 				const facts: ArtifactWorkspaceStartFact[] = industryFact(payload, conversation);
 				const selected = knowledge?.store.selected({ ...scope, runId: conversation.conversationId });
@@ -124,7 +124,7 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 	override get(context: Parameters<ConversationApiController["get"]>[0], conversationId: unknown) {
 		return this.respond(() => {
 			const { scope, conversation } = this.target(context, conversationId);
-			if (this.attachments) reconcileRequirementWithdrawals(this.requirementEngine, this.attachments, { ...scope, conversationId: conversation.conversationId });
+			if (this.attachments) reconcileRequirementAttachments(this.requirementEngine, this.attachments, { ...scope, conversationId: conversation.conversationId });
 			this.knowledge?.refreshRun(this.requirementEngine, scope);
 			return super.get(context, conversationId);
 		});
@@ -133,7 +133,7 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 	override resolveApproval(context: Parameters<ConversationApiController["get"]>[0], conversationId: unknown, payload: unknown) {
 		return this.respond(() => {
 			const { scope, conversation } = this.target(context, conversationId);
-			if (this.attachments) reconcileRequirementWithdrawals(this.requirementEngine, this.attachments, { ...scope, conversationId: conversation.conversationId });
+			if (this.attachments) reconcileRequirementAttachments(this.requirementEngine, this.attachments, { ...scope, conversationId: conversation.conversationId });
 			this.knowledge?.refreshRun(this.requirementEngine, scope);
 			try { this.knowledge?.assertRun(this.requirementEngine.load(scope), this.requirementEngine); }
 			catch (error) { if (error instanceof KnowledgeError) return { status: 409, body: { code: error.code, message: "证据需要重新核对，不能批准。" } }; throw error; }
@@ -150,7 +150,7 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 			try {
 				const attachmentScope = { ...scope, conversationId: conversation.conversationId };
 				const attachment = this.attachments.withdraw(attachmentScope, attachmentId, { requestId: input.requestId, reason: input.reason, sha256: input.sha256, actorId: context.actorId });
-				reconcileRequirementWithdrawals(this.requirementEngine, this.attachments, attachmentScope);
+				reconcileRequirementAttachments(this.requirementEngine, this.attachments, attachmentScope);
 				return { status: 200, body: { attachment, attachments: this.attachments.list(attachmentScope) } };
 			} catch (error) {
 				if (!(error instanceof ConversationAttachmentError)) throw error;
@@ -170,7 +170,7 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 	override resolveFact(context: Parameters<ConversationApiController["get"]>[0], conversationId: unknown, key: unknown, payload: unknown) {
 		return this.respond(() => {
 			const { scope, conversation } = this.target(context, conversationId);
-			if (this.attachments) reconcileRequirementWithdrawals(this.requirementEngine, this.attachments, { ...scope, conversationId: conversation.conversationId });
+			if (this.attachments) reconcileRequirementAttachments(this.requirementEngine, this.attachments, { ...scope, conversationId: conversation.conversationId });
 			this.knowledge?.refreshRun(this.requirementEngine, scope);
 			const input = payload as { requestId?: string; expectedFactVersion?: number; expectedAggregateVersion?: number } | null;
 			if (!input || !Number.isSafeInteger(input.expectedFactVersion) || !Number.isSafeInteger(input.expectedAggregateVersion)) return { status: 400, body: { code: "fact_review_version_required", message: "请重新打开当前字段，核对后再确认。" } };
@@ -217,7 +217,7 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 	delivery(context: Parameters<ConversationApiController["get"]>[0], conversationId: unknown, version: number) {
 		return this.respond(() => {
 			const { scope, conversation } = this.target(context, conversationId);
-			if (this.attachments) reconcileRequirementWithdrawals(this.requirementEngine, this.attachments, { ...scope, conversationId: conversation.conversationId });
+			if (this.attachments) reconcileRequirementAttachments(this.requirementEngine, this.attachments, { ...scope, conversationId: conversation.conversationId });
 			this.knowledge?.refreshRun(this.requirementEngine, scope);
 			const state = this.requirementEngine.load(scope);
 			if (state.aggregateVersion > 0 && state.facts.industry?.value !== "print") return { status: 410, body: { code: "industry_retired", message: "历史非包装交付保留在本地，不再通过当前包装需求单导出。" } };

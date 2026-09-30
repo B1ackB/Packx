@@ -10,6 +10,7 @@ import type { RuntimeActivity } from "./conversationContracts";
 import type { RuntimeTraceRecord } from "./contracts";
 import type { Language } from "../i18n";
 import type {
+	ArtifactApprovalReview,
 	BackgroundTaskView,
 	ConversationAttachment,
 	ConversationSummary,
@@ -306,10 +307,11 @@ export class ConversationClient {
 		conversationId: string,
 		requestId: string,
 		decision: "approved" | "rejected",
+		reviewed: ArtifactApprovalReview,
 	): Promise<ProposalWorkspaceView> {
 		return (await request<{ proposal: ProposalWorkspaceView }>(
 			`/api/conversations/${encodeURIComponent(conversationId)}/proposal/approval`,
-			{ method: "POST", body: JSON.stringify({ requestId, decision }) },
+			{ method: "POST", body: JSON.stringify({ requestId, decision, ...reviewed }) },
 		)).proposal;
 	}
 
@@ -369,10 +371,11 @@ export class ConversationClient {
 		conversationId: string,
 		requestId: string,
 		decision: "approved" | "rejected",
+		reviewed: ArtifactApprovalReview,
 	): Promise<RequirementBriefWorkspaceView> {
 		return (await request<{ requirementBrief: RequirementBriefWorkspaceView }>(
 			`/api/conversations/${encodeURIComponent(conversationId)}/requirement-brief/approval`,
-			{ method: "POST", body: JSON.stringify({ requestId, decision }) },
+			{ method: "POST", body: JSON.stringify({ requestId, decision, ...reviewed }) },
 		)).requirementBrief;
 	}
 

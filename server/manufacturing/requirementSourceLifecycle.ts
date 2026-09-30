@@ -1,8 +1,23 @@
 import { createHash } from "node:crypto";
-import type { AggregateScope } from "../../src/enterprise/contracts";
+import type { AggregateScope, ProposalRunState } from "../../src/enterprise/contracts";
 import { ProposalRunEngine } from "../../src/enterprise/proposalRunEngine";
 import { factSourceReference } from "../knowledge/service";
 import { FileConversationAttachmentStore, type ConversationAttachmentScope } from "../runtime/conversationAttachments";
+
+export function requirementAttachmentSnapshotChanged(state: ProposalRunState, attachments: FileConversationAttachmentStore, scope: ConversationAttachmentScope) {
+	return state.facts.customer_attachments?.value !== attachments.digest(scope);
+}
+
+/** A new upload invalidates review too, including the first attachment after a text-only brief. */
+export function reconcileRequirementAttachments(engine: ProposalRunEngine, attachments: FileConversationAttachmentStore, scope: AggregateScope & ConversationAttachmentScope) {
+	const state = engine.load(scope);
+	if (state.currentProposal?.freshness === "fresh" && requirementAttachmentSnapshotChanged(state, attachments, scope)) {
+		engine.invalidateSource({ ...scope, actorId: "source-reconciliation", commandId: `attachment-snapshot-stale-${state.currentProposal.version}-${state.aggregateVersion}`,
+			correlationId: "source-reconciliation", expectedVersion: state.aggregateVersion, reason: "附件来源已变化；原交付物和审批需要重新核对。" });
+	}
+	// Keep the old snapshot until an explicit new intake. Uploads never confirm or replace Facts.
+	return reconcileRequirementWithdrawals(engine, attachments, scope);
+}
 
 /** Reconcile only persisted, explicit employee withdrawals. Never infer a withdrawal from model text. */
 export function reconcileRequirementWithdrawals(engine: ProposalRunEngine, attachments: FileConversationAttachmentStore, scope: AggregateScope & ConversationAttachmentScope) {

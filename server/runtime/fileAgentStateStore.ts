@@ -1,3 +1,4 @@
+import { FileWriteLockError, withFileWriteLock } from "../fileWriteLock";
 import {
 	chmodSync,
 	existsSync,
@@ -5,7 +6,6 @@ import {
 	readdirSync,
 	readFileSync,
 	renameSync,
-	rmdirSync,
 	unlinkSync,
 	writeFileSync,
 } from "node:fs";
@@ -574,17 +574,10 @@ export class FileAgentStateStore implements AgentSessionStore, ContextSnapshotSt
 	}
 
 	private locked<T>(path: string, operation: () => T): T {
-		const lock = `${path}.lock`;
-		mkdirSync(dirname(path), { recursive: true, mode: 0o700 });
-		try {
-			mkdirSync(lock);
-		} catch (error) {
-			throw new AgentStateStoreError("unavailable", "Agent State is locked by another writer", { cause: error });
-		}
-		try {
-			return operation();
-		} finally {
-			rmdirSync(lock);
+		try { return withFileWriteLock(path, operation); }
+		catch (error) {
+			if (error instanceof FileWriteLockError) throw new AgentStateStoreError("unavailable", "Agent State is locked or unavailable", { cause: error });
+			throw error;
 		}
 	}
 }

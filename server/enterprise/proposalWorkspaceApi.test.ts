@@ -130,6 +130,9 @@ describe("ProposalWorkspaceApiController", () => {
 
 		const approved = controller.resolveApproval(context, conversationId, {
 			requestId: "approval-request-1",
+			approvalId: proposal(waiting).state.approval!.approvalId,
+			artifactVersion: proposal(waiting).state.approval!.artifactVersion,
+			expectedAggregateVersion: proposal(waiting).state.aggregateVersion,
 			decision: "approved",
 		});
 		expect(proposal(approved).state.approval?.status).toBe("approved");

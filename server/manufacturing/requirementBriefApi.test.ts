@@ -92,11 +92,95 @@ function harness() {
 			attachments,
 		),
 		attachments,
+		outbox,
 		eventPath,
 		sessions,
 		scheduler,
 	};
 }
+
+function approvalReview(view: RequirementBriefWorkspaceView) {
+	return { approvalId: view.state.approval!.approvalId, artifactVersion: view.state.approval!.artifactVersion, expectedAggregateVersion: view.state.aggregateVersion };
+}
+
+async function readyForApproval(initialAttachment = false) {
+	const h = harness();
+	if (initialAttachment) h.attachments.put({ ...context, conversationId: h.conversationId }, { requestId: "initial-source", name: "initial.txt", mediaType: "text/plain", content: Buffer.from("数量 5000 个") });
+	expect(h.controller.start(context, h.conversationId, { requestId: "start-ready", industry: "print" }).status).toBe(202);
+	await h.scheduler.runNext();
+	for (const key of requiredRequirementFacts.print) {
+		h.controller.recordFact(context, h.conversationId, { requestId: `record-${key}`, key, value: key === "quantity" ? 5000 : `confirmed-${key}` });
+		const state = requirement(h.controller.get(context, h.conversationId)).state;
+		expect(h.controller.resolveFact(context, h.conversationId, key, { requestId: `verify-${key}`, decision: "verified", expectedFactVersion: state.facts[key].version, expectedAggregateVersion: state.aggregateVersion }).status).toBe(200);
+	}
+	h.controller.start(context, h.conversationId, { requestId: "generate-ready", industry: "print" });
+	expect((await h.scheduler.runNext()).status).toBe("completed");
+	expect(requirement(h.controller.get(context, h.conversationId)).state.stageStatus).toBe("waiting_approval");
+	return h;
+}
+
+it.each(["approved", "rejected"] as const)("rejects stale %s decisions and binds retries to the originally reviewed version", async decision => {
+	const h = await readyForApproval();
+	const view = () => requirement(h.controller.get(context, h.conversationId));
+	const old = approvalReview(view());
+	expect(h.controller.resolveApproval(context, h.conversationId, { requestId: "missing-version", decision }).status).toBe(400);
+	h.controller.recordFact(context, h.conversationId, { requestId: "new-quantity", key: "quantity", value: 6000 });
+	const changed = view().state;
+	h.controller.resolveFact(context, h.conversationId, "quantity", { requestId: "confirm-new-quantity", decision: "verified", expectedFactVersion: changed.facts.quantity.version, expectedAggregateVersion: changed.aggregateVersion });
+	h.controller.start(context, h.conversationId, { requestId: "new-version", industry: "print" });
+	await h.scheduler.runNext();
+	expect(h.controller.resolveApproval(context, h.conversationId, { requestId: "stale-tab", decision, ...old })).toMatchObject({ status: 409, body: { code: "approval_review_stale" } });
+	expect(view().state.approval).toMatchObject({ status: "requested", artifactVersion: 3 });
+	const input = { requestId: "current-decision", decision, ...approvalReview(view()) };
+	expect(h.controller.resolveApproval({ ...context, tenantId: "other" }, h.conversationId, input).status).toBe(404);
+	expect(h.controller.resolveApproval(context, h.conversationId, input).status).toBe(202);
+	await h.scheduler.runNext();
+	const done = view().state;
+	expect(h.controller.resolveApproval(context, h.conversationId, input).status).toBe(202);
+	expect(view().state).toEqual(done);
+	expect(h.controller.resolveApproval(context, h.conversationId, { ...input, ...old }).status).toBe(409);
+	expect(h.controller.resolveApproval(context, h.conversationId, { ...input, decision: decision === "approved" ? "rejected" : "approved" }).status).toBe(409);
+});
+
+it("recovers the gap between an approval commit and gate dispatch using the same reviewed request", async () => {
+	const h = await readyForApproval();
+	const input = { requestId: "dispatch-recovery", decision: "approved", ...approvalReview(requirement(h.controller.get(context, h.conversationId))) };
+	const dispatch = h.outbox.requestStage.bind(h.outbox);
+	h.outbox.requestStage = () => { throw new Error("crash before dispatch"); };
+	expect(h.controller.resolveApproval(context, h.conversationId, input).status).toBe(500);
+	expect(requirement(h.controller.get(context, h.conversationId)).state.approval?.status).toBe("approved");
+	h.outbox.requestStage = dispatch;
+	expect(h.controller.resolveApproval(context, h.conversationId, input).status).toBe(202);
+	expect((await h.scheduler.runNext()).status).toBe("completed");
+	expect(requirement(h.controller.get(context, h.conversationId)).state.stageStatus).toBe("passed");
+});
+
+it.each([false, true])("invalidates additions at review, gate and export (initial attachment=%s)", async initialAttachment => {
+	for (const phase of ["review", "gate", "export"] as const) {
+		const h = await readyForApproval(initialAttachment);
+		const before = requirement(h.controller.get(context, h.conversationId));
+		const input = { requestId: "approve-current", decision: "approved", ...approvalReview(before) };
+		if (phase !== "review") expect(h.controller.resolveApproval(context, h.conversationId, input).status).toBe(202);
+		if (phase === "export") expect((await h.scheduler.runNext()).status).toBe("completed");
+		h.attachments.put({ ...context, conversationId: h.conversationId }, { requestId: "amendment", name: "amendment.txt", mediaType: "text/plain", content: Buffer.from("最新数量 7000 个，不使用原 5000 个订单") });
+		if (phase === "review") expect(h.controller.resolveApproval(context, h.conversationId, input)).toMatchObject({ status: 409, body: { code: "approval_review_stale" } });
+		if (phase === "gate") expect(await h.scheduler.runNext()).toMatchObject({ status: "dead_letter", job: { lastFailure: { code: "context_failure" } } });
+		const delivered = h.controller.delivery(context, h.conversationId, before.state.currentProposal!.version);
+		expect(delivered).toMatchObject({ status: 200, body: { delivery: { status: "stale" } } });
+		const current = requirement(h.controller.get(context, h.conversationId)).state;
+		expect(current).toMatchObject({ stageStatus: "revision_required", approval: { status: "superseded" }, facts: { quantity: { value: 5000, status: "verified" } } });
+		expect(requirement(h.controller.get(context, h.conversationId)).state.aggregateVersion).toBe(current.aggregateVersion);
+		// An explicit new intake can bind the changed snapshot; old approval stays invalid.
+		expect(h.controller.start(context, h.conversationId, { requestId: "review-new-sources", industry: "print" }).status).toBe(202);
+		expect((await h.scheduler.runNext()).status).toBe("completed");
+		const regenerated = requirement(h.controller.get(context, h.conversationId)).state;
+		expect(regenerated.currentProposal?.version).toBe(3);
+		if (phase !== "review") {
+			expect(h.controller.resolveApproval(context, h.conversationId, input).status).toBe(202);
+			expect(requirement(h.controller.get(context, h.conversationId)).state).toEqual(regenerated);
+		}
+	}
+});
 
 it("confirms the reviewed version only, preserves source excerpts and deduplicates retries", async () => {
 	const h = harness();
@@ -299,6 +383,9 @@ describe("RequirementBriefWorkspaceApiController", () => {
 
 		controller.resolveApproval(context, conversationId, {
 			requestId: "requirement-approval-1",
+			approvalId: waiting.state.approval!.approvalId,
+			artifactVersion: waiting.state.approval!.artifactVersion,
+			expectedAggregateVersion: waiting.state.aggregateVersion,
 			decision: "approved",
 		});
 		expect(await scheduler.runNext()).toMatchObject({ status: "completed" });
