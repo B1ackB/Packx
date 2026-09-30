@@ -2,7 +2,7 @@
 
 当前提供源码开发入口和 macOS 本地发行目录，已包含图形化模型配置。发行目录生成与启动见 [发行使用指南](release-start.md)。尚未提供签名公证、自动升级或跨平台安装保证；本机复现不代表企业电脑或干净设备验收。
 
-各节点失败、后台续执行、DLQ、文件补偿和残留锁的处理边界，见 [2026-09-21 逐节点恢复审计](failure-handling-audit.md)。根目录锁恢复不是所有子存储锁的通用修复；当前关停也没有等待所有任务完成持久化的 drain 阶段，不能把进程退出或备份恢复解释为业务副作用已撤销。
+各节点失败、后台续执行、DLQ、文件补偿和残留锁的处理边界，见 [2026-09-21 逐节点恢复审计](failure-handling-audit.md)。Session、Artifact 和 Event Store 的新写入使用 SQLite 持有的进程锁，进程退出后自动释放；根目录锁恢复仍不删除旧版遗留的无持有者目录锁；当前关停也没有等待所有任务完成持久化的 drain 阶段，不能把进程退出或备份恢复解释为业务副作用已撤销。
 
 排查错误时先看 [错误处理与可靠性恢复](reliability-recovery.md)：包含 Runtime 错误码、retryable／HTTP 的区别、自动重试上限、工具未决副作用、取消和双重故障传播。最新固定测试及复验结果见 [Harness 错误处理测试报告](harness-error-handling-tests.md)。
 
@@ -61,6 +61,8 @@ npm run state -- recover-lock
 ```
 
 命令检查原 Host PID，只在进程明确不存在时回收锁，并写入恢复记录；存活、权限不足、PID 被复用或异常锁格式会拒绝。若维护命令自身被强杀并留下 `.packx-lock-recovery` 目录，先核对不存在恢复进程，再移除这个空目录后重试。不要删除 Session 或执行账本的锁来强行重跑未知副作用。
+
+2026-09-30 起，Session、Artifact、Event Store 的 `.lock` 是持久保留的 SQLite 锁文件；文件存在不表示被占用，正常退出或 SIGKILL 后 OS 锁自动释放，重启无需删除该文件。锁不改变 JSON 数据格式，也不把 `started` / `unknown` 执行记录改为成功。旧版 `.lock` 目录、损坏文件、符号链接仍拒绝写入，须停机保留现场并由操作者核对；不能将旧代码与新版锁格式混用。根目录 `.packx-operation.lock` 的恢复步骤不变。本改动不承诺断电持久性或网络文件系统锁语义。
 
 固定原生解析任务由独立监督进程控制 CPU、文件大小、描述符、内存/进程数采样限制；Host 被强制结束后终止解析进程组，重启清理明确失去所有者的输入副本。限制范围和剩余故障边界见 [ADR-0017](adr/0017-local-release-settings-and-native-supervision.md)。
 

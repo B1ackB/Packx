@@ -143,6 +143,7 @@ function App() {
 	const [conversations, setConversations] = useState<ConversationSummary[]>([]);
 	const [active, setActive] = useState<ConversationView>();
 	const activeIdRef = useRef<string | undefined>(undefined);
+	const activeGeneration = useRef(0);
 	const deletedIds = useRef(new Set<string>());
 	const selectionVersion = useRef(0);
 	const [pendingDelete, setPendingDelete] = useState<ConversationSummary>();
@@ -150,6 +151,7 @@ function App() {
 	const [deleteError, setDeleteError] = useState<string>();
 	const activate = (conversation?: ConversationView) => {
 		setRenaming(false);
+		activeGeneration.current++;
 		activeIdRef.current = conversation?.conversationId;
 		setActive(conversation);
 	};
@@ -261,6 +263,7 @@ function App() {
 
 	useEffect(() => {
 		setAttachments([]);
+		setUploading(false);
 		setParsedSources([]);
 		setSelectedAttachmentIds([]);
 		if (!active) return;
@@ -311,6 +314,7 @@ function App() {
 	useEffect(() => {
 		setRequirement(undefined);
 		setRequirementBusy(false);
+		setFactKey(""); setFactValue(""); setFactUnit("");
 		if (!active) return;
 		let cancelled = false;
 		void client.getRequirementBrief(active.conversationId)
@@ -477,7 +481,7 @@ function App() {
 				activate(undefined);
 				setDraft(""); setSending(false); setRequirement(undefined);
 				setActivity(undefined); setRequirementActivity(undefined);
-				setAttachments([]); setSelectedAttachmentIds([]); setParsedSources([]); setAttachmentPreviews({});
+				setAttachments([]); setUploading(false); setSelectedAttachmentIds([]); setParsedSources([]); setAttachmentPreviews({});
 				setCronSchedules([]); setFactKey(""); setFactValue(""); setFactUnit("");
 				const index = conversations.findIndex((item) => item.conversationId === conversationId);
 				const next = remaining[Math.min(index, remaining.length - 1)];
@@ -540,7 +544,8 @@ function App() {
 
 	const startRequirement = async (planVersion?: number) => {
 		if (!active || requirementBusy || sending || !realProvider) return;
-		const conversationId = active.conversationId;
+		const conversationId = active.conversationId, generation = activeGeneration.current;
+		const isCurrent = () => activeIdRef.current === conversationId && activeGeneration.current === generation;
 		setRequirementBusy(true);
 		setError(undefined);
 		try {
@@ -549,14 +554,14 @@ function App() {
 				`requirement-${crypto.randomUUID()}`,
 				planVersion ?? (requirement?.state.facts.plan_source ? Number(/:version:(\d+)$/.exec(requirement.state.facts.plan_source.sourceRef)?.[1]) : undefined),
 			);
-			if (activeIdRef.current !== conversationId) return;
+			if (!isCurrent()) return;
 			setRequirement(next);
 			setPanelTab("requirement");
 			setReviewOpen(true);
 		} catch (reason) {
-			if (activeIdRef.current === conversationId) setError(errorMessage(reason));
+			if (isCurrent()) setError(errorMessage(reason));
 		} finally {
-			if (activeIdRef.current === conversationId) setRequirementBusy(false);
+			if (isCurrent()) setRequirementBusy(false);
 		}
 	};
 
@@ -564,6 +569,8 @@ function App() {
 		const input = event.currentTarget;
 		const files = [...(input.files ?? [])];
 		if (!active || files.length === 0 || uploading) return;
+		const conversationId = active.conversationId, generation = activeGeneration.current;
+		const isCurrent = () => activeIdRef.current === conversationId && activeGeneration.current === generation;
 		setUploading(true);
 		setError(undefined);
 		try {
@@ -575,32 +582,35 @@ function App() {
 					file,
 				));
 			}
-			setAttachments(await client.listAttachments(active.conversationId));
+			const remaining = await client.listAttachments(conversationId);
+			if (!isCurrent()) return;
+			setAttachments(remaining);
 			setSelectedAttachmentIds((current) => [...new Set([
 				...current,
 				...uploaded.map((attachment) => attachment.attachmentId),
 			])]);
 		} catch (reason) {
-			setError(errorMessage(reason));
+			if (isCurrent()) setError(errorMessage(reason));
 		} finally {
 			input.value = "";
-			setUploading(false);
+			if (isCurrent()) setUploading(false);
 		}
 	};
 
 	const withdrawAttachment = async (attachment: ConversationAttachment) => {
 		if (!active || uploading) return;
-		const conversationId = active.conversationId;
+		const conversationId = active.conversationId, generation = activeGeneration.current;
+		const isCurrent = () => activeIdRef.current === conversationId && activeGeneration.current === generation;
 		const reason = window.prompt(en ? `Withdraw ${attachment.name}? Its content will remain in history, but dependent fields and deliveries must be reviewed. Enter a reason:` : `撤回 ${attachment.name} 后，依赖它的字段和交付物需要重新核对，历史内容保留。请填写撤回原因：`);
 		if (!reason?.trim()) return;
 		setUploading(true); setError(undefined);
 		try {
 			const remaining = await client.withdrawAttachment(conversationId, attachment, `withdraw-${crypto.randomUUID()}`, reason.trim());
-			if (activeIdRef.current !== conversationId) return;
+			if (!isCurrent()) return;
 			setAttachments(remaining);
 			setSelectedAttachmentIds((current) => current.filter((id) => id !== attachment.attachmentId));
-		} catch (cause) { if (activeIdRef.current === conversationId) setError(errorMessage(cause)); }
-		finally { if (activeIdRef.current === conversationId) setUploading(false); }
+		} catch (cause) { if (isCurrent()) setError(errorMessage(cause)); }
+		finally { if (isCurrent()) setUploading(false); }
 	};
 
 	const downloadAttachment = async (attachment: ConversationAttachment) => {
@@ -628,44 +638,61 @@ function App() {
 
 	const resolveRequirementApproval = async (decision: "approved" | "rejected") => {
 		if (!active || requirementBusy || requirement?.state.approval?.status !== "requested") return;
+		const conversationId = active.conversationId, generation = activeGeneration.current;
+		const isCurrent = () => activeIdRef.current === conversationId && activeGeneration.current === generation;
 		setRequirementBusy(true);
 		setError(undefined);
 		try {
-			setRequirement(await client.resolveRequirementApproval(
+			const next = await client.resolveRequirementApproval(
 				active.conversationId,
 				`approval-${crypto.randomUUID()}`,
 				decision,
-			));
+				{ approvalId: requirement.state.approval.approvalId, artifactVersion: requirement.state.approval.artifactVersion, expectedAggregateVersion: requirement.state.aggregateVersion },
+			);
+			if (!isCurrent()) return;
+			setRequirement(next);
 		} catch (reason) {
+			if (!isCurrent()) return;
 			setError(errorMessage(reason));
+			if (reason instanceof ConversationClientError && ["approval_review_stale", "approval_review_version_required", "concurrency_conflict"].includes(reason.code)) {
+				try { const latest = await client.getRequirementBrief(conversationId); if (isCurrent()) setRequirement(latest ?? undefined); }
+				catch { /* Keep the stale-review error until a successful refresh. */ }
+			}
 		} finally {
-			setRequirementBusy(false);
+			if (isCurrent()) setRequirementBusy(false);
 		}
 	};
 
 	const cancelRequirement = async () => {
 		if (!active || !requirement || requirementBusy || requirement.state.stageStatus === "passed") return;
+		const conversationId = active.conversationId, generation = activeGeneration.current;
+		const isCurrent = () => activeIdRef.current === conversationId && activeGeneration.current === generation;
 		setRequirementBusy(true);
 		setError(undefined);
 		try {
-			setRequirement(await client.cancelRequirementBrief(
+			const next = await client.cancelRequirementBrief(
 				active.conversationId,
 				`cancel-${crypto.randomUUID()}`,
-			));
+			);
+			if (!isCurrent()) return;
+			setRequirement(next);
 		} catch (reason) {
+			if (!isCurrent()) return;
 			setError(errorMessage(reason));
 		} finally {
-			setRequirementBusy(false);
+			if (isCurrent()) setRequirementBusy(false);
 		}
 	};
 
 	const recordFact = async (event: FormEvent) => {
 		event.preventDefault();
 		if (!active || !requirement || requirementBusy || !factKey.trim() || !factValue.trim()) return;
+		const conversationId = active.conversationId, generation = activeGeneration.current;
+		const isCurrent = () => activeIdRef.current === conversationId && activeGeneration.current === generation;
 		setRequirementBusy(true);
 		setError(undefined);
 		try {
-			setRequirement(await client.recordRequirementFact(
+			const next = await client.recordRequirementFact(
 				active.conversationId,
 				`fact-${crypto.randomUUID()}`,
 				{
@@ -673,38 +700,46 @@ function App() {
 					value: factKey === "quantity" ? Number(factValue) : factValue.trim(),
 					unit: factUnit.trim() || undefined,
 				},
-			));
+			);
+			if (!isCurrent()) return;
+			setRequirement(next);
 			setFactKey("");
 			setFactValue("");
 			setFactUnit("");
 		} catch (reason) {
+			if (!isCurrent()) return;
 			setError(errorMessage(reason));
 		} finally {
-			setRequirementBusy(false);
+			if (isCurrent()) setRequirementBusy(false);
 		}
 	};
 
 	const resolveFact = async (key: string, decision: "verified" | "rejected") => {
 		if (!active || !requirement || !requirement.state.facts[key] || requirementBusy) return;
+		const conversationId = active.conversationId, generation = activeGeneration.current;
+		const isCurrent = () => activeIdRef.current === conversationId && activeGeneration.current === generation;
 		setRequirementBusy(true);
 		setError(undefined);
 		try {
-			setRequirement(await client.resolveRequirementFact(
+			const next = await client.resolveRequirementFact(
 				active.conversationId,
 				key,
 				`fact-decision-${crypto.randomUUID()}`,
 				decision,
 				requirement.state.facts[key].version,
 				requirement.state.aggregateVersion,
-			));
+			);
+			if (!isCurrent()) return;
+			setRequirement(next);
 		} catch (reason) {
+			if (!isCurrent()) return;
 			setError(errorMessage(reason));
 			if (reason instanceof ConversationClientError && ["fact_review_stale", "concurrency_conflict"].includes(reason.code)) {
-				try { setRequirement(await client.getRequirementBrief(active.conversationId) ?? undefined); }
+				try { const latest = await client.getRequirementBrief(conversationId); if (isCurrent()) setRequirement(latest ?? undefined); }
 				catch { /* Preserve the conflict message and require a manual refresh. */ }
 			}
 		} finally {
-			setRequirementBusy(false);
+			if (isCurrent()) setRequirementBusy(false);
 		}
 	};
 

@@ -287,8 +287,10 @@ try {
 			await api(`${planBriefPath}/facts/${key}/decision`, { requestId: `plan-confirm-${key}`, decision: "verified", expectedFactVersion: state.facts[key].version, expectedAggregateVersion: state.aggregateVersion });
 		}
 		await api(planBriefPath, { ...importBody, requestId: "plan-regenerate" });
-		assert.equal((await settlePlanBrief()).state.stageStatus, "waiting_approval");
-		await api(`${planBriefPath}/approval`, { requestId: "plan-approve-delivery", decision: "approved" });
+		const reviewed = (await settlePlanBrief()).state;
+		assert.equal(reviewed.stageStatus, "waiting_approval");
+		assert(reviewed.approval);
+		await api(`${planBriefPath}/approval`, { requestId: "plan-approve-delivery", decision: "approved", approvalId: reviewed.approval.approvalId, artifactVersion: reviewed.approval.artifactVersion, expectedAggregateVersion: reviewed.aggregateVersion });
 		assert.equal((await settlePlanBrief()).state.stageStatus, "passed");
 		const delivery = (await api(`${planBriefPath}/versions/2`)).delivery;
 		assert.equal(delivery.status, "approved");
@@ -443,8 +445,10 @@ try {
 			await api(`${path}/requirement-brief/facts/${key}/decision`, { requestId: `verify-${key}`, decision: "verified", expectedFactVersion: state.facts[key].version, expectedAggregateVersion: state.aggregateVersion });
 		}
 		await api(`${path}/requirement-brief`, { requestId: "smoke-revise", industry: "print" });
-		assert.equal((await settled()).state.stageStatus, "waiting_approval");
-		await api(`${path}/requirement-brief/approval`, { requestId: "smoke-approve", decision: "approved" });
+		const reviewed = (await settled()).state;
+		assert.equal(reviewed.stageStatus, "waiting_approval");
+		assert(reviewed.approval);
+		await api(`${path}/requirement-brief/approval`, { requestId: "smoke-approve", decision: "approved", approvalId: reviewed.approval.approvalId, artifactVersion: reviewed.approval.artifactVersion, expectedAggregateVersion: reviewed.aggregateVersion });
 		assert.equal((await settled()).state.stageStatus, "passed");
 		assert.equal((await api(`${path}/requirement-brief/versions/1`)).delivery.status, "stale");
 		assert.equal((await api(`${path}/requirement-brief/versions/2`)).delivery.status, "approved");

@@ -33,7 +33,7 @@ it("runs selected evidence through real tools/context, human confirmation, appro
 		expect(h.requirements.start(h.context, h.conversationId, { requestId: "regenerate", industry: "print" }).status).toBe(202);
 		expect(await h.scheduler.runNext()).toMatchObject({ status: "completed" });
 		expect(view().state.stageStatus).toBe("waiting_approval");
-		expect(h.requirements.resolveApproval(h.context, h.conversationId, { requestId: "approve", decision: "approved" }).status).toBe(202);
+		expect(h.requirements.resolveApproval(h.context, h.conversationId, { requestId: "approve", decision: "approved", approvalId: view().state.approval!.approvalId, artifactVersion: view().state.approval!.artifactVersion, expectedAggregateVersion: view().state.aggregateVersion }).status).toBe(202);
 		await h.scheduler.runNext(); expect(view().state.stageStatus).toBe("passed");
 		const delivery = h.requirements.delivery(h.context, h.conversationId, 2);
 		expect(delivery.status).toBe(200);
