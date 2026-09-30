@@ -64,7 +64,7 @@ export function knowledgeWorkflow(root: string, readPlan?: (scope: PlanScope) =>
 	const session = sessions.getSession(sessionScope)!;
 	sessions.save(sessionScope, session.revision, [{ role: "user", content: "需要 500 克咖啡豆包装袋，请核对材料候选和缺失条件。", messageId: "brief", createdAt: "2026-09-17T10:00:00.000Z", pinned: true }], "2026-09-17T10:00:00.000Z");
 	const outbox = new StageJobOutbox(engine, events, queue);
-	const worker = new RequirementBriefWorker(engine, runtime, artifacts, undefined, undefined, knowledge);
+	const worker = new RequirementBriefWorker(engine, runtime, artifacts, undefined, undefined, knowledge, undefined, conversations);
 	const scheduler = new StageJobScheduler(queue, { workerId: "demo-worker", handlers: { "knowledge-import": (lease, signal, guard) => knowledge.execute(lease, signal, guard), "requirement-brief": (lease, signal, guard) => worker.executeLease(lease, signal, guard) } });
 	const requirements = new RequirementBriefWorkspaceApiController(conversations, engine, artifacts, outbox, scheduler, undefined, undefined, readPlan, knowledge);
 	const api = new KnowledgeApi(knowledge, conversations, engine);

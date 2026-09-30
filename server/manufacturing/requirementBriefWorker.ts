@@ -1,4 +1,6 @@
-import { reconcileRequirementAttachments, requirementAttachmentSnapshotChanged } from "./requirementSourceLifecycle";
+import type { ConversationApiController } from "../runtime/conversationApi";
+import type { ConversationView } from "../../src/runtime/conversationContracts";
+import { reconcileRequirementAttachments, reconcileRequirementMessages, requirementMessagesChanged, requirementAttachmentSnapshotChanged } from "./requirementSourceLifecycle";
 import { createHash } from "node:crypto";
 import { correctExtractedQuantity } from "./requirementCorrections";
 import { buildTaskContext } from "../enterprise/taskContext";
@@ -139,6 +141,7 @@ export class RequirementBriefWorker {
 		private readonly assetInspection?: AssetInspectionService,
 		private readonly knowledge?: KnowledgeService,
 		private readonly reviewMaxOutputTokens?: number,
+		private readonly conversations?: Pick<ConversationApiController, "get">,
 	) {}
 
 	private validateKnowledge(state: ProposalRunState) {
@@ -168,14 +171,26 @@ export class RequirementBriefWorker {
 	): Promise<RequirementBriefWorkerResult> {
 		assertActive();
 		let state = this.engine.load(command);
+		const sourceState = state;
+		const requested = this.engine.readEvents(command).findLast(event => event.data.type === "stage.execution_requested");
+		if (requested && requested.commandId !== command.commandId) throw new RuntimeFailure("context_failure", "Requirement execution was superseded", false);
 		const conversationId = /^conversation:(.+):revision:\d+$/.exec(state.facts.customer_brief?.sourceRef ?? "")?.[1];
-		const assertAttachmentSnapshot = () => {
-			if (this.attachments && conversationId && requirementAttachmentSnapshotChanged(this.engine.load(command), this.attachments, { ...command, conversationId })) {
+		const assertSourceSnapshot = () => {
+			if (this.conversations && conversationId) {
+				const response = this.conversations.get(command, conversationId);
+				if (response.status !== 200) throw new RuntimeFailure("context_failure", "Requirement conversation is unavailable", false);
+				const conversation = (response.body as { conversation: ConversationView }).conversation;
+				if (requirementMessagesChanged(sourceState, conversation)) {
+					reconcileRequirementMessages(this.engine, command, conversation);
+					throw new RuntimeFailure("context_failure", "Requirement messages changed; start a new review", false);
+				}
+			} else if (state.facts.customer_messages) throw new RuntimeFailure("context_failure", "Requirement message snapshot cannot be checked", false);
+			if (this.attachments && conversationId && requirementAttachmentSnapshotChanged(sourceState, this.attachments, { ...command, conversationId })) {
 				reconcileRequirementAttachments(this.engine, this.attachments, { ...command, conversationId });
 				throw new RuntimeFailure("context_failure", "Requirement attachment sources changed; start a new review", false);
 			}
 		};
-		assertAttachmentSnapshot();
+		assertSourceSnapshot();
 		const evidence = this.validateKnowledge(state);
 		if (state.facts.industry?.value !== "print") throw new RuntimeFailure("invalid_output", "历史非包装需求已停用，不能继续执行。", false);
 		const runtimeCommandId = `${command.commandId}:runtime`;
@@ -232,10 +247,10 @@ export class RequirementBriefWorker {
 		const assertLeaseActive = assertActive;
 		assertActive = () => {
 			assertLeaseActive();
-			assertAttachmentSnapshot();
+			assertSourceSnapshot();
 		};
 		const createdEvent = this.engine.readEvents(command).find((event) => event.commandId === artifactCommandId && event.data.type === "artifact.version_created");
-		const artifactVersion = createdEvent?.data.type === "artifact.version_created"
+		let artifactVersion = createdEvent?.data.type === "artifact.version_created"
 			? createdEvent.data.artifactVersion
 			: (state.proposalVersions.filter((artifact) => artifact.artifactId === "requirement-brief").at(-1)?.version ?? 0) + 1;
 		const checkpointKey = {
@@ -244,6 +259,11 @@ export class RequirementBriefWorker {
 			artifactVersion,
 		};
 		let checkpoint = this.readCheckpoint(checkpointKey);
+		// A cancelled execution keeps its immutable checkpoints. Reserve the next unused version.
+		while (!createdEvent && (checkpoint ? checkpoint.workerCommandId !== command.commandId : this.hasDraft({ ...checkpointKey, artifactId: "requirement-brief" }))) {
+			checkpointKey.artifactVersion = ++artifactVersion;
+			checkpoint = this.readCheckpoint(checkpointKey);
+		}
 		if (!checkpoint) {
 			const runtimeStartedAt = Date.now();
 			const result = await this.runtime.executeTurn({
@@ -338,7 +358,7 @@ export class RequirementBriefWorker {
 
 		this.validateKnowledge(this.engine.load(command));
 		// Read the original snapshots, never the generator's narrative as sole evidence.
-		const sourceEvidence: Array<{ ref: string; version: string | number; content: unknown }> = Object.values(state.facts).filter((fact) => fact.status !== "rejected" && (fact.sourceType !== "model_output" || ["customer_brief", "plan_source"].includes(fact.key))).map((fact) => ({
+		const sourceEvidence: Array<{ ref: string; version: string | number; content: unknown }> = Object.values(state.facts).filter((fact) => fact.key !== "customer_messages" && fact.status !== "rejected" && (fact.sourceType !== "model_output" || ["customer_brief", "plan_source"].includes(fact.key))).map((fact) => ({
 			ref: fact.sourceRef, version: fact.version, content: { ...fact },
 		}));
 		for (const hit of evidence) sourceEvidence.push({ ref: hit.evidenceId, version: hit.versionId, content: hit });
@@ -469,6 +489,7 @@ export class RequirementBriefWorker {
 				facts: Object.values(state.facts).flatMap((fact): RequirementFactV1[] =>
 					fact.key === "industry" ||
 					fact.key === "customer_brief" ||
+					fact.key === "customer_messages" ||
 					fact.key === "customer_attachments" ||
 					fact.key === "plan_source" ||
 					fact.key === "knowledge_source" ||
@@ -507,6 +528,7 @@ export class RequirementBriefWorker {
 				expectedVersion: state.aggregateVersion,
 				artifactId: "requirement-brief",
 				schemaVersion: candidate ? "requirement-brief.v1" : "invalid-runtime-output.v1",
+				artifactVersion,
 				contentRef,
 				inputFactVersions: { ...state.factVersions },
 				runtimeExecutionId: checkpoint.executionId,
@@ -534,6 +556,11 @@ export class RequirementBriefWorker {
 			},
 		}, signal);
 		return { status: "completed", state };
+	}
+
+	private hasDraft(key: ArtifactContentKey): boolean {
+		try { this.artifacts.readJson(key); return true; }
+		catch (error) { if (error instanceof ArtifactStoreError && error.code === "artifact_not_found") return false; throw error; }
 	}
 
 	private readCheckpoint(key: ArtifactContentKey): RequirementRuntimeCheckpoint | undefined {

@@ -950,7 +950,7 @@ function App() {
 							</div>}
 						</div>
 					)}
-					{active && <PlanPanel part="details" state={planState} language={language} busy={planBusy || sending || hasActiveBackgroundTask || requirementBusy || requirementRunning} onCommand={(c) => { void planCommand(c); }} onCreateBrief={!requirementTerminal && !requirement?.readOnlyReason ? (version) => { void startRequirement(version); } : undefined} />}
+					{active && <PlanPanel part="details" state={planState} language={language} busy={planBusy || sending || hasActiveBackgroundTask || requirementBusy || requirementRunning} onCommand={(c) => { void planCommand(c); }} onCreateBrief={!requirement?.readOnlyReason ? (version) => { void startRequirement(version); } : undefined} />}
 				</section>
 
 				<div className="composer-wrap">
@@ -1159,10 +1159,10 @@ function App() {
 									</div>
 								))}
 								<form className="fact-form" onSubmit={(event) => void recordFact(event)}>
-									<select value={factKey} onChange={(event) => { setFactKey(event.target.value); setFactValue(""); }} aria-label={en ? "Requirement field" : "需求字段"} disabled={requirementTerminal}><option value="">{en ? "Choose a field to add" : "选择要补充的字段"}</option>{fieldOptions.map((key) => <option key={key} value={key}>{fieldLabel(key)}</option>)}</select>
-									<input id="requirement-fact-value" value={factValue} type={factKey === "quantity" ? "number" : factKey === "target_delivery" ? "date" : "text"} min={factKey === "quantity" ? 1 : undefined} step={1} required onChange={(event) => setFactValue(event.target.value)} placeholder={factKey === "dimensions" ? en ? "Example: W 160 × H 230 + bottom 80 mm" : "例如：宽 160 × 高 230 + 底 80 mm" : en ? "Enter value" : "填写内容"} aria-label={en ? "Field value" : "字段内容"} disabled={requirementTerminal} />
-									<input value={factUnit} onChange={(event) => setFactUnit(event.target.value)} placeholder={en ? "Unit (optional)" : "单位（可选）"} aria-label={en ? "Field unit" : "字段单位"} disabled={requirementTerminal} />
-									<button type="submit" disabled={requirementBusy || requirementRunning || requirementTerminal || !factKey.trim() || !factValue.trim()}>{en ? "Add unverified information" : "添加待确认信息"}</button>
+									<select value={factKey} onChange={(event) => { setFactKey(event.target.value); setFactValue(""); }} aria-label={en ? "Requirement field" : "需求字段"} disabled={requirement.state.stageStatus === "cancelled"}><option value="">{en ? "Choose a field to add" : "选择要补充的字段"}</option>{fieldOptions.map((key) => <option key={key} value={key}>{fieldLabel(key)}</option>)}</select>
+									<input id="requirement-fact-value" value={factValue} type={factKey === "quantity" ? "number" : factKey === "target_delivery" ? "date" : "text"} min={factKey === "quantity" ? 1 : undefined} step={1} required onChange={(event) => setFactValue(event.target.value)} placeholder={factKey === "dimensions" ? en ? "Example: W 160 × H 230 + bottom 80 mm" : "例如：宽 160 × 高 230 + 底 80 mm" : en ? "Enter value" : "填写内容"} aria-label={en ? "Field value" : "字段内容"} disabled={requirement.state.stageStatus === "cancelled"} />
+									<input value={factUnit} onChange={(event) => setFactUnit(event.target.value)} placeholder={en ? "Unit (optional)" : "单位（可选）"} aria-label={en ? "Field unit" : "字段单位"} disabled={requirement.state.stageStatus === "cancelled"} />
+									<button type="submit" disabled={requirementBusy || requirementRunning || requirement.state.stageStatus === "cancelled" || !factKey.trim() || !factValue.trim()}>{en ? "Add unverified information" : "添加待确认信息"}</button>
 								</form>
 								<small>{en ? "Confirm new information item by item. Changes make earlier briefs stale, so generate a new version." : "新增信息需逐项确认。修改后旧需求单会失效，请重新生成。"}</small>
 							</section>
@@ -1221,14 +1221,14 @@ function App() {
 							{requirement.state.stageStatus !== "passed" && requirement.state.stageStatus !== "cancelled" && (
 								<button className="secondary-action" onClick={() => void cancelRequirement()} disabled={requirementBusy}>{en ? "Cancel task" : "取消任务"}</button>
 							)}
-							{requirement.state.stageStatus === "passed" && <p className="cancelled-note">{en ? "The current version is approved. Start a new task for new requirements to preserve this delivery record." : "当前版本已批准。如有新需求，请新建任务，保留本次交付记录。"}</p>}
+							{requirement.state.stageStatus === "passed" && <p className="cancelled-note">{en ? "The current version is approved. Enter revised information or generate a new version below; this delivery remains in history and will require fresh approval." : "当前版本已批准。可补充修改信息或在下方生成新版本；旧交付保留在历史中，修改后需重新审批。"}</p>}
 							{requirement.state.stageStatus === "cancelled" && (
 								<div className="cancelled-note">{en ? "The request, facts, artifacts, and audit events are retained. Re-review continues from the existing version without deleting history." : "已保留需求、Fact、Artifact 与审计事件；重新审查会从现有版本继续，不会删除历史。"}</div>
 							)}
 							<button
 								className="secondary-action"
 								onClick={() => void startRequirement()}
-								disabled={(!hasUserMessage && !requirement.state.facts.plan_source) || !realProvider || requirementBusy || sending || requirementRunning || requirement.state.stageStatus === "waiting_approval" || requirement.state.stageStatus === "passed"}
+								disabled={(!hasUserMessage && !requirement.state.facts.plan_source) || !realProvider || requirementBusy || sending || requirementRunning || requirement.state.stageStatus === "waiting_approval"}
 							>
 								{requirementRunning
 									? progressLabel(requirementActivity)

@@ -28,7 +28,17 @@ export interface StageJobSchedulerOptions {
 	heartbeatMs?: number;
 	handlers?: Readonly<Record<string, StageJobHandler>>;
 	dispatchOutbox?: () => unknown;
+	assertRunnable?: (lease: StageJobLease) => void;
 	onError?: (error: unknown) => void;
+}
+
+/** Attempt each independent scope, then report every failure without discarding its cause. */
+export function reconcileIndependently(tasks: Readonly<Record<string, () => unknown>>): void {
+	const failures: unknown[] = [], names: string[] = [];
+	for (const [name, task] of Object.entries(tasks)) {
+		try { task(); } catch (error) { failures.push(error); names.push(name); }
+	}
+	if (failures.length) throw new AggregateError(failures, `Reconciliation failed: ${names.join(", ")}`);
 }
 
 function safeFailure(error: unknown): { code: string; message: string; retryable: boolean } {
@@ -135,7 +145,12 @@ export class StageJobScheduler {
 		this.running = true;
 		let lease = undefined as ReturnType<StageJobQueue["claim"]>;
 		try {
-			this.options.dispatchOutbox?.();
+			try { this.options.dispatchOutbox?.(); }
+			catch (error) {
+				// Direct callers without an error sink still receive the failure.
+				if (!this.options.onError) throw error;
+				this.options.onError(error);
+			}
 			lease = this.queue.claim(this.options.workerId, this.leaseMs);
 			if (!lease) return { status: "idle" };
 			const handler = this.handlerFor(lease);
@@ -155,6 +170,7 @@ export class StageJobScheduler {
 			const assertActive = () => {
 				controller.signal.throwIfAborted();
 				try {
+					this.options.assertRunnable?.(activeLease);
 					// Renew at the commit boundary too: timers may be delayed by synchronous work.
 					activeLease = this.queue.renew(activeLease, this.leaseMs);
 				} catch (error) {
@@ -172,6 +188,7 @@ export class StageJobScheduler {
 			}, this.heartbeatMs);
 			let result: StageJobHandlerResult;
 			try {
+				assertActive();
 				result = await handler(activeLease, controller.signal, assertActive);
 				assertActive();
 			} finally {

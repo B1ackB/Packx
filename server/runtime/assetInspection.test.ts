@@ -71,14 +71,14 @@ function harness(native = false, omitInspection = false, input = documentFixture
 	sessions.save(sessionScope, sessions.getSession(sessionScope)!.revision, [{ role: "user", content: "请根据附件生成需求单", messageId: "message-1", pinned: true }], new Date().toISOString());
 	const queue = new InMemoryStageJobQueue();
 	const outbox = new StageJobOutbox(engine, events, queue);
-	let worker = new RequirementBriefWorker(engine, runtime, artifacts, attachments, inspector);
+	let worker = new RequirementBriefWorker(engine, runtime, artifacts, attachments, inspector, undefined, undefined, conversations);
 	const scheduler = new StageJobScheduler(queue, { workerId: "document-worker", handlers: { "requirement-brief": (lease, signal, guard) => worker.executeLease(lease, signal, guard) } });
 	const api = new RequirementBriefWorkspaceApiController(conversations, engine, artifacts, outbox, scheduler, attachments);
 	const start = api.start(context, conversation.conversationId, { requestId: "start-1", industry: "print" });
 	expect(start.status).toBe(202);
 	const view = (start.body as { requirementBrief: RequirementBriefWorkspaceView }).requirementBrief;
 	const run = { ...context, runId: view.runId };
-	return { root, run, scope, api, scheduler, engine, attachments, artifacts, inspector, fake, stored, calls: () => calls, modelSawInspection: () => modelSawInspection, worker, replaceWorker: (value: RequirementBriefWorker) => { worker = value; }, runtime };
+	return { root, run, scope, api, scheduler, engine, attachments, artifacts, inspector, fake, stored, calls: () => calls, modelSawInspection: () => modelSawInspection, worker, conversations, replaceWorker: (value: RequirementBriefWorker) => { worker = value; }, runtime };
 }
 
 afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); for (const root of directories.splice(0)) rmSync(root, { recursive: true, force: true }); });
@@ -97,7 +97,7 @@ describe("asset inspection product slice", () => {
 		expect(h.engine.load(h.run).currentProposal).toBeUndefined();
 		const calls = h.calls();
 		const recoveredInspector = new AssetInspectionService(h.engine, h.attachments, h.fake, h.root);
-		h.replaceWorker(new RequirementBriefWorker(h.engine, { health: () => h.runtime.health(), executeTurn: async () => { throw new Error("Checkpoint recovery must not call model"); } }, h.artifacts, h.attachments, recoveredInspector));
+		h.replaceWorker(new RequirementBriefWorker(h.engine, { health: () => h.runtime.health(), executeTurn: async () => { throw new Error("Checkpoint recovery must not call model"); } }, h.artifacts, h.attachments, recoveredInspector, undefined, undefined, h.conversations));
 		await vi.advanceTimersByTimeAsync(300);
 		expect(await h.scheduler.runNext()).toMatchObject({ status: "completed" });
 		expect(h.engine.load(h.run).currentProposal?.version).toBe(1);

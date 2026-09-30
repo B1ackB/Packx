@@ -2,7 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { PLAN_LIMITS, PlanError, planBudgetBlock, parsePlan, parseSubagentResult, planSchema, subagentResultSchema, type PlanScope, type PlanWorkspace, type PlanVersion } from "../../src/enterprise/agentPlan";
 import type { StageJobLease, StageJobQueue } from "../../src/enterprise/stageJobQueue";
 import { RuntimeFailure, type AgentRuntimePort, type RuntimeTurnResult } from "../../src/runtime/contracts";
-import type { StageJobHandlerResult } from "../workers/stageJobScheduler";
+import { reconcileIndependently, type StageJobHandlerResult } from "../workers/stageJobScheduler";
 import { AgentPlanStore } from "./agentPlanStore";
 
 const hash = (value: unknown) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
@@ -135,7 +135,7 @@ export class AgentPlanWorkflow {
 		if (existing) return;
 		this.queue.enqueue({ ...scope, jobId, stageId: "plan-subagents", commandId: jobId, correlationId: jobId, expectedVersion: plan.version, sessionId: `planner-${hash([scope, plan.version]).slice(0, 40)}`, maxFailures: 1, maxSlices: PLAN_LIMITS.calls + 2, payload: { version: plan.version, generation: plan.generation } });
 	}
-	reconcile() { for (const scope of this.store.scopes()) this.dispatch(scope); }
+	reconcile() { reconcileIndependently(Object.fromEntries(this.store.scopes().map(scope => [hash(scope), () => this.dispatch(scope)]))); }
 	async execute(lease: StageJobLease, signal: AbortSignal, assertActive: () => void): Promise<StageJobHandlerResult> {
 		const scope = { tenantId: lease.tenantId, workspaceId: lease.workspaceId, runId: lease.runId };
 		let state = this.store.read(scope);

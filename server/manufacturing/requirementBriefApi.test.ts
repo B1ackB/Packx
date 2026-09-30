@@ -21,6 +21,7 @@ import { StageJobOutbox } from "../workers/stageJobOutbox";
 import { StageJobScheduler } from "../workers/stageJobScheduler";
 import { RequirementBriefWorkspaceApiController } from "./requirementBriefApi";
 import { RequirementBriefWorker } from "./requirementBriefWorker";
+import { requirementMessagesChanged } from "./requirementSourceLifecycle";
 
 const directories: string[] = [];
 const context = {
@@ -75,7 +76,7 @@ function harness() {
 	const artifacts = new FileArtifactContentStore(join(directory, "artifacts"));
 	const queue = new InMemoryStageJobQueue();
 	const outbox = new StageJobOutbox(engine, eventStore, queue);
-	const worker = new RequirementBriefWorker(engine, runtime, artifacts, attachments);
+	const worker = new RequirementBriefWorker(engine, runtime, artifacts, attachments, undefined, undefined, undefined, conversations);
 	const scheduler = new StageJobScheduler(queue, {
 		workerId: "requirement-workspace-test",
 		handlers: { "requirement-brief": (lease, signal, guard) => worker.executeLease(lease, signal, guard) },
@@ -92,6 +93,7 @@ function harness() {
 			attachments,
 		),
 		attachments,
+		engine, artifacts, runtime, queue,
 		outbox,
 		eventPath,
 		sessions,
@@ -118,6 +120,130 @@ async function readyForApproval(initialAttachment = false) {
 	expect(requirement(h.controller.get(context, h.conversationId)).state.stageStatus).toBe("waiting_approval");
 	return h;
 }
+
+function appendMessage(h: ReturnType<typeof harness>, role: "user" | "assistant", content: string) {
+	const scope = { ...context, runId: h.conversationId, sessionId: h.conversationId };
+	const stored = h.sessions.getSession(scope)!;
+	h.sessions.save(scope, stored.revision, [...stored.messages, { role, content, messageId: `message-${stored.revision}`, createdAt: "2026-09-30T00:00:00Z" }], "2026-09-30T00:00:00Z");
+}
+
+it.each(["review", "gate", "export"] as const)("invalidates changed user messages at %s without replacing confirmed Facts", async phase => {
+	const h = await readyForApproval();
+	const before = requirement(h.controller.get(context, h.conversationId));
+	const input = { requestId: "message-approval", decision: "approved", ...approvalReview(before) };
+	appendMessage(h, "assistant", "已记录，请核对。");
+	expect(requirement(h.controller.get(context, h.conversationId)).state).toEqual(before.state);
+	if (phase !== "review") expect(h.controller.resolveApproval(context, h.conversationId, input).status).toBe(202);
+	if (phase === "export") expect((await h.scheduler.runNext()).status).toBe("completed");
+	appendMessage(h, "user", "数量改为 7000 个，原来的 5000 个作废。");
+	if (phase === "review") expect(h.controller.resolveApproval(context, h.conversationId, input)).toMatchObject({ status: 409, body: { code: "approval_review_stale" } });
+	if (phase === "gate") expect(await h.scheduler.runNext()).toMatchObject({ status: "dead_letter", job: { lastFailure: { code: "context_failure" } } });
+	expect(h.controller.delivery(context, h.conversationId, before.state.currentProposal!.version)).toMatchObject({ status: 200, body: { delivery: { status: "stale" } } });
+	const state = requirement(h.controller.get(context, h.conversationId)).state;
+	expect(state).toMatchObject({ stageStatus: "revision_required", approval: { status: "superseded" }, facts: { quantity: { value: 5000, status: "verified" } } });
+	expect(requirement(h.controller.get(context, h.conversationId)).state.aggregateVersion).toBe(state.aggregateVersion);
+});
+
+it("fences a message change during intake before committing its checkpoint", async () => {
+	const h = harness(), execute = h.runtime.executeTurn.bind(h.runtime);
+	h.runtime.executeTurn = async (...args) => { const result = await execute(...args); appendMessage(h, "user", "改为 7000 个"); return result; };
+	h.controller.start(context, h.conversationId, { requestId: "changed-during-intake", industry: "print" });
+	expect(await h.scheduler.runNext()).toMatchObject({ status: "dead_letter", job: { lastFailure: { code: "context_failure" } } });
+	expect(requirement(h.controller.get(context, h.conversationId)).state.proposalVersions).toHaveLength(0);
+});
+
+it.each(["cancelled", "passed"] as const)("supports an explicit revision from %s and preserves the previous delivery", async terminal => {
+	const h = await readyForApproval();
+	const before = requirement(h.controller.get(context, h.conversationId));
+	if (terminal === "passed") {
+		h.controller.resolveApproval(context, h.conversationId, { requestId: "finish-before-revision", decision: "approved", ...approvalReview(before) });
+		await h.scheduler.runNext();
+		// Direct human entry after delivery also opens a revision, never verifies the new candidate.
+		expect(h.controller.recordFact(context, h.conversationId, { requestId: "quantity-correction", key: "quantity", value: 7000 }).status).toBe(200);
+		expect(requirement(h.controller.get(context, h.conversationId)).state.facts.quantity).toMatchObject({ value: 7000, status: "unverified" });
+	} else h.controller.cancel(context, h.conversationId, { requestId: "stop-before-revision" });
+	appendMessage(h, "user", "请按更正后的数量重新整理。");
+	const input = { requestId: "explicit-revision", industry: "print" };
+	expect(h.controller.start(context, h.conversationId, input).status).toBe(202);
+	expect(h.controller.start(context, h.conversationId, input).status).toBe(202);
+	expect((await h.scheduler.runNext()).status).toBe("completed");
+	const after = requirement(h.controller.get(context, h.conversationId));
+	expect(after.state.currentProposal!.version).toBeGreaterThan(before.state.currentProposal!.version);
+	expect(h.controller.delivery(context, h.conversationId, before.state.currentProposal!.version)).toMatchObject({ body: { delivery: { status: "stale", content: before.artifact!.content } } });
+});
+
+it("opens a new execution after completed approval without requiring a dummy source change", async () => {
+	const h = await readyForApproval(), before = requirement(h.controller.get(context, h.conversationId));
+	h.controller.resolveApproval(context, h.conversationId, { requestId: "finish", decision: "approved", ...approvalReview(before) }); await h.scheduler.runNext();
+	const finished = requirement(h.controller.get(context, h.conversationId)).state;
+	expect(h.controller.start(context, h.conversationId, { requestId: "generate-ready", industry: "print" }).status).toBe(202);
+	expect(requirement(h.controller.get(context, h.conversationId)).state).toEqual(finished);
+	expect(h.controller.start(context, h.conversationId, { requestId: "revise-finished", industry: "print" }).status).toBe(202);
+	expect((await h.scheduler.runNext()).status).toBe("completed");
+	expect(requirement(h.controller.get(context, h.conversationId)).state).toMatchObject({ currentProposal: { version: 3 }, approval: { status: "requested" } });
+});
+
+it.each(["cancelled", "needs_input"] as const)("keeps the original execution replay from restarting %s", async status => {
+	const h = harness(), input = { requestId: "original-execution", industry: "print" };
+	h.controller.start(context, h.conversationId, input);
+	if (status === "cancelled") h.controller.cancel(context, h.conversationId, { requestId: "cancel-original" });
+	else await h.scheduler.runNext();
+	const before = requirement(h.controller.get(context, h.conversationId)).state;
+	expect(before.stageStatus).toBe(status);
+	expect(h.controller.start(context, h.conversationId, input).status).toBe(202);
+	expect(requirement(h.controller.get(context, h.conversationId)).state).toEqual(before);
+	expect((await h.scheduler.runNext()).status).toBe("idle");
+});
+
+it.each(["requirement-runtime-checkpoint", "requirement-intake-corrections", "requirement-brief"])("preserves an abandoned %s and lets a new execution proceed", async artifactId => {
+	const h = harness(), put = h.artifacts.putJson.bind(h.artifacts);
+	let injected = false, abandoned: unknown;
+	h.artifacts.putJson = (key, value) => {
+		const ref = put(key, value);
+		if (!injected && key.artifactId === artifactId) { injected = true; abandoned = value; throw new Error("crash after immutable write"); }
+		return ref;
+	};
+	h.controller.start(context, h.conversationId, { requestId: "abandoned", industry: "print" });
+	expect((await h.scheduler.runNext()).status).toBe("retry_scheduled");
+	h.artifacts.putJson = put;
+	h.controller.cancel(context, h.conversationId, { requestId: "cancel-abandoned" });
+	expect(h.controller.start(context, h.conversationId, { requestId: "new-execution", industry: "print" }).status).toBe(202);
+	expect((await h.scheduler.runNext()).status).toBe("completed");
+	const state = requirement(h.controller.get(context, h.conversationId)).state;
+	expect(state.currentProposal?.version).toBe(2);
+	expect(h.artifacts.readJson({ ...state, artifactId, artifactVersion: 1 })).toEqual(abandoned);
+	expect((h.artifacts.readJson({ ...state, artifactId: "requirement-runtime-checkpoint", artifactVersion: 2 }) as { workerCommandId: string }).workerCommandId).toBe("new-execution:execute");
+});
+
+it("restarts a cancelled first execution with changed messages before any Artifact exists", async () => {
+	const h = harness();
+	h.controller.start(context, h.conversationId, { requestId: "first-queued", industry: "print" });
+	h.controller.cancel(context, h.conversationId, { requestId: "cancel-queued" });
+	appendMessage(h, "user", "数量修改为 7000 个。");
+	expect(h.controller.start(context, h.conversationId, { requestId: "new-input", industry: "print" }).status).toBe(202);
+	expect((await h.scheduler.runNext()).status).toBe("completed");
+	expect(requirement(h.controller.get(context, h.conversationId)).state.facts.customer_brief.value).toContain("7000");
+});
+
+it("preserves an orphan draft even when no intake checkpoint reserved its version", async () => {
+	const h = harness();
+	const started = requirement(h.controller.start(context, h.conversationId, { requestId: "orphan-draft", industry: "print" }));
+	const orphan = { note: "An interrupted review wrote this draft before its version event" };
+	h.artifacts.putJson({ ...context, runId: started.runId, artifactId: "requirement-brief", artifactVersion: 1 }, orphan);
+	expect((await h.scheduler.runNext()).status).toBe("completed");
+	expect(requirement(h.controller.get(context, h.conversationId)).state.currentProposal?.version).toBe(2);
+	expect(h.artifacts.readJson({ ...context, runId: started.runId, artifactId: "requirement-brief", artifactVersion: 1 })).toEqual(orphan);
+});
+
+it("checks legacy text sources without invalidating them for assistant-only messages", async () => {
+	const h = await readyForApproval(), state = requirement(h.controller.get(context, h.conversationId)).state;
+	delete state.facts.customer_messages;
+	appendMessage(h, "assistant", "已记录。");
+	const read = () => (h.conversations.get(context, h.conversationId).body as { conversation: ConversationView }).conversation;
+	expect(requirementMessagesChanged(state, read())).toBe(false);
+	appendMessage(h, "user", "数量改为 7000 个。");
+	expect(requirementMessagesChanged(state, read())).toBe(true);
+});
 
 it.each(["approved", "rejected"] as const)("rejects stale %s decisions and binds retries to the originally reviewed version", async decision => {
 	const h = await readyForApproval();

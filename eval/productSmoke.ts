@@ -453,6 +453,12 @@ try {
 		assert.equal((await api(`${path}/requirement-brief/versions/1`)).delivery.status, "stale");
 		assert.equal((await api(`${path}/requirement-brief/versions/2`)).delivery.status, "approved");
 		for (const format of ["md", "html", "json"]) { const response = await fetch(`${baseUrl}${path}/requirement-brief/versions/2?format=${format}`, { headers }); assert(response.ok); assert((await response.text()).includes("5000")); }
+		await api(`${path}/messages`, { messageId: "changed-requirement-source", content: "客户最新通知：数量改为 7000 个，原 5000 个需求作废，请重新核对。" });
+		const staleDelivery = (await api(`${path}/requirement-brief/versions/2`)).delivery;
+		assert.equal(staleDelivery.status, "stale");
+		assert.equal(staleDelivery.content.facts.find(fact => fact.key === "quantity")?.value, 5000);
+		assert.equal((await api(`${path}/requirement-brief`)).requirementBrief.state.approval?.status, "superseded");
+		console.log("PASS: new user messages invalidate approved delivery without overwriting confirmed quantity through the actual HTTP path.");
 		const pending = api(`${path}/messages`, { messageId: "cancel-message", content: "停止测试" }).catch((error: unknown) => error);
 		for (let attempt = 0; attempt < 40; attempt++) { if ((await api(`${path}/activity`)).activity?.phase === "model") break; await new Promise((resolve) => setTimeout(resolve, 50)); }
 		await api(`${path}/stop`, {}); assert(await pending instanceof Error);
@@ -480,7 +486,8 @@ try {
 		assert.equal(persisted.getSession({ tenantId: "local-user", workspaceId: "default-workspace", runId: id, sessionId: id }), undefined);
 		assert(schedules.list({ tenantId: "local-user", workspaceId: "default-workspace" }).every((schedule) => schedule.status === "paused"));
 		const retained = new ProposalRunEngine(new FileEnterpriseEventStore(join(dataDirectory, "events.json")), "requirement-brief").load({ tenantId: "local-user", workspaceId: "default-workspace", runId: start.requirementBrief.runId });
-		assert.equal(retained.stageStatus, "passed"); assert.equal(retained.approval?.status, "approved");
+		assert.equal(retained.stageStatus, "cancelled"); assert.equal(retained.approval?.status, "superseded");
+		assert.equal(retained.currentProposal?.freshness, "stale");
 		console.log("PASS: authenticated live SSE before completion, durable scoped model calls, cache usage, cancellation telemetry, Agent-triggered per-operation approval without directory grants, approved creation/modification/deletion at absolute paths, original-content backups, retired grant APIs, all-write approval, scoped history, same-message isolation, native PDF slice, workflow approval/exports, cancellation, conversation deletion and audit retention; provider = local deterministic fixture.");
 	}
 } finally { await close(); }
