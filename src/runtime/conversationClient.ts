@@ -1,3 +1,5 @@
+import type { AssetInspectionRecord } from "./assetInspection";
+import type { RequirementTemplateView, RequirementTemplatePreview } from "../manufacturing/requirementTemplate";
 import type { RequirementTrialInput, RequirementTrialObservation } from "../manufacturing/requirementTrial";
 import type { ModelSettingsInput, ModelSettingsView } from "./modelSettings";
 import type { PlanWorkspace } from "../enterprise/agentPlan";
@@ -118,8 +120,8 @@ export class ConversationClient {
 	browseDirectory(conversationId: string, path: string): Promise<LocalDirectoryListing> {
 		return request(`/api/conversations/${encodeURIComponent(conversationId)}/files/directories?${new URLSearchParams({ path })}`);
 	}
-	async readDocument(conversationId: string, path: string) {
-		return (await request<{ document: import("./assetInspection").AssetInspectionRecord }>(`/api/conversations/${encodeURIComponent(conversationId)}/files/document-content?${new URLSearchParams({ path })}`)).document;
+	async readDocument(conversationId: string, path: string, ocrCursor?: string) {
+		return (await request<{ document: import("./assetInspection").AssetInspectionRecord }>(`/api/conversations/${encodeURIComponent(conversationId)}/files/document-content?${new URLSearchParams({ path, ...(ocrCursor ? { ocrCursor } : {}) })}`)).document;
 	}
 	readLocalFile(conversationId: string, path: string): Promise<{ absolutePath: string; content: string; sha256: string }> {
 		return request(`/api/conversations/${encodeURIComponent(conversationId)}/files/local-content?${new URLSearchParams({ path })}`);
@@ -147,6 +149,23 @@ export class ConversationClient {
 
 	async activity(conversationId: string, requirement = false): Promise<RuntimeActivity | undefined> {
 		return (await request<{ activity?: RuntimeActivity }>(`/api/conversations/${encodeURIComponent(conversationId)}/activity${requirement ? "?run=requirement" : ""}`)).activity;
+	}
+
+	async uploadTemplate(conversationId: string, file: File): Promise<RequirementTemplateView> {
+		const response = await attachmentRequest(`/api/conversations/${encodeURIComponent(conversationId)}/requirement-brief/templates?name=${encodeURIComponent(file.name)}`, { method: "POST", headers: { "content-type": "application/octet-stream" }, body: file });
+		return ((await response.json()) as { template: RequirementTemplateView }).template;
+	}
+	async template(conversationId: string, templateId: string): Promise<RequirementTemplateView> {
+		return (await request<{ template: RequirementTemplateView }>(`/api/conversations/${encodeURIComponent(conversationId)}/requirement-brief/templates/${templateId}`)).template;
+	}
+	async previewTemplate(conversationId: string, templateId: string, version: number, mapping: Record<string, string>): Promise<RequirementTemplatePreview> {
+		return (await request<{ preview: RequirementTemplatePreview }>(`/api/conversations/${encodeURIComponent(conversationId)}/requirement-brief/templates/${templateId}?action=preview`, { method: "POST", body: JSON.stringify({ version, mapping }) })).preview;
+	}
+	async generateTemplate(conversationId: string, preview: RequirementTemplatePreview): Promise<{ exportId: string; filename: string }> {
+		return request(`/api/conversations/${encodeURIComponent(conversationId)}/requirement-brief/templates/${preview.template.templateId}?action=generate`, { method: "POST", body: JSON.stringify({ version: preview.version, mapping: preview.mapping, reviewHash: preview.reviewHash, confirmed: true }) });
+	}
+	async downloadTemplate(conversationId: string, exportId: string, version: number): Promise<Blob> {
+		return (await attachmentRequest(`/api/conversations/${encodeURIComponent(conversationId)}/requirement-brief/templates/${exportId}?action=download`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ version }) })).blob();
 	}
 
 	async delivery(conversationId: string, version: number): Promise<RequirementDelivery> {
@@ -206,6 +225,10 @@ export class ConversationClient {
 			},
 		);
 		return ((await response.json()) as { attachment: ConversationAttachment }).attachment;
+	}
+
+	async inspectAttachment(conversationId: string, attachmentId: string, signal: AbortSignal, ocrCursor?: string): Promise<AssetInspectionRecord> {
+		return (await request<{ document: AssetInspectionRecord }>(`/api/conversations/${encodeURIComponent(conversationId)}/attachments/${encodeURIComponent(attachmentId)}/inspection${ocrCursor ? `?ocrCursor=${encodeURIComponent(ocrCursor)}` : ""}`, { signal })).document;
 	}
 
 	async readAttachment(conversationId: string, attachmentId: string): Promise<Blob> {

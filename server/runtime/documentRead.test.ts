@@ -67,6 +67,41 @@ describe.skipIf(process.platform !== "darwin" || process.env.BLACKX_RUN_SEATBELT
 			expect((result.body as { conversation: ConversationView }).conversation.messages[0].attachments?.[0].name).toBe(name);
 		}, 20_000);
 	}
+	it("reads scanned PDFs, keeps all 51 text pages and OCRs a scan on page 52", async () => {
+		const h = setup(), scope = { ...identity, runId: h.conversation.conversationId };
+		for (const name of ["scanned.pdf", "long-text.pdf", "late-scan.pdf"]) {
+			const path = join(h.root, name); writeFileSync(path, readFileSync(`server/testing/documents/${name}`));
+			const result = await h.service.preview(scope, path, (context, file) => h.files.readDocument(context, file), new AbortController().signal);
+			expect(result.inspection.truncated).toBe(false);
+			if (name !== "scanned.pdf") { expect(result.inspection.pages[50].text).toContain("page 51"); expect(result.inspection.pages[0].method).toBe("text"); }
+			if (name !== "long-text.pdf") { expect(result.inspection.pages.at(-1)?.text).toContain("7200"); expect(result.inspection.pages.at(-1)?.method).toBe("ocr"); expect(result.inspection.pages.at(-1)?.warnings).toContain("ocr_requires_review"); }
+		}
+	}, 60_000);
+	it("preserves conflicting native and OCR observations on a mixed page and rejects unreadable or cancelled input", async () => {
+		const h = setup(), scope = { ...identity, runId: h.conversation.conversationId };
+		const read = (path: string, signal = new AbortController().signal) => h.service.preview(scope, path, (context, file) => h.files.readDocument(context, file), signal);
+		const path = join(h.root, "mixed.pdf"); writeFileSync(path, readFileSync("server/testing/documents/mixed-page.pdf"));
+		const result = await read(path), page = result.inspection.pages[0];
+		expect(page.method).toBe("text+ocr"); expect(page.text).toContain("4800"); expect(page.text).toContain("7200");
+		expect(page.warnings).toContain("ocr_supplement_may_conflict");
+		for (const data of [readFileSync("server/testing/documents/encrypted.pdf"), Buffer.from("%PDF-1.7 broken")]) {
+			writeFileSync(path, data); await expect(read(path)).rejects.toThrow();
+		}
+		writeFileSync(path, readFileSync("server/testing/documents/mixed-page.pdf"));
+		await expect(read(path, AbortSignal.abort())).rejects.toThrow();
+	}, 60_000);
+	it("resumes OCR batches after restart, keeps earlier pages and rejects changed-source cursors", async () => {
+		const h = setup(), scope = { ...identity, runId: h.conversation.conversationId }, path = join(h.root, "batch.pdf");
+		writeFileSync(path, readFileSync("server/testing/documents/ocr-batches.pdf"));
+		const read = (service: AssetInspectionService, cursor?: string) => service.preview(scope, path, (context, file) => h.files.readDocument(context, file), new AbortController().signal, cursor);
+		let result = await read(h.service); const cursor = result.ocrCursor;
+		expect(cursor).toBeTruthy(); expect(result.inspection.pages).toHaveLength(14);
+		const restarted = new AssetInspectionService(new ProposalRunEngine(new InMemoryEnterpriseEventStore()), h.attachments, new MacOsSeatbeltSandboxedToolExecutor({ workspaceRoot: h.root }), h.root);
+		while (result.ocrCursor) result = await read(restarted, result.ocrCursor);
+		for (const page of result.inspection.pages) { expect(page.text).toContain("7200"); expect(page.warnings).not.toContain("ocr_pending"); }
+		writeFileSync(path, documentFixture()); await expect(read(restarted, cursor)).rejects.toThrow("source changed");
+	}, 90_000);
+
 	it("reads beyond the old text limit across restart, preserving units and refusing changed-source cursors", async () => {
 		const h = setup(); let service = h.service; const source = join(h.root, "long-document.txt");
 		const lines = Array.from({ length: 500 }, (_, index) => `ROW-${index}: 100 µm; no PVC; 23 °C, 50% RH; supplier verification pending.`);

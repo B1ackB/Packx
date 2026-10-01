@@ -3,9 +3,10 @@ export interface AssetInspection {
 	bytes: number;
 	kind: "pdf" | "image" | "text" | "file" | "word" | "spreadsheet";
 	status: "parsed" | "needs_ocr" | "metadata_only" | "unsupported";
-	pages: Array<{ page: number; text: string }>;
+	pages: Array<{ page: number; text: string; method?: "text" | "ocr" | "text+ocr"; confidence?: number; warnings?: string[] }>;
 	truncated: boolean;
 	pageCount?: number;
+	ocrNextPage?: number;
 	width?: number;
 	height?: number;
 }
@@ -16,7 +17,8 @@ export interface AssetInspectionRecord {
 	sha256: string;
 	sourceRef: string;
 	inspection: AssetInspection;
-	parserVersion: "1.0.0" | "1.1.0" | "1.2.0";
+	parserVersion: "1.0.0" | "1.1.0" | "1.2.0" | "1.3.0";
+	ocrCursor?: string;
 	continuation?: { cursor: string | null; offset: number; total: number; sourceTruncated: boolean; error?: string };
 }
 
@@ -26,7 +28,7 @@ export function isAssetInspection(value: unknown): value is AssetInspection {
 	return data.schemaVersion === "asset-inspection.v1" && Number.isSafeInteger(data.bytes) && data.bytes > 0 && data.bytes <= 10 * 1024 * 1024 &&
 		["pdf", "image", "text", "file", "word", "spreadsheet"].includes(data.kind) && ["parsed", "needs_ocr", "metadata_only", "unsupported"].includes(data.status) &&
 		typeof data.truncated === "boolean" && Array.isArray(data.pages) && data.pages.length <= 1000 &&
-		data.pages.every((page, index) => page && page.page === index + 1 && typeof page.text === "string") &&
+		data.pages.every((page, index) => page && page.page === index + 1 && typeof page.text === "string" && (page.method === undefined || ["text", "ocr", "text+ocr"].includes(page.method)) && (page.confidence === undefined || Number.isFinite(page.confidence) && page.confidence >= 0 && page.confidence <= 1) && (page.warnings === undefined || Array.isArray(page.warnings) && page.warnings.length <= 10 && page.warnings.every((warning) => typeof warning === "string" && warning.length <= 100))) &&
 		data.pages.reduce((count, page) => count + page.text.length, 0) <= 2_000_000 &&
-		[data.pageCount, data.width, data.height].every((number) => number === undefined || Number.isSafeInteger(number) && number > 0);
+		[data.pageCount, data.ocrNextPage, data.width, data.height].every((number) => number === undefined || Number.isSafeInteger(number) && number > 0);
 }
