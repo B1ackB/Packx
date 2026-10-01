@@ -1,3 +1,5 @@
+import { documentWarnings } from "./DocumentImportPreview";
+import { RequirementTemplate } from "./RequirementTemplate";
 import { errorText } from "../i18n";
 import { useEffect, useState } from "react";
 import { ConversationClient } from "../runtime/conversationClient";
@@ -59,10 +61,12 @@ export function DeliveryPreview({ conversationId, versions, currentVersion, revi
 			{previous && <details><summary>{en ? `Compare with v${previous.version} · ` : `与 v${previous.version} 比较 · `}{compareRequirementVersions(previous.content, delivery.content).length} {en ? "field changes" : "个字段变化"}</summary>{compareRequirementVersions(previous.content, delivery.content).map((change) => <div className="version-change" key={change.key}><strong>{field(change.key)}</strong><del>{value(change.before)}</del><span>{value(change.after)}</span></div>)}</details>}
 			<div id={`sources-${version}`} className="source-list">{delivery.sources.map((source) => <details key={source.attachmentId} open={sourceRef === source.sourceRef} onToggle={(event) => { if (!event.currentTarget.open && sourceRef === source.sourceRef) setSourceRef(undefined); }}><summary>{source.name} <small>{statusFor(language, source.inspection.status, inspectionStatusLabels[source.inspection.status])}{source.inspection.truncated ? en ? " · Truncated" : " · 内容截断" : ""}</small></summary>
 				{source.inspection.status === "needs_ocr" && <p>{en ? "This PDF has no extractable text. Provide a text version or enter key fields manually." : "这份 PDF 没有可提取文字。请补充文字版或人工录入关键字段。"}</p>}
+				{source.inspection.ocrNextPage && <p>{en ? "OCR remains incomplete. Use the attachment preview to continue, then regenerate the brief." : "仍有未识别页，请在附件预览继续 OCR，并重新生成需求单。"}</p>}
 				{source.inspection.width && <p>{source.inspection.width} × {source.inspection.height} {en ? "pixels · not a printing dimension or production-ready proof" : "像素 · 不代表印刷尺寸或生产就绪"}</p>}
-				{source.inspection.pages.map((page) => <div className="source-page" key={page.page}><strong>{en ? "Page" : "第"} {page.page}{en ? "" : " 页"}</strong><pre>{page.text || (en ? "No text could be extracted from this page" : "本页无可提取文字")}</pre></div>)}
+				{source.inspection.pages.map((page) => <div className="source-page" key={page.page}><strong>{en ? "Page" : "第"} {page.page}{en ? "" : " 页"}</strong>{page.warnings?.map((warning) => <p key={warning}>{en ? warning : documentWarnings[warning] ?? warning}</p>)}<pre>{page.text || (en ? "No text could be extracted from this page" : "本页无可提取文字")}</pre></div>)}
 				<small className="source-digest">SHA-256 {source.sha256} · {en ? "Parser" : "解析器"} {source.parserVersion}</small>
 			</details>)}</div>
+			<RequirementTemplate key={`${conversationId}:${version}:${revision}`} conversationId={conversationId} delivery={delivery} language={language} />
 			<div className="export-actions"><button disabled={busy} onClick={() => void download("md")}>{en ? "Export Markdown" : "导出 Markdown"}</button><button disabled={busy} onClick={() => void download("html")}>{en ? "Print HTML" : "打印版 HTML"}</button><button disabled={busy} onClick={() => void download("json")}>JSON</button></div>
 			<small>{en ? "Exports include version and confirmation status. Save the print version as a PDF in your browser." : "导出包含版本与确认状态。打印版可在浏览器中保存为 PDF。"}</small>
 		</>}

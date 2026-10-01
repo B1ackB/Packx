@@ -1,3 +1,4 @@
+import { DocumentImportPreview } from "./components/DocumentImportPreview";
 import { KnowledgePanel } from "./components/KnowledgePanel";
 import { MemoryPanel } from "./components/MemoryPanel";
 import { ModelSettings } from "./components/ModelSettings";
@@ -984,7 +985,7 @@ function App() {
 										: <span>{attachment.kind === "text" ? "TXT" : "FILE"}</span>}
 									<strong>{attachment.name}</strong>
 									<small>{selectedAttachmentIds.includes(attachment.attachmentId) ? en ? "Will be read with the next message" : "将随下一条消息读取" : en ? "Attach to the next message" : "点击附到下一条消息"}</small>
-								</button><button className="attachment-download" onClick={() => void downloadAttachment(attachment)} aria-label={`${en ? "Download" : "下载"} ${attachment.name}`}>{en ? "Download" : "下载"}</button><button disabled={uploading || sending || requirementBusy || hasActiveBackgroundTask} onClick={() => void withdrawAttachment(attachment)} aria-label={`${en ? "Withdraw" : "撤回"} ${attachment.name}`}>{en ? "Withdraw" : "撤回"}</button></div>
+								</button><button className="attachment-download" onClick={() => void downloadAttachment(attachment)} aria-label={`${en ? "Download" : "下载"} ${attachment.name}`}>{en ? "Download" : "下载"}</button><button disabled={uploading || sending || requirementBusy || hasActiveBackgroundTask} onClick={() => void withdrawAttachment(attachment)} aria-label={`${en ? "Withdraw" : "撤回"} ${attachment.name}`}>{en ? "Withdraw" : "撤回"}</button>{active && <DocumentImportPreview key={`${active.conversationId}:${attachment.attachmentId}`} conversationId={active.conversationId} attachmentId={attachment.attachmentId} language={language} />}</div>
 							))}
 						</div>
 					)}

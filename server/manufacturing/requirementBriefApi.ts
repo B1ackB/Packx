@@ -1,3 +1,5 @@
+import { RequirementTemplateService } from "./requirementTemplate";
+import { OfficeTemplateError } from "../runtime/officeTemplate";
 import { validRequirementTrial, type RequirementTrialObservation } from "../../src/manufacturing/requirementTrial";
 import { factSourceReference, type KnowledgeService } from "../knowledge/service";
 import { KnowledgeError } from "../../src/enterprise/knowledge";
@@ -218,6 +220,36 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 			if (!/^[a-zA-Z0-9][a-zA-Z0-9_-]{7,63}$/.test(observationId)) throw new ProposalWorkspaceValidationError("记录编号不正确。");
 			try { return { status: 200, body: { observation: this.requirementArtifacts.readJson({ ...scope, artifactId: `review-trial-${observationId}`, artifactVersion: 1 }) } }; }
 			catch (error) { if (error instanceof ArtifactStoreError && error.code === "artifact_not_found") return { status: 404, body: { code: error.code } }; throw error; }
+		});
+	}
+
+	template(context: Parameters<ConversationApiController["get"]>[0], conversationId: unknown, action: string, id: string, payload: unknown) {
+		return this.respond(() => {
+			const { scope } = this.target(context, conversationId);
+			const service = new RequirementTemplateService(this.requirementArtifacts, this.now);
+			try {
+				if (action === "upload") {
+					const input = payload as { name: string; data: Buffer };
+					return { status: 201, body: { template: service.upload(scope, context.actorId ?? "", input.name, input.data) } };
+				}
+				if (action === "view") return { status: 200, body: { template: service.view(scope, id) } };
+				const input = payload as { version: number; mapping?: unknown; confirmed?: unknown; reviewHash?: unknown };
+				if (!input || !Number.isSafeInteger(input.version)) throw new OfficeTemplateError("请选择需求版本");
+				const response = this.delivery(context, conversationId, input.version);
+				if (response.status !== 200) return response;
+				const { delivery } = response.body as { delivery: RequirementDelivery };
+				if (action === "preview") return { status: 200, body: { preview: service.preview(scope, id, delivery, input.mapping) } };
+				if (action === "generate") return { status: 201, body: service.generate(scope, context.actorId ?? "", id, delivery, input) };
+				if (action === "download") {
+					const file = service.download(scope, id, delivery);
+					return { status: 200, body: { filename: file.filename, data: file.data.toString("base64") } };
+				}
+				throw new OfficeTemplateError("模板操作无效");
+			} catch (error) {
+				if (error instanceof OfficeTemplateError) return { status: 400, body: { code: "invalid_office_template", message: error.message } };
+				if (error instanceof ArtifactStoreError && error.code === "artifact_not_found") return { status: 404, body: { code: error.code } };
+				throw error;
+			}
 		});
 	}
 

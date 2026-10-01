@@ -1,3 +1,5 @@
+import { readOfficeZip } from "../server/runtime/officeTemplate";
+import type { RequirementTemplateView, RequirementTemplatePreview } from "../src/manufacturing/requirementTemplate";
 import type { MemoryView } from "../src/enterprise/personalMemory";
 import type { TaskCheckpointView } from "../src/enterprise/taskCheckpoint";
 import type { PlanWorkspace } from "../src/enterprise/agentPlan";
@@ -395,6 +397,11 @@ try {
 	const upload = await fetch(`${baseUrl}${path}/attachments?requestId=smoke-upload&name=customer.pdf`, { method: "POST", headers: { ...headers, "content-type": "application/pdf" }, body: pdf });
 	assert(upload.ok);
 	const attachment = (await upload.json() as { attachment: { attachmentId: string } }).attachment;
+	const importedDocument = await api<{ document: { inspection: { pages: Array<{ text: string }> } } }>(`${path}/attachments/${attachment.attachmentId}/inspection`);
+	assert(importedDocument.document.inspection.pages[0].text.includes("5000"));
+	assert.equal((await fetch(`${baseUrl}${path}/attachments/${attachment.attachmentId}/inspection`)).status, 403);
+	assert.equal((await fetch(`${baseUrl}${path}/attachments/%ZZ/inspection`, { headers })).status, 400);
+	assert.equal((await fetch(`${baseUrl}/api/conversations/%ZZ/attachments/${attachment.attachmentId}/inspection`, { headers })).status, 400);
 	const start = await api(`${path}/requirement-brief`, { requestId: "smoke-start", industry: "print" }); assert(start.requirementBrief.runId);
 	async function settled(): Promise<RequirementBriefWorkspaceView> {
 		for (let attempt = 0; attempt < 150; attempt++) {
@@ -411,6 +418,26 @@ try {
 	assert(review.sourceVersions.some((source) => source.ref.includes("#page=1")));
 	const v1 = await api(`${path}/requirement-brief/versions/1`); assert.equal(v1.delivery.sources[0].inspection.status, "parsed"); assert.equal(v1.delivery.status, "draft");
 	assert.equal((await api<LocalFileLocations>(`${path}/files/directories`)).locations.workingDirectory, realpathSync(directory));
+	const generatedTemplates: string[] = [];
+	for (const format of ["docx", "xlsx"]) {
+		const templatePath = `${path}/requirement-brief/templates`;
+		const upload = await fetch(`${baseUrl}${templatePath}?name=customer-notice.${format}`, { method: "POST", headers: { ...headers, "content-type": "application/octet-stream" }, body: readFileSync(`public/templates/packaging-notice.${format}`) });
+		assert(upload.ok, await upload.clone().text());
+		const { template } = await upload.json() as { template: RequirementTemplateView };
+		assert.equal((await fetch(`${baseUrl}${templatePath}/${template.templateId}`)).status, 403);
+		assert.equal((await fetch(`${baseUrl}${templatePath}/${template.templateId}?action=preview`, { method: "POST", headers: { ...headers, "content-type": "application/json" }, body: "{" })).status, 400);
+		const mapping = Object.fromEntries(template.slots.map(({ key }) => [key, key === "notice_title" ? "title" : key]));
+		const { preview } = await api<{ preview: RequirementTemplatePreview }>(`${templatePath}/${template.templateId}?action=preview`, { version: 1, mapping });
+		assert.deepEqual(preview.errors, []); assert(preview.values.quantity.includes("UNVERIFIED"));
+		const payload = { version: 1, mapping, reviewHash: preview.reviewHash, confirmed: true };
+		const generated = await api<{ exportId: string; filename: string }>(`${templatePath}/${template.templateId}?action=generate`, payload);
+		assert.deepEqual(await api(`${templatePath}/${template.templateId}?action=generate`, payload), generated);
+		const download = await fetch(`${baseUrl}${templatePath}/${generated.exportId}?action=download`, { method: "POST", headers: { ...headers, "content-type": "application/json" }, body: JSON.stringify({ version: 1 }) });
+		assert(download.ok); assert(download.headers.get("content-disposition")?.includes(format));
+		const binary = Buffer.from(await download.arrayBuffer());
+		assert([...readOfficeZip(binary).values()].some((part) => part.toString().includes("5000")));
+		generatedTemplates.push(generated.exportId);
+	}
 	const metrics = await api<ModelTelemetryView>(`${path}/model-calls`);
 	assert(metrics.calls.some((call) => call.kind === "count_tokens"));
 	assert(metrics.calls.some((call) => call.kind === "generate" && call.status === "succeeded" && call.response?.model === "local-fixture"));
@@ -446,6 +473,8 @@ try {
 		}
 		await api(`${path}/requirement-brief`, { requestId: "smoke-revise", industry: "print" });
 		const reviewed = (await settled()).state;
+		for (const exportId of generatedTemplates) assert.equal((await fetch(`${baseUrl}${path}/requirement-brief/templates/${exportId}?action=download`, { method: "POST", headers: { ...headers, "content-type": "application/json" }, body: JSON.stringify({ version: 1 }) })).status, 400);
+
 		assert.equal(reviewed.stageStatus, "waiting_approval");
 		assert(reviewed.approval);
 		await api(`${path}/requirement-brief/approval`, { requestId: "smoke-approve", decision: "approved", approvalId: reviewed.approval.approvalId, artifactVersion: reviewed.approval.artifactVersion, expectedAggregateVersion: reviewed.aggregateVersion });

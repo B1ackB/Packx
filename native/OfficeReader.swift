@@ -64,12 +64,16 @@ func inspectOffice(url: URL, data: Data) -> [String: Any]? {
 	guard let archive = OfficeArchive(url: url, data: data) else { return nil }
 	if archive.names.contains("word/document.xml") {
 		var output = ""; var inText = false; var inCell = false
+		var paragraph = 0; var table = 0; var row = 0; var cell = 0
 		let xml = OfficeXML()
-		xml.start = { name, _ in if name == "tc" { inCell = true }; if name == "t" { inText = true }; if name == "tab" { output += "\t" }; if name == "br" { output += "\n" } }
+		xml.start = { name, _ in
+			if name == "tbl" { table += 1; row = 0 }; if name == "tr" { row += 1; cell = 0 }
+			if name == "p" { paragraph += 1; output += inCell ? "[table \(table) row \(row) cell \(cell) paragraph \(paragraph)] " : "[paragraph \(paragraph)] " }
+			if name == "tc" { inCell = true; cell += 1 }; if name == "t" { inText = true }; if name == "tab" { output += "\t" }; if name == "br" { output += "\n" } }
 		xml.text = { if inText { output += $0 } }
 		xml.end = { if $0 == "t" { inText = false }; if $0 == "p" { output += inCell ? " " : "\n" }; if $0 == "tc" { inCell = false; output += "\t" }; if $0 == "tr" { output += "\n" } }
 		guard xml.parse(archive.part("word/document.xml")) else { return nil }
-		for part in ["word/footnotes.xml", "word/endnotes.xml"] where archive.names.contains(part) {
+		for part in ["word/footnotes.xml", "word/endnotes.xml"] + archive.names.filter({ $0.hasPrefix("word/header") || $0.hasPrefix("word/footer") }).sorted() where archive.names.contains(part) {
 			output += "\nSource notes: \(part)\n"
 			let notes = OfficeXML()
 			notes.start = { name, attrs in

@@ -478,6 +478,18 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .attachment-item { flex: 0 0 185px; min-width: 0; }
 .attachment-item > button { width: 100%; }
 .attachment-item > .attachment-download { display: block; min-height: 22px; padding: 2px 6px; border: 0; background: transparent; font-size: 10px; text-align: right; }
+.attachment-list:has(.document-import-preview[open]) { max-height: min(55vh, 480px); align-items: flex-start; }
+.attachment-item:has(.document-import-preview[open]) { flex-basis: min(640px, 95%); }
+.document-import-preview { margin-top: 6px; padding: 6px; font-size: 12px; line-height: 1.6; background: #f8f2e8; overflow-wrap: anywhere; }
+.document-import-preview summary { cursor: pointer; }
+.document-import-preview button { display: inline-block; min-height: 30px; margin: 6px 6px 6px 0; font: inherit; }
+.document-import-preview pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 240px; overflow-y: auto; font: inherit; }
+.requirement-template { border-top: 1px solid #ded6c9; padding-top: 10px; }
+.requirement-template button, .requirement-template select { padding: 6px 8px; border: 1px solid #c9bdad; border-radius: 6px; background: #f8f2e8; font: inherit; max-width: 100%; }
+.requirement-template button { margin: 6px 6px 6px 0; cursor: pointer; }
+.requirement-template button:disabled { opacity: .5; cursor: default; }
+.requirement-template [role="alert"] { color: #a53525; }
+.requirement-template [role="status"] { border-left: 3px solid #567665; padding-left: 8px; }
 .thinking .markdown { color: var(--ink); opacity: 1; }
 
 .plan-panel {

@@ -292,7 +292,7 @@ const requirementBriefWorkspaceApi = new RequirementBriefWorkspaceApiController(
 );
 const knowledgeApi = new KnowledgeApi(knowledge, conversationApi, requirementBriefEngine, async (scope, attachmentId) => {
 	const stored = conversationAttachments.read({ ...scope, conversationId: scope.runId }, attachmentId);
-	return assetInspection.preview(scope, `/knowledge-input/${stored.attachment.name}`, () => ({ content: stored.content, sha256: stored.attachment.sha256 }), AbortSignal.timeout(20_000));
+	return assetInspection.preview(scope, `/knowledge-input/${stored.attachment.name}`, () => ({ content: stored.content, sha256: stored.attachment.sha256 }), AbortSignal.timeout(65_000));
 });
 const proposalWorkerApi = new ProposalWorkerApiController(
 	stageJobScheduler,
@@ -573,7 +573,7 @@ server.on("request", async (request, response) => {
 			} else if (request.method === "GET" && filesMatch[2] === "document-content") {
 				const controller = new AbortController();
 				response.on("close", () => controller.abort());
-				const document = await assetInspection.preview(scope, url.searchParams.get("path") ?? "", (context, path) => conversationFiles.readDocument(context, path), controller.signal);
+				const document = await assetInspection.preview(scope, url.searchParams.get("path") ?? "", (context, path) => conversationFiles.readDocument(context, path), controller.signal, url.searchParams.get("ocrCursor") ?? undefined);
 				json(response, 200, { document });
 			} else if (request.method === "GET" && filesMatch[2] === "directories") {
 				json(response, 200, conversationFiles.browse(scope, url.searchParams.get("path") ?? undefined));
@@ -595,6 +595,28 @@ server.on("request", async (request, response) => {
 	if (request.method === "POST" && attachmentWithdrawalMatch) {
 		const result = requirementBriefWorkspaceApi.withdrawAttachment(conversationApiContext(request), decodeURIComponent(attachmentWithdrawalMatch[1]), decodeURIComponent(attachmentWithdrawalMatch[2]), await readJson(request));
 		json(response, result.status, result.body);
+		return;
+	}
+
+	const inspectionMatch = url.pathname.match(/^\/api\/conversations\/([^/]+)\/attachments\/([^/]+)\/inspection$/);
+	if (inspectionMatch && request.method === "GET") {
+		const context = conversationApiContext(request);
+		let conversationId: string, attachmentId: string;
+		try { conversationId = decodeURIComponent(inspectionMatch[1]); attachmentId = decodeURIComponent(inspectionMatch[2]); }
+		catch { json(response, 400, { code: "invalid_document_reference" }); return; }
+		const access = conversationApi.get(context, conversationId);
+		if (access.status !== 200) { json(response, access.status, access.body); return; }
+		const scope = { tenantId: context.tenantId!, workspaceId: context.workspaceId!, actorId: context.actorId!, runId: conversationId };
+		const controller = new AbortController(); response.on("close", () => controller.abort());
+		try {
+			const stored = conversationAttachments.read({ ...scope, conversationId }, attachmentId);
+			const document = await assetInspection.preview(scope, `/attachment-preview/${stored.attachment.name}`, () => {
+				if (conversationApi.get(context, conversationId).status !== 200) throw new Error("Conversation unavailable");
+				const current = conversationAttachments.read({ ...scope, conversationId }, attachmentId);
+				return { content: current.content, sha256: current.attachment.sha256 };
+			}, controller.signal, url.searchParams.get("ocrCursor") ?? undefined);
+			json(response, 200, { document: { ...document, attachmentId, sourceRef: stored.attachment.sourceRef } });
+		} catch (error) { json(response, 422, { code: "document_import_failed", message: error instanceof Error ? error.message : "文档导入失败，请检查是否加密、损坏或超限" }); }
 		return;
 	}
 
@@ -849,6 +871,31 @@ server.on("request", async (request, response) => {
 		}
 		const result = conversationApi.traces(conversationApiContext(request), conversationId);
 		json(response, result.status, result.body);
+		return;
+	}
+
+	const templateMatch = url.pathname.match(/^\/api\/conversations\/([^/]+)\/requirement-brief\/templates(?:\/([^/]+))?$/);
+	if (templateMatch && ["GET", "POST"].includes(request.method ?? "")) {
+		const context = conversationApiContext(request);
+		let conversationId: string;
+		try { conversationId = decodeURIComponent(templateMatch[1]); }
+		catch { json(response, 400, { code: "invalid_conversation_id" }); return; }
+		const access = conversationApi.get(context, conversationId);
+		if (access.status !== 200) { json(response, access.status, access.body); return; }
+		const action = request.method === "GET" ? "view" : templateMatch[2] ? url.searchParams.get("action") ?? "preview" : "upload";
+		let payload: unknown;
+		try {
+			payload = action === "upload" ? { name: url.searchParams.get("name") ?? "", data: await readBody(request, 5 * 1024 * 1024) } : request.method === "POST" ? await readJson(request) : {};
+		} catch (error) {
+			const oversized = error instanceof Error && error.message === "request_too_large";
+			json(response, oversized ? 413 : 400, { code: oversized ? "request_too_large" : "invalid_json", message: oversized ? "模板不能超过 5 MiB" : "模板请求格式无效" }); return;
+		}
+		const result = requirementBriefWorkspaceApi.template(context, conversationId, action, templateMatch[2] ?? "", payload);
+		if (action === "download" && result.status === 200) {
+			const file = result.body as { filename: string; data: string };
+			response.writeHead(200, { "content-type": file.filename.endsWith("docx") ? "application/vnd.openxmlformats-officedocument.wordprocessingml.document" : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "content-disposition": `attachment; filename="${file.filename}"`, "cache-control": "private, no-store", "x-content-type-options": "nosniff" });
+			response.end(Buffer.from(file.data, "base64"));
+		} else json(response, result.status, result.body);
 		return;
 	}
 
