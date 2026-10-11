@@ -1,0 +1,37 @@
+.tutorial-trigger { white-space: nowrap; color: #944b38; border-color: #dbb29f; }
+.proposal-header .tutorial-panel-trigger { display: none; }
+.workspace-tutorial {
+	position: fixed; inset: 0; width: 100%; height: 100%; max-width: none; max-height: none;
+	margin: 0; padding: 0; border: 0; background: transparent; color: var(--ink); overflow: hidden;
+}
+.workspace-tutorial::backdrop { background: transparent; }
+.tutorial-shade { position: absolute; inset: 0; pointer-events: none; }
+.tutorial-card {
+	position: fixed; width: min(352px, calc(100% - 24px)); max-height: calc(100% - 24px); padding: 18px;
+	display: flex; flex-direction: column; gap: 14px; overflow: auto; overscroll-behavior: contain;
+	border: 1px solid #cbbdab; border-radius: 14px; background: #fffcf6; box-shadow: 0 12px 44px #17141040;
+	font-size: 13px; line-height: 1.7;
+}
+.tutorial-meta, .tutorial-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-shrink: 0; }
+.tutorial-meta { color: #806f5c; font-size: 11px; }
+.tutorial-card button { border: 1px solid var(--line); border-radius: 7px; padding: 7px 12px; background: var(--paper); cursor: pointer; white-space: nowrap; }
+.tutorial-meta button { padding: 4px 7px; background: transparent; font-size: 11px; }
+.tutorial-card button:disabled { opacity: .45; cursor: default; }
+.tutorial-card .primary-action { width: auto; margin: 0; background: var(--coral); border-color: var(--coral); color: #fff; }
+.tutorial-copy { overflow: auto; min-height: 0; }
+.tutorial-copy h2 { margin: 0 0 10px; font-size: 18px; line-height: 1.5; font-weight: 600; }
+.tutorial-copy p { margin: 0; color: #62584d; }
+.tutorial-copy .tutorial-fallback { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); font-size: 12px; }
+.tutorial-card > small { color: #867968; font-size: 10px; flex-shrink: 0; }
+.tutorial-card :focus-visible { outline: 2px solid #b8513a; outline-offset: 3px; }
+.tutorial-copy h2:focus { outline: none; }
+@media (max-width: 1179px) {
+	.proposal-header > .tutorial-panel-trigger.panel-toggle { display: inline-flex; order: 2; padding: 5px 7px; border-color: #dbb29f; font-size: 11px; }
+}
+@media (max-width: 759px) {
+	.topbar { flex-wrap: wrap; }
+	.topbar > div { flex-basis: calc(100% - 52px); }
+	.tutorial-trigger { margin-left: auto; }
+	.tutorial-card { padding: 14px; gap: 10px; }
+	.tutorial-copy h2 { font-size: 16px; margin-bottom: 8px; }
+}

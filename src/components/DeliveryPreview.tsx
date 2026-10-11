@@ -45,7 +45,7 @@ export function DeliveryPreview({ conversationId, versions, currentVersion, revi
 	}
 
 	return <section className="proposal-section delivery-preview" aria-label={en ? "Requirement brief preview and export" : "需求单预览与导出"}>
-		<div className="section-title"><strong>{en ? "Requirement brief" : "需求单"}</strong><select aria-label={en ? "Requirement brief version" : "需求单版本"} value={version} onChange={(event) => setVersion(Number(event.target.value))}>{versions.map((item) => <option key={item} value={item}>v{item}{item === currentVersion ? en ? " · Current" : " · 当前" : en ? " · Historical" : " · 历史"}</option>)}</select></div>
+		<div className="section-title" data-tour="brief-overview"><strong>{en ? "Requirement brief" : "需求单"}</strong><select aria-label={en ? "Requirement brief version" : "需求单版本"} value={version} onChange={(event) => setVersion(Number(event.target.value))}>{versions.map((item) => <option key={item} value={item}>v{item}{item === currentVersion ? en ? " · Current" : " · 当前" : en ? " · Historical" : " · 历史"}</option>)}</select></div>
 		{error && <p role="alert">{errorText(error, language)}</p>}
 		{!delivery && !error && <p role="status">{en ? "Loading version…" : "正在读取版本…"}</p>}
 		{delivery && <>
@@ -67,7 +67,7 @@ export function DeliveryPreview({ conversationId, versions, currentVersion, revi
 				<small className="source-digest">SHA-256 {source.sha256} · {en ? "Parser" : "解析器"} {source.parserVersion}</small>
 			</details>)}</div>
 			<RequirementTemplate key={`${conversationId}:${version}:${revision}`} conversationId={conversationId} delivery={delivery} language={language} />
-			<div className="export-actions"><button disabled={busy} onClick={() => void download("md")}>{en ? "Export Markdown" : "导出 Markdown"}</button><button disabled={busy} onClick={() => void download("html")}>{en ? "Print HTML" : "打印版 HTML"}</button><button disabled={busy} onClick={() => void download("json")}>JSON</button></div>
+			<div className="export-actions" data-tour="export"><button disabled={busy} onClick={() => void download("md")}>{en ? "Export Markdown" : "导出 Markdown"}</button><button disabled={busy} onClick={() => void download("html")}>{en ? "Print HTML" : "打印版 HTML"}</button><button disabled={busy} onClick={() => void download("json")}>JSON</button></div>
 			<small>{en ? "Exports include version and confirmation status. Save the print version as a PDF in your browser." : "导出包含版本与确认状态。打印版可在浏览器中保存为 PDF。"}</small>
 		</>}
 	</section>;
