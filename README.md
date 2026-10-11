@@ -18,6 +18,8 @@ This is a runnable engineering prototype with an unsigned macOS release. Real-us
 - **Durable execution:** persist jobs, checkpoints, and execution records for pause, cancellation, and controlled recovery. Confirmed personal preferences can be reused across conversations in the same workspace.
 - **Workspace tools:** bilingual UI, streamed chat, file previews, per-operation approval for text writes, model/token records, and confirmed Plan execution.
 
+The **Usage tutorial** button opens a seven-step guide, even before you create a request. You can exit and reopen it at any time. The guide only explains and navigates; you still confirm facts and approve versions yourself.
+
 ## From inquiry to requirement brief
 
 1. Add the customer's request and source documents, then create a packaging requirement brief. A [synthetic coffee-pouch example](examples/coffee-pouch-intake.md) provides a walkthrough.

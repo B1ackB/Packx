@@ -7,12 +7,13 @@ import { planBudgetBlock, type PlanWorkspace } from "./enterprise/agentPlan";
 import { errorText, validationText } from "./i18n";
 import { ModelMonitor } from "./components/ModelMonitor";
 import { FileExplorer } from "./components/FileExplorer";
-import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Markdown } from "./components/Markdown";
 import { ConversationFiles } from "./components/ConversationFiles";
 import { DeleteConversationDialog } from "./components/DeleteConversationDialog";
 import { RequirementTrial } from "./components/RequirementTrial";
 import { RequirementSource } from "./components/RequirementSource";
+import { WorkspaceTutorial, tutorialSteps } from "./components/WorkspaceTutorial";
 import { DeliveryPreview } from "./components/DeliveryPreview";
 import { requirementFieldLabels, factStatusLabels } from "./manufacturing/requirementDelivery";
 import { languageNames, labelFor, statusFor, type Language } from "./i18n";
@@ -134,6 +135,8 @@ function App() {
 	const [panelTab, setPanelTab] = useState<"requirement" | "models" | "files" | "knowledge" | "memory">("requirement");
 	const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 760);
 	const [reviewOpen, setReviewOpen] = useState(() => window.innerWidth >= 1180);
+	const [tutorial, setTutorial] = useState<{ step: number; panelTab: typeof panelTab; sidebarOpen: boolean; reviewOpen: boolean }>();
+	const tutorialButtonRef = useRef<HTMLButtonElement>(null);
 	const [activity, setActivity] = useState<RuntimeActivity>();
 	const [requirementActivity, setRequirementActivity] = useState<RuntimeActivity>();
 	const [health, setHealth] = useState<RuntimeHealth>();
@@ -316,12 +319,15 @@ function App() {
 		setRequirement(undefined);
 		setRequirementBusy(false);
 		setFactKey(""); setFactValue(""); setFactUnit("");
+	}, [active?.conversationId]);
+
+	useEffect(() => {
 		if (!active) return;
 		let cancelled = false;
 		void client.getRequirementBrief(active.conversationId)
 			.then((next) => {
 				if (!cancelled) {
-					setRequirement(next ?? undefined);
+					setRequirement((current) => current && next && current.runId === next.runId && current.state.aggregateVersion > next.state.aggregateVersion ? current : next ?? undefined);
 				}
 			})
 			.catch((reason) => {
@@ -330,7 +336,8 @@ function App() {
 		return () => {
 			cancelled = true;
 		};
-	}, [active?.conversationId]);
+		// Host reconciles sources on read; preserve edits while refreshing version and approval state.
+	}, [active?.conversationId, active?.revision, attachments]);
 
 	useEffect(() => {
 		if (!active || !requirement || requirement.readOnlyReason) return;
@@ -763,6 +770,9 @@ function App() {
 	const facts = Object.values(requirement?.state.facts ?? {})
 		.filter((fact) => packagingFactKeys.includes(fact.key))
 		.sort((left, right) => left.key.localeCompare(right.key));
+	const tutorialSourceKey = (facts.find((fact) => fact.key === "quantity") ?? facts[0])?.key;
+	const unconfirmedFacts = facts.filter((fact) => ["suggested", "unverified"].includes(fact.status));
+	const tutorialConfirmKey = (unconfirmedFacts.find((fact) => fact.key === tutorialSourceKey) ?? unconfirmedFacts[0])?.key;
 	const requirementRunning = !requirement?.readOnlyReason && (requirement?.state.stageStatus === "running" && requirement.job?.status !== "dead_letter" ||
 		requirement?.state.stageStatus === "evaluating" ||
 		requirement?.job?.status === "queued" ||
@@ -805,11 +815,35 @@ function App() {
 	}, [active?.conversationId, sending, requirementRunning]);
 
 	useEffect(() => {
+		if (tutorial) return;
 		const resize = () => { if (window.innerWidth < 1180) setReviewOpen(false); if (window.innerWidth < 760) setSidebarOpen(false); };
 		const escape = (event: KeyboardEvent) => { if (event.key === "Escape") { setReviewOpen(false); if (window.innerWidth < 760) setSidebarOpen(false); } };
 		window.addEventListener("resize", resize); window.addEventListener("keydown", escape);
 		return () => { window.removeEventListener("resize", resize); window.removeEventListener("keydown", escape); };
-	}, []);
+	}, [!!tutorial]);
+
+	useLayoutEffect(() => {
+		if (!tutorial) return;
+		const navigate = () => {
+			setSidebarOpen(window.innerWidth >= 760 && tutorial.sidebarOpen);
+			setReviewOpen(tutorialSteps[tutorial.step].panel === "requirement");
+			if (tutorialSteps[tutorial.step].panel === "requirement") setPanelTab("requirement");
+		};
+		navigate(); window.addEventListener("resize", navigate);
+		return () => window.removeEventListener("resize", navigate);
+	}, [tutorial?.step]);
+
+	const closeTutorial = () => {
+		if (!tutorial) return;
+		setPanelTab(tutorial.panelTab);
+		setSidebarOpen(tutorial.sidebarOpen && window.innerWidth >= 760);
+		setReviewOpen(tutorial.reviewOpen);
+		setTutorial(undefined);
+		requestAnimationFrame(() => {
+			const entry = tutorial.reviewOpen && window.innerWidth < 1180 ? document.querySelector<HTMLButtonElement>(".tutorial-panel-trigger") : tutorialButtonRef.current;
+			entry?.focus({ preventScroll: true });
+		});
+	};
 
 	const retryReply = async () => {
 		if (!active || sending) return;
@@ -890,6 +924,7 @@ function App() {
 							void client.rename(id, taskName, active.nameRevision ?? 0, language).then(async (next) => { updateActive(next); if (activeIdRef.current === id) setRenaming(false); await refreshList(next); }).catch((reason) => setError(reason instanceof ConversationClientError && reason.code === "task_name_conflict" ? en ? "Task name changed in another window. Reload before renaming." : "任务名称已在其他窗口更改，请刷新后重命名。" : errorMessage(reason))).finally(() => setNameBusy(false));
 						}}><input aria-label={en ? "Task name" : "任务名称"} autoFocus required maxLength={100} value={taskName} onChange={(e) => setTaskName(e.target.value)} /><button disabled={nameBusy || !taskName.trim()}>{en ? "Save name" : "保存名称"}</button><button type="button" disabled={nameBusy} onClick={() => setRenaming(false)}>{en ? "Cancel" : "取消"}</button></form> : <button className="rename-task" onClick={() => { setTaskName(active.title); setRenaming(true); }}>{en ? "Rename task" : "重命名任务"}</button>)}
 					</div>
+					<button ref={tutorialButtonRef} type="button" className="panel-toggle tutorial-trigger" onClick={() => setTutorial({ step: 0, panelTab, sidebarOpen, reviewOpen })}>{en ? "Usage tutorial" : "使用教程"}</button>
 					<button className="panel-toggle review-toggle" aria-expanded={reviewOpen} onClick={() => setReviewOpen(!reviewOpen)}>{en ? "Workspace" : "工作区"} · {{ requirement: en ? "Requirements" : "需求单", models: en ? "Models" : "模型", knowledge: en ? "Evidence" : "证据", memory: en ? "Memory" : "记忆", files: en ? "Files" : "文件" }[panelTab]}</button>
 				</header>
 
@@ -946,7 +981,7 @@ function App() {
 							<span className="empty-mark">Px</span>
 							<h2>{en ? "Start a new packaging request" : "开始一个新的包装需求任务"}</h2>
 							<p>{en ? "Upload reference material and describe what you need delivered. Packx organises the request, flags missing information, and creates a requirement brief you can review and export." : "上传资料，描述你要交付什么。Packx 会整理需求、标出缺失信息，生成可核对与导出的需求单。"}</p>
-							{!active ? <button className="secondary-action" onClick={() => void createConversation()} disabled={deleting}>{en ? "Start a conversation" : "开始新会话"}</button> : <div className="prompt-grid">
+							{!active ? <button data-tour="start-request" className="secondary-action" onClick={() => void createConversation()} disabled={deleting}>{en ? "Start a conversation" : "开始新会话"}</button> : <div className="prompt-grid">
 								<button onClick={() => setDraft(en ? "I need a 500 g coffee bean packaging bag. Please help me identify the information that needs confirmation first." : "我想做一款500克咖啡豆包装袋，请先帮我梳理需要确认的信息。")}>{en ? "Coffee packaging request" : "咖啡豆包装需求"}</button>
 								<button onClick={() => setDraft(en ? "I need custom folding cartons for skincare products. Please help me confirm the carton type, dimensions, quantity, and delivery details." : "我想定制一批护肤品包装纸盒，请先帮我梳理盒型、尺寸、数量和交付信息。")}>{en ? "Skincare carton request" : "护肤品纸盒需求"}</button>
 							</div>}
@@ -991,7 +1026,7 @@ function App() {
 						</div>
 					)}
 					{active && <PlanPanel part="controls" state={planState} language={language} busy={planBusy || sending || hasActiveBackgroundTask} onCommand={(c) => { void planCommand(c); }} />}
-					<form className="composer" onSubmit={onSubmit}>
+					<form data-tour="intake" className="composer" onSubmit={onSubmit}>
 						<textarea
 							value={draft}
 							onChange={(event) => setDraft(event.target.value)}
@@ -1041,6 +1076,7 @@ function App() {
 						<span className="eyebrow">WORKSPACE</span>
 						<h2>{{ requirement: en ? "Requirements workspace" : "需求单工作区", models: en ? "Model monitor" : "模型监控", knowledge: en ? "Packaging evidence" : "包装数据与证据", memory: en ? "Personal memory" : "个人记忆", files: en ? "File browser" : "文件浏览" }[panelTab]}</h2>
 					</div>
+					<button type="button" className="panel-toggle tutorial-trigger tutorial-panel-trigger" onClick={() => setTutorial({ step: 0, panelTab, sidebarOpen, reviewOpen })}>{en ? "Usage tutorial" : "使用教程"}</button>
 					{panelTab === "requirement" && requirement && (
 						<span className={`proposal-status ${requirement.state.stageStatus}`}>
 							{reviewRecovery && requirement.state.stageStatus === "needs_input" ? (en ? "Review needs recovery" : "复核待恢复") : stageLabel(requirement.state.stageStatus)}
@@ -1049,7 +1085,7 @@ function App() {
 				</header>
 
 				<div className="workspace-tabs" role="tablist" aria-label={en ? "Workspace tools" : "工作区功能"}>
-					{(["requirement", "knowledge", "memory", "models", "files"] as const).map((tab, index, tabs) => <button key={tab} role="tab" id={`tab-${tab}`} aria-controls={`panel-${tab}`} aria-selected={panelTab === tab} tabIndex={panelTab === tab ? 0 : -1} onClick={() => setPanelTab(tab)} onKeyDown={(event) => { if (["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) { event.preventDefault(); const next = event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : (index + (event.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length; setPanelTab(tabs[next]); (event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>("[role=tab]")[next])?.focus(); } }}>{ { requirement: en ? "Requirements" : "需求单", models: en ? "Model calls" : "模型调用", knowledge: en ? "Evidence" : "证据", memory: en ? "Memory" : "记忆", files: en ? "Files" : "文件" }[tab]}</button>)}
+					{(["requirement", "knowledge", "memory", "models", "files"] as const).map((tab, index, tabs) => <button key={tab} role="tab" data-tour={tab === "requirement" ? "brief-tab" : undefined} id={`tab-${tab}`} aria-controls={`panel-${tab}`} aria-selected={panelTab === tab} tabIndex={panelTab === tab ? 0 : -1} onClick={() => setPanelTab(tab)} onKeyDown={(event) => { if (["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) { event.preventDefault(); const next = event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : (index + (event.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length; setPanelTab(tabs[next]); (event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>("[role=tab]")[next])?.focus(); } }}>{ { requirement: en ? "Requirements" : "需求单", models: en ? "Model calls" : "模型调用", knowledge: en ? "Evidence" : "证据", memory: en ? "Memory" : "记忆", files: en ? "Files" : "文件" }[tab]}</button>)}
 				</div>
 				<div className="proposal-body" role="tabpanel" id="panel-requirement" aria-labelledby="tab-requirement" hidden={panelTab !== "requirement"}>
 					{requirementMetrics && requirementMetrics.totals.runs > 0 && (
@@ -1084,10 +1120,10 @@ function App() {
 						</section>
 					) : !requirement ? (
 						<section className="proposal-empty">
-							<strong>{en ? "Organise source material into a deliverable requirement brief" : "把资料整理成可交付的需求单"}</strong>
+							<strong data-tour="brief-overview">{en ? "Organise source material into a deliverable requirement brief" : "把资料整理成可交付的需求单"}</strong>
 							<p>{en ? "Review packaging type, dimensions, quantity, market, delivery date, and artwork one by one, then confirm the current version." : "围绕包装类型、尺寸、数量、市场、交期和稿件，逐项核对资料，再确认当前版本。"}</p>
 							<button
-								className="primary-action"
+								className="primary-action" data-tour="generate"
 								onClick={() => void startRequirement()}
 								disabled={!hasUserMessage || !realProvider || requirementBusy || sending}
 							>
@@ -1097,6 +1133,7 @@ function App() {
 						</section>
 					) : (
 						<>
+							{requirement.state.currentProposal?.freshness === "stale" && <p role="status">{en ? "Sources or confirmed information changed. Review the changes, then generate and approve a new version." : "资料或确认信息已变化，旧版本已失效。请核对变更，生成新版本并重新审批。"}</p>}
 							<section className="workflow-track" aria-label={en ? "Requirement brief workflow progress" : "Requirement Brief 工作流进度"}>
 								<span className="done">{en ? "Collect" : "收集需求"}</span>
 								<span className={requirement.state.currentProposal ? "done" : "active"}>{en ? "Organise" : "整理资料"}</span>
@@ -1153,7 +1190,7 @@ function App() {
 											<small>{fieldLabel(fact.key)} · v{fact.version}</small>
 											<strong>{String(fact.value)}{fact.unit ? ` ${fact.unit}` : ""}</strong>
 											<small>{factStatus(fact.status)} · {fact.sourceType === "model_output" ? en ? "AI extracted" : "AI 提取" : fact.sourceType === "human_confirmation" ? en ? "Human confirmed" : "人工确认" : en ? "Human entered" : "人工输入"}</small>
-											<RequirementSource source={requirement.factSources?.[fact.key]} en={en} />
+											<RequirementSource source={requirement.factSources?.[fact.key]} en={en} tutorialTarget={fact.key === tutorialSourceKey} />
 											{content?.pendingChanges?.filter((change) => change.key === fact.key && change.currentFactVersion === fact.version).map((change) => <div className="fact-change" key={change.key}>
 												<strong>{en ? "Proposed change" : "新变更待确认"}: {String(change.value)} {change.unit}</strong>
 												<p>{en ? "The confirmed value above stays in effect until you review this change. Earlier deliveries need rechecking." : "核对前保留上方已确认值；旧交付物需重新核对。"}</p>
@@ -1162,7 +1199,7 @@ function App() {
 											</div>)}
 										</div>
 										{(fact.status === "suggested" || fact.status === "unverified") && (
-											<div className="fact-actions">
+											<div className="fact-actions" data-tour={fact.key === tutorialConfirmKey ? "confirm" : undefined}>
 												<button onClick={() => void resolveFact(fact.key, "rejected")} disabled={requirementBusy || requirementRunning || requirementTerminal}>{en ? "Reject" : "拒绝"}</button>
 												<button onClick={() => void resolveFact(fact.key, "verified")} disabled={requirementBusy || requirementRunning || requirementTerminal}>{requirement.candidateConflicts?.some(c => c.key === fact.key) ? en ? "Confirm current value" : "确认采用当前值" : en ? "Confirm" : "确认"}</button>
 											</div>
@@ -1170,7 +1207,7 @@ function App() {
 									</div>
 								))}
 								<form className="fact-form" onSubmit={(event) => void recordFact(event)}>
-									<select value={factKey} onChange={(event) => { setFactKey(event.target.value); setFactValue(""); }} aria-label={en ? "Requirement field" : "需求字段"} disabled={requirement.state.stageStatus === "cancelled"}><option value="">{en ? "Choose a field to add" : "选择要补充的字段"}</option>{fieldOptions.map((key) => <option key={key} value={key}>{fieldLabel(key)}</option>)}</select>
+									<select data-tour="fact-form" value={factKey} onChange={(event) => { setFactKey(event.target.value); setFactValue(""); }} aria-label={en ? "Requirement field" : "需求字段"} disabled={requirement.state.stageStatus === "cancelled"}><option value="">{en ? "Choose a field to add" : "选择要补充的字段"}</option>{fieldOptions.map((key) => <option key={key} value={key}>{fieldLabel(key)}</option>)}</select>
 									<input id="requirement-fact-value" value={factValue} type={factKey === "quantity" ? "number" : factKey === "target_delivery" ? "date" : "text"} min={factKey === "quantity" ? 1 : undefined} step={1} required onChange={(event) => setFactValue(event.target.value)} placeholder={factKey === "dimensions" ? en ? "Example: W 160 × H 230 + bottom 80 mm" : "例如：宽 160 × 高 230 + 底 80 mm" : en ? "Enter value" : "填写内容"} aria-label={en ? "Field value" : "字段内容"} disabled={requirement.state.stageStatus === "cancelled"} />
 									<input value={factUnit} onChange={(event) => setFactUnit(event.target.value)} placeholder={en ? "Unit (optional)" : "单位（可选）"} aria-label={en ? "Field unit" : "字段单位"} disabled={requirement.state.stageStatus === "cancelled"} />
 									<button type="submit" disabled={requirementBusy || requirementRunning || requirement.state.stageStatus === "cancelled" || !factKey.trim() || !factValue.trim()}>{en ? "Add unverified information" : "添加待确认信息"}</button>
@@ -1212,7 +1249,7 @@ function App() {
 							)}
 
 							{requirement.state.approval?.status === "requested" && (
-								<section className="proposal-section approval-card">
+								<section data-tour="approve" className="proposal-section approval-card">
 									<strong>{en ? "Confirm requirement brief" : "确认需求单"} · v{requirement.state.approval.artifactVersion}</strong>
 									<p>{en ? "Approval applies only to the current version; future request changes invalidate it." : "审批只绑定当前版本；后续需求变化会使该审批失效。"}</p>
 									<div className="approval-actions">
@@ -1237,7 +1274,7 @@ function App() {
 								<div className="cancelled-note">{en ? "The request, facts, artifacts, and audit events are retained. Re-review continues from the existing version without deleting history." : "已保留需求、Fact、Artifact 与审计事件；重新审查会从现有版本继续，不会删除历史。"}</div>
 							)}
 							<button
-								className="secondary-action"
+								className="secondary-action" data-tour="generate"
 								onClick={() => void startRequirement()}
 								disabled={(!hasUserMessage && !requirement.state.facts.plan_source) || !realProvider || requirementBusy || sending || requirementRunning || requirement.state.stageStatus === "waiting_approval"}
 							>
@@ -1250,11 +1287,12 @@ function App() {
 						</>
 					)}
 				</div>
-				<div className="proposal-body" role="tabpanel" id="panel-knowledge" aria-labelledby="tab-knowledge" hidden={panelTab !== "knowledge"}>{active && reviewOpen && panelTab === "knowledge" ? <KnowledgePanel key={active.conversationId} conversationId={active.conversationId} language={language} /> : <p>{en ? "Select a task to inspect packaging evidence." : "选择任务后查看包装证据。"}</p>}</div>
-				<div className="proposal-body" role="tabpanel" id="panel-memory" aria-labelledby="tab-memory" hidden={panelTab !== "memory"}>{active && reviewOpen && panelTab === "memory" ? <MemoryPanel key={active.conversationId} conversationId={active.conversationId} language={language} /> : <p>{en ? "Select a task to manage personal memory." : "选择任务后管理个人记忆。"}</p>}</div>
-				<div className="proposal-body" role="tabpanel" id="panel-models" aria-labelledby="tab-models" hidden={panelTab !== "models"}>{reviewOpen && panelTab === "models" && <ModelSettings language={language} />}{active && reviewOpen && panelTab === "models" ? <ModelMonitor key={active.conversationId} conversationId={active.conversationId} language={language} /> : !active && <p>{en ? "Create or select a conversation to view model calls." : "新建或选择会话后查看模型调用。"}</p>}</div>
+				<div className="proposal-body" role="tabpanel" id="panel-knowledge" aria-labelledby="tab-knowledge" hidden={panelTab !== "knowledge"}>{active && (reviewOpen && panelTab === "knowledge" || tutorial?.reviewOpen && tutorial.panelTab === "knowledge") ? <KnowledgePanel key={active.conversationId} conversationId={active.conversationId} language={language} /> : <p>{en ? "Select a task to inspect packaging evidence." : "选择任务后查看包装证据。"}</p>}</div>
+				<div className="proposal-body" role="tabpanel" id="panel-memory" aria-labelledby="tab-memory" hidden={panelTab !== "memory"}>{active && (reviewOpen && panelTab === "memory" || tutorial?.reviewOpen && tutorial.panelTab === "memory") ? <MemoryPanel key={active.conversationId} conversationId={active.conversationId} language={language} /> : <p>{en ? "Select a task to manage personal memory." : "选择任务后管理个人记忆。"}</p>}</div>
+				<div className="proposal-body" role="tabpanel" id="panel-models" aria-labelledby="tab-models" hidden={panelTab !== "models"}>{(reviewOpen && panelTab === "models" || tutorial?.reviewOpen && tutorial.panelTab === "models") && <ModelSettings language={language} />}{active && (reviewOpen && panelTab === "models" || tutorial?.reviewOpen && tutorial.panelTab === "models") ? <ModelMonitor key={active.conversationId} conversationId={active.conversationId} language={language} /> : !active && <p>{en ? "Create or select a conversation to view model calls." : "新建或选择会话后查看模型调用。"}</p>}</div>
 				<div className="proposal-body" role="tabpanel" id="panel-files" aria-labelledby="tab-files" hidden={panelTab !== "files"}>{active ? <FileExplorer key={active.conversationId} conversationId={active.conversationId} language={language} onUseFile={(path) => { setDraft(en ? `Please read and help me work with this file: ${path}\nRequest:` : `请读取并协助处理这个文件：${path}\n处理要求：`); if (window.innerWidth < 1180) setReviewOpen(false); }} /> : <p>{en ? "Create or select a conversation to browse local files." : "新建或选择会话后浏览本机文件。"}</p>}</div>
 			</aside>
+			{tutorial && <WorkspaceTutorial language={language} step={tutorial.step} onStep={(step) => setTutorial((current) => current ? { ...current, step } : current)} onClose={closeTutorial} />}
 			{pendingDelete && <DeleteConversationDialog title={pendingDelete.title} busy={deleting} error={deleteError} language={language}
 				onCancel={() => setPendingDelete(undefined)} onConfirm={() => void deleteConversation()} />}
 		</div>
