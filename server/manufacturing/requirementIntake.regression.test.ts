@@ -11,7 +11,8 @@ import { optionalPackagingFacts } from "../../src/manufacturing/requirementBrief
 import type { AgentRuntimePort, RuntimeTurnRequest } from "../../src/runtime/contracts";
 import { FileArtifactContentStore } from "../artifacts/fileArtifactStore";
 import { FileConversationAttachmentStore } from "../runtime/conversationAttachments";
-import { RequirementBriefWorker, parseRequirementCandidate } from "./requirementBriefWorker";
+import { RequirementBriefWorker } from "./requirementBriefWorker";
+import { parseRequirementCandidate } from "./requirementCandidateConflicts";
 import { reconcileRequirementWithdrawals } from "./requirementSourceLifecycle";
 import { requirementEvidencePolicy } from "./requirementEvidencePolicy";
 
@@ -42,7 +43,7 @@ function harness(includeAttachments = true) {
 	} };
 	const read = () => artifacts.readJson({ ...scope, artifactId: "requirement-brief", artifactVersion: engine.load(scope).currentProposal!.version }) as RequirementBriefV1;
 	const evaluation = () => artifacts.readJson({ ...scope, artifactId: "requirement-brief-evaluation", artifactVersion: engine.load(scope).currentProposal!.version }) as RequirementBriefEvaluation;
-	return { scope, engine, artifacts, attachments, source: source!, requests, record, command, read, evaluation,
+	return { scope, engine, artifacts, attachments, source: source!, requests, runtime, record, command, read, evaluation,
 		async run(facts: RequirementFactV1[], missing?: string[], callback?: () => void, executeCommand = command()) {
 			candidate = createRequirementBrief({ industry: "print", title: "需求单", customerGoal: "核对本订单", facts });
 			if (missing) candidate.missingRequiredFacts = missing;
@@ -62,11 +63,11 @@ it("uses the schema field list in the Skill and persists supported optional valu
 	expect(evidence).toContainEqual(expect.objectContaining({ ref: h.source.sourceRef, content: expect.objectContaining({ content: expect.stringContaining("0.06 mm") }) }));
 });
 
-it.each(["checkpoint", "fact", "none"])("corrects extraction through versioned Facts and recovers after %s without repeating calls", async crashAt => {
+it.each(["checkpoint", "fact", "none"].flatMap(crashAt => [12500, 12000].map(value => ({ crashAt, value }))))("corrects extraction $value and recovers after $crashAt without repeating calls", async ({ crashAt, value }) => {
 	const h = harness(false);
 	h.record({ key: "customer_brief", value: JSON.stringify({ messages: [{ sourceRef: "message-1", representation: "authored_text", content: "订单数量：12000 个。" }] }), status: "unverified", sourceType: "user_input", sourceRef: "conversation:conversation:revision:2" });
 	h.record(fact("quantity", 12500, "pcs"));
-	const command = h.command(), candidates = [fact("quantity", 12500, "pcs")];
+	const command = h.command(), candidates = [fact("quantity", value, "pcs")];
 	const put = h.artifacts.putJson.bind(h.artifacts);
 	const record = h.engine.recordFactVersion.bind(h.engine);
 	let crashed = false;
@@ -85,6 +86,7 @@ it.each(["checkpoint", "fact", "none"])("corrects extraction through versioned F
 	expect(h.engine.load(h.scope).facts.quantity).toMatchObject({ value: 12000, status: "unverified", version: 2, sourceRef: "message-1" });
 	expect(h.read().facts).toContainEqual(expect.objectContaining({ key: "quantity", value: 12000, version: 2, status: "unverified" }));
 	expect(h.evaluation().extractionCorrections).toEqual([expect.objectContaining({ previousValue: 12500, value: 12000, previousFactVersion: 1, quote: "订单数量：12000 个。" })]);
+	expect(h.read().candidateConflicts).toBeUndefined();
 	expect(h.engine.load(h.scope).approval).toBeUndefined();
 	expect(h.requests).toHaveLength(2);
 	await h.run(candidates, undefined, undefined, command);
@@ -92,7 +94,7 @@ it.each(["checkpoint", "fact", "none"])("corrects extraction through versioned F
 	expect(h.engine.load(h.scope).facts.quantity.version).toBe(2);
 	expect(() => h.artifacts.readJson({ ...h.scope, tenantId: "other", artifactId: "requirement-intake-corrections", artifactVersion: 1 })).toThrow();
 	const original = h.artifacts.readJson({ ...h.scope, artifactId: "requirement-runtime-checkpoint", artifactVersion: 1 }) as { finalResponse: string };
-	expect(JSON.parse(original.finalResponse).facts[0].value).toBe(12500);
+	expect(JSON.parse(original.finalResponse).facts[0].value).toBe(value);
 });
 
 it("does not silently enable quantity correction for legacy intake checkpoints", async () => {
@@ -108,12 +110,28 @@ it("does not silently enable quantity correction for legacy intake checkpoints",
 	expect(h.evaluation().extractionCorrections).toEqual([]);
 });
 
+it.each(["requirement-runtime-checkpoint", "requirement-intake-corrections"])("does not turn a proven quantity correction into a disagreement after abandoning %s", async artifactId => {
+	const h = harness(false);
+	h.record({ key: "customer_brief", value: JSON.stringify({ messages: [{ sourceRef: "message-1", content: "订单数量：12000 个。" }] }), status: "unverified", sourceType: "user_input", sourceRef: "conversation:conversation:revision:2" });
+	h.record(fact("quantity", 12500, "pcs"));
+	const put = h.artifacts.putJson.bind(h.artifacts); let crashed = false;
+	h.artifacts.putJson = (key, value) => { const result = put(key, value); if (!crashed && key.artifactId === artifactId) { crashed = true; throw new Error("correction interrupted"); } return result; };
+	await expect(h.run([fact("quantity", 12000, "pcs")])).rejects.toThrow("correction interrupted");
+	h.engine.cancelStage(h.command()); h.engine.restartProposal(h.command());
+	await h.run([fact("quantity", 12000, "pcs")]);
+	expect(h.engine.load(h.scope).facts.quantity).toMatchObject({ value: 12000, version: 2, status: "unverified" });
+	expect(h.read().candidateConflicts).toBeUndefined();
+	expect(h.evaluation().extractionCorrections).toEqual([expect.objectContaining({ previousValue: 12500, value: 12000, previousFactVersion: 1 })]);
+	expect(h.requests).toHaveLength(3);
+});
+
 it("does not overwrite an unverified human-entered quantity with a model extraction or correction", async () => {
 	const h = harness(false);
 	h.record({ ...fact("quantity", 11000, "pcs"), sourceType: "user_input" });
 	await h.run([fact("quantity", 12500, "pcs")]);
 	expect(h.engine.load(h.scope).facts.quantity).toMatchObject({ value: 11000, version: 1, sourceType: "user_input" });
-	expect(h.evaluation().issues).toContainEqual(expect.objectContaining({ code: "unresolved_fact" }));
+	expect(h.evaluation().issues).toContainEqual(expect.objectContaining({ code: "candidate_conflict" }));
+	expect(h.read().candidateConflicts).toHaveLength(1);
 	expect(h.evaluation().extractionCorrections).toEqual([]);
 });
 
@@ -151,6 +169,142 @@ it("withholds conflicting duplicate candidates while preserving the old unverifi
 	expect(h.engine.load(h.scope).facts.dimensions).toMatchObject({ status: "unverified", version: 1 });
 	expect(h.read().assumptions.join()).toContain("212 × 162 × 92");
 	expect(h.evaluation().approvalEligible).toBe(false);
+});
+
+it("keeps a previous unverified candidate and its cross-turn disagreement even when later outputs omit it", async () => {
+	const h = harness();
+	h.record(fact("quantity", 4800, "pcs"));
+	await h.run([{ ...fact("quantity", 6200, "pcs"), sourceRef: h.source.sourceRef }]);
+	expect(h.engine.load(h.scope).facts.quantity).toMatchObject({ value: 4800, version: 1, status: "unverified" });
+	const conflicts = h.read().candidateConflicts;
+	expect(conflicts).toEqual([expect.objectContaining({ key: "quantity", baseFactVersion: 1,
+		previous: expect.objectContaining({ value: 4800, sourceRef: "message-1" }),
+		proposed: expect.objectContaining({ value: 6200, sourceRef: h.source.sourceRef }) })]);
+	for (const candidates of [[], [fact("quantity", 4800, "pcs")], [{ ...fact("quantity", 6200, "pcs"), sourceRef: h.source.sourceRef }]]) {
+		h.engine.restartProposal(h.command());
+		await h.run(candidates);
+		expect(h.read().candidateConflicts).toEqual(conflicts);
+		expect(h.read().facts.some(f => f.key === "quantity")).toBe(false);
+		expect(h.read().nextAction).toBe("clarify");
+		expect(h.evaluation().approvalEligible).toBe(false);
+		expect(h.engine.load(h.scope).facts.quantity).toMatchObject({ value: 4800, version: 1 });
+	}
+	expect(h.requests).toHaveLength(8); // Existing intake + review only, including a reviewer that always passes.
+});
+
+it.each([
+	["quantity", 4800, "pcs", "4800", "个", undefined],
+	["material_thickness", 0.06, "mm", "0.060", "毫米", undefined],
+	["material_thickness", 0.06, "mm", 60, "μm", "different"],
+	["quantity", 30, "卷", 3000, "pcs", "different"],
+	["dimensions", "200 × 150 × 80 mm", undefined, "内尺寸 200 × 150 × 80 mm", undefined, "needs_review"],
+] as const)("compares cross-turn %s candidates conservatively (%s %s to %s %s)", async (key, previous, previousUnit, next, nextUnit, conflict) => {
+	const h = harness(); h.record(fact(key, previous, previousUnit));
+	await h.run([{ ...fact(key, next, nextUnit), sourceRef: h.source.sourceRef }]);
+	expect(h.engine.load(h.scope).facts[key]).toMatchObject({ value: previous, version: 1, status: "unverified" });
+	expect(h.read().candidateConflicts?.length ?? 0).toBe(conflict ? 1 : 0);
+	if (conflict) expect(h.read().candidateConflicts![0].comparison).toBe(conflict);
+});
+
+it("preserves the old message version when its reference is reused for contradictory text, without quantity correction", async () => {
+	const h = harness(false);
+	h.record({ key: "customer_brief", value: JSON.stringify({ messages: [{ sourceRef: "message-1", content: "订单数量：12000 个。" }] }), status: "unverified", sourceType: "user_input", sourceRef: "conversation:conversation:revision:2" });
+	h.record(fact("quantity", 12000, "pcs"));
+	h.record({ key: "customer_brief", value: JSON.stringify({ messages: [{ sourceRef: "message-1", content: "订单数量：6200 个。" }] }), status: "unverified", sourceType: "user_input", sourceRef: "conversation:conversation:revision:3" });
+	await h.run([fact("quantity", 6250, "pcs")]);
+	expect(h.engine.load(h.scope).facts.quantity).toMatchObject({ value: 12000, version: 1 });
+	expect(h.evaluation().extractionCorrections).toEqual([]);
+	expect(h.read().candidateConflicts).toEqual([expect.objectContaining({ previous: expect.objectContaining({ value: 12000, sourceVersion: 2 }), proposed: expect.objectContaining({ value: 6250, sourceVersion: 3 }) })]);
+	const evidence = JSON.parse(h.requests[1].input).evidence;
+	expect(evidence).toContainEqual(expect.objectContaining({ ref: "message-1", version: 2, content: { sourceRef: "message-1", content: "订单数量：12000 个。" } }));
+});
+
+it.each(["checkpoint", "fact", "artifact"])("replays candidate comparison after a crash at %s without losing or duplicating conflicts", async crashAt => {
+	const h = harness(); h.record(fact("quantity", 4800, "pcs"));
+	const command = h.command(), candidates = [{ ...fact("quantity", 6200, "pcs"), sourceRef: h.source.sourceRef }, fact("product_type", "包装袋")];
+	const put = h.artifacts.putJson.bind(h.artifacts), record = h.engine.recordFactVersion.bind(h.engine);
+	let crashed = false;
+	h.artifacts.putJson = (key, value) => {
+		const result = put(key, value);
+		if (!crashed && key.artifactId === (crashAt === "checkpoint" ? "requirement-candidate-checkpoint" : crashAt === "artifact" ? "requirement-brief" : "none")) { crashed = true; throw new Error("comparison crash"); }
+		return result;
+	};
+	h.engine.recordFactVersion = (input, options) => {
+		const result = record(input, options);
+		if (!crashed && crashAt === "fact" && input.factKey === "product_type") { crashed = true; throw new Error("comparison crash"); }
+		return result;
+	};
+	await expect(h.run(candidates, undefined, undefined, command)).rejects.toThrow("comparison crash");
+	await h.run(candidates, undefined, undefined, command);
+	expect(h.read().candidateConflicts).toHaveLength(1);
+	expect(h.engine.load(h.scope).facts.quantity).toMatchObject({ value: 4800, version: 1 });
+	expect(h.engine.load(h.scope).facts.product_type.version).toBe(1);
+	expect(h.requests).toHaveLength(2);
+	expect(() => h.artifacts.readJson({ ...h.scope, workspaceId: "other", artifactId: "requirement-candidate-checkpoint", artifactVersion: 1 })).toThrow();
+});
+
+it.each(["requirement-runtime-checkpoint", "requirement-intake-corrections", "requirement-candidate-checkpoint"])("carries a cancelled %s into a new execution even when the new output omits the field", async artifactId => {
+	const h = harness(); h.record(fact("quantity", 4800, "pcs"));
+	const put = h.artifacts.putJson.bind(h.artifacts);
+	let crashed = false;
+	h.artifacts.putJson = (key, value) => {
+		const result = put(key, value);
+		if (!crashed && key.artifactId === artifactId) { crashed = true; throw new Error("comparison crash"); }
+		return result;
+	};
+	await expect(h.run([{ ...fact("quantity", 6200, "pcs"), sourceRef: h.source.sourceRef }])).rejects.toThrow("comparison crash");
+	h.engine.cancelStage(h.command()); h.engine.restartProposal(h.command());
+	await h.run([]);
+	expect(h.engine.load(h.scope).currentProposal!.version).toBe(2);
+	expect(h.read().candidateConflicts).toEqual([expect.objectContaining({ firstArtifactVersion: 1, proposed: expect.objectContaining({ value: 6200 }) })]);
+	expect(h.read().nextAction).toBe("clarify");
+	expect(h.evaluation().approvalEligible).toBe(false);
+	expect(h.requests).toHaveLength(3);
+});
+
+it("preserves candidate conflicts through narrative revisions and source withdrawal", async () => {
+	const h = harness(); h.record({ ...fact("dimensions", "212 × 162 × 92 mm"), sourceRef: h.source.sourceRef });
+	await h.run([fact("dimensions", "200 × 150 × 80 mm")]);
+	const original = h.read(), conflicts = original.candidateConflicts;
+	const revised = requirementEvidencePolicy.applyRevision(original, JSON.stringify({ title: original.title, customerGoal: "核对包装订单", assumptions: [] }), [{ kind: "unsupported", location: "/customerGoal", evidenceRefs: ["message-1"], reason: "Clarify goal", suggestedAction: "revise" }, { kind: "unsupported", location: "/assumptions", evidenceRefs: ["message-1"], reason: "Remove model narrative", suggestedAction: "revise" }]) as RequirementBriefV1;
+	expect(revised.candidateConflicts).toEqual(conflicts);
+	expect(revised.assumptions.join()).toContain("双方均未确认");
+	expect(revised.nextAction).toBe("clarify");
+	h.attachments.withdraw(h.scope, h.source.attachmentId, { requestId: "withdraw", actorId: "employee", reason: "旧文件撤回", sha256: h.source.sha256 });
+	reconcileRequirementWithdrawals(h.engine, h.attachments, h.scope);
+	expect(h.engine.load(h.scope).facts.dimensions.status).toBe("rejected");
+	h.engine.restartProposal(h.command()); await h.run([]);
+	expect(h.read().candidateConflicts).toEqual(conflicts);
+	expect(h.evaluation().approvalEligible).toBe(false);
+});
+
+it("deduplicates repeated abandoned raw candidates and retains the first comparison version", async () => {
+	const h = harness(); h.record(fact("quantity", 4800, "pcs"));
+	const put = h.artifacts.putJson.bind(h.artifacts);
+	h.artifacts.putJson = (key, value) => { const result = put(key, value); if (key.artifactId === "requirement-runtime-checkpoint") throw new Error("raw interruption"); return result; };
+	for (let attempt = 0; attempt < 2; attempt++) {
+		const candidate = { ...fact("quantity", 6200, "pcs"), sourceRef: h.source.sourceRef };
+		await expect(h.run([candidate, candidate])).rejects.toThrow("raw interruption");
+		h.engine.cancelStage(h.command()); h.engine.restartProposal(h.command());
+	}
+	h.artifacts.putJson = put;
+	await h.run([]);
+	expect(h.read().candidateConflicts).toEqual([expect.objectContaining({ firstArtifactVersion: 1, proposed: expect.objectContaining({ value: 6200, sourceVersion: null }) })]);
+	expect(h.engine.load(h.scope).facts.quantity).toMatchObject({ value: 4800, version: 1 });
+	expect(h.requests).toHaveLength(4);
+});
+
+it("recovers unresolved comparisons across an invalid model draft", async () => {
+	const h = harness(); h.record(fact("quantity", 4800, "pcs"));
+	await h.run([{ ...fact("quantity", 6200, "pcs"), sourceRef: h.source.sourceRef }]);
+	const conflicts = h.read().candidateConflicts, execute = h.runtime.executeTurn.bind(h.runtime);
+	h.runtime.executeTurn = async request => ({ ...await execute(request), finalResponse: "{}" });
+	h.engine.restartProposal(h.command()); await h.run([]);
+	expect(h.evaluation().approvalEligible).toBe(false);
+	h.runtime.executeTurn = execute;
+	h.engine.restartProposal(h.command()); await h.run([]);
+	expect(h.read().candidateConflicts).toEqual(conflicts);
+	expect(h.read().nextAction).toBe("clarify");
 });
 
 it("does not fill a declared missing total-piece count using a roll count", async () => {

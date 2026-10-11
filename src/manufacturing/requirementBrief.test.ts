@@ -1,8 +1,19 @@
 import { describe, expect, it } from "vitest";
 import { requirementBriefFixtures } from "./requirementBrief.fixtures";
-import { createRequirementBrief, evaluateRequirementBrief, normalizeRequirementFactKey } from "./requirementBrief";
+import { createRequirementBrief, evaluateRequirementBrief, normalizeRequirementFactKey, type RequirementCandidateConflict } from "./requirementBrief";
 
 describe("M2 Requirement Brief baseline", () => {
+	it("blocks approval for unresolved candidate conflicts even when every current Fact is verified", () => {
+		const conflict: RequirementCandidateConflict = { id: `candidate-${"a".repeat(64)}`, key: "quantity", baseFactVersion: 1, firstArtifactVersion: 1,
+			previous: { value: 10000, unit: "pcs", sourceRef: "message-1", sourceVersion: 1 }, proposed: { value: 6200, unit: "pcs", sourceRef: "attachment://order", sourceVersion: "sha256" }, comparison: "different", reason: "numeric_mismatch" };
+		const brief = createRequirementBrief({ ...requirementBriefFixtures[0].artifact, candidateConflicts: [conflict] });
+		expect(brief.nextAction).toBe("clarify");
+		expect(evaluateRequirementBrief(brief)).toMatchObject({ passed: true, approvalEligible: false });
+		for (const candidateConflicts of [[{ ...conflict, proposed: { ...conflict.proposed, sourceVersion: undefined } }], [conflict, conflict], [{ ...conflict, status: "resolved" }], "resolved", null]) {
+			expect(evaluateRequirementBrief({ ...brief, candidateConflicts })).toMatchObject({ passed: false, approvalEligible: false, issues: expect.arrayContaining([expect.objectContaining({ code: "invalid_candidate_conflicts" })]) });
+		}
+		expect(evaluateRequirementBrief({ ...brief, nextAction: "ready_for_approval" }).approvalEligible).toBe(false);
+	});
 	it("keeps specific required questions until their fields are supplied without reopening optional specifications", () => {
 		const baseline = structuredClone(requirementBriefFixtures[0].artifact);
 		const missing = createRequirementBrief({ ...baseline, facts: baseline.facts.filter((f) => !["dimensions", "quantity"].includes(f.key)), assumptions: ["不得使用 PVC"] });

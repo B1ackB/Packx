@@ -1,4 +1,5 @@
 import type { ProposalRunState } from "../enterprise/contracts";
+import type { RequirementCandidateConflict } from "../manufacturing/requirementBrief";
 import type { RuntimeUsage } from "./contracts";
 
 export interface ArtifactApprovalReview {
@@ -151,6 +152,8 @@ export interface RequirementBriefWorkspaceView extends ProposalWorkspaceView {
 	metrics: RequirementBriefMetricsView;
 	factSources?: Record<string, RequirementSourceView>;
 	proposalSources?: Record<string, RequirementSourceView>;
+	candidateConflicts?: RequirementCandidateConflict[];
+	candidateConflictSources?: Record<string, { previous: RequirementSourceView; proposed: RequirementSourceView }>;
 }
 
 export interface RequirementSourceView {

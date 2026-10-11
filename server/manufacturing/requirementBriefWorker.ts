@@ -3,6 +3,7 @@ import type { ConversationView } from "../../src/runtime/conversationContracts";
 import { reconcileRequirementAttachments, reconcileRequirementMessages, requirementMessagesChanged, requirementAttachmentSnapshotChanged } from "./requirementSourceLifecycle";
 import { createHash } from "node:crypto";
 import { correctExtractedQuantity } from "./requirementCorrections";
+import { candidateConflictHistory, candidateConflictId, messageEvidence, previousCandidateSource, parseRequirementCandidate, candidateFacts } from "./requirementCandidateConflicts";
 import { buildTaskContext } from "../enterprise/taskContext";
 import { EvidenceReviewWorkflow } from "../enterprise/evidenceReviewWorkflow";
 import { requirementEvidencePolicy } from "./requirementEvidencePolicy";
@@ -23,14 +24,16 @@ import type { StageJobLease } from "../../src/enterprise/stageJobQueue";
 import {
 	createRequirementBrief,
 	pendingChangeNotes,
+	candidateConflictNotes,
+	validCandidateConflicts,
 	requirementBriefOutputSchema,
 	packagingFactKeys,
 	normalizeRequirementFactKey,
-	type ManufacturingIndustry,
 	type RequirementBriefV1,
 	type RequirementFactV1,
 	type RequirementFactChange,
 	type RequirementExtractionCorrection,
+	type RequirementCandidateConflict,
 } from "../../src/manufacturing/requirementBrief";
 import type {
 	AgentRuntimePort,
@@ -41,6 +44,8 @@ import { RuntimeFailure } from "../../src/runtime/contracts";
 import { FileConversationAttachmentStore } from "../runtime/conversationAttachments";
 import { unsupportedNarrativeNumbers } from "./requirementReview";
 import { compareRequirementField, requirementFieldInstructions } from "../../src/manufacturing/requirementField";
+
+export { parseRequirementCandidate };
 
 export interface RequirementBriefWorkerCommand extends AggregateScope {
 	commandId: string;
@@ -80,56 +85,8 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 	return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
-export function parseRequirementCandidate(value: string, industry: ManufacturingIndustry): RequirementBriefV1 | undefined {
-	let parsed: unknown;
-	try {
-		// Strip only one complete Markdown wrapper; never guess corrections inside the JSON.
-		const text = value.trim();
-		const fence = /^```(?:json)?\s*\r?\n([\s\S]*?)\r?\n```$/.exec(text);
-		parsed = JSON.parse(fence?.[1] ?? text);
-	} catch {
-		return undefined;
-	}
-	if (
-		!isRecord(parsed) ||
-		parsed.schemaVersion !== "requirement-brief.v1" ||
-		parsed.industry !== industry ||
-		typeof parsed.title !== "string" ||
-		typeof parsed.customerGoal !== "string" ||
-		!Array.isArray(parsed.facts) ||
-		!Array.isArray(parsed.missingRequiredFacts) || parsed.missingRequiredFacts.some((key) => typeof key !== "string") ||
-		!Array.isArray(parsed.assumptions) || parsed.assumptions.some((item) => typeof item !== "string")
-	) return undefined;
-	return parsed as unknown as RequirementBriefV1;
-}
-
 function sameFactValue(current: { key: string; value: unknown; unit?: string }, candidate: { value: unknown; unit?: string }) {
 	return compareRequirementField(current.key, current, candidate).status === "equivalent";
-}
-
-function candidateFacts(industry: ManufacturingIndustry, value: RequirementBriefV1): RequirementFactV1[] {
-	return value.facts.flatMap((fact) => {
-		if (
-			!fact ||
-			typeof fact !== "object" ||
-			typeof fact.key !== "string" ||
-			(typeof fact.value !== "string" && typeof fact.value !== "number" && typeof fact.value !== "boolean") ||
-			typeof fact.value === "string" && !fact.value.trim() ||
-			typeof fact.value === "number" && !Number.isFinite(fact.value) ||
-			fact.unit !== undefined && (typeof fact.unit !== "string" || !fact.unit.trim())
-		) return [];
-		const key = normalizeRequirementFactKey(industry, fact.key);
-		if (!key) return [];
-		return [{
-			key,
-			version: 1,
-			value: typeof fact.value === "string" ? fact.value.trim() : fact.value,
-			unit: fact.unit?.trim(),
-			status: "unverified" as const,
-			sourceType: "model_output" as const,
-			sourceRef: typeof fact.sourceRef === "string" ? fact.sourceRef : "runtime-output",
-		}];
-	});
 }
 
 export class RequirementBriefWorker {
@@ -383,14 +340,28 @@ export class RequirementBriefWorker {
 		const originalRefs = new Set(sourceEvidence.map((item) => item.ref));
 		const intakeIssues: Array<{ code: string; message: string }> = [];
 		const pendingChanges: RequirementFactChange[] = [];
+		let candidateConflicts: RequirementCandidateConflict[] = [];
 		let extractionCorrections: RequirementExtractionCorrection[] = [];
 		const candidate = parseRequirementCandidate(checkpoint.finalResponse, industry);
 		const unresolved = new Set<string>();
 		if (candidate) {
-			const facts = candidateFacts(industry, candidate).filter((fact) => {
+			const history = candidateConflictHistory(this.artifacts, state, this.engine.readEvents(command), artifactVersion);
+			let facts = candidateFacts(industry, candidate).filter((fact) => {
 				if (!fact.sourceRef.startsWith("kb-")) return true;
 				const parameter = ({ material_structure: "structure", material_thickness: "thickness" } as Record<string, string>)[fact.key];
 				return evidence.some((hit) => hit.evidenceId === fact.sourceRef && hit.parameters.filter((p) => p.name === parameter).length === 1 && hit.parameters.some((p) => p.authority !== "research_report" && p.name === parameter && p.originalValue === String(fact.value) && p.originalUnit === (fact.unit ?? "")));
+			}).flatMap(fact => {
+				const sourceRef = ["runtime-output", "project_source_read", "customer-brief"].includes(fact.sourceRef) ? state.facts.plan_source?.sourceRef ?? state.facts.customer_brief?.sourceRef : fact.sourceRef;
+				if (!sourceRef || !originalRefs.has(sourceRef)) {
+					intakeIssues.push({ code: "candidate_source_unavailable", message: `${fact.key} 的候选来源 ${fact.sourceRef} 不在本次原始证据中，须补充可核对来源。` });
+					return [];
+				}
+				const normalized = { ...fact, sourceRef };
+				// A confirmed choice settles only the exact reviewed alternatives, never a later source version.
+				const alreadyReviewed = history.resolved.some(({ conflict, factVersion }) => state.facts[fact.key]?.version === factVersion && conflict.key === fact.key &&
+					[conflict.previous, conflict.proposed].some(side => side.sourceRef === sourceRef && side.sourceVersion !== null && sourceEvidence.some(e => e.ref === sourceRef && e.version === side.sourceVersion) &&
+						compareRequirementField(fact.key, side, normalized).status === "equivalent" && !sameFactValue(state.facts[fact.key], normalized)));
+				return alreadyReviewed ? [] : [normalized];
 			});
 			for (const key of candidate.missingRequiredFacts ?? []) {
 				const normalized = typeof key === "string" ? normalizeRequirementFactKey(industry, key) : undefined;
@@ -420,6 +391,8 @@ export class RequirementBriefWorker {
 			if (corrections && (corrections.protocol !== "requirement-extraction-correction.v1" || corrections.commandId !== command.commandId || corrections.inputDigest !== correctionDigest)) throw new EnterpriseKernelError("concurrency_conflict", "Correction checkpoint is stale");
 			if (!corrections) {
 				const entries = facts.filter(fact => checkpoint.correctionProtocol === "requirement-extraction-correction.v1" && !unresolved.has(fact.key) && facts.filter(other => other.key === fact.key).length === 1).flatMap(fact => {
+					const current = state.facts[fact.key];
+					if (current && previousCandidateSource(current, sourceEvidence, this.engine.readEvents(command), this.artifacts, state).sourceVersion !== sourceEvidence.find(e => e.ref === fact.sourceRef)?.version) return [];
 					const correction = correctExtractedQuantity(fact, state.facts[fact.key], sourceEvidence, String(facts.find(item => item.key === "product_type")?.value ?? state.facts.product_type?.value ?? ""));
 					return correction ? [correction] : [];
 				});
@@ -427,8 +400,46 @@ export class RequirementBriefWorker {
 				assertActive(); this.artifacts.putJson(correctionKey, corrections);
 			}
 			extractionCorrections = corrections.entries.map(entry => entry.audit);
-			for (const rawFact of facts) {
-				const fact = corrections.entries.find(entry => entry.fact.key === rawFact.key)?.fact ?? rawFact;
+			// Freeze comparisons before any Fact write. Recovery must use the original baseline,
+			// not compare the model output to Facts that this same execution has already written.
+			const decisionKey = { ...command, artifactId: "requirement-candidate-checkpoint", artifactVersion };
+			const decisionDigest = createHash("sha256").update(JSON.stringify({ output: checkpoint.finalResponse, inputAggregateVersion: checkpoint.inputAggregateVersion, correctionInputDigest: corrections.inputDigest })).digest("hex");
+			type Decisions = { protocol: "requirement-candidate-check.v1"; commandId: string; inputDigest: string; facts: RequirementFactV1[]; conflicts: RequirementCandidateConflict[] };
+			let decisions: Decisions | undefined;
+			try { decisions = this.artifacts.readJson(decisionKey) as Decisions; }
+			catch (error) { if (!(error instanceof ArtifactStoreError) || error.code !== "artifact_not_found") throw error; }
+			if (decisions && (decisions.protocol !== "requirement-candidate-check.v1" || decisions.commandId !== command.commandId || decisions.inputDigest !== decisionDigest || !Array.isArray(decisions.facts) || !validCandidateConflicts(decisions.conflicts))) throw new RuntimeFailure("context_failure", "Candidate comparison checkpoint is invalid or stale", false);
+			if (!decisions) {
+				const corrected = facts.map(fact => corrections.entries.find(entry => entry.fact.key === fact.key)?.fact ?? fact);
+				const conflicts = new Map(history.open.map(c => [c.id, c]));
+				for (const fact of corrected) {
+					const current = state.facts[fact.key];
+					const open = history.open.find(c => c.key === fact.key);
+					const comparable = current && ["suggested", "unverified"].includes(current.status);
+					const previous = comparable ? previousCandidateSource(current, sourceEvidence, this.engine.readEvents(command), this.artifacts, state) : open?.previous;
+					if (!previous) continue;
+					const comparison = compareRequirementField(fact.key, previous, fact);
+					const correction = corrections.entries.find(entry => entry.fact.key === fact.key);
+					if (comparison.status === "equivalent" || comparable && correction && correction.audit.previousFactVersion === current.version && correction.audit.sourceRef === current.sourceRef && sameFactValue({ ...correction.fact, key: fact.key }, fact)) continue;
+					const input = { key: fact.key, baseFactVersion: comparable ? current.version : open!.baseFactVersion,
+						previous,
+						proposed: { value: fact.value, ...(fact.unit ? { unit: fact.unit } : {}), sourceRef: fact.sourceRef, sourceVersion: sourceEvidence.find(e => e.ref === fact.sourceRef)!.version },
+						comparison: comparison.status, reason: comparison.reason };
+					const id = candidateConflictId(input);
+					if (!conflicts.has(id)) conflicts.set(id, { id, ...input, firstArtifactVersion: artifactVersion });
+				}
+				decisions = { protocol: "requirement-candidate-check.v1", commandId: command.commandId, inputDigest: decisionDigest, facts: corrected, conflicts: [...conflicts.values()] };
+				assertActive(); this.artifacts.putJson(decisionKey, decisions);
+			}
+			facts = decisions.facts;
+			candidateConflicts = decisions.conflicts;
+			for (const conflict of candidateConflicts) unresolved.add(conflict.key);
+			for (const message of candidateConflictNotes(candidateConflicts)) intakeIssues.push({ code: "candidate_conflict", message });
+			// Historical authored messages remain evidence with their original versions, never as newly confirmed Facts.
+			for (const original of messageEvidence(this.engine.readEvents(command))) {
+				if (candidateConflicts.some(c => [c.previous, c.proposed].some(side => side.sourceRef === original.ref && side.sourceVersion === original.version)) && !sourceEvidence.some(e => e.ref === original.ref && e.version === original.version)) sourceEvidence.push(original);
+			}
+			for (const fact of facts) {
 				if (unresolved.has(fact.key)) continue;
 				state = this.engine.load(command);
 				const current = state.facts[fact.key];
@@ -452,7 +463,7 @@ export class RequirementBriefWorker {
 				}
 				const factCommandId = `${command.commandId}:fact:${fact.key}`;
 				if (this.engine.hasCommand(command, factCommandId) || this.engine.hasCommand(command, runtimeCommandId)) continue;
-				if (current && current.status !== "rejected" && Object.is(current.value, fact.value) && current.unit === fact.unit && (current.sourceRef === sourceRef || current.sourceType !== "model_output")) continue;
+				if (current && current.status !== "rejected" && sameFactValue(current, fact)) continue;
 				assertActive();
 				this.engine.recordFactVersion({ ...command, actorId: "blackx-worker", commandId: factCommandId, expectedVersion: state.aggregateVersion,
 					factKey: fact.key, factVersion: (state.factVersions[fact.key] ?? 0) + 1, value: fact.value, unit: fact.unit,
@@ -508,6 +519,7 @@ export class RequirementBriefWorker {
 				),
 				assumptions: [...candidate.assumptions, ...intakeIssues.map((issue) => issue.message)],
 				pendingChanges,
+				candidateConflicts,
 			});
 		}
 
@@ -544,7 +556,7 @@ export class RequirementBriefWorker {
 				evaluate: (value) => {
 					const rules = requirementEvidencePolicy.evaluate(value);
 					const checked = value as RequirementBriefV1;
-					const unsupportedNumbers = rules.passed ? unsupportedNarrativeNumbers({ ...checked, assumptions: checked.assumptions.filter((note) => !intakeIssues.some((issue) => issue.message === note) && !pendingChangeNotes(checked.facts, checked.pendingChanges ?? []).includes(note)) }, sourceEvidence) : [];
+					const unsupportedNumbers = rules.passed ? unsupportedNarrativeNumbers({ ...checked, assumptions: checked.assumptions.filter((note) => !intakeIssues.some((issue) => issue.message === note) && !pendingChangeNotes(checked.facts, checked.pendingChanges ?? []).includes(note) && !candidateConflictNotes(checked.candidateConflicts ?? []).includes(note)) }, sourceEvidence) : [];
 					const narrativeIssues = unsupportedNumbers.map((number) => ({ code: "unsupported_narrative_number", message: `说明中的数值 ${number} 未出现在本次可用来源中，请核对；正式字段保持原值。` }));
 					return { ...rules, extractionCorrections, passed: rules.passed && narrativeIssues.length === 0, approvalEligible: rules.approvalEligible && intakeIssues.length === 0 && narrativeIssues.length === 0, issues: [...rules.issues, ...intakeIssues, ...narrativeIssues] };
 				},

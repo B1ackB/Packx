@@ -729,13 +729,14 @@ function App() {
 				decision,
 				requirement.state.facts[key].version,
 				requirement.state.aggregateVersion,
+				requirement.candidateConflicts?.some(c => c.key === key) ? requirement.state.currentProposal?.version : undefined,
 			);
 			if (!isCurrent()) return;
 			setRequirement(next);
 		} catch (reason) {
 			if (!isCurrent()) return;
 			setError(errorMessage(reason));
-			if (reason instanceof ConversationClientError && ["fact_review_stale", "concurrency_conflict"].includes(reason.code)) {
+			if (reason instanceof ConversationClientError && ["fact_review_stale", "candidate_review_stale", "concurrency_conflict"].includes(reason.code)) {
 				try { const latest = await client.getRequirementBrief(conversationId); if (isCurrent()) setRequirement(latest ?? undefined); }
 				catch { /* Preserve the conflict message and require a manual refresh. */ }
 			}
@@ -1137,6 +1138,15 @@ function App() {
 
 							<section className="proposal-section facts-card">
 								<div className="section-title"><strong>{en ? "Review key information" : "核对关键信息"}</strong><span>{facts.length}</span></div>
+								{requirement.candidateConflicts?.map(conflict => <div className="fact-change" key={conflict.id}>
+									<strong>{fieldLabel(conflict.key)} · {en ? "Candidates need your decision" : "候选分歧待人工确认"}</strong>
+									<p>{en ? "Both candidates are unconfirmed. Confirm the current value below, or enter a different value and then confirm it. Generating another draft or rejecting a candidate does not resolve this disagreement." : "两个候选均未确认。核对来源后，可确认下方当前值，或填入适用值再确认。重新生成或拒绝候选不会解除分歧。"}</p>
+									{(["previous", "proposed"] as const).map(side => <div key={side}>
+										<strong>{side === "previous" ? en ? "Earlier candidate" : "此前候选" : en ? "Later candidate" : "后续候选"}: {String(conflict[side].value)} {conflict[side].unit}</strong>
+										<RequirementSource source={requirement.candidateConflictSources?.[conflict.id]?.[side]} en={en} />
+										<button type="button" disabled={requirementBusy || requirementRunning || requirementTerminal} onClick={() => { setFactKey(conflict.key); setFactValue(String(conflict[side].value)); setFactUnit(conflict[side].unit ?? ""); document.getElementById("requirement-fact-value")?.focus(); }}>{en ? "Copy to edit form" : "填入修改表"}</button>
+									</div>)}
+								</div>)}
 								{facts.map((fact) => (
 									<div className="fact-row" key={`${fact.key}-${fact.version}`}>
 										<div>
@@ -1154,7 +1164,7 @@ function App() {
 										{(fact.status === "suggested" || fact.status === "unverified") && (
 											<div className="fact-actions">
 												<button onClick={() => void resolveFact(fact.key, "rejected")} disabled={requirementBusy || requirementRunning || requirementTerminal}>{en ? "Reject" : "拒绝"}</button>
-												<button onClick={() => void resolveFact(fact.key, "verified")} disabled={requirementBusy || requirementRunning || requirementTerminal}>{en ? "Confirm" : "确认"}</button>
+												<button onClick={() => void resolveFact(fact.key, "verified")} disabled={requirementBusy || requirementRunning || requirementTerminal}>{requirement.candidateConflicts?.some(c => c.key === fact.key) ? en ? "Confirm current value" : "确认采用当前值" : en ? "Confirm" : "确认"}</button>
 											</div>
 										)}
 									</div>
