@@ -4,7 +4,7 @@ import { validRequirementTrial, type RequirementTrialObservation } from "../../s
 import { factSourceReference, type KnowledgeService } from "../knowledge/service";
 import { KnowledgeError } from "../../src/enterprise/knowledge";
 import type { RequirementDelivery } from "../../src/manufacturing/requirementDelivery";
-import { evaluateRequirementBrief, type RequirementBriefV1 } from "../../src/manufacturing/requirementBrief";
+import { evaluateRequirementBrief, type RequirementBriefV1, type RequirementCandidateSource } from "../../src/manufacturing/requirementBrief";
 import type { AssetInspectionRecord } from "../../src/runtime/assetInspection";
 import type { ArtifactContentStore } from "../../src/enterprise/artifactStore";
 import { ArtifactStoreError } from "../../src/enterprise/artifactStore";
@@ -27,13 +27,14 @@ import {
 } from "../enterprise/proposalWorkspaceApi";
 import { ConversationApiController } from "../runtime/conversationApi";
 import { ConversationAttachmentError, FileConversationAttachmentStore } from "../runtime/conversationAttachments";
-import { reconcileRequirementAttachments, reconcileRequirementMessages, requirementMessageDigest } from "./requirementSourceLifecycle";
+import { reconcileRequirementAttachments, reconcileRequirementMessages, requirementMessageDigest, requirementMessagesChanged, requirementAttachmentSnapshotChanged } from "./requirementSourceLifecycle";
 import { StageJobOutbox } from "../workers/stageJobOutbox";
 import { StageJobScheduler } from "../workers/stageJobScheduler";
 import type { PlanScope, PlanWorkspace } from "../../src/enterprise/agentPlan";
 import { planRequirementSource } from "./planRequirementSource";
 import type { ArtifactWorkspaceStartFact } from "../enterprise/proposalWorkspaceApi";
 import { requirementSourceViews, sourceExcerpt } from "./requirementReview";
+import { candidateConflictHistory, candidateConfirmationKey, messageEvidence, readCandidateConfirmation, type CandidateConfirmation } from "./requirementCandidateConflicts";
 
 function industryFact(payload: unknown, _conversation: ConversationView) {
 	if (
@@ -181,7 +182,7 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 			reconcileRequirementMessages(this.requirementEngine, scope, conversation);
 			if (this.attachments) reconcileRequirementAttachments(this.requirementEngine, this.attachments, { ...scope, conversationId: conversation.conversationId });
 			this.knowledge?.refreshRun(this.requirementEngine, scope);
-			const input = payload as { requestId?: string; expectedFactVersion?: number; expectedAggregateVersion?: number } | null;
+			const input = payload as { requestId?: string; decision?: string; expectedFactVersion?: number; expectedAggregateVersion?: number; reviewedArtifactVersion?: number } | null;
 			if (!input || !Number.isSafeInteger(input.expectedFactVersion) || !Number.isSafeInteger(input.expectedAggregateVersion)) return { status: 400, body: { code: "fact_review_version_required", message: "请重新打开当前字段，核对后再确认。" } };
 			const state = this.requirementEngine.load(scope);
 			const previous = this.requirementEngine.readEvents(scope).find((event) => event.commandId === `${input.requestId}:fact-decision` && event.data.type === "fact.version_recorded");
@@ -189,6 +190,28 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 				? previous.data.factVersion === input.expectedFactVersion! + 1 && previous.aggregateVersion === input.expectedAggregateVersion! + 1
 				: state.facts[String(key)]?.version === input.expectedFactVersion && state.aggregateVersion === input.expectedAggregateVersion;
 			if (!matches) return { status: 409, body: { code: "fact_review_stale", message: "字段或来源已变化，请刷新并核对新版本；本次没有确认任何内容。" } };
+			const stale = () => ({ status: 409, body: { code: "candidate_review_stale", message: "候选分歧或来源已变化，请重新生成并核对当前需求单后再确认。" } });
+			const receipt = typeof input.requestId === "string" ? readCandidateConfirmation(this.requirementArtifacts, state, input.requestId) : undefined;
+			if (receipt && (receipt.key !== key || receipt.reviewedArtifactVersion !== input.reviewedArtifactVersion || receipt.expectedAggregateVersion !== input.expectedAggregateVersion || receipt.factVersion !== input.expectedFactVersion! + 1 || input.decision !== "verified")) return stale();
+			const conflicts = candidateConflictHistory(this.requirementArtifacts, state, this.requirementEngine.readEvents(scope)).open.filter(c => c.key === key);
+			if (!previous && input.decision === "verified" && conflicts.length) {
+				const proposal = state.currentProposal;
+				if (!proposal || input.reviewedArtifactVersion !== proposal.version || requirementMessagesChanged(state, conversation) ||
+					this.attachments && requirementAttachmentSnapshotChanged(state, this.attachments, { ...scope, conversationId: conversation.conversationId }) ||
+					["customer_brief", "customer_messages", "customer_attachments", "plan_source", "knowledge_source"].some(k => proposal.inputFactVersions[k] !== state.factVersions[k])) return stale();
+				const brief = this.requirementArtifacts.readJson({ ...scope, artifactId: "requirement-brief", artifactVersion: proposal.version }) as RequirementBriefV1;
+				if (!evaluateRequirementBrief(brief).passed || conflicts.some(c => !brief.candidateConflicts?.some(item => item.id === c.id))) return stale();
+				const current = state.facts[String(key)];
+				if (current?.sourceType === "model_output") {
+					const reviewed = this.view(state);
+					if (reviewed.factSources?.[String(key)]?.status !== "available" || conflicts.some(c => c.baseFactVersion === current.version && reviewed.candidateConflictSources?.[c.id].previous.status !== "available")) return { status: 409, body: { code: "candidate_source_unavailable", message: "当前候选的来源不可用，请先人工录入适用值，再核对并确认。" } };
+				}
+				if (typeof input.requestId !== "string" || !/^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$/.test(input.requestId) || typeof context.actorId !== "string" || !/^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(context.actorId)) throw new ProposalWorkspaceValidationError("需要有效的确认请求与操作人。");
+				const intent: CandidateConfirmation = { schemaVersion: "requirement-candidate-confirmation.v1", commandId: `${input.requestId}:fact-decision`, key: String(key), factVersion: input.expectedFactVersion! + 1,
+					expectedAggregateVersion: input.expectedAggregateVersion!, reviewedArtifactVersion: proposal.version, conflictIds: conflicts.map(c => c.id) };
+				// Immutable intent first; only the matching human Fact event makes it effective on recovery.
+				this.requirementArtifacts.putJson({ ...scope, ...candidateConfirmationKey(input.requestId) }, intent);
+			}
 			return super.resolveFact(context, conversationId, key, payload);
 		});
 	}
@@ -337,6 +360,7 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 	protected override view(state: ProposalRunState): RequirementBriefWorkspaceView {
 		const base = super.view(state);
 		const events = this.requirementEngine.readEvents(state);
+		const candidateConflicts = candidateConflictHistory(this.requirementArtifacts, state, events).open;
 		const sources: RequirementSourceView[] = events.flatMap((event) => {
 			const data = event.data;
 			return data.type === "fact.version_recorded" && (data.factKey === "customer_brief" || data.sourceType === "user_input" && packagingFactKeys.includes(data.factKey))
@@ -370,17 +394,27 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 				}
 			}
 		}
-		if (this.knowledge) for (const fact of Object.values(state.facts)) {
-			const ref = factSourceReference(events, fact.key, fact.version) ?? fact.sourceRef;
-			if (!packagingFactKeys.includes(fact.key) || !ref.startsWith("kb-") || sources.some((source) => source.ref === ref)) continue;
+		if (this.knowledge) for (const ref of [...Object.values(state.facts).filter(f => packagingFactKeys.includes(f.key)).map(f => factSourceReference(events, f.key, f.version) ?? f.sourceRef), ...candidateConflicts.flatMap(c => [c.previous.sourceRef, c.proposed.sourceRef])]) {
+			if (!ref.startsWith("kb-") || sources.some((source) => source.ref === ref)) continue;
 			try {
 				const hit = this.knowledge.store.readEvidence(state, ref);
 				sources.push({ ref, label: `${hit.title}${hit.location.page ? ` · p${hit.location.page}` : ""}`, status: "available", text: hit.text });
 			} catch (error) { if (!(error instanceof KnowledgeError)) throw error; sources.push({ ref, label: ref, status: "unavailable" }); }
 		}
 		const brief = evaluateRequirementBrief(base.artifact?.content).passed ? base.artifact?.content as RequirementBriefV1 : undefined;
+		const originals = messageEvidence(events);
+		const conflictSource = (side: RequirementCandidateSource): RequirementSourceView => {
+			const original = originals.find(e => e.ref === side.sourceRef && e.version === side.sourceVersion);
+			let source = original ? { ref: side.sourceRef, label: `客户原始资料 · v${side.sourceVersion}`, status: "available" as const, text: String((original.content as { content: string }).content) } : sources.find(s => s.ref === side.sourceRef);
+			if (side.sourceVersion === null) source = undefined;
+			if (side.sourceRef.startsWith("attachment://") && conversationId && this.attachments && this.attachments.list({ ...state, conversationId }, { includeWithdrawn: true }).find(a => side.sourceRef === a.sourceRef || side.sourceRef.startsWith(`${a.sourceRef}#`))?.sha256 !== side.sourceVersion) source = undefined;
+			if (source?.text && source.status === "available") return { ...source, ...sourceExcerpt(source.text, side.value) };
+			return source ?? { ref: side.sourceRef, label: side.sourceRef, status: "unavailable" };
+		};
 		return {
 			...base,
+			candidateConflicts,
+			candidateConflictSources: Object.fromEntries(candidateConflicts.map(c => [c.id, { previous: conflictSource(c.previous), proposed: conflictSource(c.proposed) }])),
 			factSources: requirementSourceViews(state, events, sources),
 			proposalSources: Object.fromEntries((brief?.pendingChanges ?? []).map((change) => {
 				const source = sources.find((item) => item.ref === change.sourceRef);

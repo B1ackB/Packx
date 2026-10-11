@@ -31,7 +31,45 @@ export interface RequirementBriefV1 {
 	assumptions: string[];
 	/** Host-owned proposals; they never replace the current confirmed Fact. */
 	pendingChanges?: RequirementFactChange[];
+	/** Host-owned unresolved comparisons, carried across drafts until a bound human confirmation. */
+	candidateConflicts?: RequirementCandidateConflict[];
 	nextAction: "clarify" | "confirm_facts" | "ready_for_approval";
+}
+
+export interface RequirementCandidateSource {
+	value: string | number | boolean;
+	unit?: string;
+	sourceRef: string;
+	/** null means the original source version could not be established. */
+	sourceVersion: string | number | null;
+}
+
+export interface RequirementCandidateConflict {
+	id: string;
+	key: string;
+	baseFactVersion: number;
+	firstArtifactVersion: number;
+	previous: RequirementCandidateSource;
+	proposed: RequirementCandidateSource;
+	comparison: "different" | "needs_review";
+	reason: string;
+}
+
+export function candidateConflictNotes(conflicts: RequirementCandidateConflict[]): string[] {
+	return conflicts.map(c => `${c.key} 候选${c.comparison === "different" ? "不一致" : "尚不能判断是否等价"}：此前 ${c.previous.value} ${c.previous.unit ?? ""}（来源 ${c.previous.sourceRef}）；本轮候选 ${c.proposed.value} ${c.proposed.unit ?? ""}（来源 ${c.proposed.sourceRef}）。双方均未确认，请核对后明确选择；重新生成不会解除此分歧。`);
+}
+
+export function validCandidateConflicts(value: unknown): value is RequirementCandidateConflict[] {
+	const bounded = (v: unknown, max: number) => typeof v === "string" && v.trim().length > 0 && v.length <= max;
+	const source = (v: unknown) => isRecord(v) && Object.keys(v).every(k => ["value", "unit", "sourceRef", "sourceVersion"].includes(k)) &&
+		(typeof v.value === "string" && bounded(v.value, 8000) || typeof v.value === "number" && Number.isFinite(v.value) || typeof v.value === "boolean") &&
+		(v.unit === undefined || bounded(v.unit, 128)) && bounded(v.sourceRef, 2000) &&
+		(v.sourceVersion === null || bounded(v.sourceVersion, 2000) || Number.isSafeInteger(v.sourceVersion) && Number(v.sourceVersion) > 0);
+	return Array.isArray(value) && new Set(value.map(c => c?.id)).size === value.length && value.every(c =>
+		isRecord(c) && Object.keys(c).sort().join() === "baseFactVersion,comparison,firstArtifactVersion,id,key,previous,proposed,reason" &&
+		typeof c.id === "string" && /^candidate-[a-f0-9]{64}$/.test(c.id) && packagingFactKeys.includes(String(c.key)) &&
+		Number.isSafeInteger(c.baseFactVersion) && Number(c.baseFactVersion) > 0 && Number.isSafeInteger(c.firstArtifactVersion) && Number(c.firstArtifactVersion) > 0 &&
+		source(c.previous) && source(c.proposed) && ["different", "needs_review"].includes(String(c.comparison)) && bounded(c.reason, 128));
 }
 
 export interface RequirementFactChange {
@@ -181,6 +219,7 @@ export function createRequirementBrief(input: {
 	facts: RequirementFactV1[];
 	assumptions?: string[];
 	pendingChanges?: RequirementFactChange[];
+	candidateConflicts?: RequirementCandidateConflict[];
 }): RequirementBriefV1 {
 	const required = requiredRequirementFacts[input.industry];
 	const facts = input.facts
@@ -197,13 +236,15 @@ export function createRequirementBrief(input: {
 		customerGoal: input.customerGoal.trim() || "Clarify the customer's packaging requirement",
 		facts,
 		...(input.pendingChanges?.length ? { pendingChanges: input.pendingChanges.map((change) => ({ ...change })) } : {}),
+		...(input.candidateConflicts?.length ? { candidateConflicts: input.candidateConflicts.map(c => ({ ...c, previous: { ...c.previous }, proposed: { ...c.proposed } })) } : {}),
 		missingRequiredFacts,
 		assumptions: [...new Set([
 			...(input.assumptions ?? []).map((value) => value.trim()).filter((value) => value && !standardClarifications.has(value)),
 			...missingRequiredFacts.map((key) => requiredClarifications[key]),
 			...pendingChangeNotes(facts, input.pendingChanges ?? []),
+			...candidateConflictNotes(input.candidateConflicts ?? []),
 		])],
-		nextAction: missingRequiredFacts.length > 0
+		nextAction: missingRequiredFacts.length > 0 || Boolean(input.candidateConflicts?.length)
 			? "clarify"
 			: hasUnverifiedRequired || Boolean(input.pendingChanges?.length)
 				? "confirm_facts"
@@ -237,6 +278,7 @@ const briefKeys = new Set([
 	"assumptions",
 	"nextAction",
 	"pendingChanges",
+	"candidateConflicts",
 ]);
 
 const allowedFactKeys = new Set(["key", "version", "value", "unit", "status", "sourceType", "sourceRef"]);
@@ -345,7 +387,10 @@ export function evaluateRequirementBrief(value: unknown): RequirementBriefEvalua
 			typeof change.value === "string" && !change.value.trim() || typeof change.sourceRef !== "string" || !change.sourceRef.trim() ||
 			change.unit !== undefined && (typeof change.unit !== "string" || !change.unit.trim())) issue("invalid_pending_change", "A pending change must bind the current confirmed Fact and its proposal source");
 	}
-	const expectedNextAction = missing.length > 0
+	const conflicts = value.candidateConflicts === undefined ? [] : value.candidateConflicts;
+	if (!validCandidateConflicts(conflicts)) issue("invalid_candidate_conflicts", "Candidate conflicts must preserve Host comparisons and source versions");
+	const hasConflicts = Array.isArray(conflicts) && conflicts.length > 0;
+	const expectedNextAction = missing.length > 0 || hasConflicts
 		? "clarify"
 		: unverifiedRequired.length > 0 || changes.length > 0
 			? "confirm_facts"

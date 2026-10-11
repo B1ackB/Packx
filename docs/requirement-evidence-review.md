@@ -8,7 +8,7 @@
 2. 包装规则校验检查 Schema、Fact 权威状态、必填项和 nextAction。结果与用户要求、候选版本、原始 Brief、人工字段、已选证据及附件解析快照一起交给独立 Reviewer。原始计划快照中的模型结果仍是未验证报告。
 3. Reviewer 只能输出 `issues`，每项包含 `kind`、JSON 路径 `location`、`evidenceRefs`、`reason` 和 `suggestedAction`。引用必须属于此次输入；只有 `insufficient_evidence` 可以没有引用，并必须说明缺少什么。
 4. Host 决定 `continue`、`revise`、`request_input`、`reconfirm_plan` 或 `recover_review`。规则通过且复核完成、问题为空，才继续原有事实确认/审批流程。
-5. 当前策略 `packaging-requirement-evidence.v2.6` 按问题选择受限修订。叙述遗漏、无依据表述或草稿与原文相反可修改对应 title、customerGoal、assumptions。`/facts` 的整体遗漏仅授权追加带来源的完整短原文引用，不允许任意改写已有内容或修改 Fact。保留原报告位置，不根据关键词猜测新字段；没有完整原文时不能使用此路径。所有补丁都通过字段/数组项范围检查，额外字段、Fact 修改和无进展被拒绝。
+5. 当前策略 `packaging-requirement-evidence.v2.7` 按问题选择受限修订。叙述遗漏、无依据表述或草稿与原文相反可修改对应 title、customerGoal、assumptions。`/facts` 的整体遗漏仅授权追加带来源的完整短原文引用，不允许任意改写已有内容或修改 Fact。保留原报告位置，不根据关键词猜测新字段；没有完整原文时不能使用此路径。所有补丁都通过字段/数组项范围检查，额外字段、Fact 修改和无进展被拒绝。
 6. 未进入修订范围的问题原样带入第二次复核及最终 Evaluation，不因模型漏报而消失。每次最多修订一次、复核两次；仍有未解决问题则要求人工处理。来源冲突、证据不足及范围变更保留相应业务边界。任何通过都不代替人工 Fact 确认和具体版本审批。
 7. 数量纠错仅接受完整原文中的单一、明确整数件数，须单位一致、其他原文无冲突，且当前值不存在或是同源未确认模型候选。不自动纠正估算、范围、每箱、追加、待批准、未知语法、不可读附件或人工录入值。历史错值与原模型输出保留，新值保持未确认。其他字段暂不自动纠正。
 8. 系统复核/修订失败、无效输出和无进展使用 `recover_review`；UI 显示复核待恢复及显式新执行入口。Stage 继续使用已有 `needs_input` 暂停状态，不能据此把所有此类任务统计为客户资料不足。
@@ -18,6 +18,8 @@
 
 - 每个候选版本保存 review-input（实际输入快照）、review-call（Runtime 结果）、review（结构化报告）和原有 evaluation；报告绑定 Artifact ID/版本、全部输入 Fact 版本、证据版本和输入摘要。
 - `requirement-intake-corrections` 在事实写入前保存纠正决定、完整原文、来源版本、旧事实版本及输入摘要；恢复不重复生成或增加事实版本。最终 Evaluation 含纠正前后值，UI 可展开核对原文。
+- `requirement-candidate-checkpoint` 在写入 Fact 前固定候选比较；已发布需求单及中断草稿中的未解决比较均带入后续版本，不因重新生成、漏报、重复候选、叙述修订或撤回附件而删除。
+- 若只保存了原始运行结果、尚未保存比较，Host 从该结果和对应的事件版本恢复候选分歧；确认接口也检查尚未发布的预留版本，不能趁中断绕过核对。新执行不重放旧模型调用；无法证明来源版本时保留候选并标为来源不可用。重复中断保持首次比较身份。
 - 单次自动修订另存 revision-call，新版本通过现有 runtime.execution.linked、artifact.version_created、evaluation.completed 和 stage/approval 事件审计。原版本及报告不覆盖。
 - 所有读写使用原租户、工作区、Run 边界。每次异步返回和持久化之前复查租约、取消状态、Fact 版本、知识证据有效性和附件摘要。
 - 每次 Runtime Turn 先写不可变调用意图，最多两个复核 Turn 和一个修订 Turn；每 Turn 一个 Agent iteration、24,000 输入 Token、120 秒超时。显式 `allowedTools: []` 禁用所有工具，包括 Runtime 回读助手；数值型工具上限为 1 不开放工具权限。工作流仍拒绝含任何工具执行事件的返回结果。
@@ -25,6 +27,18 @@
 - 收到输出截断时持久化 `output_limit` 并阻断审批，保存原草稿；该错误不允许队列在同一预算下自动重复执行。新预算候选需要显式新执行。失败用量沿现有 ModelTelemetry 记录，未知请求及历史预算不被回填或释放。
 - 已保存结果直接复用。若进程在发起模型调用后、结果持久化前崩溃，恢复报告 `interrupted_review` 并进入复核恢复处理，不自动重复购买不确定的调用。租约丢失或取消后的迟到响应不能推进审批。基础设施写入失败保留原队列恢复行为。
 - 每个失败报告保留分类；模型失败、超时、预算失败、暂停结果、无快照、无效 JSON/引用、降级 Adapter 或工具调用均不能放行。复核/修订用量和延迟计入需求单指标，成本仍遵守原有未配置价格时显示未知的规则。
+
+## 跨轮候选分歧与人工解除
+
+Host 在原始来源校验及受限数量纠错后，将新候选与当前 `unverified/suggested` 值按既有 `compareRequirementField` 规则比较。仅表示形式等价时复用原 Fact；不等价或无法判断时保留旧 Fact，并将双方值、单位、来源及其版本、旧 Fact 版本和首次比较版本写入 `candidateConflicts`。两方仍未确认；当前需求单将对应未确认字段保持缺失，`nextAction=clarify`，即使 Reviewer 返回通过也不能审批。已确认字段仍走原有 `pendingChanges`。
+
+核对面板展示两方原文，可确认当前值，或先填入适用值再确认。编辑和拒绝本身不解除分歧；即使当前 Fact 已拒绝，或出现没有绑定核对凭据的确认，后续不同候选仍加入原分歧。确认请求在原有 `expectedFactVersion`、`expectedAggregateVersion` 之外必须绑定 `reviewedArtifactVersion`；来源快照、字段或需求版本变化返回 409。单独编辑字段允许沿用该需求版本核对，但聊天、附件或知识来源变化要求重新生成。
+
+人工确认前先保存不可变 `candidate-confirmation-*` 意图，绑定该字段的全部未解决比较及所核对的版本；只有匹配的 `human_confirmation/verified` Fact 事件存在时才解除。故障重试不重复确认，未完成的意图不等于确认。原冲突需求单不修改，后续需求单不再携带已解除比较；已核对的同来源版本候选不会重复产生变更，新来源版本仍须核对。撤回或不可读来源不恢复成可用原文。
+
+数量的原文提取纠错继续使用既有窄规则；有旧候选时还必须能证明其原始来源版本未变，不能把后来改动的原文当作旧提取错误自动修正。新模型已输出正确数量时，也核对旧候选是否为同源提取错误，保留纠错审计且新值仍未确认。此功能由 Domain Worker/API/Schema 实现，无新增模型调用、依赖或 Agent Core 改动。它保存已提取候选之间的分歧，不承诺发现模型未提取的全部语义冲突，也不自动重放历史模型任务补录旧分歧。
+
+离线回归入口：`server/manufacturing/requirementIntake.regression.test.ts`、`server/manufacturing/requirementBriefApi.test.ts`、`src/manufacturing/requirementBrief.test.ts`；数量纠错反例继续由 `server/manufacturing/requirementCorrections.test.ts` 覆盖。
 
 ## 固定离线对照
 

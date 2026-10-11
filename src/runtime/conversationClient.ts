@@ -383,10 +383,11 @@ export class ConversationClient {
 		decision: "verified" | "rejected",
 		expectedFactVersion: number,
 		expectedAggregateVersion: number,
+		reviewedArtifactVersion?: number,
 	): Promise<RequirementBriefWorkspaceView> {
 		return (await request<{ requirementBrief: RequirementBriefWorkspaceView }>(
 			`/api/conversations/${encodeURIComponent(conversationId)}/requirement-brief/facts/${encodeURIComponent(factKey)}/decision`,
-			{ method: "POST", body: JSON.stringify({ requestId, decision, expectedFactVersion, expectedAggregateVersion }) },
+			{ method: "POST", body: JSON.stringify({ requestId, decision, expectedFactVersion, expectedAggregateVersion, reviewedArtifactVersion }) },
 		)).requirementBrief;
 	}
 

@@ -16,7 +16,7 @@ function handler(name: string, bindings: Record<string, unknown>) {
 	const compiled = ts.transpileModule(`const handler = ${initializer.getText(source)};`, { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
 	return new Function(...Object.keys(bindings), `${compiled}; return handler;`)(...Object.values(bindings)) as (...args: unknown[]) => Promise<void>;
 }
-function harness(name: string) {
+function harness(name: string, candidateConflict = false) {
 	let resolve!: (value: unknown) => void, reject!: (reason: unknown) => void;
 	const response = new Promise((yes, no) => { resolve = yes; reject = no; });
 	const activeIdRef = { current: "A" }, activeGeneration = { current: 1 };
@@ -24,7 +24,7 @@ function harness(name: string) {
 	const setters = { setRequirement, setRequirementBusy, setError, setFactKey: vi.fn(), setFactValue: vi.fn(), setFactUnit: vi.fn(), setPanelTab: vi.fn(), setReviewOpen: vi.fn() };
 	const client = { startRequirementBrief: vi.fn(() => response), resolveRequirementApproval: vi.fn(() => response), cancelRequirementBrief: vi.fn(() => response), recordRequirementFact: vi.fn(() => response), resolveRequirementFact: vi.fn(() => response), getRequirementBrief: vi.fn() };
 	const invoke = handler(name, { active: { conversationId: "A" }, activeIdRef, activeGeneration, requirementBusy: false, sending: false, realProvider: true,
-		requirement: { state: { aggregateVersion: 10, stageStatus: "needs_input", facts: { quantity: { version: 1 } }, approval: { status: "requested", approvalId: "approval-A", artifactVersion: 2 } } },
+		requirement: { candidateConflicts: candidateConflict ? [{ key: "quantity" }] : [], state: { aggregateVersion: 10, stageStatus: "needs_input", currentProposal: { version: 2 }, facts: { quantity: { version: 1 } }, approval: { status: "requested", approvalId: "approval-A", artifactVersion: 2 } } },
 		factKey: "quantity", factValue: "5000", factUnit: "pcs", client, ...setters, ConversationClientError, errorMessage: String,
 	});
 	const run = () => name === "recordFact" ? invoke({ preventDefault() {} }) : name === "resolveFact" ? invoke("quantity", "verified") : name === "startRequirement" ? invoke() : invoke("approved");
@@ -50,7 +50,7 @@ it.each(["startRequirement", "resolveRequirementApproval", "cancelRequirement", 
 	expect(current.setters.setRequirementBusy).toHaveBeenLastCalledWith(false);
 });
 
-it.each([["resolveFact", "fact_review_stale"], ["resolveRequirementApproval", "approval_review_stale"]])("guards the second refresh after a %s conflict", async (name, code) => {
+it.each([["resolveFact", "fact_review_stale"], ["resolveFact", "candidate_review_stale"], ["resolveRequirementApproval", "approval_review_stale"]])("guards the second refresh after a %s conflict", async (name, code) => {
 	const h = harness(name);
 	let finish!: (value: unknown) => void;
 	h.client.getRequirementBrief.mockReturnValue(new Promise(resolve => { finish = resolve; }));
@@ -60,4 +60,10 @@ it.each([["resolveFact", "fact_review_stale"], ["resolveRequirementApproval", "a
 	Object.values(h.setters).forEach(mock => mock.mockClear());
 	finish({ runId: "requirement-A" }); await pending;
 	for (const setter of Object.values(h.setters)) expect(setter).not.toHaveBeenCalled();
+});
+
+it.each([false, true])("binds candidate confirmation to the artifact visible to the user (conflict=%s)", async conflict => {
+	const h = harness("resolveFact", conflict), pending = h.run();
+	expect(h.client.resolveRequirementFact).toHaveBeenCalledWith("A", "quantity", expect.any(String), "verified", 1, 10, conflict ? 2 : undefined);
+	h.resolve({ runId: "requirement-A" }); await pending;
 });

@@ -25,6 +25,15 @@ it.each([
 	expect(correct(text)).toBeUndefined();
 });
 
+it("recognizes a model-corrected same-source quantity while retaining the original safety checks", () => {
+	const corrected = { ...fact, value: 12000 };
+	expect(correctExtractedQuantity(corrected, fact, [source()], "咖啡豆平底袋")).toMatchObject({ fact: corrected, audit: { previousValue: 12500, value: 12000, previousFactVersion: 1, status: "unverified" } });
+	expect(correctExtractedQuantity(corrected, corrected, [source()], "咖啡豆平底袋")).toBeUndefined();
+	for (const current of [{ ...fact, unit: "卷" }, { ...fact, status: "verified" as const }, { ...fact, sourceType: "user_input" as const }]) expect(correctExtractedQuantity(corrected, current, [source()], "咖啡豆平底袋")).toBeUndefined();
+	for (const text of ["数量：大约 12000 个。", "数量：12000 个，另加 500 个。", "改为 12000 个。", "每箱 12000 个。", "数量：12000 个，等负责人批准。"]) expect(correctExtractedQuantity(corrected, fact, [source(text)], "咖啡豆平底袋")).toBeUndefined();
+	expect(correctExtractedQuantity(corrected, fact, [source(), source("数量：13000 个。", "other")], "咖啡豆平底袋")).toBeUndefined();
+});
+
 it("requires current source identity, matching units and agreement across originals", () => {
 	expect(correctExtractedQuantity(fact, fact, [source(), source("数量：13000 个。", "customer-2")], "咖啡豆平底袋")).toBeUndefined();
 	expect(correctExtractedQuantity(fact, fact, [source(), source("追加 30 卷。", "customer-2")], "咖啡豆平底袋")).toBeUndefined();

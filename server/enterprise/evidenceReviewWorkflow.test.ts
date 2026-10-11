@@ -123,7 +123,7 @@ describe("requirement evidence review boundary", () => {
 		expect(h.read("requirement-brief", 2)).toMatchObject({ ...correction, facts: candidate.facts });
 		expect(h.read("requirement-brief-evaluation", 1)).toMatchObject({ decision: "revise", passed: false });
 		expect(h.report()).toMatchObject({ decision: "continue", passed: true });
-		expect(h.read("requirement-brief-review-input", 2)).toMatchObject({ policyVersion: "packaging-requirement-evidence.v2.6" });
+		expect(h.read("requirement-brief-review-input", 2)).toMatchObject({ policyVersion: "packaging-requirement-evidence.v2.7" });
 		expect(h.requests).toHaveLength(4);
 		await h.run(); expect(h.requests).toHaveLength(4);
 	});

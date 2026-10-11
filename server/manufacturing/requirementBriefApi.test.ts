@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { ProposalRunEngine } from "../../src/enterprise/proposalRunEngine";
 import { InMemoryStageJobQueue } from "../../src/enterprise/stageJobQueue";
-import { requiredRequirementFacts } from "../../src/manufacturing/requirementBrief";
+import { createRequirementBrief, requiredRequirementFacts, type RequirementBriefV1 } from "../../src/manufacturing/requirementBrief";
 import type {
 	ConversationView,
 	RequirementBriefMetricsSeriesView,
@@ -22,6 +22,7 @@ import { StageJobScheduler } from "../workers/stageJobScheduler";
 import { RequirementBriefWorkspaceApiController } from "./requirementBriefApi";
 import { RequirementBriefWorker } from "./requirementBriefWorker";
 import { requirementMessagesChanged } from "./requirementSourceLifecycle";
+import { candidateConfirmationKey } from "./requirementCandidateConflicts";
 
 const directories: string[] = [];
 const context = {
@@ -126,6 +127,191 @@ function appendMessage(h: ReturnType<typeof harness>, role: "user" | "assistant"
 	const stored = h.sessions.getSession(scope)!;
 	h.sessions.save(scope, stored.revision, [...stored.messages, { role, content, messageId: `message-${stored.revision}`, createdAt: "2026-09-30T00:00:00Z" }], "2026-09-30T00:00:00Z");
 }
+
+async function withCandidateConflict(fileSource = false) {
+	const h = harness(), execute = h.runtime.executeTurn.bind(h.runtime);
+	let value = 5000, sourceRef = "runtime-output", calls = 0;
+	h.runtime.executeTurn = async (...args) => {
+		calls++;
+		const result = await execute(...args);
+		return args[0].stageId === "requirement-brief" ? { ...result, finalResponse: JSON.stringify(createRequirementBrief({ industry: "print", title: "需求单", customerGoal: "核对数量", facts: [{ key: "quantity", value, unit: "pcs", version: 1, status: "unverified", sourceType: "model_output", sourceRef }] })) } : result;
+	};
+	const view = () => requirement(h.controller.get(context, h.conversationId));
+	const run = async (requestId: string) => {
+		expect(h.controller.start(context, h.conversationId, { requestId, industry: "print" }).status).toBe(202);
+		expect((await h.scheduler.runNext()).status).toBe("completed");
+	};
+	await run("initial-candidate");
+	const attachment = fileSource ? h.attachments.put({ ...context, conversationId: h.conversationId }, { requestId: "conflicting-file", name: "new-order.txt", mediaType: "text/plain", content: Buffer.from("新文件要求 6200 个。") }).attachment : undefined;
+	if (attachment) sourceRef = attachment.sourceRef;
+	else appendMessage(h, "user", "后续要求 6200 个，请核对前文。");
+	value = 6200;
+	await run("different-candidate");
+	expect(view().candidateConflicts).toHaveLength(1);
+	const review = (requestId = "choose-candidate") => ({ requestId, decision: "verified", expectedFactVersion: view().state.facts.quantity.version, expectedAggregateVersion: view().state.aggregateVersion, reviewedArtifactVersion: view().state.currentProposal!.version });
+	return { ...h, view, run, review, attachment, calls: () => calls, setCandidate: (next: number) => { value = next; } };
+}
+
+it.each([false, true])("requires the reviewed artifact and human confirmation to settle both source candidates (choose new=%s)", async chooseNew => {
+	const h = await withCandidateConflict();
+	const before = h.view(), conflict = before.candidateConflicts![0];
+	expect(before.candidateConflictSources?.[conflict.id]).toMatchObject({ previous: { status: "available", text: expect.stringContaining("5000") }, proposed: { status: "available", text: expect.stringContaining("6200") } });
+	const input = h.review();
+	expect(h.controller.resolveFact(context, h.conversationId, "quantity", { ...input, requestId: 123 }).status).toBe(400);
+	expect(h.controller.resolveFact(context, h.conversationId, "quantity", { ...input, reviewedArtifactVersion: undefined })).toMatchObject({ status: 409, body: { code: "candidate_review_stale" } });
+	expect(h.controller.resolveFact(context, h.conversationId, "quantity", { ...input, reviewedArtifactVersion: 1 }).status).toBe(409);
+	expect(h.controller.resolveFact({ ...context, tenantId: "other" }, h.conversationId, "quantity", input).status).toBe(404);
+	if (chooseNew) {
+		expect(h.controller.recordFact(context, h.conversationId, { requestId: "edit-candidate", key: "quantity", value: 6200, unit: "pcs" }).status).toBe(200);
+		expect(h.view().candidateConflicts).toEqual(before.candidateConflicts);
+		expect(h.view().state.facts.quantity.status).toBe("unverified");
+	}
+	const reviewed = h.review();
+	expect(h.controller.resolveFact(context, h.conversationId, "quantity", reviewed).status).toBe(200);
+	const confirmed = h.view();
+	expect(confirmed.candidateConflicts).toEqual([]);
+	expect(confirmed.state.facts.quantity).toMatchObject({ value: chooseNew ? 6200 : 5000, status: "verified", sourceType: "human_confirmation" });
+	expect(confirmed.state.currentProposal?.freshness).toBe("stale");
+	expect(h.controller.resolveFact(context, h.conversationId, "quantity", reviewed).status).toBe(200);
+	expect(h.view().state.aggregateVersion).toBe(confirmed.state.aggregateVersion);
+	expect(h.controller.resolveFact(context, h.conversationId, "quantity", { ...reviewed, reviewedArtifactVersion: 1 }).status).toBe(409);
+	await h.run("after-confirmation");
+	expect(h.view().candidateConflicts).toEqual([]);
+	expect((h.view().artifact?.content as RequirementBriefV1).pendingChanges).toBeUndefined();
+	expect(h.artifacts.readJson({ ...confirmed.state, artifactId: "requirement-brief", artifactVersion: 2 })).toEqual(before.artifact!.content);
+	expect(h.calls()).toBe(6); // Exactly the existing intake and review calls for each generation.
+	appendMessage(h, "user", "又收到新的 8000 个需求。"); h.setCandidate(8000);
+	await h.run("later-source-version");
+	expect((h.view().artifact?.content as RequirementBriefV1).pendingChanges).toEqual([expect.objectContaining({ value: 8000 })]);
+});
+
+it.each(["message", "upload", "withdraw"] as const)("rejects confirmation after %s changes even with freshly read aggregate versions", async change => {
+	const h = await withCandidateConflict(true), before = h.view();
+	if (change === "message") appendMessage(h, "user", "数量还需要重新核对。");
+	if (change === "upload") h.attachments.put({ ...context, conversationId: h.conversationId }, { requestId: "extra-file", name: "extra.txt", mediaType: "text/plain", content: Buffer.from("待核对") });
+	if (change === "withdraw") expect(h.controller.withdrawAttachment(context, h.conversationId, h.attachment!.attachmentId, { requestId: "withdraw-source", reason: "该文件已撤回", sha256: h.attachment!.sha256 }).status).toBe(200);
+	expect(h.controller.resolveFact(context, h.conversationId, "quantity", h.review())).toMatchObject({ status: 409, body: { code: "candidate_review_stale" } });
+	expect(h.view().candidateConflicts).toEqual(before.candidateConflicts);
+	expect(h.view().state.facts.quantity.status).toBe("unverified");
+	if (change === "withdraw") expect(h.view().candidateConflictSources?.[before.candidateConflicts![0].id].proposed.status).toBe("withdrawn");
+});
+
+it.each(["before-event", "after-event"] as const)("recovers candidate confirmation %s without treating intent as confirmation or duplicating it", async crashAt => {
+	const h = await withCandidateConflict(), resolve = h.engine.resolveFact.bind(h.engine), input = h.review();
+	let crashed = false;
+	h.engine.resolveFact = command => {
+		if (!crashed && crashAt === "before-event") { crashed = true; throw new Error("crash before confirmation event"); }
+		const result = resolve(command);
+		if (!crashed) { crashed = true; throw new Error("crash after confirmation event"); }
+		return result;
+	};
+	expect(h.controller.resolveFact(context, h.conversationId, "quantity", input).status).toBe(500);
+	expect(h.artifacts.readJson({ ...h.view().state, ...candidateConfirmationKey(input.requestId) })).toMatchObject({ reviewedArtifactVersion: 2 });
+	expect(h.view().candidateConflicts).toHaveLength(crashAt === "before-event" ? 1 : 0);
+	expect(h.controller.resolveFact(context, h.conversationId, "quantity", input).status).toBe(200);
+	expect(h.view().candidateConflicts).toEqual([]);
+	expect(h.engine.readEvents(h.view().state).filter(e => e.commandId === `${input.requestId}:fact-decision` && e.data.type === "fact.version_recorded")).toHaveLength(1);
+	expect(h.calls()).toBe(4);
+});
+
+it("keeps the disagreement after rejecting a candidate and after a confirmation without a review receipt", async () => {
+	const h = await withCandidateConflict(), conflicts = h.view().candidateConflicts;
+	expect(h.controller.resolveFact(context, h.conversationId, "quantity", { ...h.review("reject-candidate"), decision: "rejected" }).status).toBe(200);
+	expect(h.view().candidateConflicts).toEqual(conflicts);
+	h.controller.recordFact(context, h.conversationId, { requestId: "manual-edit", key: "quantity", value: 6200, unit: "pcs" });
+	const state = h.view().state;
+	h.engine.resolveFact({ ...state, actorId: context.actorId, commandId: "unbound:fact-decision", correlationId: "test", expectedVersion: state.aggregateVersion, factKey: "quantity", decision: "verified", sourceRef: "manual-unbound" });
+	expect(h.view().candidateConflicts).toEqual(conflicts);
+	await h.run("unbound-confirmation-draft");
+	expect((h.view().artifact?.content as RequirementBriefV1).nextAction).toBe("clarify");
+	expect(h.view().state.approval).toBeUndefined();
+});
+
+it.each(["rejected", "unbound_verified"])("keeps a third candidate after %s until the complete current list is reviewed", async status => {
+	const h = await withCandidateConflict(), oldVersion = h.view().state.currentProposal!.version;
+	if (status === "rejected") expect(h.controller.resolveFact(context, h.conversationId, "quantity", { ...h.review("reject-old"), decision: "rejected" }).status).toBe(200);
+	else {
+		const state = h.view().state;
+		h.engine.resolveFact({ ...state, actorId: context.actorId, commandId: "unbound:fact-decision", correlationId: "test", expectedVersion: state.aggregateVersion, factKey: "quantity", decision: "verified", sourceRef: "manual-unbound" });
+	}
+	appendMessage(h, "user", "最新要求 8000 个，请核对。"); h.setCandidate(8000);
+	await h.run("third-after-decision");
+	expect(h.view().candidateConflicts).toHaveLength(2);
+	expect(h.view().candidateConflicts).toContainEqual(expect.objectContaining({ proposed: expect.objectContaining({ value: 8000 }) }));
+	expect(h.view().state.approval).toBeUndefined();
+	const conflicts = h.view().candidateConflicts;
+	await h.run("repeat-third");
+	expect(h.view().candidateConflicts).toEqual(conflicts);
+	expect(h.controller.recordFact(context, h.conversationId, { requestId: "choose-6200", key: "quantity", value: 6200, unit: "pcs" }).status).toBe(200);
+	for (const reviewedArtifactVersion of [undefined, oldVersion]) expect(h.controller.resolveFact(context, h.conversationId, "quantity", { ...h.review("old-review"), reviewedArtifactVersion }).status).toBe(409);
+	expect(h.controller.resolveFact(context, h.conversationId, "quantity", h.review()).status).toBe(200);
+	expect(h.view().candidateConflicts).toEqual([]);
+	expect(h.view().state.facts.quantity).toMatchObject({ value: 6200, status: "verified", sourceType: "human_confirmation" });
+	expect(h.calls()).toBe(8);
+});
+
+it.each(["requirement-runtime-checkpoint", "requirement-intake-corrections", "requirement-candidate-checkpoint"])("requires review of abandoned %s candidates before and after a new execution", async artifactId => {
+	const h = harness(), execute = h.runtime.executeTurn.bind(h.runtime);
+	let value: number | undefined = 5000, calls = 0;
+	h.runtime.executeTurn = async (...args) => {
+		calls++;
+		const result = await execute(...args);
+		return args[0].stageId === "requirement-brief" ? { ...result, finalResponse: JSON.stringify(createRequirementBrief({ industry: "print", title: "需求单", customerGoal: "核对数量", facts: value === undefined ? [] : [{ key: "quantity", value, unit: "pcs", version: 1, status: "unverified", sourceType: "model_output", sourceRef: "runtime-output" }] })) } : result;
+	};
+	const view = () => requirement(h.controller.get(context, h.conversationId));
+	const review = () => ({ requestId: "confirm-abandoned", decision: "verified", expectedFactVersion: view().state.facts.quantity.version, expectedAggregateVersion: view().state.aggregateVersion, reviewedArtifactVersion: view().state.currentProposal!.version });
+	h.controller.start(context, h.conversationId, { requestId: "initial", industry: "print" });
+	expect((await h.scheduler.runNext()).status).toBe("completed");
+	appendMessage(h, "user", "后续要求 6200 个，请核对前文。"); value = 6200;
+	const put = h.artifacts.putJson.bind(h.artifacts); let crashed = false;
+	h.artifacts.putJson = (key, output) => {
+		const ref = put(key, output);
+		if (!crashed && key.artifactId === artifactId) { crashed = true; throw new Error("abandoned candidate"); }
+		return ref;
+	};
+	h.controller.start(context, h.conversationId, { requestId: "abandoned", industry: "print" });
+	expect((await h.scheduler.runNext()).status).toBe("retry_scheduled");
+	h.artifacts.putJson = put;
+	expect(h.controller.cancel(context, h.conversationId, { requestId: "cancel-abandoned" }).status).toBe(200);
+	expect(view().candidateConflicts).toEqual([expect.objectContaining({ firstArtifactVersion: 2, proposed: expect.objectContaining({ value: 6200 }) })]);
+	expect(h.controller.resolveFact(context, h.conversationId, "quantity", review()).status).toBe(409);
+	value = undefined;
+	h.controller.start(context, h.conversationId, { requestId: "after-abandon", industry: "print" });
+	expect((await h.scheduler.runNext()).status).toBe("completed");
+	expect(view().candidateConflicts).toHaveLength(1);
+	expect((view().artifact!.content as RequirementBriefV1).nextAction).toBe("clarify");
+	expect(view().state.approval).toBeUndefined();
+	expect(h.controller.resolveFact(context, h.conversationId, "quantity", { ...review(), reviewedArtifactVersion: undefined }).status).toBe(409);
+	expect(h.controller.resolveFact(context, h.conversationId, "quantity", review()).status).toBe(200);
+	expect(view().candidateConflicts).toEqual([]);
+	expect(view().state.facts.quantity).toMatchObject({ value: 5000, status: "verified" });
+	expect(calls).toBe(5);
+});
+
+it("includes a third candidate after an unconfirmed manual edit and refuses to resolve it from the older brief", async () => {
+	const h = await withCandidateConflict();
+	h.controller.recordFact(context, h.conversationId, { requestId: "manual-choice", key: "quantity", value: 6200, unit: "pcs" });
+	h.setCandidate(7000); await h.run("third-candidate");
+	expect(h.view().candidateConflicts).toHaveLength(2);
+	expect(h.view().candidateConflicts).toContainEqual(expect.objectContaining({ previous: expect.objectContaining({ value: 6200 }), proposed: expect.objectContaining({ value: 7000 }) }));
+	expect(h.controller.resolveFact(context, h.conversationId, "quantity", { ...h.review(), reviewedArtifactVersion: 2 }).status).toBe(409);
+	expect(h.controller.resolveFact(context, h.conversationId, "quantity", h.review()).status).toBe(200);
+	expect(h.view().candidateConflicts).toEqual([]);
+	await h.run("after-third-choice");
+	expect((h.view().artifact?.content as RequirementBriefV1).pendingChanges).toBeUndefined();
+});
+
+it("requires manual entry when a legacy candidate's original source cannot be read", async () => {
+	const h = await withCandidateConflict(), state = h.view().state;
+	h.engine.recordFactVersion({ ...state, actorId: "worker", commandId: "legacy-value", correlationId: "test", expectedVersion: state.aggregateVersion, factKey: "quantity", factVersion: state.facts.quantity.version + 1, value: 5100, unit: "pcs", status: "unverified", sourceType: "model_output", sourceRef: "runtime:legacy" });
+	await h.run("review-legacy-source");
+	expect(h.view().candidateConflicts).toContainEqual(expect.objectContaining({ previous: expect.objectContaining({ value: 5100, sourceVersion: null }) }));
+	expect(h.controller.resolveFact(context, h.conversationId, "quantity", h.review())).toMatchObject({ status: 409, body: { code: "candidate_source_unavailable" } });
+	expect(h.view().state.facts.quantity.status).toBe("unverified");
+	h.controller.recordFact(context, h.conversationId, { requestId: "manual-replacement", key: "quantity", value: 6200, unit: "pcs" });
+	expect(h.controller.resolveFact(context, h.conversationId, "quantity", h.review()).status).toBe(200);
+	expect(h.view().candidateConflicts).toEqual([]);
+});
 
 it.each(["review", "gate", "export"] as const)("invalidates changed user messages at %s without replacing confirmed Facts", async phase => {
 	const h = await readyForApproval();

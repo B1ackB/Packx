@@ -37,7 +37,12 @@ export function correctExtractedQuantity(fact: RequirementFactV1, current: FactV
 	const source = sources[0], quote = originalCustomerText(source);
 	if (!quote || quote.length > 8000) return;
 	const corrected = explicitQuantity(quote, productType);
-	if (!corrected || compareRequirementField("quantity", fact, corrected).reason !== "numeric_mismatch") return;
+	if (!corrected) return;
+	const comparison = compareRequirementField("quantity", fact, corrected);
+	// A newly correct extraction can repair an older error against the same unchanged original.
+	const previousValue = comparison.reason === "numeric_mismatch" ? fact.value
+		: comparison.status === "equivalent" && current && compareRequirementField("quantity", current, corrected).reason === "numeric_mismatch" ? current.value : undefined;
+	if (previousValue === undefined) return;
 	// Any other customer statement with a count must unambiguously agree. Never choose a source by recency.
 	for (const item of evidence) {
 		const text = originalCustomerText(item);
@@ -54,7 +59,7 @@ export function correctExtractedQuantity(fact: RequirementFactV1, current: FactV
 		if (!other || compareRequirementField("quantity", corrected, other).status !== "equivalent") return;
 	}
 	return { fact: { ...fact, value: corrected.value }, audit: {
-		field: "quantity", previousValue: fact.value, value: corrected.value, unit: fact.unit,
+		field: "quantity", previousValue, value: corrected.value, unit: fact.unit,
 		status: "unverified", sourceRef: source.ref, sourceVersion: source.version, quote,
 		reason: "explicit_original_quantity", previousFactVersion: current?.version ?? null,
 	} };

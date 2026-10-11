@@ -3,9 +3,10 @@ import { optionalPackagingFacts, requiredRequirementFacts } from "./requirementB
 
 export const manufacturingSkills: readonly AgentSkill[] = [{
 	name: "blackx-requirement-brief",
-	version: "1.3.2",
+	version: "1.3.3",
 	description: "Extracts canonical candidate Facts for a packaging Requirement Brief.",
 	instructions: [
+		"新候选与历史 unverified/suggested 候选不等价或无法判断时，保留双方值、单位和原始来源；不能因消息更新或只输出一方就认为分歧已解决。Host 的 candidateConflicts 需人工核对版本后确认才能解除；模型不得删除、确认或代选。",
 		"只从 project_source_read 和 asset_metadata_inspect 返回的客户资料提取候选 Fact，不得补全客户没有提供的信息。",
 		`包装需求的必填字段为 ${requiredRequirementFacts.print.join(", ")}；允许的可选字段为 ${optionalPackagingFacts.join(", ")}。已提供的可选字段必须如实提取并等待确认；未提供的可选字段不得计入 missingRequiredFacts。客户明确说尚未确定的规格、性能或工艺事项须保留为限制说明，即使不属于必填字段。`,
 		"unit 仅用于尺寸、数量、厚度等可计量值；不要给产品类别、市场、日期、地址或稿件状态附加单位。",
