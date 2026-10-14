@@ -9,14 +9,14 @@
 | 项目 | 结果 |
 |---|---|
 | 基线 | `main` 的 `d38e9b3`：单元测试 973 个用例 |
-| 本次结果 | `npm run check`：104 个文件、978 个用例通过，构建成功 |
-| 原生测试 | `npm run test:native`：40 个用例通过（含 Seatbelt，`BLACKX_RUN_SEATBELT_TESTS=1`） |
+| 本次结果 | `npm run check`：108 个文件、992 个用例通过，构建成功 |
+| 原生测试 | `npm run test:native`：42 个用例通过（含 Seatbelt，`BLACKX_RUN_SEATBELT_TESTS=1`） |
 
-本次变更：
-- 域名 allowlist 通过 Host 出口代理实现（ADR-0030 已接受）。代理只允许 443 端口上的已声明域名，拒绝私网与回环地址。
-- Seatbelt 只放行代理端口，子进程绕过代理的直连被拒绝。
-- 沙箱 stdout、stderr 中的宿主路径替换为 `<workspace>`、`<tmp>`、`<home>`。
-- 补充信号隔离用例：沙箱内无法向 Supervisor 或其他进程发送信号。
+本次变更（H1、H2 的补充）：
+- publish 风险闸门测试（无审批、审批被拒、审批通过各一条）。
+- 诊断脱敏抽出为 `runtimeDiagnostic.ts` 并补测试，覆盖经模型设置保存的 Key。
+- 代理端口被占用时不启动，并且不启动 Tool（fail-closed）。
+- Supervisor 被信号终止或返回 70 时不导入任何输出。
 
 ## 2. 权限矩阵
 
@@ -28,7 +28,7 @@
 | 新建或修改文件 | write | 单次人工审批 | `src/agent/loop.ts` 审批分支；`conversationFiles.ts` 绑定路径、内容哈希与父目录身份 | 每次一次人工批准 | `tool_approval_required`、`tool_approval_denied` | `conversationFiles.test.ts`「creates a real immutable file, denies unapproved changes…」；`runtime.contract.test.ts`「denies write tools by default and executes them only with trusted approval and audit」 |
 | 删除文件 | write | 单次人工审批 | 同上 | 每次一次人工批准；恢复历史也需批准 | 同上 | `conversationFiles.test.ts`「rejects deletion, then approves deletion…」 |
 | 旧审批、过期或跨会话复用 | write | 审批绑定 | `conversationFiles.ts` | 拒绝执行 | `file_version_conflict` | `conversationFiles.test.ts`「rejects stale decisions and versions…」「cancels pending approvals on abort, expires after restart…」 |
-| 发布类操作 | publish | 与 write 相同的审批闸门 | `src/agent/loop.ts`（`risk !== "read"`） | 人工审批 | 同 write | 当前无 `publish` 工具，无真实路径覆盖（见第 4 节） |
+| 发布类操作 | publish | 与 write 相同的审批闸门 | `src/agent/loop.ts`（`risk !== "read"`） | 人工审批；无审批、被拒绝均不执行 | `tool_approval_required`、`tool_approval_denied` | `publishGate.test.ts` 三项：无审批端口不执行；审批被拒不执行；审批通过只执行一次并写入审计。当前仍无真实发布工具（见第 4 节） |
 | 工具不在本轮白名单 | — | `allowedTools` | `src/agent/loop.ts` | 不适用 | `tool_not_allowed` | `runtime.contract.test.ts`；`agentPlanWorkflow.test.ts` |
 | 工具输入不合法 | — | 工具 `validate` | `src/agent/loop.ts` | 不适用 | `tool_input_invalid` | `runtime.contract.test.ts`「classifies model-visible Tool validation…」 |
 | 写入工具在 `approvalPolicy: never` 下执行 | write | Host 策略 | 运行时入口 | 拒绝执行 | `context_failure` | `personalMemory.test.ts`（`side_effect` + `never`） |
@@ -40,14 +40,15 @@
 | 沙箱未声明读写 | read / write | Seatbelt Manifest | 同上 | 拒绝 | `tool_sandbox_policy_denied` / 失败 | 「denies undeclared reads and writes even when argv requests them」；「keeps Git and Packx control state denied…」 |
 | 沙箱嵌套 shell 越权写入 | write | Seatbelt Manifest | 同上 | 拒绝；错误含 `Operation not permitted` | 失败（exit 1） | 「denies nested shell writes outside the declared scope」 |
 | 沙箱向 Supervisor 或其他进程发送信号 | — | Seatbelt `(deny signal)` | 同上 | 拒绝 | 无（子进程内部错误） | 「denies signals to the supervisor and keeps the Host-side result intact」 |
+| Supervisor 被信号终止或返回 70 | — | Host fail-closed | 执行器结果映射 | 不导入任何输出 | `failed`（exit 信号）或 `sandbox_unavailable`（`supervisor_failed`） | 「never imports output when the supervisor dies after the Tool wrote it」 |
 | 沙箱输出超过文件数量 | write | Manifest 限制 | 执行器输出扫描 | 拒绝，不保留输出 | `resource_exhausted` / `output_limit_exceeded` | 「rejects staged outputs that exceed the declared file-count limit」 |
 | 沙箱输出含 FIFO 等非普通文件 | write | Host 输出校验 | 执行器输出扫描 | 拒绝，不保留输出 | `policy_denied` / `output_validation_failed` | 「rejects FIFO and other non-regular files in staged output」 |
 | 沙箱符号链接、硬链接、越界路径 | write | Host 校验 | 执行器 | 拒绝 | `policy_denied` | 「rejects symbolic links…」「rejects staged hard links…」「rejects manifest paths outside the configured Workspace…」 |
 | 沙箱输出中的宿主路径 | — | Host 脱敏 | `redactHostPaths`（执行器） | 不适用 | 不适用 | 「redacts host workspace and temporary paths from returned output」 |
 | 沙箱网络：默认拒绝（localhost、公网、私网、DNS） | — | `(deny network*)` | Seatbelt Profile | 无 | 失败（exit ≠ 0） | 「denies localhost network access before the request reaches the Host」（沙箱外正向对照）；「denies public, private and DNS network destinations」 |
 | 沙箱网络：允许模式下绕过代理直连 | — | `(deny network*)` 只放行代理端口 | Seatbelt Profile | 无 | 失败（exit ≠ 0） | 「denies direct connections that bypass the proxy in allowlist mode」 |
-| 沙箱网络：域名 allowlist | 网络 | Manifest 白名单 + Host 代理 | `egressProxy.ts`（ADR-0030） | 无（Manifest 声明） | 允许域名成功；拒绝时代理返回 403/502 | 「reaches only allowlisted domains through the Host proxy」；`egressProxy.test.ts` 五项：域名拒绝且不解析、IP 字面量与非 443 端口拒绝、私网与回环拒绝、DNS 失败、通过已验证地址建立隧道 |
-| 代理启动失败 | — | fail-closed | 执行器 | 不允许降级 | `sandbox_unavailable`（`egress_proxy_unavailable`） | 无专门测试（见第 4 节） |
+| 沙箱网络：域名 allowlist | 网络 | Manifest 白名单 + Host 代理 | `egressProxy.ts`（ADR-0030） | 无（Manifest 声明） | 允许域名成功；拒绝时代理返回 403/502 | 「reaches only allowlisted domains through the Host proxy」；`egressProxy.test.ts` 六项：域名拒绝且不解析、IP 字面量与非 443 端口拒绝、私网与回环拒绝、DNS 失败、端口被占用不启动、通过已验证地址建立隧道 |
+| 代理启动失败 | — | fail-closed | 执行器 | 不允许降级；不启动 Tool | `sandbox_unavailable`（`egress_proxy_unavailable`） | 「fails closed when the egress proxy cannot listen, without spawning the Tool」 |
 | 沙箱不可用时执行 | — | fail-closed | `macOsSeatbeltSandboxedToolExecutor.ts` | 不允许降级 | `tool_sandbox_unavailable` | 「fails closed instead of spawning without Seatbelt」 |
 | 沙箱超时、取消、CPU/内存/进程数上限 | — | Host Watchdog | 执行器 | 不适用 | `tool_timeout`、`resource_exhausted` | 「enforces stdout and wall-clock limits…」「propagates user cancellation…」「enforces CPU, sampled RSS and process-count budgets」 |
 | 宿主被强制退出后的孤儿进程与临时目录 | — | 清理 | 执行器 | 不适用 | 不适用 | 「kills parser descendants and removes temporary output when the Host is forcibly terminated」 |
@@ -55,7 +56,7 @@
 | 请求中伪造 tenant、workspace、actor | — | Host 注入身份 | `index.ts` 覆盖 `x-blackx-*` 请求头 | 不适用 | `local_access_denied` | `localAccess.test.ts`「binds a per-process capability… rejects forged identity…」 |
 | 模型配置持久化与展示 | — | 私有配置文件 | `modelSettings.ts`；配置路径必须位于业务数据目录之外（`index.ts`） | 不适用 | `invalid_model_settings`、`settings_file_unsafe`、`provider_key_required` 等 | `modelSettings.test.ts`「persists privately, masks credentials…」「rejects unsafe endpoints…」 |
 | 上游错误中回显的 Key | — | D4 脱敏 | `server/anthropic/client.ts` | 不适用 | 上游错误类型 | `client.test.ts`「redacts the configured key from upstream error messages in …」「bounds upstream error messages…」 |
-| 运行时诊断日志中的 Secret | — | 环境变量脱敏 | `index.ts` `safeRuntimeDiagnostic` | 不适用 | 不适用 | 无专门测试（见第 4 节） |
+| 运行时诊断日志中的 Secret | — | 环境变量与模式脱敏 | `runtimeDiagnostic.ts` | 不适用 | 不适用 | `runtimeDiagnostic.test.ts` 三项：错误链中的配置 Key；未知 Key 形态与 Bearer；经模型设置保存、再应用到环境变量的 Key |
 
 ## 3. 本轮修正记录
 
@@ -68,11 +69,8 @@
 ## 4. 剩余缺口
 
 1. **“永久规则”决定：保持现状。** 2026-10-14 由产品负责人决定：逐次审批，不引入永久规则。M3 G1 中“永久规则”的测试项因此标记为不适用，相应修改需要新 ADR。
-2. **`publish` 风险没有真实工具。** 引入第一个发布工具前，必须先绑定 Artifact Version 并设置独立审批（P1.8、P0.2）。
-3. **运行时诊断脱敏缺少专门测试。** `safeRuntimeDiagnostic` 只替换环境变量中的 Secret，需要确认模型设置保存的 Key 也进入环境变量，或补测试。
-4. **代理决定尚未进入审计。** ADR-0030 实现记录中已注明：代理决定通过 `onDecision` 暴露，还需接入 Attempt 级审计记录。
-5. **代理启动失败的 fail-closed 路径没有直接测试。** 需要模拟端口占用或监听失败。
-6. **M3 §9 尚未覆盖的条目。**
-   - 脱离进程组的 Fork Bomb：沙箱内向 Supervisor 发信号已被拒绝，但 Fork Bomb 的进程树清理仍未验证。
-   - Host 侧 Supervisor 崩溃：需要从测试进程中结束 Supervisor，尚未实现。
-7. **审批人身份只有本机单用户。** 多用户审批需要等待 Tenant 与 RBAC 设计。
+2. **没有真实发布工具。** Core 对 publish 风险的闸门已有测试。引入第一个发布工具前，仍须先绑定 Artifact Version 与外部目标，并设置独立审批（P1.8、P0.2）。
+3. **代理决定尚未进入审计。** 代理决定通过 `onDecision` 暴露，但 `ToolExecutionManifest` 不包含 `actorId` 与 `idempotencyKey`，无法写入现有的 Tool 审计记录（要求 `actorId`）。补齐需要修改 Manifest 的 Schema，这是 Core 边界变化，需要单独的决定（ADR 或 Schema 变更记录）。
+4. **脱离进程组的 Fork Bomb 无法在当前沙箱中验证。** 沙箱拒绝访问 `/dev/null`，`perl` 等解释器无法启动，因此无法在沙箱内执行 `setsid` 之类的脱离操作。验证需要一个固定的、可在沙箱中运行的辅助程序，或另行设计进程树清理机制。
+5. **沙箱成功结果中的其他内容未审计。** stdout、stderr 中的宿主路径已脱敏；但 Tool 仍可能输出其他敏感内容，这依赖 Tool 本身的设计。
+6. **审批人身份只有本机单用户。** 多用户审批需要等待 Tenant 与 RBAC 设计。

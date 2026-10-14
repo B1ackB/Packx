@@ -37,10 +37,10 @@ BLACKX_RUN_SEATBELT_TESTS=1 npx vitest run server/runtime/macOsSeatbeltSandboxed
 | 序 | ID | 工作项 | 优先级 | 对齐 | 当前状态 | 需 ADR | 负责人 |
 |---|---|---|---|---|---|---|---|
 | 1 | H0 | 工作区收口与基线 | P0 | 路线图前置 | 已完成（三提交拆分，基线记录见证据文件） | 否 | B1ackB |
-| 2 | H1 | 本地权限、审批与 Secret 边界 | P0 | 路线图 #2；M3 G1、G4 | 大部分完成（永久规则已决定保持现状；剩余：publish 工具、诊断脱敏测试） | 视情况 | B1ackB |
-| 3 | H2 | Native Sandbox 对抗回归与域名 allowlist | P0 | 路线图 #1；M3 G2 | 大部分完成（域名 allowlist 与输出脱敏已实现；剩余：Fork Bomb 进程树、Host 侧 Supervisor 崩溃、代理决定入审计） | 是（ADR-0030 已接受） | B1ackB |
+| 2 | H1 | 本地权限、审批与 Secret 边界 | P0 | 路线图 #2；M3 G1、G4 | 完成（永久规则保持现状；publish 闸门已测；真实发布工具待立项） | 视情况 | B1ackB |
+| 3 | H2 | Native Sandbox 对抗回归与域名 allowlist | P0 | 路线图 #1；M3 G2 | 大部分完成（代理、输出脱敏、Supervisor 崩溃已测；阻塞：代理决定入审计需 Manifest 增加 actorId，Fork Bomb 需可在沙箱运行的辅助程序） | 是（ADR-0030 已接受） | B1ackB |
 | 4 | H3 | 包装真实用户补验（与工程并行） | P0 | 路线图 #4；D10 | 未开始 | 否 | B1ackB（产品负责人） |
-| 5 | H4 | 本地存储、迁移、备份恢复 | P0 | 路线图 #3；M3 G5 | 部分完成 | 视情况 | B1ackB |
+| 5 | H4 | 本地存储、迁移、备份恢复 | P0 | 路线图 #3；M3 G5 | 部分完成（迁移框架、崩溃注入、临时文件误删修复、基线已完成；SQLite 迁移待决定） | 视情况 | B1ackB |
 | 6 | H5 | 工具契约单源 Schema 与字段级校验错误 | P1 | P2.2、P2.3；M3 Tool Contract | 未开始 | 否 | B1ackB |
 | 7 | H6 | 本地运行指标与关联 ID | P1 | P2.6；M3 §11 | 部分完成 | 否 | B1ackB |
 | 8 | H7 | 提示词缓存 | P1（待排期） | P3.3；成本 | 未开始 | 否 | B1ackB |
