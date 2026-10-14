@@ -115,6 +115,30 @@ describe("real local files with explicit user approval", () => {
 		for (const path of ["/", "/etc", "/System", "/dev"]) expect(() => service.browse(scope, path)).toThrow("系统目录");
 	});
 
+	it("pages through every permitted file without duplicates and retains path restrictions", () => {
+		const { documents, service, deleted } = setup();
+		const names = Array.from({ length: 405 }, (_, index) => `file-${String(index).padStart(3, "0")}.txt`);
+		for (const name of names) writeFileSync(join(documents, name), "fixture");
+		writeFileSync(join(documents, ".env"), "secret");
+		writeFileSync(join(documents, "credential.key"), "secret");
+		mkdirSync(join(documents, "protected"));
+		const first = service.browse(scope, documents);
+		if (!("entries" in first)) throw new Error("Expected directory listing");
+		expect(first).toMatchObject({ total: 405, truncated: true, nextAfter: names[199] });
+		expect(first.entries).toHaveLength(200);
+		const second = service.browse(scope, documents, first.nextAfter);
+		if (!("entries" in second)) throw new Error("Expected directory listing");
+		const last = service.browse(scope, documents, second.nextAfter);
+		if (!("entries" in last)) throw new Error("Expected directory listing");
+		expect(last).toMatchObject({ total: 405, truncated: false });
+		expect(last.nextAfter).toBeUndefined();
+		expect([...first.entries, ...second.entries, ...last.entries].map((entry) => entry.name)).toEqual(names);
+		for (const cursor of ["../escape", ".env", "missing.txt"]) expect(() => service.browse(scope, documents, cursor)).toThrow();
+		rmSync(join(documents, first.nextAfter!));
+		expect(() => service.browse(scope, documents, first.nextAfter)).toThrow("刷新");
+		deleted(); expect(() => service.browse(scope, documents, second.nextAfter)).toThrow("deleted");
+	});
+
 	it("invalidates legacy local approvals while retaining inert directory records", async () => {
 		const { root, documents, service } = setup(); const path = join(documents, "new.md");
 		const req = request(path, null, "draft"); const id = await approved(service, req);

@@ -576,7 +576,7 @@ server.on("request", async (request, response) => {
 				const document = await assetInspection.preview(scope, url.searchParams.get("path") ?? "", (context, path) => conversationFiles.readDocument(context, path), controller.signal, url.searchParams.get("ocrCursor") ?? undefined);
 				json(response, 200, { document });
 			} else if (request.method === "GET" && filesMatch[2] === "directories") {
-				json(response, 200, conversationFiles.browse(scope, url.searchParams.get("path") ?? undefined));
+				json(response, 200, conversationFiles.browse(scope, url.searchParams.get("path") ?? undefined, url.searchParams.get("after") ?? undefined));
 			} else if ((request.method === "POST" && filesMatch[2] === "directories") || (request.method === "DELETE" && filesMatch[3])) {
 				json(response, 410, { code: "directory_grants_retired", message: "无需提前授权目录，请直接让 Agent 操作文件，每次写入或删除会发起审批。" });
 			} else if (request.method === "POST" && filesMatch[4]) {

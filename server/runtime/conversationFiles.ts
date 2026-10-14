@@ -87,9 +87,9 @@ export class ConversationFileService implements AgentToolApprovalPort {
 	private resolveMutation(scope: Scope, input: Mutation): Mutation {
 		return input.sourceVersion === undefined ? input : { ...input, content: this.read(scope, input.path, input.sourceVersion).content };
 	}
-	browse(scope: Scope, path?: string) {
+	browse(scope: Scope, path?: string, after?: string) {
 		this.load(scope);
-		return path ? this.local.list(path) : { locations: this.local.locations(), files: this.list(scope).files };
+		return path ? this.local.list(path, after) : { locations: this.local.locations(), files: this.list(scope).files };
 	}
 	readDocument(scope: Scope, path: string) { this.load(scope); return this.local.readDocument(path); }
 	readLocal(scope: Scope, path: string) {

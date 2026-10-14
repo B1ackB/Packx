@@ -117,8 +117,8 @@ export class ConversationClient {
 	fileLocations(conversationId: string): Promise<LocalFileLocations> {
 		return request(`/api/conversations/${encodeURIComponent(conversationId)}/files/directories`);
 	}
-	browseDirectory(conversationId: string, path: string): Promise<LocalDirectoryListing> {
-		return request(`/api/conversations/${encodeURIComponent(conversationId)}/files/directories?${new URLSearchParams({ path })}`);
+	browseDirectory(conversationId: string, path: string, after?: string): Promise<LocalDirectoryListing> {
+		return request(`/api/conversations/${encodeURIComponent(conversationId)}/files/directories?${new URLSearchParams({ path, ...(after ? { after } : {}) })}`);
 	}
 	async readDocument(conversationId: string, path: string, ocrCursor?: string) {
 		return (await request<{ document: import("./assetInspection").AssetInspectionRecord }>(`/api/conversations/${encodeURIComponent(conversationId)}/files/document-content?${new URLSearchParams({ path, ...(ocrCursor ? { ocrCursor } : {}) })}`)).document;
