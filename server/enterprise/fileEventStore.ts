@@ -437,12 +437,14 @@ export class FileEnterpriseEventStore implements EnterpriseEventStore {
 		const directory = dirname(this.filePath);
 		mkdirSync(directory, { recursive: true, mode: 0o700 });
 		const temporaryPath = `${this.filePath}.${process.pid}.${this.nextId()}.tmp`;
+		let created = false;
 		try {
 			writeFileSync(temporaryPath, `${JSON.stringify(document)}\n`, {
 				encoding: "utf8",
 				mode: 0o600,
 				flag: "wx",
 			});
+			created = true;
 			const handle = openSync(temporaryPath, "r");
 			try {
 				fsyncSync(handle);
@@ -451,8 +453,15 @@ export class FileEnterpriseEventStore implements EnterpriseEventStore {
 			}
 			renameSync(temporaryPath, this.filePath);
 			chmodSync(this.filePath, 0o600);
+			const directoryHandle = openSync(directory, "r");
+			try {
+				fsyncSync(directoryHandle);
+			} finally {
+				closeSync(directoryHandle);
+			}
 		} catch (error) {
-			if (existsSync(temporaryPath)) unlinkSync(temporaryPath);
+			// Only remove a temporary file this write created; a pre-existing file at that path belongs to someone else.
+			if (created && existsSync(temporaryPath)) unlinkSync(temporaryPath);
 			throw new EnterpriseKernelError(
 				"event_store_unavailable",
 				"Persistent Event Store write failed",
