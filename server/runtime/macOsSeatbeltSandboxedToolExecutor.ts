@@ -9,8 +9,10 @@ import {
 	realpath,
 	rm,
 } from "node:fs/promises";
+import { homedir } from "node:os";
 import { basename, dirname, extname, isAbsolute, relative, resolve, sep } from "node:path";
 import { spawn } from "node:child_process";
+import { EgressProxy, type EgressProxyOptions } from "./egressProxy";
 import { validToolExecutionManifest } from "../../src/agent/sandbox";
 import type {
 	SandboxedToolExecutorPort,
@@ -34,12 +36,14 @@ interface PreparedExecution {
 	writablePaths: readonly string[];
 	temporaryDirectory: string;
 	protectedPaths?: readonly string[];
+	egressPort?: number;
 }
 
 export interface MacOsSeatbeltSandboxedToolExecutorOptions {
 	workspaceRoot: string;
 	sandboxExecutable?: string;
 	protectedPaths?: readonly string[];
+	egress?: Pick<EgressProxyOptions, "resolve" | "connect" | "onDecision">;
 }
 
 function inside(root: string, candidate: string): boolean {
@@ -108,6 +112,7 @@ export function compileMacOsSeatbeltProfile(execution: PreparedExecution): strin
 		"(deny signal)",
 		"(allow signal (target self))",
 		"(deny network*)",
+		...(execution.egressPort ? [`(allow network-outbound (remote ip ${seatbeltString(`localhost:${execution.egressPort}`)}))`] : []),
 		"(deny file-read*)",
 		`(allow file-read* ${readable})`,
 		...(protectedRules ? [`(deny file-read* ${protectedRules})`] : []),
@@ -115,6 +120,14 @@ export function compileMacOsSeatbeltProfile(execution: PreparedExecution): strin
 		`(allow file-write* ${writable})`,
 		...(protectedRules ? [`(deny file-write* ${protectedRules})`] : []),
 	].join("\n");
+}
+
+function redactHostPaths(text: string, paths: readonly (readonly [string, string])[]): string {
+	let redacted = text;
+	for (const [path, label] of [...paths].sort((left, right) => right[0].length - left[0].length)) {
+		if (path.length > 1) redacted = redacted.split(path).join(label);
+	}
+	return redacted;
 }
 
 function mimeType(path: string): string {
@@ -373,9 +386,6 @@ export class MacOsSeatbeltSandboxedToolExecutor implements SandboxedToolExecutor
 		if (!diagnostic.available) {
 			return failureResult(manifest, startedAt, "sandbox_unavailable", diagnostic.reason ?? "seatbelt_unavailable");
 		}
-		if (manifest.network.mode !== "deny-all") {
-			return failureResult(manifest, startedAt, "sandbox_unavailable", "network_allowlist_proxy_unavailable");
-		}
 		if (signal.aborted) {
 			const status = abortedStatus();
 			return failureResult(manifest, startedAt, status, `${status}_before_spawn`);
@@ -393,6 +403,28 @@ export class MacOsSeatbeltSandboxedToolExecutor implements SandboxedToolExecutor
 				error instanceof SandboxPolicyError ? "manifest_path_policy_denied" : "sandbox_preflight_failed",
 			);
 		}
+		const hostPaths: Array<readonly [string, string]> = [
+			[execution.temporaryDirectory, "<tmp>"],
+			[resolve(manifest.paths.temporaryDirectory), "<tmp>"],
+			[execution.workingDirectory, "<workspace>"],
+			[resolve(this.options.workspaceRoot), "<workspace>"],
+			[await realpath(resolve(this.options.workspaceRoot)), "<workspace>"],
+			[homedir(), "<home>"],
+		];
+		let egress: EgressProxy | undefined;
+		if (manifest.network.mode === "allowlist") {
+			egress = new EgressProxy({ allowedDomains: manifest.network.allowedDomains, ...this.options.egress });
+			try {
+				execution.egressPort = await egress.start();
+			} catch {
+				await egress.stop().catch(() => undefined);
+				await rm(execution.temporaryDirectory, { recursive: true, force: true });
+				return failureResult(manifest, startedAt, "sandbox_unavailable", "egress_proxy_unavailable");
+			}
+		}
+		const egressEnvironment = execution.egressPort
+			? Object.fromEntries(["HTTPS_PROXY", "HTTP_PROXY", "https_proxy", "http_proxy"].map((key) => [key, `http://127.0.0.1:${execution!.egressPort}`]))
+			: {};
 
 		const stdoutChunks: Buffer[] = [];
 		const stderrChunks: Buffer[] = [];
@@ -430,7 +462,7 @@ export class MacOsSeatbeltSandboxedToolExecutor implements SandboxedToolExecutor
 				{
 					cwd: execution.workingDirectory,
 					detached: true,
-					env: { ...manifest.environment },
+					env: { ...manifest.environment, ...egressEnvironment },
 					shell: false,
 					stdio: ["ignore", "pipe", "pipe"],
 				},
@@ -472,11 +504,11 @@ export class MacOsSeatbeltSandboxedToolExecutor implements SandboxedToolExecutor
 			killProcessGroup(child.pid, "SIGKILL");
 
 			const stdout = {
-				text: boundedText(stdoutChunks, manifest.limits.maxStdoutBytes),
+				text: redactHostPaths(boundedText(stdoutChunks, manifest.limits.maxStdoutBytes), hostPaths),
 				truncated: stdoutTruncated,
 			};
 			const stderr = {
-				text: boundedText(stderrChunks, manifest.limits.maxStderrBytes),
+				text: redactHostPaths(boundedText(stderrChunks, manifest.limits.maxStderrBytes), hostPaths),
 				truncated: stderrTruncated,
 			};
 			if (outcome.error) {
@@ -521,6 +553,7 @@ export class MacOsSeatbeltSandboxedToolExecutor implements SandboxedToolExecutor
 			if (killTimer) clearTimeout(killTimer);
 			signal.removeEventListener("abort", aborted);
 			if (child?.pid) killProcessGroup(child.pid, "SIGKILL");
+			await egress?.stop();
 			if (execution) await rm(execution.temporaryDirectory, { recursive: true, force: true });
 		}
 	}

@@ -1,6 +1,7 @@
 # ADR-0030：沙箱域名 allowlist 通过 Host 出口代理实现
 
-- 状态：Proposed；2026-10-14。待产品负责人 B1ackB 接受后才能实现。
+- 状态：Accepted；2026-10-14（产品负责人 B1ackB 接受）。
+- 实现：`server/runtime/egressProxy.ts`、`macOsSeatbeltSandboxedToolExecutor.ts`。
 - 来源：[M3 G2/G4](../milestone-3-production-hardening.md) 要求 `allowlist` 网络模式可用；当前 Seatbelt Adapter 对 `allowlist` 返回 `sandbox_unavailable`（`network_allowlist_proxy_unavailable`），因为没有可信的 Host 代理。
 - 关联：[ADR-0008](0008-local-native-tool-sandbox.md)、[ADR-0009](0009-local-document-delivery-slice.md)、[ADR-0017](0017-local-release-settings-and-native-supervision.md)。
 
@@ -42,3 +43,11 @@
 
 - 默认仍为 `deny-all`，`allowlist` 只对明确声明的 Tool 开放。
 - 若在 macOS 实测发现 Seatbelt 无法稳定限制到代理端口，或代理无法通过攻击回归，则停止实现，改为只支持 Host Connector 访问外部 API，并回到本 ADR 修订。
+
+## 实现记录（2026-10-14）
+
+- 代理只解析 CONNECT 请求行，不转发明文 HTTP；非 CONNECT 请求返回 405，端口非 443 或 IP 字面量返回 403。
+- 允许域名的每个 DNS 结果都必须是公网地址，任何一个私网、回环或保留地址都会拒绝整次连接；连接直接使用已验证的 IP。
+- Seatbelt 只在 `(deny network*)` 之后放行 `localhost:<代理端口>`；子进程环境注入 `HTTPS_PROXY`、`HTTP_PROXY` 及小写变体。
+- 验证：`server/runtime/egressProxy.test.ts`（5 项，平台无关）；Seatbelt 测试「reaches only allowlisted domains through the Host proxy」「denies direct connections that bypass the proxy in allowlist mode」。
+- 未完成：代理决定目前通过 `onDecision` 回调暴露，尚未写入 Attempt 级审计记录。接入审计端口后再关闭本条。
