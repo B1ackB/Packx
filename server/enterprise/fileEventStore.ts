@@ -22,7 +22,7 @@ import type {
 } from "../../src/enterprise/contracts";
 import { EnterpriseKernelError } from "../../src/enterprise/contracts";
 
-interface EventStoreDocument {
+export interface EventStoreDocument {
 	schemaVersion: 3;
 	events: EnterpriseEvent[];
 	outbox: OutboxMessage[];
@@ -178,7 +178,7 @@ function isEnterpriseEvent(value: unknown): value is EnterpriseEvent {
 	);
 }
 
-function isOutboxMessage(value: unknown): value is OutboxMessage {
+export function isOutboxMessage(value: unknown): value is OutboxMessage {
 	if (!isRecord(value) || !isRecord(value.payload)) return false;
 	const payload = value.payload;
 	return value.schemaVersion === "enterprise-outbox.v1" &&
@@ -229,7 +229,7 @@ function hasValidStreamIntegrity(events: EnterpriseEvent[]): boolean {
 	return true;
 }
 
-function sameScope(event: EnterpriseEvent, scope: AggregateScope): boolean {
+export function sameScope(event: EnterpriseEvent, scope: AggregateScope): boolean {
 	return (
 		event.tenantId === scope.tenantId &&
 		event.workspaceId === scope.workspaceId &&
@@ -237,11 +237,48 @@ function sameScope(event: EnterpriseEvent, scope: AggregateScope): boolean {
 	);
 }
 
-function sameOwner(event: EnterpriseEvent, scope: AggregateScope): boolean {
+export function sameOwner(event: EnterpriseEvent, scope: AggregateScope): boolean {
 	return (
 		event.tenantId === scope.tenantId &&
 		event.workspaceId === scope.workspaceId
 	);
+}
+
+export function readEventStoreDocument(filePath: string): EventStoreDocument {
+	if (!existsSync(filePath)) {
+		return { schemaVersion: 3, events: [], outbox: [] };
+	}
+	try {
+		const parsed = JSON.parse(readFileSync(filePath, "utf8")) as unknown;
+		if (
+			isRecord(parsed) &&
+			parsed.schemaVersion === 2 &&
+			Array.isArray(parsed.events) &&
+			parsed.events.every(isEnterpriseEvent) &&
+			hasValidStreamIntegrity(parsed.events)
+		) {
+			return { schemaVersion: 3, events: parsed.events, outbox: [] };
+		}
+		if (
+			!isRecord(parsed) ||
+			parsed.schemaVersion !== 3 ||
+			!Array.isArray(parsed.events) ||
+			!parsed.events.every(isEnterpriseEvent) ||
+			!hasValidStreamIntegrity(parsed.events) ||
+			!Array.isArray(parsed.outbox) ||
+			!parsed.outbox.every(isOutboxMessage) ||
+			new Set(parsed.outbox.map((message) => message.messageId)).size !== parsed.outbox.length
+		) {
+			throw new Error("invalid_event_store_document");
+		}
+		return { schemaVersion: 3, events: parsed.events, outbox: parsed.outbox };
+	} catch (error) {
+		throw new EnterpriseKernelError(
+			"event_store_corrupt",
+			"Persistent Event Store cannot be decoded safely",
+			{ cause: error },
+		);
+	}
 }
 
 export class FileEnterpriseEventStore implements EnterpriseEventStore {
@@ -380,40 +417,7 @@ export class FileEnterpriseEventStore implements EnterpriseEventStore {
 	}
 
 	private loadDocument(): EventStoreDocument {
-		if (!existsSync(this.filePath)) {
-			return { schemaVersion: 3, events: [], outbox: [] };
-		}
-		try {
-			const parsed = JSON.parse(readFileSync(this.filePath, "utf8")) as unknown;
-			if (
-				isRecord(parsed) &&
-				parsed.schemaVersion === 2 &&
-				Array.isArray(parsed.events) &&
-				parsed.events.every(isEnterpriseEvent) &&
-				hasValidStreamIntegrity(parsed.events)
-			) {
-				return { schemaVersion: 3, events: parsed.events, outbox: [] };
-			}
-			if (
-				!isRecord(parsed) ||
-				parsed.schemaVersion !== 3 ||
-				!Array.isArray(parsed.events) ||
-				!parsed.events.every(isEnterpriseEvent) ||
-				!hasValidStreamIntegrity(parsed.events) ||
-				!Array.isArray(parsed.outbox) ||
-				!parsed.outbox.every(isOutboxMessage) ||
-				new Set(parsed.outbox.map((message) => message.messageId)).size !== parsed.outbox.length
-			) {
-				throw new Error("invalid_event_store_document");
-			}
-			return { schemaVersion: 3, events: parsed.events, outbox: parsed.outbox };
-		} catch (error) {
-			throw new EnterpriseKernelError(
-				"event_store_corrupt",
-				"Persistent Event Store cannot be decoded safely",
-				{ cause: error },
-			);
-		}
+		return readEventStoreDocument(this.filePath);
 	}
 
 	private updateOutbox(

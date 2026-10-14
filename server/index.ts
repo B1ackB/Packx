@@ -32,6 +32,7 @@ import { RuntimeFailure } from "../src/runtime/contracts";
 import { forceRuntimeEvalPolicy, runtimeEvalEnabled } from "./runtime/runtimeEvalPolicy";
 import { safeRuntimeDiagnostic } from "./runtime/runtimeDiagnostic";
 import { FileEnterpriseEventStore } from "./enterprise/fileEventStore";
+import { SqliteEnterpriseEventStore } from "./enterprise/sqliteEventStore";
 import { FileCronScheduleStore } from "./enterprise/fileCronScheduleStore";
 import { FileStageJobQueue } from "./enterprise/fileStageJobQueue";
 import {
@@ -78,12 +79,13 @@ process.once("exit", releaseLocalData);
 ensureLocalDataVersion(localData.root);
 const port = Number(process.env.BLACKX_PORT ?? 5173);
 const localAccess = new LocalAccess(port);
-const eventStore = new FileEnterpriseEventStore(
-	resolve(
-			process.env.BLACKX_EVENT_STORE_PATH ??
-				".blackx-data/events.json",
-	),
-);
+const eventStoreDriver = process.env.BLACKX_EVENT_STORE_DRIVER ?? "file";
+if (eventStoreDriver !== "file" && eventStoreDriver !== "sqlite") {
+	throw new Error("BLACKX_EVENT_STORE_DRIVER must be file or sqlite");
+}
+const eventStore = eventStoreDriver === "sqlite"
+	? new SqliteEnterpriseEventStore(resolve(process.env.BLACKX_EVENT_STORE_PATH ?? ".blackx-data/events.sqlite"))
+	: new FileEnterpriseEventStore(resolve(process.env.BLACKX_EVENT_STORE_PATH ?? ".blackx-data/events.json"));
 const proposalEngine = new ProposalRunEngine(eventStore);
 const requirementBriefEngine = new ProposalRunEngine(eventStore, "requirement-brief");
 const proposalApi = new ProposalApiController(
