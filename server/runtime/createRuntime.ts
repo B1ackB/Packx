@@ -32,6 +32,14 @@ export interface RuntimeServicesOptions {
 	resolveImageAttachment?: BlackxAgentRuntimeOptions["resolveImageAttachment"];
 }
 
+export function hostToolApproval(options: Pick<RuntimeServicesOptions, "approval" | "autonomouslyApprovedTools">): AgentToolApprovalPort {
+	return {
+		authorize: async (request, signal) => options.autonomouslyApprovedTools?.has(request.tool)
+			? { approved: true, approvalId: `policy:${request.tool}:v1` }
+			: options.approval?.authorize(request, signal) ?? { approved: false },
+	};
+}
+
 export function validateAnthropicBaseUrl(value: string): string {
   let parsed: URL;
   try {
@@ -123,11 +131,7 @@ export function createRuntime(
 				resolveImageAttachment: options.resolveImageAttachment,
 				readTaskContext: options.readTaskContext,
 				recoverToolExecution: options.recoverToolExecution,
-				approval: {
-					authorize: async (request, signal) => options.autonomouslyApprovedTools?.has(request.tool)
-						? { approved: true, approvalId: `policy:${request.tool}:v1` }
-						: options.approval?.authorize(request, signal) ?? { approved: false },
-				},
+				approval: hostToolApproval(options),
 				audit: state,
 				sessions: state,
 				snapshots: state,

@@ -1,4 +1,4 @@
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { once } from "node:events";
 import { setTimeout as delay } from "node:timers/promises";
 import { resolve } from "node:path";
@@ -354,24 +354,28 @@ describe.skipIf(!runSeatbeltTests)("macOS Seatbelt executor attack regression", 
 	});
 
 	it("denies localhost network access before the request reaches the Host", async () => {
-		let requests = 0;
+		let connections = 0;
 		const server = createServer((_request, response) => {
-			requests += 1;
 			response.end("unexpected");
 		});
+		server.on("connection", () => { connections += 1; });
 		await new Promise<void>((resolveListen) => server.listen(0, "127.0.0.1", resolveListen));
 		const address = server.address();
 		if (!address || typeof address === "string") throw new Error("Local test server did not expose a TCP port");
 		const executor = new MacOsSeatbeltSandboxedToolExecutor({ workspaceRoot });
+		const probe = ["-z", "-w", "2", "127.0.0.1", String(address.port)];
 
 		try {
+			const reachable = spawnSync("/usr/bin/nc", probe, { encoding: "utf8" });
+			expect(reachable.status, "the same probe must reach the endpoint outside the sandbox").toBe(0);
 			const denied = await executor.execute(manifest(workspaceRoot, {
-				executable: "/usr/bin/curl",
-				argv: ["--silent", "--show-error", "--max-time", "1", `http://127.0.0.1:${address.port}`],
+				executable: "/usr/bin/nc",
+				argv: probe,
 			}), new AbortController().signal);
 
 			expect(denied.status).toBe("failed");
-			expect(requests).toBe(0);
+			expect(denied.exitCode).not.toBe(0);
+			expect(connections).toBe(1);
 		} finally {
 			await new Promise<void>((resolveClose, rejectClose) => server.close((error) =>
 				error ? rejectClose(error) : resolveClose()
@@ -422,5 +426,70 @@ describe.skipIf(!runSeatbeltTests)("macOS Seatbelt executor attack regression", 
 			status: "sandbox_unavailable",
 			sandbox: { terminationReason: "network_allowlist_proxy_unavailable" },
 		});
+	});
+
+	it("denies public, private and DNS network destinations", async () => {
+		const executor = new MacOsSeatbeltSandboxedToolExecutor({ workspaceRoot });
+		const targets = ["1.1.1.1", "10.255.255.1", "example.com"];
+
+		for (const target of targets) {
+			const attempt = await executor.execute(manifest(workspaceRoot, {
+				executable: "/usr/bin/nc",
+				argv: ["-z", "-w", "2", target, "80"],
+			}), new AbortController().signal);
+
+			expect(attempt.status, target).toBe("failed");
+			expect(attempt.exitCode, target).not.toBe(0);
+			expect(attempt.stdout.text, target).toBe("");
+		}
+	}, 20_000);
+
+	it("denies nested shell writes outside the declared scope", async () => {
+		const escaped = join(outsideRoot, "escaped.txt");
+		const executor = new MacOsSeatbeltSandboxedToolExecutor({ workspaceRoot });
+
+		const nested = await executor.execute(manifest(workspaceRoot, {
+			executable: "/bin/sh",
+			argv: ["-c", `echo escaped > "$0"`, escaped],
+			writable: [workspaceRoot],
+		}), new AbortController().signal);
+
+		expect(nested).toMatchObject({ status: "failed", exitCode: 1 });
+		expect(nested.stderr.text).toContain("Operation not permitted");
+		expect(existsSync(escaped)).toBe(false);
+	});
+
+	it("rejects staged outputs that exceed the declared file-count limit", async () => {
+		const executor = new MacOsSeatbeltSandboxedToolExecutor({ workspaceRoot });
+		const job = manifest(workspaceRoot, {
+			executable: "/bin/sh",
+			argv: ["-c", `for i in 1 2 3; do echo x > "$0/$i.txt"; done`, "placeholder"],
+			limits: { maxOutputFiles: 2 },
+		});
+		const tooMany = compileToolExecutionManifest({
+			...job,
+			command: { ...job.command, argv: ["-c", `for i in 1 2 3; do echo x > "$0/$i.txt"; done`, job.paths.temporaryDirectory] },
+		});
+
+		const result = await executor.execute(tooMany, new AbortController().signal);
+
+		expect(result).toMatchObject({ status: "resource_exhausted", sandbox: { terminationReason: "output_limit_exceeded" } });
+		expect(result.outputs ?? []).toHaveLength(0);
+		expect(existsSync(job.paths.temporaryDirectory)).toBe(false);
+	});
+
+	it("rejects FIFO and other non-regular files in staged output", async () => {
+		const executor = new MacOsSeatbeltSandboxedToolExecutor({ workspaceRoot });
+		const job = manifest(workspaceRoot, { executable: "/usr/bin/mkfifo", argv: ["placeholder"] });
+		const fifo = compileToolExecutionManifest({
+			...job,
+			command: { ...job.command, argv: [join(job.paths.temporaryDirectory, "pipe")] },
+		});
+
+		const result = await executor.execute(fifo, new AbortController().signal);
+
+		expect(result).toMatchObject({ status: "policy_denied", sandbox: { terminationReason: "output_validation_failed" } });
+		expect(result.outputs ?? []).toHaveLength(0);
+		expect(existsSync(job.paths.temporaryDirectory)).toBe(false);
 	});
 });

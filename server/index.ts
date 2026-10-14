@@ -29,6 +29,7 @@ import { resolve } from "node:path";
 import { ProposalRunEngine } from "../src/enterprise/proposalRunEngine";
 import type { RuntimeTurnRequest } from "../src/runtime/contracts";
 import { RuntimeFailure } from "../src/runtime/contracts";
+import { forceRuntimeEvalPolicy, runtimeEvalEnabled } from "./runtime/runtimeEvalPolicy";
 import { FileEnterpriseEventStore } from "./enterprise/fileEventStore";
 import { FileCronScheduleStore } from "./enterprise/fileCronScheduleStore";
 import { FileStageJobQueue } from "./enterprise/fileStageJobQueue";
@@ -494,7 +495,7 @@ server.on("request", async (request, response) => {
   }
 
   if (request.method === "POST" && url.pathname === "/api/runtime/turn") {
-		if (process.env.BLACKX_ENABLE_RUNTIME_EVAL !== "1") { json(response, 403, { code: "runtime_eval_disabled" }); return; }
+		if (!runtimeEvalEnabled(process.env)) { json(response, 403, { code: "runtime_eval_disabled" }); return; }
     try {
       const payload = await readJson(request);
       if (!isTurnRequest(payload)) {
@@ -510,7 +511,7 @@ server.on("request", async (request, response) => {
       const timeoutMs = Math.min(Math.max(payload.policy.timeoutMs, 1_000), 120_000);
       const timeout = setTimeout(() => controller.abort("runtime_timeout"), timeoutMs);
       try {
-        const result = await runtime.executeTurn({ ...payload, ...localAccess.identity, allowedTools: [], policy: { ...payload.policy, timeoutMs, sandboxMode: "read-only", approvalPolicy: "required" } }, controller.signal);
+        const result = await runtime.executeTurn(forceRuntimeEvalPolicy(payload, localAccess.identity, timeoutMs), controller.signal);
         json(response, 200, result);
       } finally {
         clearTimeout(timeout);
