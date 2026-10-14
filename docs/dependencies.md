@@ -38,3 +38,11 @@ Transformers.js 依赖 ONNX Runtime 1.30.0（MIT）、ONNX Runtime Web 1.31.0 �
 ### 2026-09-18：本地多语言重排
 
 没有新增 npm 包。复用固定 Transformers.js 4.3.0，采用上游 [cross-encoder/mmarco-mMiniLMv2-L12-H384-v1](https://huggingface.co/cross-encoder/mmarco-mMiniLMv2-L12-H384-v1/tree/1427fd652930e4ba29e8149678df786c240d8825)，固定提交 `1427fd652930e4ba29e8149678df786c240d8825`，Apache-2.0。下载上游 `onnx/model_qint8_arm64.onnx`，约 118.6 MB，配置和分词器另计；逐文件 SHA-256 见 [重排模型锁](evidence/knowledge-reranker-lock.json)。仅操作者准备命令联网，启动和查询只读本地权重，关闭远程模型及远程代码。原模型卡随缓存保存；若分发权重须保留 Apache 许可及适用 NOTICE，本仓库不打包权重。没有付费推理、远程文档上传或新 Python 服务。
+
+## 2026-10-12：教程浏览器回归
+
+新增开发依赖 `@playwright/test@1.64.0`，仅引入 `playwright@1.64.0` 和 `playwright-core@1.64.0` 两个传递包。来源为 npm 官方 registry 与 [Microsoft Playwright 官方源码](https://github.com/microsoft/playwright/tree/v1.64.0)，三个包均为 Apache-2.0；保留包内 LICENSE/NOTICE，固定 tarball 与 SHA-512 integrity 见 `package-lock.json`。安装禁用生命周期脚本，不引入产品运行时依赖。
+
+按 [Playwright 官方浏览器准备方式](https://playwright.dev/docs/browsers) 单独下载 Chromium Headless Shell；本次锁定清单为 revision 1248 / 156.0.8078.4，并随安装准备 FFmpeg revision 1013。实际来源由该版 `playwright-core/browsers.json` 与安装器固定，本机 macOS arm64 下载来自 `cdn.playwright.dev`。Chromium 主体采用 BSD 条款，其他组成部分以随附 `LICENSE.headless_shell` 为准；FFmpeg 附带 `COPYING.LGPLv2.1`。它们仅保存在开发环境浏览器缓存中，不加入 Packx 发行物；分发二进制时需另行遵循各自完整许可要求。
+
+测试使用独立浏览器上下文、本机 Vite 与合成 API fixture，拒绝非 GET、未登记 API 和外部 HTTP 请求，不访问用户业务数据、真实模型或付费服务。失败截图与轨迹只写入已忽略的 `temp/browser-tests/`；依赖/浏览器首次准备需要访问上述公开下载源，测试数据不上传。运行方法与验证边界见 [浏览器回归说明](../tests/browser/README.md)。

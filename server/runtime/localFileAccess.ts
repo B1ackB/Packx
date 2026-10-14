@@ -2,7 +2,7 @@ import { constants, closeSync, existsSync, fstatSync, fsyncSync, linkSync, lstat
 import { createHash, randomUUID } from "node:crypto";
 import { homedir } from "node:os";
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
-import type { LocalFileEntry } from "../../src/runtime/conversationFiles";
+import type { LocalDirectoryListing, LocalFileEntry } from "../../src/runtime/conversationFiles";
 
 export class TaskFileError extends Error {
 	constructor(readonly code: string, message: string, readonly status = 409) { super(message); }
@@ -90,8 +90,9 @@ export class LocalFileAccess {
 		this.check(path);
 		try { return this.read(path); } catch (error) { if ((error as NodeJS.ErrnoException).code === "ENOENT") return undefined; throw error; }
 	}
-	list(path: string): { directory: string; entries: LocalFileEntry[]; truncated: boolean } {
+	list(path: string, after?: string): LocalDirectoryListing {
 		this.check(path, true);
+		if (after !== undefined && (typeof after !== "string" || !after || after.length > 255 || /[/\\\x00-\x1f\x7f]/.test(after))) throw new TaskFileError("file_input_invalid", "文件列表位置无效，请刷新", 400);
 		const names = readdirSync(path).sort();
 		const entries = names.flatMap((name): LocalFileEntry[] => {
 			const absolutePath = join(path, name);
@@ -102,7 +103,11 @@ export class LocalFileAccess {
 				return [{ name, absolutePath, kind: stat.isDirectory() ? "directory" : "file", size: stat.size }];
 			} catch { return []; }
 		});
-		return { directory: path, entries: entries.slice(0, 200), truncated: entries.length > 200 };
+		const previous = after === undefined ? -1 : entries.findIndex((entry) => entry.name === after);
+		if (after !== undefined && previous < 0) throw new TaskFileError("file_version_conflict", "目录内容已变化，请刷新文件列表", 409);
+		const page = entries.slice(previous + 1, previous + 201);
+		const truncated = previous + 1 + page.length < entries.length;
+		return { directory: path, entries: page, total: entries.length, truncated, ...(truncated ? { nextAfter: page.at(-1)!.name } : {}) };
 	}
 	apply(path: string, content: string | undefined, expectedSha256: string | null, expectedIdentity: string | undefined, parentIdentity: string): void {
 		const verify = () => {

@@ -1,3 +1,4 @@
+import { errorText } from "../i18n";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ConversationClient, ConversationClientError } from "../runtime/conversationClient";
 import type { RequirementBriefWorkspaceView } from "../runtime/conversationContracts";
@@ -46,17 +47,23 @@ export function RequirementTrial({ conversationId, workspace, en }: { conversati
 		const input = pending.current ?? { observationId: crypto.randomUUID(), caseId: caseId.trim(), reviewerAlias: reviewer.trim(), sourceKind, artifactVersion: version, expectedAggregateVersion: workspace.state.aggregateVersion, startedAt, endedAt: new Date().toISOString(), recordedReviewMs: Math.round(timer.current.total), interruptions: timer.current.interruptions, correctionCount: corrections, criticalErrorCount: errors, outcome, notes };
 		pending.current = input;
 		try { setSaved(await client.saveRequirementTrial(conversationId, input)); timer.current.total = 0; }
-		catch (reason) { setError(reason instanceof Error ? reason.message : String(reason)); setEditableAfterFailure(reason instanceof ConversationClientError && ["trial_version_stale", "invalid_requirement_brief_request"].includes(reason.code)); }
+		catch (reason) { setError(errorText(reason, en ? "en" : "zh")); setEditableAfterFailure(reason instanceof ConversationClientError && ["trial_version_stale", "invalid_requirement_brief_request"].includes(reason.code)); }
 		finally { setBusy(false); }
 	};
 	const download = () => {
 		const url = URL.createObjectURL(new Blob([JSON.stringify(saved, null, 2)], { type: "application/json" }));
 		const link = document.createElement("a"); link.href = url; link.download = `review-trial-${saved!.input.observationId}.json`; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
 	};
-	return <details className="proposal-section trial-recorder">
+	return <details className="proposal-section diagnostics trial-recorder">
 		<summary>{en ? "Record a usability trial" : "记录一次试用"}</summary>
 		<p>{en ? "Review time only. Pause while waiting or taking a break; leaving this window pauses automatically. Unsaved records are lost when switching tasks. Use case IDs and aliases, without customer details." : "仅记录人工核对计时。等待或休息时请暂停；离开窗口会自动暂停。切换任务会丢失未保存记录。请使用样例编号和人员代号，不填客户信息。"}</p>
-		{saved ? <><p role="status">{en ? "Saved" : "已保存"} · v{saved.input.artifactVersion} · {saved.input.observationId}</p><button onClick={download}>{en ? "Download trial record" : "下载试用记录"}</button><details className="source-page"><summary>{en ? "View saved JSON" : "查看已保存的 JSON"}</summary><pre>{JSON.stringify(saved, null, 2)}</pre></details></> : <form onSubmit={(event) => void save(event)}>
+		{saved ? <><p role="status">{en ? "Saved" : "已保存"} · v{saved.input.artifactVersion}</p><button onClick={download}>{en ? "Download trial record" : "下载试用记录"}</button><details className="source-page"><summary>{en ? "View saved record" : "查看已保存的记录"}</summary><dl className="run-metadata">
+			<div><dt>{en ? "Case" : "样例编号"}</dt><dd>{saved.input.caseId}</dd></div>
+			<div><dt>{en ? "Reviewer" : "核对人员"}</dt><dd>{saved.input.reviewerAlias}</dd></div>
+			<div><dt>{en ? "Review time" : "核对耗时"}</dt><dd>{Math.round(saved.input.recordedReviewMs / 1000)} {en ? "seconds" : "秒"}</dd></div>
+			<div><dt>{en ? "Corrections / critical errors" : "修正项 / 关键错误"}</dt><dd>{saved.input.correctionCount} / {saved.input.criticalErrorCount}</dd></div>
+			<div><dt>{en ? "Outcome" : "核对结果"}</dt><dd>{{ usable: en ? "Usable after review" : "核对后可用", needs_work: en ? "Still needs work" : "仍需返工", abandoned: en ? "Abandoned" : "已放弃" }[saved.input.outcome]}</dd></div>
+		</dl>{saved.input.notes && <p>{saved.input.notes}</p>}</details></> : <form onSubmit={(event) => void save(event)}>
 			<fieldset disabled={busy || Boolean(pending.current)}>
 				<label>{en ? "Case ID" : "样例编号"}<input required maxLength={80} value={caseId} onChange={(e) => setCaseId(e.target.value)} /></label>
 				<label>{en ? "Reviewer alias" : "核对人员代号"}<input required maxLength={40} value={reviewer} onChange={(e) => setReviewer(e.target.value)} /></label>

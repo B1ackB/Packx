@@ -109,25 +109,25 @@ function evaluationReport(value: unknown): RequirementBriefEvaluation | undefine
 const stageLabels = {
 	pending: "等待开始",
 	running: "正在生成",
-	evaluating: "正在评测",
+	evaluating: "正在检查",
 	needs_input: "需要补充/确认",
 	waiting_approval: "等待批准",
 	revision_required: "需要修订",
 	cancelled: "已取消",
 	passed: "已通过",
-	retryable_failed: "评测未通过",
+	retryable_failed: "检查未通过",
 } as const;
 
 const stageLabelsEn: Record<keyof typeof stageLabels, string> = {
 	pending: "Not started",
 	running: "Generating",
-	evaluating: "Evaluating",
+	evaluating: "Checking",
 	needs_input: "Input needed",
 	waiting_approval: "Awaiting approval",
 	revision_required: "Revision needed",
 	cancelled: "Cancelled",
 	passed: "Passed",
-	retryable_failed: "Evaluation failed",
+	retryable_failed: "Check failed",
 };
 
 function App() {
@@ -185,13 +185,12 @@ function App() {
 	const chatScrollRef = useRef<HTMLElement>(null);
 	const followChatRef = useRef(true);
 	const newConversationRef = useRef<HTMLButtonElement>(null);
+	const composerRef = useRef<HTMLTextAreaElement>(null);
 	const en = language === "en";
 	const stageLabel = (status: keyof typeof stageLabels) => en ? stageLabelsEn[status] : stageLabels[status];
-	const defaultConversationTitle = en ? "New conversation" : "新会话";
-	const defaultConversationPreview = en ? "No messages yet" : "尚未发送消息";
+	const defaultConversationTitle = en ? "New packaging request" : "新的包装需求";
 	const displayConversationTitle = (title: string) => title === "新会话" || title === "New conversation" ? defaultConversationTitle : title;
-	const displayConversationPreview = (preview: string) => preview === "尚未发送消息" || preview === "No messages yet" ? defaultConversationPreview : preview;
-	const fieldLabel = (key: string) => labelFor(language, key, requirementFieldLabels[key] ?? key);
+	const fieldLabel = (key: string) => labelFor(language, key, requirementFieldLabels[key] ?? (en ? "Other requirement" : "其他需求信息"));
 	const factStatus = (status: string) => statusFor(language, status, factStatusLabels[status] ?? status);
 
 	useEffect(() => {
@@ -769,7 +768,7 @@ function App() {
 	const reviewRecovery = evaluation?.decision === "recover_review";
 	const facts = Object.values(requirement?.state.facts ?? {})
 		.filter((fact) => packagingFactKeys.includes(fact.key))
-		.sort((left, right) => left.key.localeCompare(right.key));
+		.sort((left, right) => packagingFactKeys.indexOf(left.key) - packagingFactKeys.indexOf(right.key));
 	const tutorialSourceKey = (facts.find((fact) => fact.key === "quantity") ?? facts[0])?.key;
 	const unconfirmedFacts = facts.filter((fact) => ["suggested", "unverified"].includes(fact.status));
 	const tutorialConfirmKey = (unconfirmedFacts.find((fact) => fact.key === tutorialSourceKey) ?? unconfirmedFacts[0])?.key;
@@ -857,7 +856,9 @@ function App() {
 		try { await client.stop(active.conversationId); }
 		catch (reason) { setError(errorMessage(reason)); }
 	};
-	const progressLabel = (value?: RuntimeActivity) => value?.phase === "tool" ? `${en ? "Running" : "正在"}${value.tool === "asset_metadata_inspect" ? en ? " attachment analysis" : "解析附件" : value.tool === "project_source_read" ? en ? " requirement source read" : "读取需求来源" : en ? " tool" : "执行工具"}${value.tool ? ` · ${value.tool}` : ""}` : value?.phase === "model" ? `${en ? "Analysing" : "正在分析"}${value.iteration ? en ? ` · pass ${value.iteration}` : ` · 第 ${value.iteration} 轮` : ""}` : en ? "Preparing task" : "正在准备任务";
+	const progressLabel = (value?: RuntimeActivity) => value?.phase === "tool"
+		? value.tool === "asset_metadata_inspect" || value.tool === "document_read" ? en ? "Reading files…" : "正在读取资料…" : en ? "Processing…" : "正在处理…"
+		: value?.phase === "model" ? en ? "Preparing a reply…" : "正在整理回复…" : en ? "Preparing…" : "正在准备…";
 	const replyRunning = sending || (planState?.mode !== "plan" && !planRunning && Boolean(activity && ["starting", "model", "tool"].includes(activity.phase)));
 	const fieldOptions = packagingFactKeys;
 
@@ -869,19 +870,19 @@ function App() {
 					<span className="brand-mark" aria-hidden="true">Px</span>
 					<div>
 						<strong>Packx</strong>
-						<span>{en ? "Packaging Workspace" : "包装工作台"}</span>
+						<span>{en ? "Packaging workspace" : "包装需求工作台"}</span>
 					</div>
 				</div>
 
 				<button ref={newConversationRef} className="new-task" onClick={() => void createConversation()} disabled={sending || deleting || loading}>
-					<span>＋</span> {en ? "New conversation" : "新建会话"}
+					<span aria-hidden="true">＋</span> {en ? "New request" : "新建需求"}
 				</button>
 
-				<div className="history-label">{en ? "Conversation history" : "会话历史"}</div>
-				<input className="task-search" type="search" aria-label={en ? "Search tasks" : "搜索任务"} placeholder={en ? "Search names and plan objectives" : "搜索任务名称与计划目标"} value={search} onChange={(e) => setSearch(e.target.value)} />
+				<div className="history-label">{en ? "Recent requests" : "最近的需求"}</div>
+				<input className="task-search" type="search" aria-label={en ? "Search tasks" : "搜索任务"} placeholder={en ? "Search requests…" : "搜索需求与计划…"} value={search} onChange={(e) => setSearch(e.target.value)} />
 					{search && !conversations.some((c) => `${c.title} ${c.preview} ${c.searchText ?? ""}`.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase())) && <p role="status">{en ? "No matching tasks" : "没有匹配的任务"}</p>}
 				<nav className="conversation-list" aria-label={en ? "Conversation history" : "会话历史"}>
-					{!loading && conversations.length === 0 && <p className="history-empty">{en ? "No conversations yet. Start a new one." : "暂无会话，新建一个开始吧。"}</p>}
+					{!loading && conversations.length === 0 && <p className="history-empty">{en ? "No requests yet" : "暂无需求"}</p>}
 					{conversations.filter((c) => `${c.title} ${c.preview} ${c.searchText ?? ""}`.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase())).map((conversation) => (
 						<div className="conversation-item" key={conversation.conversationId}>
 						<button
@@ -890,7 +891,6 @@ function App() {
 							disabled={sending || deleting}
 						>
 							<strong>{displayConversationTitle(conversation.title)}</strong>
-							<span>{displayConversationPreview(conversation.preview)}</span>
 							<small>{displayTime(conversation.updatedAt, language)} · {conversation.messageCount} {en ? "messages" : "条"}</small>
 						</button>
 						<button className="delete-conversation" aria-label={`${en ? "Delete conversation" : "删除会话"}：${displayConversationTitle(conversation.title)}`} title={en ? "Delete conversation" : "删除会话"}
@@ -903,29 +903,31 @@ function App() {
 				</nav>
 
 				<div className="sidebar-footer">
-					<button className="secondary-action" onClick={() => { setPanelTab("models"); setReviewOpen(true); }}>{en ? "Configure model" : "配置模型"}</button>
+					<button className="secondary-action" onClick={() => { setPanelTab("models"); setReviewOpen(true); }}>{en ? "Model settings" : "模型设置"}<span aria-hidden="true">↗</span></button>
 					<div className="runtime-light">
 						<i className={realProvider ? "online" : "offline"} />
-						{!realProvider ? en ? "Model not configured" : "模型尚未配置" : health?.providerStatus === "last_request_succeeded" ? en ? "Last request succeeded" : "最近请求成功" : health?.providerStatus === "last_request_failed" ? en ? "Last request failed" : "最近请求失败" : en ? "Model configured · pending verification" : "模型已配置 · 待验证"}
+						{!realProvider ? en ? "Model not configured" : "模型尚未配置" : health?.providerStatus === "last_request_succeeded" ? en ? "Last request completed" : "最近处理成功" : health?.providerStatus === "last_request_failed" ? en ? "Last request failed" : "最近处理未完成" : en ? "Model configured · pending verification" : "模型已配置 · 待验证"}
 					</div>
 					<label className="language-selector">{en ? "Language" : "语言"}<select value={language} onChange={(event) => setLanguage(event.target.value as Language)} aria-label={en ? "Language" : "语言"}>{Object.entries(languageNames).map(([value, name]) => <option key={value} value={value}>{name}</option>)}</select></label>
-					<details className="permission-summary"><summary>{en ? "Local access and tool permissions" : "本地访问与工具权限"}</summary><p>{en ? "This device binds the conversation identity. The Agent can read local files; before creating, changing, or deleting one, it shows the exact path and content for your one-time approval and retains a backup. Attachment inspection never uses the network, and facts still require human confirmation." : "会话身份由本机服务绑定。可读取本机真实文件；Agent 会在新建、修改或删除前展示具体路径和内容，等你单次批准后执行，并保留备份。附件解析禁止联网，事实仍需人工确认。"}</p></details>
+					<details className="permission-summary"><summary>{en ? "File access & permissions" : "文件访问与权限"}</summary><p>{en ? "Packx can read local files within its allowed scope. Before creating, changing or deleting a file, it shows the path and content for your approval and keeps a backup. Files are read on this device; extracted information still needs your confirmation." : "Packx 可在授权范围内读取本机文件。新建、修改或删除前，会展示路径与内容，经你单次批准后执行并保留备份。附件在本机读取，提取的信息仍需你确认。"}</p></details>
 				</div>
 			</aside>
 
 			<main className="conversation">
 				<header className="topbar">
-					<button className="panel-toggle" aria-label={en ? "Toggle conversation sidebar" : "切换会话侧栏"} aria-expanded={sidebarOpen} onClick={() => setSidebarOpen(!sidebarOpen)}>☰</button>
+					<button className="panel-toggle" aria-label={en ? "Toggle conversation sidebar" : "切换会话侧栏"} aria-expanded={sidebarOpen} onClick={() => setSidebarOpen(!sidebarOpen)}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3" /><path d="M9 4v16" /></svg></button>
 					<div>
 						<span className="eyebrow">PACKX WORKSPACE</span>
-						<h1>{active ? displayConversationTitle(active.title) : (en ? "Packx conversation" : "Packx 会话")}</h1>
+						<div className="task-heading"><h1 title={active ? displayConversationTitle(active.title) : undefined}>{active ? displayConversationTitle(active.title) : (en ? "Packaging workspace" : "包装需求工作台")}</h1>
+							{active && !renaming && <button className="rename-task" aria-label={en ? "Rename task" : "重命名任务"} title={en ? "Rename task" : "重命名任务"} onClick={() => { setTaskName(active.title); setRenaming(true); }}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="m15 5 4 4M4 20l5-1L20 8a2.8 2.8 0 0 0-4-4L5 15l-1 5Z" /></svg></button>}
+						</div>
 						{active && (renaming ? <form className="task-name-form" onSubmit={(e) => {
 							e.preventDefault(); const id = active.conversationId; setNameBusy(true);
 							void client.rename(id, taskName, active.nameRevision ?? 0, language).then(async (next) => { updateActive(next); if (activeIdRef.current === id) setRenaming(false); await refreshList(next); }).catch((reason) => setError(reason instanceof ConversationClientError && reason.code === "task_name_conflict" ? en ? "Task name changed in another window. Reload before renaming." : "任务名称已在其他窗口更改，请刷新后重命名。" : errorMessage(reason))).finally(() => setNameBusy(false));
-						}}><input aria-label={en ? "Task name" : "任务名称"} autoFocus required maxLength={100} value={taskName} onChange={(e) => setTaskName(e.target.value)} /><button disabled={nameBusy || !taskName.trim()}>{en ? "Save name" : "保存名称"}</button><button type="button" disabled={nameBusy} onClick={() => setRenaming(false)}>{en ? "Cancel" : "取消"}</button></form> : <button className="rename-task" onClick={() => { setTaskName(active.title); setRenaming(true); }}>{en ? "Rename task" : "重命名任务"}</button>)}
+						}}><input aria-label={en ? "Task name" : "任务名称"} autoFocus required maxLength={100} value={taskName} onChange={(e) => setTaskName(e.target.value)} /><button disabled={nameBusy || !taskName.trim()}>{en ? "Save name" : "保存名称"}</button><button type="button" disabled={nameBusy} onClick={() => setRenaming(false)}>{en ? "Cancel" : "取消"}</button></form> : null)}
 					</div>
 					<button ref={tutorialButtonRef} type="button" className="panel-toggle tutorial-trigger" onClick={() => setTutorial({ step: 0, panelTab, sidebarOpen, reviewOpen })}>{en ? "Usage tutorial" : "使用教程"}</button>
-					<button className="panel-toggle review-toggle" aria-expanded={reviewOpen} onClick={() => setReviewOpen(!reviewOpen)}>{en ? "Workspace" : "工作区"} · {{ requirement: en ? "Requirements" : "需求单", models: en ? "Models" : "模型", knowledge: en ? "Evidence" : "证据", memory: en ? "Memory" : "记忆", files: en ? "Files" : "文件" }[panelTab]}</button>
+					<button className="panel-toggle review-toggle" aria-expanded={reviewOpen} onClick={() => setReviewOpen(!reviewOpen)}><span className="workspace-toggle-label">{en ? "Workspace" : "工作区"} · </span>{{ requirement: en ? "Requirements" : "需求单", models: en ? "Models" : "模型", knowledge: en ? "Evidence" : "证据", memory: en ? "Memory" : "记忆", files: en ? "Files" : "文件" }[panelTab]}</button>
 				</header>
 
 				<section
@@ -938,10 +940,10 @@ function App() {
 					}}
 				>
 					{loading ? (
-						<div className="empty-state"><p>{en ? "Loading conversations…" : "正在加载服务端会话…"}</p></div>
+						<div className="empty-state"><p>{en ? "Loading your workspace…" : "正在加载你的工作台…"}</p></div>
 					) : active && (active.messages.length || active.historyStatus === "legacy_partial") ? (
 						<div className="message-list">
-							{active.historyStatus === "legacy_partial" && <p role="status">{en ? "This older task may have missing history from earlier compression. Only surviving original messages are shown." : "此旧任务在早期压缩中可能已丢失部分历史；这里只展示仍保存的原始消息。"}</p>}
+							{active.historyStatus === "legacy_partial" && <p role="status">{en ? "Some history from this older task may be missing. All remaining original messages are shown." : "此旧任务可能缺少部分历史记录；这里只展示仍保存的原始消息。"}</p>}
 							{active.messages.map((message) => (
 								<article key={message.messageId} className={`message ${message.role}`}>
 									<div className="avatar">{message.role === "assistant" ? "Px" : en ? "You" : "你"}</div>
@@ -970,21 +972,23 @@ function App() {
 								<article className="message assistant thinking">
 									<div className="avatar">Px</div>
 									<div>
-										<span>{hasActiveBackgroundTask ? en ? "A background task is running; you can switch conversations." : "后台任务正在执行，可以切换会话" : progressLabel(activity)}</span>
+										<span>{hasActiveBackgroundTask ? en ? "Working in the background…" : "正在后台处理…" : progressLabel(activity)}</span>
 										{activity?.partialText && !hasActiveBackgroundTask ? <Markdown text={activity.partialText} language={language} /> : <div className="thinking-dots"><i /><i /><i /></div>}
 									</div>
 								</article>
 							)}
 						</div>
 					) : planState?.versions.length ? null : (
-						<div className="empty-state">
-							<span className="empty-mark">Px</span>
-							<h2>{en ? "Start a new packaging request" : "开始一个新的包装需求任务"}</h2>
-							<p>{en ? "Upload reference material and describe what you need delivered. Packx organises the request, flags missing information, and creates a requirement brief you can review and export." : "上传资料，描述你要交付什么。Packx 会整理需求、标出缺失信息，生成可核对与导出的需求单。"}</p>
-							{!active ? <button data-tour="start-request" className="secondary-action" onClick={() => void createConversation()} disabled={deleting}>{en ? "Start a conversation" : "开始新会话"}</button> : <div className="prompt-grid">
-								<button onClick={() => setDraft(en ? "I need a 500 g coffee bean packaging bag. Please help me identify the information that needs confirmation first." : "我想做一款500克咖啡豆包装袋，请先帮我梳理需要确认的信息。")}>{en ? "Coffee packaging request" : "咖啡豆包装需求"}</button>
-								<button onClick={() => setDraft(en ? "I need custom folding cartons for skincare products. Please help me confirm the carton type, dimensions, quantity, and delivery details." : "我想定制一批护肤品包装纸盒，请先帮我梳理盒型、尺寸、数量和交付信息。")}>{en ? "Skincare carton request" : "护肤品纸盒需求"}</button>
-							</div>}
+						<div className="empty-state welcome-state">
+							<span className="empty-mark" aria-hidden="true">Px</span>
+							<h2>{en ? "Start a packaging request" : "开始整理包装需求"}</h2>
+							<p>{en ? "Describe your request or add files to create a draft." : "描述需求或添加资料，生成待确认的需求单。"}</p>
+							{!active ? <button data-tour="start-request" className="primary-action welcome-action" onClick={() => void createConversation()} disabled={deleting}>{en ? "Start your first request" : "开始整理需求"}<span aria-hidden="true">→</span></button> : <>
+								<div className="prompt-grid" aria-label={en ? "Example requests" : "需求示例"}>
+									<button onClick={() => { setDraft(en ? "I need a 500 g coffee bean packaging bag. Please help me identify the information that needs confirmation first." : "我想做一款500克咖啡豆包装袋，请先帮我梳理需要确认的信息。"); composerRef.current?.focus(); }}><span className="prompt-title">{en ? "Coffee bean pouch" : "咖啡豆包装袋"}<span aria-hidden="true">↗</span></span></button>
+									<button onClick={() => { setDraft(en ? "I need custom folding cartons for skincare products. Please help me confirm the carton type, dimensions, quantity, and delivery details." : "我想定制一批护肤品包装纸盒，请先帮我梳理盒型、尺寸、数量和交付信息。"); composerRef.current?.focus(); }}><span className="prompt-title">{en ? "Skincare carton" : "护肤品包装纸盒"}<span aria-hidden="true">↗</span></span></button>
+								</div>
+							</>}
 						</div>
 					)}
 					{active && <PlanPanel part="details" state={planState} language={language} busy={planBusy || sending || hasActiveBackgroundTask || requirementBusy || requirementRunning} onCommand={(c) => { void planCommand(c); }} onCreateBrief={!requirement?.readOnlyReason ? (version) => { void startRequirement(version); } : undefined} />}
@@ -993,21 +997,17 @@ function App() {
 				<div className="composer-wrap">
 					{active && <ConversationFiles key={active.conversationId} conversationId={active.conversationId} language={language} />}
 					{!realProvider && !loading && (
-						<div className="provider-warning">{en ? "The model service is not configured. Connect a local model to begin; saved conversations and requirement briefs remain available to review." : "模型服务尚未配置。配置本地模型连接后即可开始；已保存的会话和需求单仍可查看。"}</div>
+						<div className="provider-warning">{en ? "Connect a model in settings to get started." : "请先在模型设置中完成连接。"}</div>
 					)}
 					{error && <div className="error-banner" role="alert">{errorText(error, language)}<button aria-label={en ? "Dismiss error" : "关闭错误提示"} onClick={() => setError(undefined)}>×</button></div>}
 					{planState?.mode !== "plan" && !planRunning && !replyRunning && !hasActiveBackgroundTask && active?.messages.at(-1)?.role === "user" && <button className="retry-action" disabled={!realProvider} onClick={() => void retryReply()}>{en ? "Continue the unfinished reply" : "继续上次未完成的回复"}</button>}
-					{hasActiveBackgroundTask && (
-						<div className="task-banner" role="status">
-							{en ? "Background task: " : "后台任务："}{activeBackgroundTasks.some((task) => task.status === "leased") ? en ? "Model processing" : "模型处理中" : en ? "Queued or waiting to retry" : "排队或等待重试"}
-						</div>
-					)}
 					{activeCronSchedules.length > 0 && (
 						<div className="cron-banner" role="status">
-							{en ? "Agent-managed schedules: " : "Agent 管理的定时任务："}{activeCronSchedules.length} {en ? "· next run " : "个 · 下次运行 "}{displayTime(activeCronSchedules[0].nextRunAt, language)}
+							{en ? "Scheduled tasks: " : "定时任务："}{activeCronSchedules.length} {en ? "· next run " : "个 · 下次运行 "}{displayTime(activeCronSchedules[0].nextRunAt, language)}
 						</div>
 					)}
 					{attachments.length > 0 && (
+						<details className="composer-attachments" open={selectedAttachmentIds.length > 0 || uploading}><summary>{en ? "Files" : "资料"} · {attachments.length}{selectedAttachmentIds.length > 0 && ` · ${en ? "Selected" : "已选"} ${selectedAttachmentIds.length}`}</summary>
 						<div className="attachment-list" aria-label={en ? "Conversation attachments" : "会话附件"}>
 							{attachments.map((attachment) => (
 								<div className="attachment-item" key={attachment.attachmentId}><button
@@ -1020,14 +1020,15 @@ function App() {
 										? <img src={attachmentPreviews[attachment.attachmentId]} alt="" />
 										: <span>{attachment.kind === "text" ? "TXT" : "FILE"}</span>}
 									<strong>{attachment.name}</strong>
-									<small>{selectedAttachmentIds.includes(attachment.attachmentId) ? en ? "Will be read with the next message" : "将随下一条消息读取" : en ? "Attach to the next message" : "点击附到下一条消息"}</small>
+									<small>{selectedAttachmentIds.includes(attachment.attachmentId) ? en ? "Attached" : "已选中" : en ? "Add to message" : "附到消息"}</small>
 								</button><button className="attachment-download" onClick={() => void downloadAttachment(attachment)} aria-label={`${en ? "Download" : "下载"} ${attachment.name}`}>{en ? "Download" : "下载"}</button><button disabled={uploading || sending || requirementBusy || hasActiveBackgroundTask} onClick={() => void withdrawAttachment(attachment)} aria-label={`${en ? "Withdraw" : "撤回"} ${attachment.name}`}>{en ? "Withdraw" : "撤回"}</button>{active && <DocumentImportPreview key={`${active.conversationId}:${attachment.attachmentId}`} conversationId={active.conversationId} attachmentId={attachment.attachmentId} language={language} />}</div>
 							))}
-						</div>
+						</div></details>
 					)}
 					{active && <PlanPanel part="controls" state={planState} language={language} busy={planBusy || sending || hasActiveBackgroundTask} onCommand={(c) => { void planCommand(c); }} />}
 					<form data-tour="intake" className="composer" onSubmit={onSubmit}>
 						<textarea
+							ref={composerRef}
 							value={draft}
 							onChange={(event) => setDraft(event.target.value)}
 							onKeyDown={(event) => {
@@ -1039,7 +1040,7 @@ function App() {
 							rows={2}
 							placeholder={hasActiveBackgroundTask
 								? en ? "You can send again after the background task completes" : "当前会话的后台任务完成后可继续发送"
-								: realProvider ? en ? "Message Packx…" : "发送消息给 Packx…" : en ? "Connect a live model API first" : "请先连接实际模型 API"}
+								: realProvider ? en ? "Describe the packaging request, or add your customer’s source material…" : "描述包装需求，或添加客户资料…" : en ? "Set up a model connection to get started" : "在模型设置中完成连接，即可开始"}
 							disabled={!active || !realProvider || replyRunning || hasActiveBackgroundTask || planBusy || planRunning}
 							aria-label={en ? "Conversation input" : "对话输入"}
 						/>
@@ -1052,20 +1053,21 @@ function App() {
 									onChange={(event) => void uploadAttachments(event)}
 									disabled={!active || uploading}
 								/>
-								{uploading ? en ? "Uploading…" : "上传中…" : en ? "＋ Image / file" : "＋ 图片 / 文件"}
+								{uploading ? en ? "Uploading…" : "上传中…" : en ? "＋ Add files" : "＋ 添加资料"}
 							</label>
 							<span>{en ? "Enter to send · Shift + Enter for a new line" : "Enter 发送 · Shift + Enter 换行"}</span>
 							{replyRunning && <button type="button" className="stop-button" onClick={() => void stopReply()}>{en ? "Stop" : "停止"}</button>}
 							<button
 								type="submit"
 								className="send-button"
+								aria-label={planState?.mode === "plan" ? en ? "Generate plan" : "生成计划" : en ? "Send message" : "发送消息"}
 								disabled={(!draft.trim() && selectedAttachmentIds.length === 0) || !realProvider || sending || hasActiveBackgroundTask || planBusy || planRunning || (planState?.mode === "plan" && (!draft.trim() || !!planBudgetBlock(planState, true)))}
 							>
 								↑
 							</button>
 						</div>
 					</form>
-					<small className="disclaimer">{en ? "Confirm AI-extracted information yourself. Requirement briefs retain their source material and version history." : "AI 提取的信息需你确认。需求单保留资料来源与版本记录。"}</small>
+					<small className="disclaimer">{en ? "Review AI-extracted information before confirming." : "AI 提取的信息，请核对后确认。"}</small>
 				</div>
 			</main>
 
@@ -1074,7 +1076,7 @@ function App() {
 					<button className="panel-toggle" aria-label={en ? "Close workspace" : "关闭工作区"} onClick={() => setReviewOpen(false)}>×</button>
 					<div>
 						<span className="eyebrow">WORKSPACE</span>
-						<h2>{{ requirement: en ? "Requirements workspace" : "需求单工作区", models: en ? "Model monitor" : "模型监控", knowledge: en ? "Packaging evidence" : "包装数据与证据", memory: en ? "Personal memory" : "个人记忆", files: en ? "File browser" : "文件浏览" }[panelTab]}</h2>
+						<h2>{{ requirement: en ? "Requirement brief" : "需求单", models: en ? "Model connection" : "模型连接", knowledge: en ? "Reference sources" : "资料与证据", memory: en ? "Personal memory" : "个人记忆", files: en ? "Local files" : "本机文件" }[panelTab]}</h2>
 					</div>
 					<button type="button" className="panel-toggle tutorial-trigger tutorial-panel-trigger" onClick={() => setTutorial({ step: 0, panelTab, sidebarOpen, reviewOpen })}>{en ? "Usage tutorial" : "使用教程"}</button>
 					{panelTab === "requirement" && requirement && (
@@ -1085,30 +1087,29 @@ function App() {
 				</header>
 
 				<div className="workspace-tabs" role="tablist" aria-label={en ? "Workspace tools" : "工作区功能"}>
-					{(["requirement", "knowledge", "memory", "models", "files"] as const).map((tab, index, tabs) => <button key={tab} role="tab" data-tour={tab === "requirement" ? "brief-tab" : undefined} id={`tab-${tab}`} aria-controls={`panel-${tab}`} aria-selected={panelTab === tab} tabIndex={panelTab === tab ? 0 : -1} onClick={() => setPanelTab(tab)} onKeyDown={(event) => { if (["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) { event.preventDefault(); const next = event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : (index + (event.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length; setPanelTab(tabs[next]); (event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>("[role=tab]")[next])?.focus(); } }}>{ { requirement: en ? "Requirements" : "需求单", models: en ? "Model calls" : "模型调用", knowledge: en ? "Evidence" : "证据", memory: en ? "Memory" : "记忆", files: en ? "Files" : "文件" }[tab]}</button>)}
+					{(["requirement", "knowledge", "memory", "models", "files"] as const).map((tab, index, tabs) => <button key={tab} role="tab" data-tour={tab === "requirement" ? "brief-tab" : undefined} id={`tab-${tab}`} aria-controls={`panel-${tab}`} aria-selected={panelTab === tab} tabIndex={panelTab === tab ? 0 : -1} onClick={() => setPanelTab(tab)} onKeyDown={(event) => { if (["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) { event.preventDefault(); const next = event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : (index + (event.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length; setPanelTab(tabs[next]); (event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>("[role=tab]")[next])?.focus(); } }}>{ { requirement: en ? "Brief" : "需求单", models: en ? "Models" : "模型", knowledge: en ? "Evidence" : "证据", memory: en ? "Memory" : "记忆", files: en ? "Files" : "文件" }[tab]}</button>)}
 				</div>
 				<div className="proposal-body" role="tabpanel" id="panel-requirement" aria-labelledby="tab-requirement" hidden={panelTab !== "requirement"}>
 					{requirementMetrics && requirementMetrics.totals.runs > 0 && (
-						<details className="proposal-section diagnostics"><summary>{en ? "Run metrics" : "运行统计"}</summary>
-							<div className="section-title"><strong>{en ? "Cross-run metrics" : "跨运行指标"}</strong><code>{requirementMetrics.totals.runs} {en ? "runs" : "次运行"}</code></div>
+						<details className="proposal-section diagnostics"><summary>{en ? "Task overview" : "任务统计"}</summary>
+							<div className="section-title"><strong>{en ? "Requirements overview" : "需求处理概况"}</strong><code>{requirementMetrics.totals.runs} {en ? "tasks" : "次任务"}</code></div>
 							<dl className="run-metadata">
-								<div><dt>{en ? "Workflow completion" : "工作流完成"}</dt><dd>{requirementMetrics.rates.workflowCompletion === null ? "—" : `${Math.round(requirementMetrics.rates.workflowCompletion * 100)}%`}</dd></div>
-								<div><dt>{en ? "Stage pass" : "Stage 通过"}</dt><dd>{requirementMetrics.rates.stagePass === null ? "—" : `${Math.round(requirementMetrics.rates.stagePass * 100)}%`}</dd></div>
-								<div><dt>{en ? "Evaluation pass" : "评测通过"}</dt><dd>{requirementMetrics.rates.evaluationPass === null ? "—" : `${Math.round(requirementMetrics.rates.evaluationPass * 100)}%`}</dd></div>
+								<div><dt>{en ? "Tasks completed" : "任务完成比例"}</dt><dd>{requirementMetrics.rates.workflowCompletion === null ? "—" : `${Math.round(requirementMetrics.rates.workflowCompletion * 100)}%`}</dd></div>
+								<div><dt>{en ? "Briefs approved" : "需求单通过比例"}</dt><dd>{requirementMetrics.rates.stagePass === null ? "—" : `${Math.round(requirementMetrics.rates.stagePass * 100)}%`}</dd></div>
+								<div><dt>{en ? "Checks passed" : "检查通过比例"}</dt><dd>{requirementMetrics.rates.evaluationPass === null ? "—" : `${Math.round(requirementMetrics.rates.evaluationPass * 100)}%`}</dd></div>
 								<div><dt>{en ? "Waiting for action" : "等待处理"}</dt><dd>{requirementMetrics.totals.needsInput}</dd></div>
-								<div><dt>{en ? "Average fact confirmation" : "平均 Fact 确认"}</dt><dd>{requirementMetrics.averages.confirmationRate === null ? "—" : `${Math.round(requirementMetrics.averages.confirmationRate * 100)}%`}</dd></div>
+								<div><dt>{en ? "Average information confirmed" : "平均信息确认比例"}</dt><dd>{requirementMetrics.averages.confirmationRate === null ? "—" : `${Math.round(requirementMetrics.averages.confirmationRate * 100)}%`}</dd></div>
 								<div><dt>{en ? "Confirmed unchanged" : "原样确认比例"}</dt><dd>{requirementMetrics.averages.confirmedCandidateAccuracy === null ? "—" : `${Math.round(requirementMetrics.averages.confirmedCandidateAccuracy * 100)}%`}</dd></div>
 								<div><dt>{en ? "Reference presence" : "引用填写率"}</dt><dd>{requirementMetrics.averages.sourceCoverageRate === null ? "—" : `${Math.round(requirementMetrics.averages.sourceCoverageRate * 100)}%`}</dd></div>
-								<div><dt>{en ? "Artifacts / clarification questions" : "Artifact / 澄清问题"}</dt><dd>{requirementMetrics.totals.artifactVersions} / {requirementMetrics.totals.clarificationQuestions}</dd></div>
-								<div><dt>{en ? "Queue recovery / failure rate" : "Queue 恢复 / 失败率"}</dt><dd>{requirementMetrics.queue.recoveryRate === null ? "—" : `${Math.round(requirementMetrics.queue.recoveryRate * 100)}%`} / {requirementMetrics.queue.failureRate === null ? "—" : `${Math.round(requirementMetrics.queue.failureRate * 100)}%`}</dd></div>
-								<div><dt>{en ? "Tool failure rate" : "Tool 失败率"}</dt><dd>{requirementMetrics.runtime.toolFailureRate === null ? "—" : `${Math.round(requirementMetrics.runtime.toolFailureRate * 100)}%`}</dd></div>
-								<div><dt>{en ? "Total tokens (in / out)" : "总 Token (in / out)"}</dt><dd>{requirementMetrics.runtime.usage ? `${requirementMetrics.runtime.usage.inputTokens} / ${requirementMetrics.runtime.usage.outputTokens}` : "—"}</dd></div>
-								<div><dt>{en ? "Average runtime latency" : "平均 Runtime 延迟"}</dt><dd>{requirementMetrics.averages.runtimeLatencyMs === null ? "—" : `${Math.round(requirementMetrics.averages.runtimeLatencyMs)} ms`}</dd></div>
+								<div><dt>{en ? "Brief versions / follow-up questions" : "需求单版本 / 待核对问题"}</dt><dd>{requirementMetrics.totals.artifactVersions} / {requirementMetrics.totals.clarificationQuestions}</dd></div>
+								<div><dt>{en ? "Tasks recovered / failed" : "任务恢复 / 失败比例"}</dt><dd>{requirementMetrics.queue.recoveryRate === null ? "—" : `${Math.round(requirementMetrics.queue.recoveryRate * 100)}%`} / {requirementMetrics.queue.failureRate === null ? "—" : `${Math.round(requirementMetrics.queue.failureRate * 100)}%`}</dd></div>
+								<div><dt>{en ? "Processing errors" : "处理出错比例"}</dt><dd>{requirementMetrics.runtime.toolFailureRate === null ? "—" : `${Math.round(requirementMetrics.runtime.toolFailureRate * 100)}%`}</dd></div>
+								<div><dt>{en ? "Average processing time" : "平均处理耗时"}</dt><dd>{requirementMetrics.averages.runtimeLatencyMs === null ? "—" : `${Math.round(requirementMetrics.averages.runtimeLatencyMs)} ms`}</dd></div>
 							</dl>
 							<div className="verification-list">
-								<strong>{en ? "Recent run timeline" : "最近运行时间序列"}</strong>
+								<strong>{en ? "Recent tasks" : "最近处理记录"}</strong>
 								{requirementMetrics.points.slice(-6).reverse().map((point) => (
-									<span key={point.runId}>{displayTime(point.startedAt, language)} · {point.industry ?? "unknown"} · {stageLabel(point.stageStatus)} · Artifact v{point.metrics.artifactVersions}</span>
+									<span key={point.runId}>{displayTime(point.startedAt, language)} · {stageLabel(point.stageStatus)} · {point.metrics.artifactVersions} {en ? "brief versions" : "个需求单版本"}</span>
 								))}
 							</div>
 						</details>
@@ -1119,9 +1120,10 @@ function App() {
 							{!requirementTerminal && <button className="secondary-action" disabled={requirementBusy} onClick={() => void cancelRequirement()}>{en ? "Cancel historical task" : "取消历史任务"}</button>}
 						</section>
 					) : !requirement ? (
-						<section className="proposal-empty">
-							<strong data-tour="brief-overview">{en ? "Organise source material into a deliverable requirement brief" : "把资料整理成可交付的需求单"}</strong>
-							<p>{en ? "Review packaging type, dimensions, quantity, market, delivery date, and artwork one by one, then confirm the current version." : "围绕包装类型、尺寸、数量、市场、交期和稿件，逐项核对资料，再确认当前版本。"}</p>
+						<section className="proposal-empty brief-empty">
+							<span className="brief-empty-icon" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M14 3H5v18h14V8l-5-5Z" /><path d="M14 3v5h5M8 12h8M8 16h6" /></svg></span>
+							<strong data-tour="brief-overview">{en ? "No brief yet" : "暂无需求单"}</strong>
+							<p>{!hasUserMessage ? en ? "Send a request to create a draft." : "先发送需求，再生成草稿。" : en ? "Create a draft, then review and confirm." : "生成草稿，核对后确认。"}</p>
 							<button
 								className="primary-action" data-tour="generate"
 								onClick={() => void startRequirement()}
@@ -1129,52 +1131,43 @@ function App() {
 							>
 								{requirementBusy ? en ? "Creating…" : "正在创建…" : en ? "Create requirement brief" : "生成需求单"}
 							</button>
-							{!hasUserMessage && <small>{en ? "First, describe a clear packaging request." : "先描述一条明确的包装需求。"}</small>}
 						</section>
 					) : (
 						<>
-							{requirement.state.currentProposal?.freshness === "stale" && <p role="status">{en ? "Sources or confirmed information changed. Review the changes, then generate and approve a new version." : "资料或确认信息已变化，旧版本已失效。请核对变更，生成新版本并重新审批。"}</p>}
-							<section className="workflow-track" aria-label={en ? "Requirement brief workflow progress" : "Requirement Brief 工作流进度"}>
-								<span className="done">{en ? "Collect" : "收集需求"}</span>
-								<span className={requirement.state.currentProposal ? "done" : "active"}>{en ? "Organise" : "整理资料"}</span>
-								<span className={requirement.state.evaluation ? "done" : requirement.state.stageStatus === "evaluating" ? "active" : ""}>{en ? "Validate" : "校验"}</span>
-								<span className={requirement.state.stageStatus === "passed" ? "done" : requirement.state.stageStatus === "waiting_approval" ? "active" : ""}>{en ? "Confirm" : "确认交付"}</span>
+							<section className="brief-guidance">
+								{requirementLeaseExpired && <p role="alert">{en ? "Processing was interrupted. Waiting for recovery; completion is not confirmed." : "处理已中断，正在等待恢复；尚未确认完成。"}</p>}
+								<p role="status">{requirementRunning ? en ? "Preparing your draft…" : "正在整理草稿…" : requirement.state.stageStatus === "passed" ? en ? "Approved. Ready to export." : "已批准，可导出当前版本。" : requirement.state.stageStatus === "waiting_approval" ? en ? "Review the draft, then approve or reject it." : "核对草稿后，批准或拒绝当前版本。" : reviewRecovery ? en ? "Review failed; draft saved. Check the error and restart. No customer input is needed." : "复核失败，草稿已保存。查看原因后重新执行，无需补充客户资料。" : requirement.state.currentProposal?.freshness === "stale" ? en ? "Sources or confirmed information changed. Review the changes, then generate and approve a new version." : "资料或确认信息已变化，旧版本已失效。请核对变更，生成新版本并重新审批。" : en ? "Complete and confirm the fields, then generate a new version." : "补全并确认信息，再生成新版本。"}</p>
+
 							</section>
 
-							<section className="proposal-section">
-								<div className="section-title"><strong>{en ? "Task overview" : "任务概览"}</strong><code>v{requirement.state.aggregateVersion}</code></div>
-								{requirementLeaseExpired && <p role="alert">{en ? "The worker heartbeat expired. Waiting for recovery checks; completion is not confirmed." : "执行心跳已过期，等待恢复检查；当前尚未确认完成。"}</p>}
-								<p role="status">{requirementRunning ? en ? "Organising your material. You can return later to review it." : "正在整理资料，完成后可核对草稿。" : requirement.state.stageStatus === "passed" ? en ? "Approved. Export the current delivery below." : "当前版本已批准，可在下方导出交付物。" : requirement.state.stageStatus === "waiting_approval" ? en ? "Review the draft and approve or reject this version below." : "请核对草稿，在下方批准或拒绝当前版本。" : reviewRecovery ? en ? "Review did not finish. Your draft is saved. Check the failure details, then explicitly start a new execution; no customer clarification is needed for this system failure." : "复核未完成，草稿已保存。请检查下方失败原因后重新执行；系统故障无需补充客户资料。" : en ? "Review missing information and unconfirmed fields below, then generate the next version." : "请在下方补充缺失信息、核对待确认字段，再生成新版本。"}</p>
+							{content && active && requirement.state.currentProposal && <DeliveryPreview conversationId={active.conversationId} versions={requirement.state.proposalVersions.map((item) => item.version)} currentVersion={requirement.state.currentProposal.version} revision={requirement.state.aggregateVersion} onSources={setParsedSources} language={language} />}
+
+							<details className="proposal-section diagnostics"><summary>{en ? "Task details" : "本次处理详情"}</summary>
 								<dl className="run-metadata">
 									<div><dt>{en ? "Industry" : "行业"}</dt><dd>{en ? "Packaging" : "包装"}</dd></div>
-									{requirement.state.facts.plan_source && <div><dt>{en ? "Source" : "资料来源"}</dt><dd>Plan v{requirement.state.facts.plan_source.sourceRef.split(":version:")[1]}</dd></div>}
+									{requirement.state.facts.plan_source && <div><dt>{en ? "Source" : "资料来源"}</dt><dd>{en ? "Plan" : "计划"} v{requirement.state.facts.plan_source.sourceRef.split(":version:")[1]}</dd></div>}
 									<div><dt>{en ? "Status" : "状态"}</dt><dd>{reviewRecovery && requirement.state.stageStatus === "needs_input" ? (en ? "Review needs recovery" : "复核待恢复") : stageLabel(requirement.state.stageStatus)}</dd></div>
 									<div><dt>{en ? "Version" : "版本"}</dt><dd>{requirement.state.currentProposal?.version ?? "—"}</dd></div>
-									<div><dt>{en ? "Queue" : "队列"}</dt><dd>{requirement.job ? ({ queued: en ? "Queued" : "排队中", leased: en ? "Running" : "执行中", completed: en ? "Completed" : "已完成", cancelled: en ? "Cancelled" : "已取消", dead_letter: en ? "Failed" : "执行失败" }[requirement.job.status]) : "—"}</dd></div>
+									<div><dt>{en ? "Processing progress" : "处理进度"}</dt><dd>{requirement.job ? ({ queued: en ? "Queued" : "排队中", leased: en ? "Running" : "执行中", completed: en ? "Completed" : "已完成", cancelled: en ? "Cancelled" : "已取消", dead_letter: en ? "Failed" : "执行失败" }[requirement.job.status]) : "—"}</dd></div>
 								</dl>
-							</section>
-
-							<details className="proposal-section diagnostics"><summary>{en ? "This run's details" : "本次运行详情"}</summary>
-								<div className="section-title"><strong>{en ? "Product metrics" : "产品指标"}</strong><code>{requirement.metrics.schemaVersion}</code></div>
-								<p>{en ? "Confirmed unchanged measures adoption; reference presence only checks that a reference exists. Neither proves factual accuracy. Runtime latency excludes human review time." : "原样确认比例表示采纳情况；引用填写率只表示有引用。两者均不等于事实准确率。运行耗时不含人工核对时间。"}</p>
+								<div className="section-title"><strong>{en ? "Review progress" : "核对进展"}</strong></div>
+								<p>{en ? "Confirmed unchanged measures adoption; reference presence only checks that a reference exists. Neither proves factual accuracy. Processing time excludes human review time." : "原样确认比例表示采纳情况；引用填写率只表示有引用。两者均不等于事实准确率。运行耗时不含人工核对时间。"}</p>
 								<dl className="run-metadata">
-									<div><dt>{en ? "Canonical match rate" : "Canonical 命中"}</dt><dd>{requirement.metrics.canonicalFactHitRate === null ? "—" : `${Math.round(requirement.metrics.canonicalFactHitRate * 100)}%`}</dd></div>
-									<div><dt>{en ? "Fact confirmation" : "Fact 确认"}</dt><dd>{Math.round(requirement.metrics.confirmationRate * 100)}% ({requirement.metrics.confirmedRequiredFacts}/{requirement.metrics.requiredFacts})</dd></div>
+									<div><dt>{en ? "Information confirmed" : "信息确认比例"}</dt><dd>{Math.round(requirement.metrics.confirmationRate * 100)}% ({requirement.metrics.confirmedRequiredFacts}/{requirement.metrics.requiredFacts})</dd></div>
 									<div><dt>{en ? "Confirmed unchanged" : "原样确认比例"}</dt><dd>{requirement.metrics.confirmedCandidateAccuracy === null ? "—" : `${Math.round(requirement.metrics.confirmedCandidateAccuracy * 100)}%`}</dd></div>
 									<div><dt>{en ? "Reference presence" : "引用填写率"}</dt><dd>{requirement.metrics.sourceCoverageRate === null ? "—" : `${Math.round(requirement.metrics.sourceCoverageRate * 100)}%`}</dd></div>
-									<div><dt>{en ? "Missing facts" : "缺失 Fact"}</dt><dd>{requirement.metrics.missingRequiredFacts.length}</dd></div>
+									<div><dt>{en ? "Missing information" : "待补充信息"}</dt><dd>{requirement.metrics.missingRequiredFacts.length}</dd></div>
 									<div><dt>{en ? "Clarification rounds" : "澄清轮次"}</dt><dd>{requirement.metrics.clarificationRounds}</dd></div>
-									<div><dt>Token (in / out)</dt><dd>{requirement.metrics.runtime.usage ? `${requirement.metrics.runtime.usage.inputTokens} / ${requirement.metrics.runtime.usage.outputTokens}` : "—"}</dd></div>
-									<div><dt>{en ? "Runtime latency" : "Runtime 延迟"}</dt><dd>{requirement.metrics.runtime.latencyMs === null ? "—" : `${requirement.metrics.runtime.latencyMs} ms`}</dd></div>
+									<div><dt>{en ? "Processing time" : "处理耗时"}</dt><dd>{requirement.metrics.runtime.latencyMs === null ? "—" : `${requirement.metrics.runtime.latencyMs} ms`}</dd></div>
 									<div><dt>{en ? "Cost" : "成本"}</dt><dd>{requirement.metrics.runtime.costStatus === "unconfigured" ? en ? "Pricing not configured" : "未配置价格" : `$${requirement.metrics.runtime.costUsd}`}</dd></div>
 									<div><dt>{en ? "Clarification questions" : "澄清问题"}</dt><dd>{requirement.metrics.clarificationQuestions}</dd></div>
 									<div><dt>{en ? "Recoveries / failures" : "恢复 / 失败"}</dt><dd>{requirement.metrics.queue.recoveryCount} / {requirement.metrics.queue.totalFailureCount}</dd></div>
-									<div><dt>{en ? "Tool failure rate" : "Tool 失败率"}</dt><dd>{requirement.metrics.runtime.toolFailureRate === null ? "—" : `${Math.round(requirement.metrics.runtime.toolFailureRate * 100)}%`}</dd></div>
+									<div><dt>{en ? "Processing errors" : "处理出错比例"}</dt><dd>{requirement.metrics.runtime.toolFailureRate === null ? "—" : `${Math.round(requirement.metrics.runtime.toolFailureRate * 100)}%`}</dd></div>
 								</dl>
 							</details>
 
-							<section className="proposal-section facts-card">
-								<div className="section-title"><strong>{en ? "Review key information" : "核对关键信息"}</strong><span>{facts.length}</span></div>
+							<details className="proposal-section facts-card" open={unconfirmedFacts.length > 0 || !!content?.pendingChanges?.length || !!requirement.candidateConflicts?.length || !facts.length}>
+								<summary>{en ? "Review information" : "核对信息"}<span>{unconfirmedFacts.length} {en ? "unconfirmed" : "项待确认"}</span></summary>
 								{requirement.candidateConflicts?.map(conflict => <div className="fact-change" key={conflict.id}>
 									<strong>{fieldLabel(conflict.key)} · {en ? "Candidates need your decision" : "候选分歧待人工确认"}</strong>
 									<p>{en ? "Both candidates are unconfirmed. Confirm the current value below, or enter a different value and then confirm it. Generating another draft or rejecting a candidate does not resolve this disagreement." : "两个候选均未确认。核对来源后，可确认下方当前值，或填入适用值再确认。重新生成或拒绝候选不会解除分歧。"}</p>
@@ -1187,9 +1180,9 @@ function App() {
 								{facts.map((fact) => (
 									<div className="fact-row" key={`${fact.key}-${fact.version}`}>
 										<div>
-											<small>{fieldLabel(fact.key)} · v{fact.version}</small>
+											<small title={`v${fact.version}`}>{fieldLabel(fact.key)}</small>
 											<strong>{String(fact.value)}{fact.unit ? ` ${fact.unit}` : ""}</strong>
-											<small>{factStatus(fact.status)} · {fact.sourceType === "model_output" ? en ? "AI extracted" : "AI 提取" : fact.sourceType === "human_confirmation" ? en ? "Human confirmed" : "人工确认" : en ? "Human entered" : "人工输入"}</small>
+											<small>{factStatus(fact.status)} · {fact.sourceType === "model_output" ? en ? "AI extracted" : "AI 提取" : fact.sourceType === "human_confirmation" ? en ? "Human confirmed" : "人工确认" : en ? "Manually entered" : "人工录入"}</small>
 											<RequirementSource source={requirement.factSources?.[fact.key]} en={en} tutorialTarget={fact.key === tutorialSourceKey} />
 											{content?.pendingChanges?.filter((change) => change.key === fact.key && change.currentFactVersion === fact.version).map((change) => <div className="fact-change" key={change.key}>
 												<strong>{en ? "Proposed change" : "新变更待确认"}: {String(change.value)} {change.unit}</strong>
@@ -1213,39 +1206,39 @@ function App() {
 									<button type="submit" disabled={requirementBusy || requirementRunning || requirement.state.stageStatus === "cancelled" || !factKey.trim() || !factValue.trim()}>{en ? "Add unverified information" : "添加待确认信息"}</button>
 								</form>
 								<small>{en ? "Confirm new information item by item. Changes make earlier briefs stale, so generate a new version." : "新增信息需逐项确认。修改后旧需求单会失效，请重新生成。"}</small>
-							</section>
+							</details>
 
 							{active && <RequirementTrial key={requirement.runId} conversationId={active.conversationId} workspace={requirement} en={en} />}
 
-							{content && active && requirement.state.currentProposal && <DeliveryPreview conversationId={active.conversationId} versions={requirement.state.proposalVersions.map((item) => item.version)} currentVersion={requirement.state.currentProposal.version} revision={requirement.state.aggregateVersion} onSources={setParsedSources} language={language} />}
+
 
 							{requirement.state.currentProposal && !content && (
 								<section className="proposal-section invalid-artifact">
-									<strong>{en ? "The artifact cannot be shown as a structured requirement brief" : "Artifact 无法作为结构化 Requirement Brief 展示"}</strong>
-									<p>{en ? "The raw output is retained; Evaluation records the reason for failure." : "原始输出已经留存，Evaluation 会记录失败原因。"}</p>
+									<strong>{en ? "Unable to display this brief" : "暂时无法展示需求单"}</strong>
+									<p>{en ? "Original output is saved. See validation for details." : "原始内容已保存，请查看校验详情。"}</p>
 								</section>
 							)}
 
 							{evaluation && (
-								<section className={`proposal-section evaluation ${evaluation.passed ? "passed" : "failed"}`}>
-									<div className="section-title"><strong>{en ? "Requirement validation" : "需求校验"}</strong><span>{evaluation.passed ? en ? "Passed" : "通过" : en ? "Failed" : "未通过"}</span></div>
+								<details className={`proposal-section evaluation ${evaluation.passed ? "passed" : "failed"}`} open={!evaluation.passed || evaluation.evidenceReview?.status === "failed" || !!evaluation.evidenceReview?.issues.length || !!evaluation.extractionCorrections?.length}>
+									<summary>{en ? "Review results" : "检查结果"}<span>{evaluation.approvalEligible ? en ? "Passed" : "通过" : en ? "Action needed" : "需处理"}</span></summary>
 									{evaluation.issues.length === 0
-										? <p>{en ? `Structure and authoritative-state checks passed. ${evaluation.approvalEligible ? "Ready for approval." : "More information or confirmation is still needed."}` : `结构和权威状态检查通过。${evaluation.approvalEligible ? "可以审批。" : "仍需补充或确认 信息。"}`}</p>
+										? <p>{en ? `Content structure and confirmation status checked. ${evaluation.approvalEligible ? "Ready for approval." : "More information or confirmation is still needed."}` : `内容结构与确认状态已检查。${evaluation.approvalEligible ? "可以审批。" : "仍需补充或确认信息。"}`}</p>
 										: evaluation.issues.map((issue, index) => <p key={`${issue.code}-${index}`}>{validationText(issue, language)}</p>)}
 									{evaluation.extractionCorrections?.map((correction, index) => <details key={index}>
 										<summary>{en ? "Extraction corrected; confirmation still needed" : "已纠正提取错误，仍待确认"} · {fieldLabel(correction.field)}: {String(correction.previousValue)} → {correction.value} {correction.unit}</summary>
-										<p>{en ? "Original source" : "原始资料"}: {correction.sourceRef}</p><blockquote>{correction.quote}</blockquote>
+										<p>{en ? "Original excerpt" : "原文摘录"}</p><blockquote>{correction.quote}</blockquote>
 									</details>)}
 									{evaluation.evidenceReview && <>
 										<p>{en ? "Evidence review" : "证据复核"} · v{evaluation.evidenceReview.artifactVersion} · {evaluation.evidenceReview.status === "failed" ? (en ? "Incomplete — approval blocked" : "未完成，已阻止审批") : (en ? "Completed" : "已完成")}</p>
 										{evaluation.evidenceReview.issues.map((issue, index) => <div key={index}>
-											<strong>{issue.location}</strong><p>{issue.reason}</p>
-											<p>{en ? "Evidence" : "证据"}: {issue.evidenceRefs.join(" · ") || (en ? "Insufficient evidence" : "证据不足")}</p>
+											<strong>{issue.location.startsWith("/facts/") ? fieldLabel(issue.location.split("/")[2]) : issue.location === "/customerGoal" ? (en ? "Customer goal" : "客户目标") : issue.location === "/assumptions" ? (en ? "Assumptions and limitations" : "假设与限制") : (en ? "Information to review" : "待核对内容")}</strong><p>{issue.reason}</p>
+											<p>{issue.evidenceRefs.length ? (en ? `${issue.evidenceRefs.length} supporting references; check the original sources above.` : `涉及 ${issue.evidenceRefs.length} 条资料，请在上方核对原文。`) : (en ? "Insufficient evidence" : "证据不足")}</p>
 											<p>{en ? "Suggested action" : "建议动作"}: {issue.suggestedAction === "revise" ? (en ? "Revise the brief" : "修订需求单") : issue.suggestedAction === "reconfirm_plan" ? (en ? "Reconfirm plan" : "重新确认计划") : (en ? "Provide or confirm evidence" : "补充或确认资料")}</p>
 										</div>)}
 										{evaluation.decision === "reconfirm_plan" && <p>{en ? "The scope needs to change. Replan and confirm the new version before importing it again." : "需求涉及范围变化。请重新规划并确认新计划版本，再导入需求单。"}</p>}
 									</>}
-								</section>
+								</details>
 							)}
 
 							{requirement.state.approval?.status === "requested" && (
@@ -1259,7 +1252,7 @@ function App() {
 								</section>
 							)}
 
-							{requirement.state.approval && requirement.state.approval.status !== "requested" && (
+							{requirement.state.approval && requirement.state.approval.status !== "requested" && requirement.state.approval.status !== "approved" && (
 								<div className={`approval-result ${requirement.state.approval.status}`}>{en ? "Requirement brief confirmation: " : "需求单确认："}{statusFor(language, requirement.state.approval.status, ({ approved: "已批准", rejected: "已拒绝", superseded: "已失效", cancelled: "已取消" } as Record<string, string>)[requirement.state.approval.status] ?? requirement.state.approval.status)}</div>
 							)}
 							{requirement.job?.status === "dead_letter" && (
@@ -1269,9 +1262,9 @@ function App() {
 							{requirement.state.stageStatus !== "passed" && requirement.state.stageStatus !== "cancelled" && (
 								<button className="secondary-action" onClick={() => void cancelRequirement()} disabled={requirementBusy}>{en ? "Cancel task" : "取消任务"}</button>
 							)}
-							{requirement.state.stageStatus === "passed" && <p className="cancelled-note">{en ? "The current version is approved. Enter revised information or generate a new version below; this delivery remains in history and will require fresh approval." : "当前版本已批准。可补充修改信息或在下方生成新版本；旧交付保留在历史中，修改后需重新审批。"}</p>}
+							{requirement.state.stageStatus === "passed" && <p className="cancelled-note">{en ? "Changes require a new version and approval. Previous versions stay available." : "修改后需生成新版本并重新批准，旧版本保留。"}</p>}
 							{requirement.state.stageStatus === "cancelled" && (
-								<div className="cancelled-note">{en ? "The request, facts, artifacts, and audit events are retained. Re-review continues from the existing version without deleting history." : "已保留需求、Fact、Artifact 与审计事件；重新审查会从现有版本继续，不会删除历史。"}</div>
+								<div className="cancelled-note">{en ? "Content and history are saved. You can resume the review." : "内容与历史记录已保留，可重新审查。"}</div>
 							)}
 							<button
 								className="secondary-action" data-tour="generate"
@@ -1282,14 +1275,14 @@ function App() {
 									? progressLabel(requirementActivity)
 									: requirement.state.stageStatus === "cancelled"
 										? en ? "Re-review requirement brief" : "重新审查需求单"
-										: reviewRecovery ? en ? "Start a new execution (may incur model usage)" : "重新执行（会产生模型用量）" : en ? "Generate a new version with the latest information" : "用最新信息生成新版本"}
+										: reviewRecovery ? en ? "Try again (may incur a fee)" : "重新处理（可能产生费用）" : en ? "Generate new version" : "生成新版本"}
 							</button>
 						</>
 					)}
 				</div>
-				<div className="proposal-body" role="tabpanel" id="panel-knowledge" aria-labelledby="tab-knowledge" hidden={panelTab !== "knowledge"}>{active && (reviewOpen && panelTab === "knowledge" || tutorial?.reviewOpen && tutorial.panelTab === "knowledge") ? <KnowledgePanel key={active.conversationId} conversationId={active.conversationId} language={language} /> : <p>{en ? "Select a task to inspect packaging evidence." : "选择任务后查看包装证据。"}</p>}</div>
+				<div className="proposal-body" role="tabpanel" id="panel-knowledge" aria-labelledby="tab-knowledge" hidden={panelTab !== "knowledge"}>{active && (reviewOpen && panelTab === "knowledge" || tutorial?.reviewOpen && tutorial.panelTab === "knowledge") ? <KnowledgePanel key={active.conversationId} conversationId={active.conversationId} attachments={attachments} language={language} /> : <p>{en ? "Select a task to inspect packaging evidence." : "选择任务后查看包装证据。"}</p>}</div>
 				<div className="proposal-body" role="tabpanel" id="panel-memory" aria-labelledby="tab-memory" hidden={panelTab !== "memory"}>{active && (reviewOpen && panelTab === "memory" || tutorial?.reviewOpen && tutorial.panelTab === "memory") ? <MemoryPanel key={active.conversationId} conversationId={active.conversationId} language={language} /> : <p>{en ? "Select a task to manage personal memory." : "选择任务后管理个人记忆。"}</p>}</div>
-				<div className="proposal-body" role="tabpanel" id="panel-models" aria-labelledby="tab-models" hidden={panelTab !== "models"}>{(reviewOpen && panelTab === "models" || tutorial?.reviewOpen && tutorial.panelTab === "models") && <ModelSettings language={language} />}{active && (reviewOpen && panelTab === "models" || tutorial?.reviewOpen && tutorial.panelTab === "models") ? <ModelMonitor key={active.conversationId} conversationId={active.conversationId} language={language} /> : !active && <p>{en ? "Create or select a conversation to view model calls." : "新建或选择会话后查看模型调用。"}</p>}</div>
+				<div className="proposal-body" role="tabpanel" id="panel-models" aria-labelledby="tab-models" hidden={panelTab !== "models"}>{(reviewOpen && panelTab === "models" || tutorial?.reviewOpen && tutorial.panelTab === "models") && <ModelSettings language={language} />}{active && (reviewOpen && panelTab === "models" || tutorial?.reviewOpen && tutorial.panelTab === "models") ? <details className="proposal-section diagnostics"><summary>{en ? "Processing history" : "处理记录"}</summary><ModelMonitor key={active.conversationId} conversationId={active.conversationId} language={language} /></details> : !active && <p>{en ? "Create or select a task to view processing history." : "新建或选择任务后查看处理记录。"}</p>}</div>
 				<div className="proposal-body" role="tabpanel" id="panel-files" aria-labelledby="tab-files" hidden={panelTab !== "files"}>{active ? <FileExplorer key={active.conversationId} conversationId={active.conversationId} language={language} onUseFile={(path) => { setDraft(en ? `Please read and help me work with this file: ${path}\nRequest:` : `请读取并协助处理这个文件：${path}\n处理要求：`); if (window.innerWidth < 1180) setReviewOpen(false); }} /> : <p>{en ? "Create or select a conversation to browse local files." : "新建或选择会话后浏览本机文件。"}</p>}</div>
 			</aside>
 			{tutorial && <WorkspaceTutorial language={language} step={tutorial.step} onStep={(step) => setTutorial((current) => current ? { ...current, step } : current)} onClose={closeTutorial} />}

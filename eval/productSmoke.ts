@@ -18,7 +18,7 @@ import { documentFixture } from "../server/testing/documentFixture";
 import { createRequirementBrief, requiredRequirementFacts, type RequirementBriefEvaluation } from "../src/manufacturing/requirementBrief";
 import type { ConversationView, RequirementBriefWorkspaceView, RuntimeActivity } from "../src/runtime/conversationContracts";
 import type { RequirementDelivery } from "../src/manufacturing/requirementDelivery";
-import type { ConversationFilesView, LocalFileLocations } from "../src/runtime/conversationFiles";
+import type { ConversationFilesView, LocalDirectoryListing, LocalFileLocations } from "../src/runtime/conversationFiles";
 import type { AnthropicMessageRequest } from "../server/anthropic/types";
 import type { RequirementTrialObservation } from "../src/manufacturing/requirementTrial";
 import { FileAgentStateStore } from "../server/runtime/fileAgentStateStore";
@@ -374,6 +374,14 @@ try {
 	assert.equal(oldVersion.content, "# 包装方案 v1\n模型建议，待确认。");
 	assert.equal((await fetch(`${baseUrl}${path}/files/directories`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ path: documents }) })).status, 403);
 	assert.equal((await fetch(`${baseUrl}${path}/files/directories?path=${encodeURIComponent(documents)}`, { headers })).status, 200);
+	const manyFiles = join(documents, "文件列表测试"); mkdirSync(manyFiles);
+	for (let index = 0; index < 205; index++) writeFileSync(join(manyFiles, `资料-${String(index).padStart(3, "0")}.txt`), "本地演示资料，非真实订单。");
+	const firstPage = await api<LocalDirectoryListing>(`${path}/files/directories?${new URLSearchParams({ path: manyFiles })}`);
+	const lastPage = await api<LocalDirectoryListing>(`${path}/files/directories?${new URLSearchParams({ path: manyFiles, after: firstPage.nextAfter! })}`);
+	assert.equal(firstPage.total, 205); assert.equal(firstPage.entries.length, 200);
+	assert.equal(lastPage.entries.length, 5); assert.equal(lastPage.truncated, false);
+	assert.equal(new Set([...firstPage.entries, ...lastPage.entries].map((entry) => entry.absolutePath)).size, 205);
+
 	assert.equal((await fetch(`${baseUrl}${path}/files/directories`, { method: "POST", headers, body: JSON.stringify({ path: documents }) })).status, 410);
 	const localCreate = api(`${path}/messages`, { messageId: "local-create", content: "本地文件测试：新建" });
 	const localReview = await pendingFor(path); assert.equal(localReview.path, localDocument); assert(!existsSync(localDocument));

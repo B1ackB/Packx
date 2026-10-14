@@ -11,6 +11,7 @@
 		"dev:web": "vite",
 		"build": "tsc -b && vite build",
 		"test": "vitest run",
+		"test:browser": "playwright test",
 		"test:watch": "vitest",
 		"eval:memory": "node --import tsx eval/memory.ts",
 		"eval:knowledge-enrich": "node --import tsx eval/knowledgeEnrich.ts",
@@ -69,6 +70,7 @@
 		"vite": "^7.0.0"
 	},
 	"devDependencies": {
+		"@playwright/test": "1.64.0",
 		"@types/node": "^26.3.0",
 		"@types/react": "^19.0.0",
 		"@types/react-dom": "^19.0.0",

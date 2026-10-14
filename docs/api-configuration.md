@@ -18,7 +18,7 @@
 | `POST /api/conversations/:id/files/approvals/:approvalId` | 请求体仅决定 `decision=approved/rejected`；Host 使用已保存的操作和内容，版本冲突/过期返回 409 |
 | `POST /api/conversations/:id/files/directories` | 已停用，返回 `410 directory_grants_retired`，旧客户端应刷新 |
 | `DELETE /api/conversations/:id/files/directories/:grantId` | 已停用，返回 `410 directory_grants_retired`，不再创建长期目录授权 |
-| `GET /api/conversations/:id/files/directories?path=...` | 按 Host 策略浏览真实磁盘目录（最多 200 项）；省略 path 返回真实本机位置与历史文件 |
+| `GET /api/conversations/:id/files/directories?path=...` | 按 Host 策略浏览真实磁盘目录（每页最多 200 项，`after` 续页）；省略 path 返回真实本机位置与历史文件 |
 | `GET /api/conversations/:id/files/local-content?path=...` | 读取真实本地文本或受支持文档，返回绝对路径、SHA-256 和文本预览 |
 
 模型通过 `file_list/read/write/delete` 发起文件操作。`file_list({})` 返回真实 homeDirectory/workingDirectory 等路径，供模型确定具体位置；`file_write/delete` 自动创建单次审批请求，UI 显示路径和内容、用户批准后继续执行。真实文件使用规范绝对路径，无需提前授权目录；写入/删除带 `expectedSha256`，首次新建为 `null`，其他操作必须与原文件哈希一致。**包括新建在内的所有写入、删除都需人工逐次审批**。原相对路径历史接口仍使用 `expectedVersion`。直接调用执行器也必须持有匹配授权记录；目录授权 API 已停用；模型不能调用用户审批接口。普通文本最多128 KiB，不能用文本内容冒充 PDF/Word/图片等二进制格式。
@@ -35,7 +35,7 @@
 
 缓存命中率采用 Anthropic Messages 用量口径：`sum(cache_read_input_tokens) / sum(input_tokens + cache_read_input_tokens + cache_creation_input_tokens)`。仅纳入缓存读写字段都有效的响应，UI 显示覆盖响应数；字段缺失显示未提供，明确报告零时显示 0%。不启用缓存、不修改 Provider 缓存策略。口径依据：[Anthropic Prompt caching](https://platform.claude.com/docs/en/build-with-claude/prompt-caching)。
 
-文件页复用已有受控 GET 接口。`files/directories` 无 path 返回 `locations` 和历史文件，工作目录遵循 `BLACKX_WORKSPACE_ROOT`；传 path 按需读取单层目录（最多 200 项）。`files/local-content` 打开真实 UTF-8 文本或通过隔离解析器预览 PDF、DOCX、XLSX；`files/content` 读取不可变历史快照。React 以纯文本呈现内容，不执行 HTML/脚本。目录树中的系统目录、隐藏路径、内部状态与链接继续按 Host 策略过滤。浏览操作不需要新增授权入口，写入/删除仍由单次审批控制。
+文件页复用已有受控 GET 接口。`files/directories` 无 path 返回 `locations` 和历史文件，工作目录遵循 `BLACKX_WORKSPACE_ROOT`；传 path 按需读取单层目录（每页最多 200 项）。响应 `total` 为可访问项目总数，`nextAfter` 为下一页起点；将其作为 `after` 原样传回以继续读取。末页 `truncated=false` 且无 `nextAfter`。续页起点已删除或权限变化时返回 `file_version_conflict`，前端刷新列表；每页均重新执行权限与文件类型过滤。`files/local-content` 打开真实 UTF-8 文本或通过隔离解析器预览 PDF、DOCX、XLSX；`files/content` 读取不可变历史快照。React 以纯文本呈现内容，不执行 HTML/脚本。目录树中的系统目录、隐藏路径、内部状态与链接继续按 Host 策略过滤。浏览操作不需要新增授权入口，写入/删除仍由单次审批控制。
 
 ## 1. 配置原则
 

@@ -40,5 +40,5 @@ export interface LocalFileEntry {
 	size: number;
 }
 
-export interface LocalDirectoryListing { directory: string; entries: LocalFileEntry[]; truncated: boolean }
+export interface LocalDirectoryListing { directory: string; entries: LocalFileEntry[]; total: number; truncated: boolean; nextAfter?: string }
 export interface LocalFileLocations { locations: Record<string, string>; files: TaskFileVersion[] }

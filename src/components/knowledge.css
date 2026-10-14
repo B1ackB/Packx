@@ -1,13 +1,20 @@
-.knowledge-panel { display: grid; gap: 16px; font-size: 13px; line-height: 1.6; }
+.knowledge-panel { display: grid; gap: 14px; font-size: 12px; line-height: 1.8; color: #655d51; }
+.knowledge-panel p { margin: 0; }
 .knowledge-panel label, .knowledge-panel small { display: block; }
-.knowledge-panel small { opacity: .76; overflow-wrap: anywhere; }
-.knowledge-panel form, .knowledge-panel details { display: grid; gap: 10px; }
-.knowledge-panel input:not([type=checkbox]), .knowledge-panel textarea, .knowledge-panel select { width: 100%; padding: 8px; border: 1px solid #aaa6; border-radius: 6px; background: transparent; color: inherit; }
-.knowledge-panel button { padding: 7px 10px; margin: 4px 6px 4px 0; border: 1px solid #aaa6; border-radius: 6px; cursor: pointer; }
+.knowledge-panel small { color: #827464; overflow-wrap: anywhere; line-height: 1.7; }
+.knowledge-panel form { display: grid; gap: 16px; padding: 16px; border: 1px solid #e0d8cb; border-radius: 10px; background: #fffcf7; }
+.knowledge-panel details { padding: 12px 0; border-bottom: 1px solid #e0d8cb; }
+.knowledge-panel details[open] > :not(summary) { margin-top: 12px; }
+.knowledge-panel details > button, .knowledge-evidence button { margin-right: 8px; margin-top: 8px; }
+.knowledge-panel summary { cursor: pointer; font-weight: 600; color: #504639; }
+.knowledge-panel strong { color: #504639; }
+.knowledge-panel input:not([type=checkbox]), .knowledge-panel textarea, .knowledge-panel select { width: 100%; min-width: 0; margin-top: 6px; padding: 9px; border: 1px solid #d9cdbd; border-radius: 6px; background: #fffdfa; color: inherit; }
+.knowledge-panel button { padding: 9px 12px; margin: 0; border: 1px solid #d8cbb9; border-radius: 7px; background: #f8f2e8; color: #65533e; cursor: pointer; font-size: 12px; line-height: 1.5; }
+.knowledge-panel button:hover:not(:disabled) { background: #eee3d2; border-color: #b9a38a; }
 .knowledge-panel button:disabled { opacity: .5; cursor: default; }
 .knowledge-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .knowledge-fields > label { min-width: 0; }
-.knowledge-evidence { padding: 14px; border: 1px solid #9995; border-radius: 9px; overflow-wrap: anywhere; }
+.knowledge-evidence { padding: 16px; border: 1px solid #e0d8cb; border-radius: 10px; background: #fffcf7; overflow-wrap: anywhere; }
 .knowledge-evidence p { margin: 6px 0; }
 .knowledge-panel pre { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; }
 .knowledge-parameter { padding: 10px 0; border-bottom: 1px solid #9993; }
@@ -15,3 +22,11 @@
 .knowledge-table td, .knowledge-table th { padding: 6px; border: 1px solid #9995; text-align: left; }
 .knowledge-id { margin-top: 10px; font-size: 10px; }
 .knowledge-alert { color: #ad4b27; }
+.knowledge-panel .panel-intro { color: #827464; }
+.knowledge-panel .panel-disclosure { padding: 10px 0; border: 0; border-top: 1px solid #e0d8cb; border-radius: 0; background: transparent; }
+.knowledge-panel .panel-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.knowledge-panel .panel-actions > button { flex: 1; }
+.knowledge-panel button.primary-action { background: var(--ink); border-color: var(--ink); color: #fff; }
+.knowledge-panel button.primary-action:hover:not(:disabled) { background: #494238; border-color: #494238; }
+.knowledge-panel button:focus-visible, .knowledge-panel summary:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.knowledge-panel .evidence-selection { display: grid; gap: 10px; }
