@@ -27,7 +27,14 @@ function record(value: unknown): value is Record<string, unknown> {
 	return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
-async function readJsonResponse(response: Response): Promise<Record<string, unknown>> {
+const maxUpstreamMessageLength = 500;
+
+function upstreamMessage(message: string, apiKey: string): string {
+	const redacted = apiKey ? message.split(apiKey).join("[redacted]") : message;
+	return redacted.length > maxUpstreamMessageLength ? `${redacted.slice(0, maxUpstreamMessageLength - 1)}…` : redacted;
+}
+
+async function readJsonResponse(response: Response, apiKey: string): Promise<Record<string, unknown>> {
 	const body: unknown = await response.json().catch((error: unknown) => {
 		// Do not disguise a broken success-response body as invalid JSON. Preserve known HTTP failures.
 		if (response.ok && !(error instanceof SyntaxError)) throw error;
@@ -37,7 +44,7 @@ async function readJsonResponse(response: Response): Promise<Record<string, unkn
 		const error = record(body) && record(body.error) ? body.error : undefined;
 		throw new AnthropicCompatibilityError(
 			typeof error?.type === "string" ? error.type : "upstream_error",
-			typeof error?.message === "string" ? error.message : `Anthropic-compatible endpoint returned HTTP ${response.status}`,
+			typeof error?.message === "string" ? upstreamMessage(error.message, apiKey) : `Anthropic-compatible endpoint returned HTTP ${response.status}`,
 			{ providerStatus: response.status },
 		);
 	}
@@ -87,7 +94,7 @@ export class AnthropicMessagesClient {
 			if (!response.body) throw new AnthropicCompatibilityError("invalid_response", "Missing model stream");
 			return readAnthropicStream(response.body, onText, signal);
 		}
-		const body = await readJsonResponse(response);
+		const body = await readJsonResponse(response, this.apiKey);
 		if (!Array.isArray(body.content)) {
 			throw new AnthropicCompatibilityError("invalid_response", "Model content is invalid", { adapterStatus: 502 });
 		}
@@ -116,7 +123,7 @@ export class AnthropicMessagesClient {
 			body: JSON.stringify(body),
 			signal,
 		});
-		const result = await readJsonResponse(response);
+		const result = await readJsonResponse(response, this.apiKey);
 		if (typeof result.input_tokens !== "number" || !Number.isSafeInteger(result.input_tokens) || result.input_tokens < 0) {
 			throw new AnthropicCompatibilityError(
 				"invalid_response",

@@ -15,6 +15,23 @@ describe("AnthropicMessagesClient", () => {
 		});
 		await expect(client.createMessage({ model: "model", max_tokens: 10, messages: [], stream: false })).rejects.toMatchObject({ providerStatus: 401 });
 	});
+	it.each(["createMessage", "countMessageTokens"] as const)("redacts the configured key from upstream error messages in %s", async (method) => {
+		const key = "sk-ant-test-secret-0123456789";
+		const client = new AnthropicMessagesClient({ baseUrl: "https://example.invalid", apiKey: key,
+			fetch: async () => new Response(JSON.stringify({ type: "error", error: { type: "authentication_error", message: `invalid x-api-key ${key}` } }), { status: 401, headers: { "content-type": "application/json" } }),
+		});
+		const error = await client[method]({ model: "model", max_tokens: 10, messages: [], stream: false }).catch((cause: unknown) => cause);
+		expect(error).toMatchObject({ code: "authentication_error", providerStatus: 401 });
+		expect((error as Error).message).not.toContain(key);
+		expect((error as Error).message).toContain("[redacted]");
+	});
+	it("bounds upstream error messages before they become exception data", async () => {
+		const client = new AnthropicMessagesClient({ baseUrl: "https://example.invalid", apiKey: "test",
+			fetch: async () => new Response(JSON.stringify({ type: "error", error: { type: "invalid_request_error", message: "x".repeat(5000) } }), { status: 400, headers: { "content-type": "application/json" } }),
+		});
+		const error = await client.createMessage({ model: "model", max_tokens: 10, messages: [], stream: false }).then(() => new Error("unexpected success"), (cause: unknown) => cause as Error);
+		expect(error.message.length).toBeLessThanOrEqual(500);
+	});
 
   it("uses Anthropic authentication headers without exposing the key in the body", async () => {
     const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
