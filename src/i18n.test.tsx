@@ -2,7 +2,9 @@ import { readFileSync, readdirSync } from "node:fs";
 import ts from "typescript";
 import { renderToStaticMarkup } from "react-dom/server";
 import { expect, it } from "vitest";
-import { errorText, statusFor } from "./i18n";
+import { documentMethodText, documentWarningText, errorText, statusFor, validationText } from "./i18n";
+import { RequirementSource } from "./components/RequirementSource";
+import { PlanPanel } from "./components/PlanPanel";
 import { Markdown } from "./components/Markdown";
 import { createRequirementBrief } from "./manufacturing/requirementBrief";
 import { deliveryHtml, deliveryMarkdown, type RequirementDelivery } from "./manufacturing/requirementDelivery";
@@ -22,7 +24,7 @@ it("renders bilingual export labels and leaves source facts intact", () => {
 it("localizes errors and markdown controls in both directions", () => {
 	const error = { code: "file_version_conflict" };
 	const english = errorText(error, "en"); expect(english).toContain("changed"); expect(errorText(english, "zh")).toContain("文件已变化");
-	expect(statusFor("en", "needs_ocr", "需要 OCR")).toBe("OCR required");
+	expect(statusFor("en", "needs_ocr", "需要 OCR")).toBe("Text recognition needed");
 	const text = "```\nexample\n```\n![reference](https://example.test/image.png)";
 	const englishMarkup = renderToStaticMarkup(<Markdown text={text} language="en" />);
 	expect(englishMarkup).toContain("Copy"); expect(englishMarkup).toContain("Image: "); expect(englishMarkup).not.toMatch(/\p{Script=Han}/u);
@@ -41,4 +43,28 @@ it("keeps unconditional Chinese JSX labels out of bilingual UI components", () =
 		walk(source);
 	}
 	expect(untranslated).toEqual([]);
+});
+
+it("shows review guidance without exposing service codes or changing source text", () => {
+	for (const language of ["zh", "en"] as const) {
+		for (const error of [{ code: "unknown_internal_failure", message: "RSA sha256:private-details" }, new Error("unknown_internal_failure")]) {
+			expect(errorText(error, language)).not.toMatch(/unknown_internal_failure|RSA|sha256/);
+		}
+		expect(errorText({ code: "memory_revision_conflict" }, language)).toMatch(/最新|latest/);
+		expect(validationText({ code: "missing_source", message: "Fact quantity has no sourceRef" }, language)).toMatch(/来源|source/);
+		expect(validationText({ code: "future_schema_error", message: "Invalid JSON payload" }, language)).not.toMatch(/schema|JSON|payload/);
+		expect(documentWarningText("low_ocr_confidence", language)).toMatch(/核对|Review/);
+		expect(documentWarningText("future_parser_warning", language)).not.toContain("future_parser_warning");
+		expect(documentMethodText("text+ocr", language)).not.toContain("ocr");
+		const ref = "attachment://internal-id/sha256:0123456789";
+		const text = "Original customer wording: RSA / 5000 bags";
+		const markup = renderToStaticMarkup(<RequirementSource en={language === "en"} source={{ ref, label: "customer.txt", text, status: "available" }} />);
+		expect(markup).toContain(text);
+		expect(markup).toContain("customer.txt");
+		expect(markup).not.toContain(ref);
+		expect(renderToStaticMarkup(<RequirementSource en={language === "en"} source={{ ref, label: ref, status: "unavailable" }} />)).not.toContain(ref);
+		const plan = renderToStaticMarkup(<PlanPanel part="details" language={language} busy={false} onCommand={() => {}} state={{ revision: 1, mode: "plan", versions: [{ version: 1, objective: "Review the document", context: "", conversationRevision: 1, status: "awaiting_confirmation", createdAt: "2026-10-12", actorId: "staff", generation: 1, calls: 0, children: [], spec: { summary: "Review before execution", tasks: [{ title: "Update the files", objective: "Review the requested file changes", tools: ["file_write", "file_delete"] }] } }] }} />);
+		expect(plan).toMatch(/需另行批准|separate approval required/);
+		expect(plan).not.toMatch(/file_write|file_delete/);
+	}
 });
