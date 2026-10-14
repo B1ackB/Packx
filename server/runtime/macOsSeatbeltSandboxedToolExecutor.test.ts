@@ -4,6 +4,7 @@ import { setTimeout as delay } from "node:timers/promises";
 import { resolve } from "node:path";
 import { createHash, randomUUID } from "node:crypto";
 import { createServer } from "node:http";
+import { connect as netConnect, createServer as createNetServer } from "node:net";
 import {
 	existsSync,
 	mkdirSync,
@@ -415,17 +416,90 @@ describe.skipIf(!runSeatbeltTests)("macOS Seatbelt executor attack regression", 
 		} finally { if (host.exitCode === null && host.signalCode === null) host.kill("SIGKILL"); }
 	}, 10_000);
 
-	it("fails closed when domain allowlisting has no trusted Host proxy", async () => {
-		const executor = new MacOsSeatbeltSandboxedToolExecutor({ workspaceRoot });
-
-		const denied = await executor.execute(manifest(workspaceRoot, {
-			network: { mode: "allowlist", allowedDomains: ["example.com"] },
+	it("reaches only allowlisted domains through the Host proxy", async () => {
+		const upstream = createNetServer((socket) => socket.end("upstream-reached\n"));
+		await new Promise<void>((resolveListen) => upstream.listen(0, "127.0.0.1", resolveListen));
+		const upstreamPort = (upstream.address() as { port: number }).port;
+		const dialed: string[] = [];
+		const decisions: string[] = [];
+		const executor = new MacOsSeatbeltSandboxedToolExecutor({ workspaceRoot, egress: {
+			resolve: async (host) => host === "private.test" ? ["10.0.0.9"] : ["203.0.113.7"],
+			connect: (address) => { dialed.push(address); return netConnect(upstreamPort, "127.0.0.1"); },
+			onDecision: (decision) => decisions.push(`${decision.domain}:${decision.reason}`),
+		} });
+		const tunnel = "p=${HTTPS_PROXY##*:}; { printf 'CONNECT %s:443 HTTP/1.1\\r\\n\\r\\n' \"$0\"; sleep 2; } | /usr/bin/nc -w 3 127.0.0.1 \"$p\"";
+		const attempt = (domain: string) => executor.execute(manifest(workspaceRoot, {
+			executable: "/bin/sh",
+			argv: ["-c", tunnel, domain],
+			network: { mode: "allowlist", allowedDomains: ["allowed.test", "private.test"] },
 		}), new AbortController().signal);
 
-		expect(denied).toMatchObject({
-			status: "sandbox_unavailable",
-			sandbox: { terminationReason: "network_allowlist_proxy_unavailable" },
+		try {
+			const allowed = await attempt("allowed.test");
+			const blocked = await attempt("blocked.test");
+			const privateAddress = await attempt("private.test");
+
+			expect(allowed.stdout.text).toContain("200 Connection Established");
+			expect(allowed.stdout.text).toContain("upstream-reached");
+			expect(blocked.stdout.text).toContain("403 Forbidden");
+			expect(privateAddress.stdout.text).toContain("403 Forbidden");
+			expect(dialed).toEqual(["203.0.113.7"]);
+			expect(decisions).toEqual(expect.arrayContaining(["allowed.test:allowed", "blocked.test:domain_not_allowed", "private.test:private_address"]));
+		} finally {
+			await new Promise<void>((resolveClose) => upstream.close(() => resolveClose()));
+		}
+	}, 20_000);
+
+	it("denies signals to the supervisor and keeps the Host-side result intact", async () => {
+		const executor = new MacOsSeatbeltSandboxedToolExecutor({ workspaceRoot });
+		const job = manifest(workspaceRoot, { executable: "/bin/sh" });
+		const attack = compileToolExecutionManifest({
+			...job,
+			command: { ...job.command, argv: ["-c", 'kill -9 $PPID 2>/dev/null; echo "kill-status=$?"; echo after', job.paths.temporaryDirectory] },
 		});
+
+		const result = await executor.execute(attack, new AbortController().signal);
+
+		expect(result.status).toBe("succeeded");
+		expect(result.stdout.text).toContain("kill-status=1");
+		expect(result.stdout.text).toContain("after");
+	});
+
+	it("denies direct connections that bypass the proxy in allowlist mode", async () => {
+		let direct = 0;
+		const listener = createNetServer((socket) => { direct += 1; socket.end(); });
+		await new Promise<void>((resolveListen) => listener.listen(0, "127.0.0.1", resolveListen));
+		const port = (listener.address() as { port: number }).port;
+		const executor = new MacOsSeatbeltSandboxedToolExecutor({ workspaceRoot });
+
+		try {
+			const bypass = await executor.execute(manifest(workspaceRoot, {
+				executable: "/usr/bin/nc",
+				argv: ["-z", "-w", "2", "127.0.0.1", String(port)],
+				network: { mode: "allowlist", allowedDomains: ["allowed.test"] },
+			}), new AbortController().signal);
+
+			expect(bypass.status).toBe("failed");
+			expect(bypass.exitCode).not.toBe(0);
+			expect(direct).toBe(0);
+		} finally {
+			await new Promise<void>((resolveClose) => listener.close(() => resolveClose()));
+		}
+	});
+
+	it("redacts host workspace and temporary paths from returned output", async () => {
+		const executor = new MacOsSeatbeltSandboxedToolExecutor({ workspaceRoot });
+		const job = manifest(workspaceRoot, { executable: "/bin/sh" });
+		const probe = compileToolExecutionManifest({
+			...job,
+			command: { ...job.command, argv: ["-c", 'pwd; echo "$0"', join(job.paths.temporaryDirectory, "probe.txt")] },
+		});
+
+		const result = await executor.execute(probe, new AbortController().signal);
+
+		expect(result.status).toBe("succeeded");
+		expect(result.stdout.text).toBe("<workspace>\n<tmp>/probe.txt\n");
+		expect(result.stdout.text).not.toContain(workspaceRoot);
 	});
 
 	it("denies public, private and DNS network destinations", async () => {
