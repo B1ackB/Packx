@@ -15,6 +15,7 @@
 		"test:watch": "vitest",
 		"eval:memory": "node --import tsx eval/memory.ts",
 		"eval:local-storage": "node --import tsx eval/localStorageBaseline.ts",
+		"migrate:event-store": "node --import tsx scripts/migrate-event-store.ts",
 		"eval:knowledge-enrich": "node --import tsx eval/knowledgeEnrich.ts",
 		"eval:context": "node --import tsx eval/context.ts",
 		"eval:context-phase1": "vitest run server/enterprise/taskCheckpoint.test.ts server/runtime/compressionReadback.audit.test.ts server/runtime/contextLifecycle.test.ts server/enterprise/agentPlanWorkflow.test.ts server/runtime/createRuntime.test.ts",

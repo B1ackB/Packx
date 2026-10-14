@@ -5,7 +5,7 @@ import { randomUUID } from "node:crypto";
 export function configureLocalData(environment: NodeJS.ProcessEnv) {
 	const root = resolve(environment.BLACKX_DATA_ROOT ?? ".blackx-data");
 	const defaults: Record<string, string> = {
-		BLACKX_AGENT_STATE_PATH: "agent", BLACKX_EVENT_STORE_PATH: "events.json", BLACKX_ARTIFACT_STORE_PATH: "artifacts",
+		BLACKX_AGENT_STATE_PATH: "agent", BLACKX_EVENT_STORE_PATH: environment.BLACKX_EVENT_STORE_DRIVER === "sqlite" ? "events.sqlite" : "events.json", BLACKX_ARTIFACT_STORE_PATH: "artifacts",
 		BLACKX_ATTACHMENT_STORE_PATH: "attachments", BLACKX_FILE_STORE_PATH: "files", BLACKX_CRON_SCHEDULE_PATH: "cron-schedules.json",
 		BLACKX_STAGE_JOB_QUEUE_PATH: environment.BLACKX_STAGE_JOB_QUEUE_DRIVER === "sqlite" ? "stage-jobs.sqlite" : "stage-jobs.json",
 		BLACKX_INSPECTION_CACHE_PATH: "inspection-cache",
