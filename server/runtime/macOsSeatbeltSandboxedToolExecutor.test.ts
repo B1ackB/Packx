@@ -487,6 +487,51 @@ describe.skipIf(!runSeatbeltTests)("macOS Seatbelt executor attack regression", 
 		}
 	});
 
+	it("fails closed when the egress proxy cannot listen, without spawning the Tool", async () => {
+		const occupant = createNetServer();
+		await new Promise<void>((resolveListen) => occupant.listen(0, "127.0.0.1", resolveListen));
+		const port = (occupant.address() as { port: number }).port;
+		const executor = new MacOsSeatbeltSandboxedToolExecutor({ workspaceRoot, egress: { listenPort: port } });
+		const job = manifest(workspaceRoot, {
+			executable: "/bin/sh",
+			argv: ["-c", 'echo ran > "$0/marker.txt"', "placeholder"],
+			network: { mode: "allowlist", allowedDomains: ["allowed.test"] },
+		});
+		const attempt = compileToolExecutionManifest({
+			...job,
+			command: { ...job.command, argv: ["-c", 'echo ran > "$0/marker.txt"', job.paths.temporaryDirectory] },
+		});
+
+		try {
+			const result = await executor.execute(attempt, new AbortController().signal);
+
+			expect(result).toMatchObject({ status: "sandbox_unavailable", sandbox: { terminationReason: "egress_proxy_unavailable" } });
+			expect(result.outputs ?? []).toHaveLength(0);
+			expect(existsSync(job.paths.temporaryDirectory)).toBe(false);
+		} finally {
+			await new Promise<void>((resolveClose) => occupant.close(() => resolveClose()));
+		}
+	});
+
+	it("never imports output when the supervisor dies after the Tool wrote it", async () => {
+		const killed = join(outsideRoot, "supervisor-killed.sh");
+		writeFileSync(killed, '#!/bin/sh\necho partial > "$6/out.txt"\nkill -9 $$\n', { mode: 0o755 });
+		const crashed = join(outsideRoot, "supervisor-exit70.sh");
+		writeFileSync(crashed, "#!/bin/sh\nexit 70\n", { mode: 0o755 });
+		const job = manifest(workspaceRoot, { executable: "/bin/sh", argv: ["-c", "true"] });
+
+		const signalled = await new MacOsSeatbeltSandboxedToolExecutor({ workspaceRoot, supervisorExecutable: killed })
+			.execute(job, new AbortController().signal);
+		const exited = await new MacOsSeatbeltSandboxedToolExecutor({ workspaceRoot, supervisorExecutable: crashed })
+			.execute(manifest(workspaceRoot, { executable: "/bin/sh", argv: ["-c", "true"] }), new AbortController().signal);
+
+		expect(signalled.status).toBe("failed");
+		expect(signalled.outputs ?? []).toHaveLength(0);
+		expect(signalled.exitCode).toBeNull();
+		expect(exited).toMatchObject({ status: "sandbox_unavailable", sandbox: { terminationReason: "supervisor_failed" } });
+		expect(exited.outputs ?? []).toHaveLength(0);
+	});
+
 	it("redacts host workspace and temporary paths from returned output", async () => {
 		const executor = new MacOsSeatbeltSandboxedToolExecutor({ workspaceRoot });
 		const job = manifest(workspaceRoot, { executable: "/bin/sh" });

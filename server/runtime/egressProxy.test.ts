@@ -89,6 +89,16 @@ describe("egress proxy", () => {
 		}
 	});
 
+	it("does not start when its listening port is already occupied", async () => {
+		const occupant = createServer();
+		await new Promise<void>((resolveListen) => occupant.listen(0, "127.0.0.1", resolveListen));
+		started.push(() => new Promise<void>((resolveClose) => occupant.close(() => resolveClose())));
+		const port = (occupant.address() as { port: number }).port;
+		const proxy = new EgressProxy({ allowedDomains: ["api.allowed.test"], listenPort: port });
+
+		await expect(proxy.start()).rejects.toMatchObject({ code: "EADDRINUSE" });
+	});
+
 	it("reports DNS failures as bad gateway without connecting", async () => {
 		const decisions: EgressDecision[] = [];
 		const { port } = await proxyFor({

@@ -43,7 +43,8 @@ export interface MacOsSeatbeltSandboxedToolExecutorOptions {
 	workspaceRoot: string;
 	sandboxExecutable?: string;
 	protectedPaths?: readonly string[];
-	egress?: Pick<EgressProxyOptions, "resolve" | "connect" | "onDecision">;
+	egress?: Pick<EgressProxyOptions, "resolve" | "connect" | "onDecision" | "listenPort">;
+	supervisorExecutable?: string;
 }
 
 function inside(root: string, candidate: string): boolean {
@@ -368,15 +369,17 @@ export async function diagnoseMacOsSeatbelt(
 
 export class MacOsSeatbeltSandboxedToolExecutor implements SandboxedToolExecutorPort {
 	private readonly sandboxExecutable: string;
+	private readonly supervisorExecutable: string;
 
 	constructor(private readonly options: MacOsSeatbeltSandboxedToolExecutorOptions) {
 		this.sandboxExecutable = options.sandboxExecutable ?? defaultSandboxExecutable;
+		this.supervisorExecutable = options.supervisorExecutable ?? resolve(".blackx-tools/tool-supervisor");
 	}
 
 	async execute(manifest: ToolExecutionManifest, signal: AbortSignal): Promise<ToolExecutionResult> {
 		const startedAt = new Date();
 		if (!validToolExecutionManifest(manifest)) return failureResult(manifest, startedAt, "policy_denied", "invalid_manifest");
-		const supervisor = resolve(".blackx-tools/tool-supervisor");
+		const supervisor = this.supervisorExecutable;
 		try { await access(supervisor, constants.X_OK); }
 		catch { return failureResult(manifest, startedAt, "sandbox_unavailable", "supervisor_unavailable"); }
 		const abortedStatus = () => signal.reason instanceof Error && signal.reason.message === "tool_timeout"

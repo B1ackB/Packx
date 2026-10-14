@@ -13,6 +13,7 @@ export interface EgressProxyOptions {
 	resolve?: (host: string) => Promise<readonly string[]>;
 	connect?: (address: string, port: number) => Socket;
 	onDecision?: (decision: EgressDecision) => void;
+	listenPort?: number;
 }
 
 const maxRequestHeaderBytes = 8192;
@@ -66,7 +67,7 @@ export class EgressProxy {
 	async start(): Promise<number> {
 		await new Promise<void>((resolveListen, rejectListen) => {
 			this.server.once("error", rejectListen);
-			this.server.listen(0, "127.0.0.1", () => resolveListen());
+			this.server.listen(this.options.listenPort ?? 0, "127.0.0.1", () => resolveListen());
 		});
 		const address = this.server.address();
 		if (!address || typeof address === "string") throw new Error("Egress proxy did not expose a TCP port");
