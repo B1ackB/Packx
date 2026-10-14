@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { runtimeContextSettings, validateAnthropicBaseUrl } from "./createRuntime";
+import { hostToolApproval, runtimeContextSettings, validateAnthropicBaseUrl } from "./createRuntime";
 
 describe("Anthropic Runtime configuration", () => {
 	it("recognizes official DeepSeek Flash capacity without increasing the application input budget", () => {
@@ -26,4 +26,31 @@ describe("Anthropic Runtime configuration", () => {
       ),
     ).toThrow("plain http(s) URL");
   });
+});
+
+describe("Host tool approval", () => {
+	const request = {
+		tenantId: "t", workspaceId: "w", runId: "r", stageId: "s", actorId: "a", executionId: "e",
+		tool: "file_write", toolCallId: "c", risk: "write" as const, input: {}, idempotencyKey: "k",
+	};
+
+	it("denies side effects when no approval port is configured", async () => {
+		await expect(hostToolApproval({}).authorize(request)).resolves.toEqual({ approved: false });
+	});
+
+	it("delegates ordinary side effects to the trusted approval port", async () => {
+		const seen: string[] = [];
+		const approval = hostToolApproval({ approval: { authorize: async (value) => { seen.push(value.tool); return { approved: true, approvalId: "human-1" }; } } });
+
+		await expect(approval.authorize(request)).resolves.toEqual({ approved: true, approvalId: "human-1" });
+		expect(seen).toEqual(["file_write"]);
+	});
+
+	it("auto-approves only the configured automation tools", async () => {
+		const autonomous = new Set(["cron_create"]);
+		const denied = hostToolApproval({ autonomouslyApprovedTools: autonomous, approval: { authorize: async () => ({ approved: false }) } });
+
+		await expect(denied.authorize({ ...request, tool: "cron_create" })).resolves.toEqual({ approved: true, approvalId: "policy:cron_create:v1" });
+		await expect(denied.authorize(request)).resolves.toEqual({ approved: false });
+	});
 });
