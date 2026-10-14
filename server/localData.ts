@@ -1,4 +1,4 @@
-import { closeSync, constants, existsSync, lstatSync, mkdirSync, openSync, readFileSync, realpathSync, rmdirSync, unlinkSync, writeFileSync } from "node:fs";
+import { closeSync, constants, existsSync, lstatSync, mkdirSync, openSync, readFileSync, realpathSync, renameSync, rmdirSync, unlinkSync, writeFileSync } from "node:fs";
 import { isAbsolute, relative, resolve } from "node:path";
 import { randomUUID } from "node:crypto";
 
@@ -44,15 +44,54 @@ export function recoverLocalLock(root: string) {
 	} finally { rmdirSync(guard); }
 }
 
+export const localDataSchemaVersion = 1;
+
+export interface LocalDataMigration {
+	readonly from: number;
+	readonly to: number;
+	readonly run: (root: string) => void;
+}
+
+const dataVersionFile = ".packx-data-version.json";
+
+function readDataVersion(path: string): number {
+	const stat = lstatSync(path);
+	if (!stat.isFile() || stat.isSymbolicLink() || stat.nlink !== 1 || stat.size > 1024) throw new Error("unsafe_data_version");
+	const value = JSON.parse(readFileSync(path, "utf8"));
+	if (!Number.isSafeInteger(value.schemaVersion) || value.schemaVersion < 1) throw new Error("unsafe_data_version");
+	return value.schemaVersion;
+}
+
+function writeDataVersion(path: string, schemaVersion: number, adoptedAt: string) {
+	const temporary = `${path}.${process.pid}.${randomUUID()}.tmp`;
+	writeFileSync(temporary, JSON.stringify({ schemaVersion, adoptedAt }), { flag: "wx", mode: 0o600 });
+	renameSync(temporary, path);
+}
+
 /** The current release only adds a layout marker; future schemas fail closed before stores open. */
 export function ensureLocalDataVersion(root: string) {
-	const path = resolve(root, ".packx-data-version.json");
+	const path = resolve(root, dataVersionFile);
 	if (existsSync(path)) {
-		const stat = lstatSync(path);
-		if (!stat.isFile() || stat.isSymbolicLink() || stat.nlink !== 1 || stat.size > 1024) throw new Error("unsafe_data_version");
-		const value = JSON.parse(readFileSync(path, "utf8"));
-		if (value.schemaVersion !== 1) throw new Error("unsupported_data_version: use a compatible Packx release or restore a pre-upgrade backup");
-	} else writeFileSync(path, JSON.stringify({ schemaVersion: 1, adoptedAt: new Date().toISOString() }), { flag: "wx", mode: 0o600 });
+		if (readDataVersion(path) !== localDataSchemaVersion) throw new Error("unsupported_data_version: use a compatible Packx release or restore a pre-upgrade backup");
+	} else writeFileSync(path, JSON.stringify({ schemaVersion: localDataSchemaVersion, adoptedAt: new Date().toISOString() }), { flag: "wx", mode: 0o600 });
+}
+
+/**
+ * Runs ordered migrations up to `target`. A version is recorded only after its step completes,
+ * so an interrupted upgrade resumes from the last committed step. Callers take a backup first.
+ */
+export function migrateLocalData(root: string, migrations: readonly LocalDataMigration[] = [], target = localDataSchemaVersion): number {
+	const path = resolve(root, dataVersionFile);
+	let current = readDataVersion(path);
+	if (current > target) throw new Error("unsupported_data_version: data was written by a newer Packx release");
+	while (current < target) {
+		const step = migrations.find((migration) => migration.from === current && migration.to === current + 1);
+		if (!step) throw new Error(`missing_data_migration: ${current} -> ${current + 1}`);
+		step.run(root);
+		writeDataVersion(path, step.to, new Date().toISOString());
+		current = step.to;
+	}
+	return current;
 }
 
 // One Host or maintenance operation per local data root. Never guess that a lock is stale.
