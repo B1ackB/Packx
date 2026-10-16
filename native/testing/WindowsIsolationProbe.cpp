@@ -202,10 +202,7 @@ static int child(const fs::path& stage, const fs::path& denied, unsigned short p
 	if (networkDenied) expect(true, "loopback_network_denied");
 	PROCESS_MITIGATION_CHILD_PROCESS_POLICY childPolicy{};
 	check(GetProcessMitigationPolicy(GetCurrentProcess(), ProcessChildProcessPolicy, &childPolicy, sizeof(childPolicy)) != FALSE, "query_child_process_policy");
-	HKEY catalog = nullptr;
-	const LSTATUS catalogStatus = RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Services\\WinSock2\\Parameters", 0, KEY_READ, &catalog);
-	if (catalogStatus == ERROR_SUCCESS) RegCloseKey(catalog);
-	{ std::ofstream diagnostic(stage / L"output" / L"network-diagnostic.txt"); diagnostic << "startup=" << networkInitialization << "; connect=" << networkError << "; noChildProcessCreation=" << childPolicy.NoChildProcessCreation << "; winsockCatalogOpen=" << catalogStatus << "; workerReadableExecutable=" << canOpen(stage / L"worker.exe", GENERIC_READ | GENERIC_EXECUTE); }
+	{ std::ofstream diagnostic(stage / L"output" / L"network-diagnostic.txt"); diagnostic << "startup=" << networkInitialization << "; connect=" << networkError << "; noChildProcessCreation=" << childPolicy.NoChildProcessCreation << "; workerReadableExecutable=" << canOpen(stage / L"worker.exe", GENERIC_READ | GENERIC_EXECUTE); }
 	expect(childPolicy.NoChildProcessCreation != 0, "explicit_child_creation_restricted");
 	BOOL inJob = FALSE; check(IsProcessInJob(GetCurrentProcess(), nullptr, &inJob) != FALSE, "query_job");
 	expect(inJob != FALSE, "child_is_in_job");
