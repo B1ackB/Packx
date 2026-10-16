@@ -97,7 +97,7 @@ static NetworkEvidence inspectNetwork(unsigned short port) {
 	return result;
 }
 
-static int child(const fs::path& stage, const fs::path& denied, unsigned short port) {
+static int child(const fs::path& stage, const fs::path& denied, unsigned short port, DWORD hostPid) {
 	unsigned passed = 0;
 	auto expect = [&](bool ok, const char* name) { check(ok, name); ++passed; std::ofstream progress(stage / L"output" / L"progress.txt"); progress << passed << " " << name; };
 	const HMODULE security = LoadLibraryExW(L"advapi32.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32);
@@ -123,6 +123,8 @@ static int child(const fs::path& stage, const fs::path& denied, unsigned short p
 	{ std::ofstream output(stage / L"output" / L"allowed.txt"); output << "synthetic"; expect(output.good(), "declared_output_write"); }
 	wchar_t secret[64]{};
 	expect(GetEnvironmentVariableW(L"PACKX_PROBE_SECRET", secret, 64) == 0, "parent_environment_not_inherited");
+	Handle host(OpenProcess(PROCESS_CREATE_PROCESS | PROCESS_DUP_HANDLE, FALSE, hostPid));
+	expect(host.value == nullptr, "privileged_host_process_handle_denied");
 	const auto network = inspectNetwork(port);
 	const int networkInitialization = network.initialization, networkError = network.error;
 	const bool networkDenied = network.denied;
@@ -131,7 +133,6 @@ static int child(const fs::path& stage, const fs::path& denied, unsigned short p
 	PROCESS_MITIGATION_CHILD_PROCESS_POLICY childPolicy{};
 	check(GetProcessMitigationPolicy(GetCurrentProcess(), ProcessChildProcessPolicy, &childPolicy, sizeof(childPolicy)) != FALSE, "query_child_process_policy");
 	{ std::ofstream diagnostic(stage / L"output" / L"network-diagnostic.txt"); diagnostic << "startup=" << networkInitialization << "; connect=" << networkError << "; noChildProcessCreation=" << childPolicy.NoChildProcessCreation << "; moduleLoad=" << network.moduleLoadError << "; workerReadableExecutable=" << canOpen(stage / L"worker.exe", GENERIC_READ | GENERIC_EXECUTE); }
-	expect(childPolicy.NoChildProcessCreation != 0, "explicit_child_creation_restricted");
 	BOOL inJob = FALSE; check(IsProcessInJob(GetCurrentProcess(), nullptr, &inJob) != FALSE, "query_job");
 	expect(inJob != FALSE, "child_is_in_job");
 	void* excessive = VirtualAlloc(nullptr, 128ULL * 1024 * 1024, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
@@ -151,16 +152,19 @@ int wmain(int argc, wchar_t** argv) {
 	SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX | SEM_NOOPENFILEERRORBOX);
 	try {
 		if (argc == 2 && std::wstring(argv[1]) == L"--sleep") { Sleep(INFINITE); return 1; }
-		if (argc == 3 && std::wstring(argv[1]) == L"--job-tree") {
+		if (argc == 3 && (std::wstring(argv[1]) == L"--job-tree" || std::wstring(argv[1]) == L"--job-single")) {
+			const bool single = std::wstring(argv[1]) == L"--job-single";
 			std::wstring command = quote(argv[0]) + L" --sleep";
 			STARTUPINFOW startup{}; startup.cb = sizeof(startup); PROCESS_INFORMATION created{};
-			check(CreateProcessW(argv[0], command.data(), nullptr, nullptr, FALSE, CREATE_NO_WINDOW, nullptr, argv[2], &startup, &created) != FALSE, "host_tree_descendant");
+			const BOOL spawned = CreateProcessW(argv[0], command.data(), nullptr, nullptr, FALSE, CREATE_NO_WINDOW, nullptr, argv[2], &startup, &created);
+			if (single && spawned) { TerminateProcess(created.hProcess, 1); WaitForSingleObject(created.hProcess, 5000); }
 			Handle process(created.hProcess), thread(created.hThread);
+			check(single ? !spawned : spawned != FALSE, "host_control_child_creation_contract");
 			PROCESS_INFORMATION escaped{};
 			const BOOL brokeAway = CreateProcessW(argv[0], command.data(), nullptr, nullptr, FALSE, CREATE_NO_WINDOW | CREATE_BREAKAWAY_FROM_JOB, nullptr, argv[2], &startup, &escaped);
 			if (brokeAway) { TerminateProcess(escaped.hProcess, 1); WaitForSingleObject(escaped.hProcess, 5000); CloseHandle(escaped.hThread); CloseHandle(escaped.hProcess); }
 			check(!brokeAway, "host_tree_breakaway_denied");
-			{ std::ofstream report(fs::path(argv[2]) / L"output" / L"job-tree.txt"); report << created.dwProcessId; check(report.good(), "host_tree_report"); }
+			{ std::ofstream report(fs::path(argv[2]) / L"output" / (single ? L"job-single.txt" : L"job-tree.txt")); report << (single ? 1 : created.dwProcessId); check(report.good(), "host_tree_report"); }
 			Sleep(INFINITE); return 1;
 		}
 		if (argc == 3 && std::wstring(argv[1]) == L"--regular-control") {
@@ -182,9 +186,9 @@ int wmain(int argc, wchar_t** argv) {
 			const bool visible = GetFileInformationByHandle(reinterpret_cast<HANDLE>(std::stoull(argv[2])), &leaked) && leaked.dwVolumeSerialNumber == std::stoul(argv[3]) && fileId(leaked) == std::stoull(argv[4]);
 			return visible ? 1 : 0;
 		}
-		if (argc == 5 && std::wstring(argv[1]) == L"--child") {
+		if (argc == 6 && std::wstring(argv[1]) == L"--child") {
 			{ std::ofstream entry(fs::path(argv[2]) / L"output" / L"worker-entry.txt"); entry << "entered"; check(entry.good(), "worker_entry_marker"); }
-			try { return child(argv[2], argv[3], static_cast<unsigned short>(std::stoul(argv[4]))); }
+			try { return child(argv[2], argv[3], static_cast<unsigned short>(std::stoul(argv[4])), std::stoul(argv[5])); }
 			catch (const std::exception& error) { writeReport(argv[2], std::string("error ") + error.what()); return 1; }
 		}
 		check(false, "fixed_worker_arguments");

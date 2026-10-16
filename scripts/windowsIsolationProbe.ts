@@ -34,7 +34,7 @@ export function runWindowsIsolationProbe(environment: NodeJS.ProcessEnv): string
 		console.error("fixed_probe:compile_completed; starting_native_probe");
 		const output = execFileSync(binary, ["--probe", attempt, profile, worker], options);
 		const report = JSON.parse(output);
-		if (report.childAssertions !== 14 || report.privateHandleNotInherited !== true || report.networkAccessDenied !== true || report.networkInitializationError !== 0 || report.childProcessCreationRestricted !== true || report.legalHostJobTreeTerminated !== true || report.lpacProcessTerminated !== true || report.profileDeleted !== true) throw new Error("Native isolation evidence is incomplete");
+		if (report.childAssertions !== 14 || report.privateHandleNotInherited !== true || report.networkAccessDenied !== true || report.networkInitializationError !== 0 || report.singleProcessJobRestricted !== true || report.legalHostSingleProcessDenied !== true || report.legalHostJobTreeTerminated !== true || report.lpacProcessTerminated !== true || report.profileDeleted !== true) throw new Error("Native isolation evidence is incomplete");
 		return `${JSON.stringify({ visualStudio: version, windowsSdk: policy.windowsSdkVersion, profileId: profile })}\n${compiler}\n${output}`;
 	} catch (cause) {
 		failed = true;

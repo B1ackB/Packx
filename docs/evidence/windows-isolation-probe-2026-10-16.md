@@ -31,6 +31,10 @@ PR41（平台路径边界）合并为 `6b77141bb45bddec4e1f9e83bf9aaba28f6e4a9c`
 
 [`3677906` 的运行](https://github.com/B1ackB/Packx/actions/runs/38948665627) 中两个可执行文件均已编译，83 项数据测试和合法宿主 Job 控制通过，但 LPAC 仍在进入主程序前退出 `0xC0000142`，故排除仅靠移除 broker 管理依赖即可解决的假设。下一次将安全与网络系统 DLL 的加载延后到固定 worker 进入主程序之后，以报告具体模块加载失败；只从 System32 加载，未修改 capability、mitigation 或门禁。模块不可用仍是失败，不作为网络拒绝通过。
 
+[`5aa49c0` 的运行](https://github.com/B1ackB/Packx/actions/runs/38949604892)：83 项通过，两个程序编译及合法宿主 Job 控制通过，仍为 `child_exit=3221225794; worker_entry=0; regular_startup=0`。延后加载也未能让创建时禁止派生的 LPAC 组合进入主程序，没有证明具体单个 DLL 是根因。
+
+后续候选按 ADR0032 改用显式内核 Job 单进程合同：`ActiveProcessLimit=1`、无 breakaway、暂停入 Job 后才执行、Job 关闭强制终止；Host 查询实际限制，合法宿主单独验证拒绝派生与 breakaway，LPAC 继续验证自己的派生拒绝，并新增对宿主创建进程／复制句柄权限的拒绝与 Host 正向控制。原两进程宿主的树清理控制保留。没有将 Job 当作文件／网络沙箱，LPAC、零 capability、文件边界和真实网络拒绝条件保持不变；尚未通过前不启用生产 Adapter。新候选不再宣称创建时 NoChildProcess mitigation 可用。
+
 ## macOS 清理回归
 
 上述 f814e3a 运行同时在 `macOsSeatbeltSandboxedToolExecutor.test.ts` 的超时清理断言失败：`kill(pid, 0)` 未抛错。该调用无法区分活进程、僵尸或 PID 重用，历史日志未保存足够状态，不能断言当时属于其中哪一种。
