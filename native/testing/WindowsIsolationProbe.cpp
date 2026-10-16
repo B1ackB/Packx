@@ -237,6 +237,8 @@ static int probe(const fs::path& root, const std::wstring& profileName) {
 	check(WaitForSingleObject(controlHandle.value, 5000) == WAIT_OBJECT_0, "regular_appcontainer_control_timeout");
 	DWORD controlExit = 1; check(GetExitCodeProcess(controlHandle.value, &controlExit) != FALSE, "regular_appcontainer_control_status");
 	if (controlExit != 0) throw std::runtime_error("regular_appcontainer_control_exit:" + std::to_string(controlExit));
+	int regularNetworkInitialization = -1;
+	{ std::ifstream status(output / L"network-control.txt"); check(static_cast<bool>(status >> regularNetworkInitialization), "read_regular_network_status"); }
 	controlThread.close(); controlHandle.close();
 	const auto created = launch(stage / L"worker.exe", command, stage, environment, profile.sid, job.value, true);
 	Handle process(created.hProcess), thread(created.hThread);
@@ -258,7 +260,7 @@ static int probe(const fs::path& root, const std::wstring& profileName) {
 	descendant.close(); thread.close(); process.close(); privateFile.close();
 	closesocket(listener); WSACleanup();
 	profile.remove();
-	std::cout << "{\"probe\":\"windows-lpac-fixed-program\",\"childAssertions\":" << passed << ",\"networkInitializationError\":" << networkInitialization << ",\"networkAccessDenied\":" << (networkDenied ? "true" : "false") << ",\"processTreeTerminated\":true,\"profileDeleted\":true}\n";
+	std::cout << "{\"probe\":\"windows-lpac-fixed-program\",\"childAssertions\":" << passed << ",\"regularNetworkInitializationError\":" << regularNetworkInitialization << ",\"networkInitializationError\":" << networkInitialization << ",\"networkAccessDenied\":" << (networkDenied ? "true" : "false") << ",\"processTreeTerminated\":true,\"profileDeleted\":true}\n";
 	return passed == 15 && networkDenied ? 0 : 1;
 }
 
@@ -270,8 +272,9 @@ int wmain(int argc, wchar_t** argv) {
 			DWORD actual = 0, size = 0; check(GetTokenInformation(token.value, TokenIsAppContainer, &actual, sizeof(actual), &size) != FALSE && actual == 1, "control_is_appcontainer");
 			check(canOpen(argv[2], GENERIC_READ), "control_reads_all_packages_file");
 			WSADATA sockets{}; const int started = WSAStartup(MAKEWORD(2, 2), &sockets);
-			if (started != 0) return started;
-			WSACleanup(); return 0;
+			{ std::ofstream status(fs::path(argv[2]).parent_path() / L"stage" / L"output" / L"network-control.txt"); status << started; check(status.good(), "write_regular_network_status"); }
+			if (started == 0) WSACleanup();
+			return 0;
 		}
 		if (argc == 8 && std::wstring(argv[1]) == L"--child") {
 			try { return child(argv[2], argv[3], static_cast<unsigned short>(std::stoul(argv[4])), reinterpret_cast<HANDLE>(std::stoull(argv[5])), std::stoul(argv[6]), std::stoull(argv[7])); }
