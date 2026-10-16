@@ -35,6 +35,8 @@ PR44 的 `1871c7c` 已通过[全部必要 CI](https://github.com/B1ackB/Packx/ac
 
 阶段3C先独立实现[有界UTF-8文本合同](evidence/utf8-text-contract-2026-10-16.md)：纯字节解析、来源hash及稳定失败码，可离线和真实Windows测试；未接入Tool或文件读取。PDF/Office、原生生产执行器及Windows未信任文档仍待隔离门禁，不提供无隔离fallback。
 
+该独立合同已在[PR46](https://github.com/B1ackB/Packx/pull/46)通过全部必要CI并合并为 `9d48164374232d3af1f7a9e56f992ed810b593f0`，Windows111项（文本12项）及原生47项通过。后续基础设施可观测性小增量见[子命令诊断回归](evidence/ci-command-diagnostics-2026-10-16.md)：保留真实errno/退出状态/cause和有界输出，不自动重试或吞错。阶段4/5业务闭环及恢复仍按原验收逐项推进，未由这些独立合同替代。
+
 独立 [PR #45](https://github.com/B1ackB/Packx/pull/45) 已在全部必要 CI 成功后合并为 `a71c30b7c95ec8c1cd69dda34d8bee0dfc811ac6`，完成身份感知的 macOS 成功／超时／取消／执行失败清理回归和 spawn 异常清理（真实原生 47/47）。Windows 的创建时 NoChild 属性组合于 main 前退出 `0xC0000142`，改用 ADR0032 的内核单进程 Job 合同后，LPAC 已完成 13 项独立检查及根进程／profile 清理；合法宿主的单进程拒绝和双进程树清理亦通过。网络 Winsock 初始化仍返回 10107，未执行连接，继续阻断；没有增加 capability 或将宿主证据冒充 LPAC 成功。Windows 文档 Adapter 保持未接入。
 
 Windows Sandbox Adapter、原生文档读取与完整安装链路尚不存在或未验收；真实客户素材／员工试用、签名与干净设备发行、生产多用户边界、断电／故障磁盘语义仍待完成。遇到确需新增权限、付费、凭据扩张或破坏性迁移时，先保存已完成成果，再单独说明必要动作及风险，不把当前授权扩大为这些动作。
