@@ -223,6 +223,7 @@ static int probe(const fs::path& root, const std::wstring& profileName) {
 	job.close();
 	check(WaitForSingleObject(process.value, 5000) == WAIT_OBJECT_0, "job_close_kills_child");
 	check(WaitForSingleObject(descendant.value, 5000) == WAIT_OBJECT_0, "job_close_kills_descendant");
+	descendant.close(); thread.close(); process.close(); privateFile.close();
 	closesocket(listener); WSACleanup();
 	profile.remove();
 	std::cout << "{\"probe\":\"windows-lpac-fixed-program\",\"childAssertions\":15,\"processTreeTerminated\":true,\"profileDeleted\":true}\n";
