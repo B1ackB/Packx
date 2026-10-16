@@ -224,7 +224,7 @@ describe("requirement evidence review boundary", () => {
 
 	it.each(["requirement-brief-review-call", "requirement-brief-review", "requirement-brief-revision-call", "requirement-brief-evaluation", "requirement-brief"])("replays durable checkpoints after a crash following %s persistence", async (crashId) => {
 		const h = harness([{ issues: [issue()] }, revised, pass]); let crashed = false;
-		const store: ArtifactContentStore = {
+		const store: ArtifactContentStore = { list: (scope) => h.artifacts.list(scope),
 			readJson: (key) => h.artifacts.readJson(key),
 			putJson(key, value) {
 				const result = h.artifacts.putJson(key, value);
@@ -241,7 +241,7 @@ describe("requirement evidence review boundary", () => {
 
 	it("fails closed on an ambiguous in-flight call after restart without purchasing a repeated call", async () => {
 		const h = harness([pass]); let crash = true;
-		const store: ArtifactContentStore = { readJson: (key) => h.artifacts.readJson(key), putJson(key, value) {
+		const store: ArtifactContentStore = { list: (scope) => h.artifacts.list(scope), readJson: (key) => h.artifacts.readJson(key), putJson(key, value) {
 			if (crash && key.artifactId === "requirement-brief-review-call") { crash = false; throw new Error("lost result"); }
 			return h.artifacts.putJson(key, value);
 		} };
@@ -252,7 +252,7 @@ describe("requirement evidence review boundary", () => {
 
 	it("does not reuse or overwrite a review checkpoint after its policy version changes", async () => {
 		const h = harness([pass]); const version = requirementEvidencePolicy.version;
-		const store: ArtifactContentStore = { readJson: key => h.artifacts.readJson(key), putJson(key, value) {
+		const store: ArtifactContentStore = { list: (scope) => h.artifacts.list(scope), readJson: key => h.artifacts.readJson(key), putJson(key, value) {
 			const ref = h.artifacts.putJson(key, value);
 			if (key.artifactId === "requirement-brief-review-call") throw new Error("crash after old policy response");
 			return ref;
