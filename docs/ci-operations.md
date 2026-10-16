@@ -6,6 +6,8 @@
 
 `core-offline` 检查工作流策略、受跟踪文件的数据边界、敏感信息、依赖漏洞、单元/集成测试、类型、构建与八组离线 Eval。`browser` 使用合成 API 跑三个语言/视口项目。`native-product` 在 macOS 编译原生工具，执行三个真实沙箱/文档套件与本地 HTTP 产品回归。`windows-local-data` 在 Windows 2025、固定 Node 上验证路径、备份／SQLite WAL 恢复、迁移和写锁崩溃恢复；脚本在非 Windows 明确失败，每个指定套件必须实际执行且无跳过。这条切片不验证 Windows Agent 沙箱或完整产品支持。`ci-required` 无检出、无依赖安装、无 Token 权限，只有四个执行 Job 都成功时才成功。
 
+Windows Job 还编译独立 broker／worker 固定合成探针，工具链由 `.github/windows-isolation-toolchain.json` 固定，`purpose=diagnostic_only`、`productionAdapterEnabled=false`。同一网络函数先在合法非沙箱 worker 验证初始化和连接，再在 LPAC 中运行；初始化 10107／目录拒绝 5 单独标记为不可用，不算网络策略通过。CI 实际运行诊断模式，并用另一组新建私有资源运行默认严格模式：前者必须提供完整的已分类证据，后者在网络不可用时必须退出 1，否则 CI 失败。缺失正向控制、清理、文件／句柄／Job 证据或伪造网络通过均被拒绝；不是跳过用例。诊断回归可通过而生产网络门禁仍 blocked，13/14 不会改成14/14。没有注册生产 Tool 或无隔离 fallback；Host 崩溃、全部输出／磁盘配额和完整 Windows 支持仍待验收。
+
 执行 Job 仅有 `contents: read`；checkout 不持久化凭据。全部 Action 固定完整提交；工具下载固定发布版本并验证 SHA-256。不开缓存、不上传自定义产物，不配置真实模型、生产数据或部署权限。运行时先以环境变量白名单启动测试子进程，清除 Provider Key、业务路径、在线 Eval 地址、Token 与 `NODE_OPTIONS` 等继承配置。产品 smoke 自行提供的占位 Key 只用于回环 Fake Provider。
 
 托管运行器仍能访问公网，候选代码也能修改它自己的测试和脚本。这里的策略检查防止误配置，不能替代可信维护者对工作流/依赖变更的审阅；当前实施也没有证明企业生产多租户安全或全部依赖的法律合规。

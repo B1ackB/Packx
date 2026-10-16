@@ -6,6 +6,7 @@ import { basename, delimiter, dirname, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { isDeepStrictEqual } from "node:util";
 import { parseDocument } from "yaml";
+import { runWindowsIsolationProbe } from "./windowsIsolationProbe";
 
 const checkout = "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1";
 const setupNode = "actions/setup-node@820762786026740c76f36085b0efc47a31fe5020";
@@ -19,6 +20,7 @@ const windowsFiles = [
 	"server/localDataBoundary.test.ts", "server/localBackup.test.ts", "server/localDataMigration.test.ts", "server/fileWriteLock.test.ts", "server/syncDirectory.test.ts",
 	"server/enterprise/fileEventStoreRecovery.test.ts", "server/enterprise/fileStageJobQueue.test.ts", "server/enterprise/fileCronScheduleStore.test.ts",
 	"src/agent/sandboxPaths.test.ts",
+	"eval/windowsIsolationProbe.test.ts",
 ];
 
 function ensure(condition: unknown, message: string): asserts condition {
@@ -87,7 +89,7 @@ export function validateWorkflow(source: string) {
 }
 
 export function testEnvironment(input: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
-	const allowed = ["PATH", "HOME", "SystemRoot", "TMPDIR", "TMP", "TEMP", "LANG", "LC_ALL", "PLAYWRIGHT_BROWSERS_PATH"];
+	const allowed = ["PATH", "HOME", "SystemRoot", "SystemDrive", "USERPROFILE", "LOCALAPPDATA", "APPDATA", "TMPDIR", "TMP", "TEMP", "LANG", "LC_ALL", "PLAYWRIGHT_BROWSERS_PATH"];
 	return { ...Object.fromEntries(allowed.filter((key) => input[key] !== undefined).map((key) => [key, input[key]])), PATH: [dirname(process.execPath), input.PATH].filter(Boolean).join(delimiter), CI: "true", npm_config_audit: "false", npm_config_fund: "false", npm_config_update_notifier: "false" };
 }
 
@@ -258,6 +260,7 @@ async function main(task: string) {
 			const parsed = JSON.parse(readFileSync(report, "utf8"));
 			validateTestReport(parsed, windowsFiles, true);
 			console.log(JSON.stringify({ suite: "windows-local-data", total: parsed.numTotalTests, passed: parsed.numPassedTests, pending: parsed.numPendingTests }));
+			console.log(runWindowsIsolationProbe(testEnvironment(process.env)));
 			break;
 		}
 		case "browser-install": console.log(execute(process.execPath, ["node_modules/@playwright/test/cli.js", "install", "chromium", "--only-shell", "--with-deps"])); break;

@@ -39,9 +39,11 @@ describe("CI workflow security contract", () => {
 		expect(() => validateWorkflow(changed(mutate))).toThrow();
 	});
 	it("removes business credentials, data paths and inherited online settings from test children", () => {
-		const env = testEnvironment({ PATH: "/usr/bin", HOME: "/synthetic-home", SystemRoot: "C:\\Windows", ANTHROPIC_API_KEY: "synthetic", BLACKX_EVAL_BASE_URL: "http://127.0.0.1:1234", BLACKX_DATA_ROOT: "/synthetic-data", NODE_OPTIONS: "--require=unsafe", GITHUB_TOKEN: "synthetic", NPM_TOKEN: "synthetic" });
+		const env = testEnvironment({ PATH: "/usr/bin", HOME: "/synthetic-home", SystemRoot: "C:\\Windows", SystemDrive: "C:", USERPROFILE: "C:\\Users\\synthetic", LOCALAPPDATA: "C:\\Users\\synthetic\\AppData\\Local", APPDATA: "C:\\Users\\synthetic\\AppData\\Roaming", ANTHROPIC_API_KEY: "synthetic", BLACKX_EVAL_BASE_URL: "http://127.0.0.1:1234", BLACKX_DATA_ROOT: "/synthetic-data", NODE_OPTIONS: "--require=unsafe", GITHUB_TOKEN: "synthetic", NPM_TOKEN: "synthetic" });
 		expect(env.HOME).toBe("/synthetic-home");
 		expect(env.SystemRoot).toBe("C:\\Windows");
+		expect(env.LOCALAPPDATA).toBe("C:\\Users\\synthetic\\AppData\\Local");
+		expect(env.USERPROFILE).toBe("C:\\Users\\synthetic");
 		expect(env.PATH).toBe(`${dirname(process.execPath)}${delimiter}/usr/bin`);
 		expect(env.CI).toBe("true");
 		for (const key of ["ANTHROPIC_API_KEY", "BLACKX_EVAL_BASE_URL", "BLACKX_DATA_ROOT", "NODE_OPTIONS", "GITHUB_TOKEN", "NPM_TOKEN"]) expect(env[key]).toBeUndefined();

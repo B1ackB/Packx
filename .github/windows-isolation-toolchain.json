@@ -1,0 +1,10 @@
+{
+	"purpose": "diagnostic_only",
+	"productionAdapterEnabled": false,
+	"visualStudioVersion": "18.10.12224.181",
+	"visualStudioRange": "[18.10.12224.181,18.10.12224.182)",
+	"windowsSdkVersion": "10.0.26100.0",
+	"vswhereVersion": "3.1.7",
+	"source": "https://github.com/actions/runner-images/blob/win25-vs2026/20261007.264/images/windows/Windows2025-VS2026-Readme.md",
+	"usage": "Preinstalled hosted CI toolchain only; no SDK or runtime redistribution"
+}
