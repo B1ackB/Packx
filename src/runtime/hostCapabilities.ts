@@ -8,7 +8,10 @@ export interface DocumentCapabilities {
 	maxBytes: number;
 	isolationVerification: "per-execution";
 }
-export interface HostRuntimeHealth extends RuntimeHealth { documents?: DocumentCapabilities }
+export interface HostRuntimeHealth extends RuntimeHealth {
+	documents?: DocumentCapabilities;
+	localHost?: { instanceId: string; installationId: string; dataRootId: string };
+}
 
 export function documentCapabilityText(capability: DocumentCapabilities | undefined, english: boolean) {
 	if (!capability) return english ? "Document reading capability not confirmed" : "文档读取能力尚未确认";

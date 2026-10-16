@@ -7,6 +7,8 @@ import { fileURLToPath } from "node:url";
 process.chdir(fileURLToPath(new URL("..", import.meta.url)));
 const [major, minor] = process.versions.node.split(".").map(Number);
 const action = process.argv[2] ?? "start";
+// The installer/browser need OS paths, never the model or business credentials loaded below.
+const osEnvironment = Object.fromEntries(["PATH", "HOME", "USERPROFILE", "SystemRoot", "SystemDrive", "APPDATA", "LOCALAPPDATA", "TMPDIR", "TMP", "TEMP", "LANG", "LC_ALL", "HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY"].filter((key) => process.env[key] !== undefined).map((key) => [key, process.env[key]]));
 if (!["darwin", "win32"].includes(process.platform) || major !== 24 || minor < 14 || !["start", "stop"].includes(action)) {
  console.error("Packx requires macOS or Windows x64 and Node.js 24.14+ (24.x). Usage: node scripts/launch.mjs [start|stop]. See START-HERE.md."); process.exit(1);
 }
@@ -42,7 +44,7 @@ function open() {
  console.log(`Packx: ${base}`);
  if (process.env.PACKX_NO_OPEN === "1") return;
  const file = process.platform === "darwin" ? "/usr/bin/open" : join(process.env.SystemRoot ?? "C:\\Windows", "System32", "rundll32.exe");
- const browser = spawn(file, process.platform === "darwin" ? [base] : ["url.dll,FileProtocolHandler", base], { stdio: "ignore", windowsHide: true });
+ const browser = spawn(file, process.platform === "darwin" ? [base] : ["url.dll,FileProtocolHandler", base], { stdio: "ignore", windowsHide: true, env: osEnvironment });
  browser.on("error", () => console.error(`Open ${base} in your browser.`)); browser.unref();
 }
 try {
@@ -61,7 +63,7 @@ try {
   if (receipt.installKey !== installKey || !existsSync("node_modules/tsx")) {
    console.log("Installing dependencies pinned in package-lock.json. First installation needs internet; lifecycle scripts are disabled.");
    const npm = process.platform === "win32" ? join(dirname(process.execPath), "node_modules/npm/bin/npm-cli.js") : realpathSync(join(dirname(process.execPath), "npm"));
-   const installed = spawnSync(process.execPath, [npm, "ci", "--include=dev", "--ignore-scripts", "--no-audit", "--no-fund"], { stdio: "inherit", shell: false });
+   const installed = spawnSync(process.execPath, [npm, "ci", "--include=dev", "--ignore-scripts", "--no-audit", "--no-fund"], { stdio: "inherit", shell: false, env: osEnvironment, timeout: 180000 });
    if (installed.error || installed.status !== 0) throw new Error("Dependency installation failed. Retry Start-Packx after checking connectivity; no successful-install receipt was saved.");
    writeFileSync(".packx-install.json.tmp", JSON.stringify({ installKey }), { mode: 0o600 }); renameSync(".packx-install.json.tmp", ".packx-install.json");
   }
