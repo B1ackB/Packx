@@ -24,7 +24,12 @@ export async function runWindowsBuildJob(executable: string, args: string[], cwd
 	if (process.platform !== "win32") throw new Error("Windows build Job requires Windows");
 	if (!Number.isInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 120_000) throw new Error("Invalid build deadline");
 	const scratch = mkdtempSync(join(tmpdir(), "packx-build-job-")), request = join(scratch, "request.json"), reportPath = join(scratch, "result.json");
-	writeFileSync(request, JSON.stringify({ executable, arguments: args, cwd, timeoutMs }));
+	// Restore only public OS prerequisites omitted by the outer CI scrubber.
+	// Pass the exact environment to cmd; never inherit PowerShell's mutations.
+	const system = ["SystemRoot", "SystemDrive", "WINDIR", "COMSPEC", "PATHEXT", "ProgramFiles", "ProgramFiles(x86)", "ProgramW6432", "PROCESSOR_ARCHITECTURE", "NUMBER_OF_PROCESSORS"];
+	const allowed = [...system, "PATH", "HOME", "USERPROFILE", "LOCALAPPDATA", "APPDATA", "TEMP", "TMP", "LANG", "LC_ALL", "CI"];
+	const childEnvironment = Object.fromEntries(allowed.flatMap((key) => { const value = environment[key] ?? (system.includes(key) ? process.env[key] : undefined); return value === undefined ? [] : [[key, value]]; }));
+	writeFileSync(request, JSON.stringify({ executable, arguments: args, cwd, timeoutMs, environment: childEnvironment }));
 	let output = { stdout: "", stderr: "" }, failure: unknown, primary: unknown;
 	try {
 		try {

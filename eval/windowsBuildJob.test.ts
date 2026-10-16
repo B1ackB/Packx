@@ -54,3 +54,12 @@ it.runIf(process.platform === "win32")("reports a launch failure with its native
 	try { await expect(runWindowsBuildJob(join(root, "missing.exe"), [], root, process.env)).rejects.toMatchObject({ report: { outcome: "launch_failed", win32Error: 2, rootProcessId: 0, cleanupVerified: true } }); }
 	finally { rmSync(root, { recursive: true, force: true }); }
 });
+
+it.runIf(process.platform === "win32")("preserves explicit Unicode caller environment and strips provider credentials", async () => {
+	const root = mkdtempSync(join(tmpdir(), "packx-build-environment-"));
+	const marker = "Packx 測試 with spaces", path = "C:\\Windows\\System32;C:\\packx-fixture";
+	try {
+		const result = await runWindowsBuildJob(process.execPath, ["-e", 'process.stdout.write(JSON.stringify({LANG:process.env.LANG,PATH:process.env.PATH,credentialPresent:!!process.env.ANTHROPIC_API_KEY}));'], root, { ...process.env, LANG: marker, PATH: path, ANTHROPIC_API_KEY: "synthetic-must-not-inherit" });
+		expect(JSON.parse(result.stdout)).toEqual({ LANG: marker, PATH: path, credentialPresent: false });
+	} finally { rmSync(root, { recursive: true, force: true }); }
+});

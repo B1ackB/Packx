@@ -5,6 +5,8 @@ if ($PSVersionTable.PSEdition -ne 'Core' -or [IntPtr]::Size -ne 8) { throw 'Requ
 Add-Type -TypeDefinition @'
 using System;
 using System.ComponentModel;
+using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -48,9 +50,9 @@ public static class PackxBuildJob {
         return result.Append('\\', slashes * 2).Append('"').ToString();
     }
     static Accounting Count(IntPtr job) { Accounting data; Check(QueryInformationJobObject(job, 1, out data, (uint)Marshal.SizeOf<Accounting>(), IntPtr.Zero), "query_job"); return data; }
-    public static Result Run(string executable, string[] args, string cwd, uint timeoutMs) {
+    public static Result Run(string executable, string[] args, string cwd, uint timeoutMs, IDictionary variables) {
         if (timeoutMs < 1 || timeoutMs > 120000 || !System.IO.Path.IsPathFullyQualified(executable) || !System.IO.Path.IsPathFullyQualified(cwd)) throw new ArgumentException("Invalid trusted build request");
-        var result = new Result(); var clock = Stopwatch.StartNew(); IntPtr job = IntPtr.Zero; ProcessInfo child = new ProcessInfo(); bool joined = false;
+        var result = new Result(); var clock = Stopwatch.StartNew(); IntPtr job = IntPtr.Zero, environment = IntPtr.Zero; ProcessInfo child = new ProcessInfo(); bool joined = false;
         try {
             job = CreateJobObjectW(IntPtr.Zero, IntPtr.Zero); Check(job != IntPtr.Zero, "create_job");
             // No breakaway, no inherited Job handle; limits cover every compiler/linker descendant.
@@ -59,7 +61,11 @@ public static class PackxBuildJob {
             var command = new StringBuilder(Quote(executable)); foreach (string arg in args) command.Append(' ').Append(Quote(arg));
             var startup = new Startup(); startup.cb = (uint)Marshal.SizeOf<Startup>(); startup.flags = 0x100;
             startup.input = GetStdHandle(-10); startup.output = GetStdHandle(-11); startup.error = GetStdHandle(-12);
-            Check(CreateProcessW(executable, command, IntPtr.Zero, IntPtr.Zero, true, 0x4 | 0x08000000, IntPtr.Zero, cwd, ref startup, out child), "create_suspended");
+            var sorted = new SortedDictionary<string,string>(StringComparer.OrdinalIgnoreCase);
+            foreach (DictionaryEntry entry in variables) { string key = (string)entry.Key, value = (string)entry.Value; if (key.Length == 0 || key.Contains('=') || key.Contains('\0') || value.Contains('\0')) throw new ArgumentException("Invalid build environment"); sorted[key] = value; }
+            var block = new StringBuilder(); foreach (var entry in sorted) block.Append(entry.Key).Append('=').Append(entry.Value).Append('\0'); block.Append('\0');
+            environment = Marshal.StringToHGlobalUni(block.ToString());
+            Check(CreateProcessW(executable, command, IntPtr.Zero, IntPtr.Zero, true, 0x4 | 0x400 | 0x08000000, environment, cwd, ref startup, out child), "create_suspended");
             result.rootProcessId = child.pid;
             long creation, exit, kernel, user; Check(GetProcessTimes(child.process, out creation, out exit, out kernel, out user), "process_identity"); result.rootCreationTime = DateTime.FromFileTimeUtc(creation).ToString("O");
             Check(AssignProcessToJobObject(job, child.process), "assign_job"); joined = true;
@@ -80,14 +86,15 @@ public static class PackxBuildJob {
                 else result.cleanupVerified = true;
             } catch (Exception error) { result.cleanupFailure = error.Message; }
             if (child.thread != IntPtr.Zero) CloseHandle(child.thread); if (child.process != IntPtr.Zero) CloseHandle(child.process); if (job != IntPtr.Zero) CloseHandle(job);
+            if (environment != IntPtr.Zero) Marshal.FreeHGlobal(environment);
             result.elapsedMs = clock.ElapsedMilliseconds;
         }
         return result;
     }
 }
 '@
-$request = Get-Content -LiteralPath $RequestFile -Raw | ConvertFrom-Json
-$result = [PackxBuildJob]::Run($request.executable, [string[]]$request.arguments, $request.cwd, $request.timeoutMs)
+$request = Get-Content -LiteralPath $RequestFile -Raw | ConvertFrom-Json -AsHashtable
+$result = [PackxBuildJob]::Run($request.executable, [string[]]$request.arguments, $request.cwd, $request.timeoutMs, $request.environment)
 $json = $result | ConvertTo-Json -Compress
 [System.IO.File]::WriteAllText($ResultFile, $json, [System.Text.UTF8Encoding]::new($false))
 if ($result.outcome -ne 'succeeded' -or -not $result.cleanupVerified -or $result.cleanupFailure) { exit 1 }
