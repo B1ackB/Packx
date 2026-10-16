@@ -6,6 +6,8 @@
 
 `core-offline` 检查工作流策略、受跟踪文件的数据边界、敏感信息、依赖漏洞、单元/集成测试、类型、构建与八组离线 Eval。`browser` 使用合成 API 跑三个语言/视口项目。`native-product` 在 macOS 编译原生工具，执行三个真实沙箱/文档套件与本地 HTTP 产品回归。`windows-local-data` 在 Windows 2025、固定 Node 上验证路径、备份／SQLite WAL 恢复、迁移和写锁崩溃恢复；脚本在非 Windows 明确失败，每个指定套件必须实际执行且无跳过。这条切片不验证 Windows Agent 沙箱或完整产品支持。`ci-required` 无检出、无依赖安装、无 Token 权限，只有四个执行 Job 都成功时才成功。
 
+Windows Job 还运行独立的 `native/testing/WindowsIsolationProbe.cpp` 固定探针。MSVC／SDK 版本由 `.github/windows-isolation-toolchain.json` 固定；只用已安装工具，不下载编译器或调整系统策略。探针检查 LPAC token、零 capabilities、合成文件权限、回环网络拒绝、环境／句柄不继承、Job 内存限制和关闭 Job 后的子进程树清理，并删除自己创建的临时 AppContainer profile。它没有注册生产 Tool，不解析客户文档，不证明 Host 崩溃、全部输出／磁盘配额或任意可执行文件隔离已经完成；任一前置能力缺失或探针失败仍阻断合并。
+
 执行 Job 仅有 `contents: read`；checkout 不持久化凭据。全部 Action 固定完整提交；工具下载固定发布版本并验证 SHA-256。不开缓存、不上传自定义产物，不配置真实模型、生产数据或部署权限。运行时先以环境变量白名单启动测试子进程，清除 Provider Key、业务路径、在线 Eval 地址、Token 与 `NODE_OPTIONS` 等继承配置。产品 smoke 自行提供的占位 Key 只用于回环 Fake Provider。
 
 托管运行器仍能访问公网，候选代码也能修改它自己的测试和脚本。这里的策略检查防止误配置，不能替代可信维护者对工作流/依赖变更的审阅；当前实施也没有证明企业生产多租户安全或全部依赖的法律合规。

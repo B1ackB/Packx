@@ -6,6 +6,7 @@ import { basename, delimiter, dirname, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { isDeepStrictEqual } from "node:util";
 import { parseDocument } from "yaml";
+import { runWindowsIsolationProbe } from "./windowsIsolationProbe";
 
 const checkout = "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1";
 const setupNode = "actions/setup-node@820762786026740c76f36085b0efc47a31fe5020";
@@ -258,6 +259,7 @@ async function main(task: string) {
 			const parsed = JSON.parse(readFileSync(report, "utf8"));
 			validateTestReport(parsed, windowsFiles, true);
 			console.log(JSON.stringify({ suite: "windows-local-data", total: parsed.numTotalTests, passed: parsed.numPassedTests, pending: parsed.numPendingTests }));
+			console.log(runWindowsIsolationProbe(testEnvironment(process.env)));
 			break;
 		}
 		case "browser-install": console.log(execute(process.execPath, ["node_modules/@playwright/test/cli.js", "install", "chromium", "--only-shell", "--with-deps"])); break;
