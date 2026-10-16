@@ -72,3 +72,6 @@ CI38969996377中构建131/131、启动期取消三轮、原子创建入Job及正
 CI38970539090全部必需检查通过：Windows137/137，受保护任务7/7无跳过（含真实Host终止三轮、Port取消三轮及业务交付），macOS原生48/48；构建50个总进程、active=0、createdInJob/cleanupVerified均true；原零能力严格拒绝，候选16+7资源断言全部通过。该成绩不覆盖之后新增的重启回收保护，最终提交须再次通过门禁。
 
 独立broker在创建profile前写入Host-owned broker.json（PID、profile名称和creation=intent，不把意图当作已创建证明）。Node重启时，活broker或没有profileDeleted/cleanupVerified持久证据的Native目录保留；只在broker已退出且证据完整时回收。离线fake liveness覆盖存活/缺失/否定/完成四种分流，真实Host崩溃三轮继续验证后续回收，不按PID杀进程，PID复用只会保守保留。
+
+
+最终源码6cae606的CI38971033418全部必需检查通过，包含新增重启回收：Windows137/137，实际受保护任务8/8无跳过，macOS48/48，构建createdInJob/cleanupVerified均true且active=0；详见生命周期证据末节。后续仅文档记录此结果，合并时仍核对PR最新完整提交CI。按既有用户授权，只启用本ADR固定UTF-8上传范围，不将该批准扩展到PDF/OCR/Office、任意程序、系统配置或付费模型调用。
