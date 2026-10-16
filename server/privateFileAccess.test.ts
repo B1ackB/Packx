@@ -1,7 +1,8 @@
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { ModelSettings } from "./modelSettings";
 import { privateWindowsDacl, PrivateFileAccess } from "./privateFileAccess";
 
 const owner = "S-1-5-21-111-222-333-1001", safe = `D:P(A;;FA;;;${owner})(A;;FA;;;SY)`;
@@ -27,6 +28,15 @@ describe("private Windows settings ACL", () => {
    access.prepare(path); expect(calls.some((args) => args.includes("/inheritance:r"))).toBe(true);
    expect(() => new PrivateFileAccess("win32", () => { throw new Error("denied"); }).assert(path)).toThrow();
    writeFileSync(path, "already contains private data"); expect(() => access.prepare(path)).toThrow("private_file_prepare_unsafe");
+  } finally { rmSync(root, { recursive: true, force: true }); }
+ });
+ it("never writes a key when private access cannot be established, and removes the empty temporary", () => {
+  const root = mkdtempSync(join(tmpdir(), "packx-private-denied-")), path = join(root, "settings.json");
+  try {
+   const settings = new ModelSettings(path, {}, new PrivateFileAccess("win32", () => { throw new Error("denied"); }));
+   let failure: unknown;
+   try { settings.save({ revision: 0, mode: "anthropic", baseUrl: "https://example.invalid", model: "fixture", apiKey: "synthetic-never-written" }, "user"); } catch (error) { failure = error; }
+   expect(failure).toMatchObject({ code: "settings_file_unsafe", status: 503 }); expect(existsSync(path)).toBe(false); expect(readdirSync(root)).toEqual([]);
   } finally { rmSync(root, { recursive: true, force: true }); }
  });
 });
