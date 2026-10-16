@@ -90,8 +90,7 @@ describe.skipIf(process.platform !== "win32" || !process.env.PACKX_WINDOWS_NATIV
 		const service = new AssetInspectionService(new ProposalRunEngine(new InMemoryEnterpriseEventStore()), attachments, executor, workspace, executor.executable, undefined, "windows-utf8.v1");
 		const stored = attachments.put({ ...scope, conversationId: scope.runId }, { requestId: "preview-source", name: "中文 需求.txt", mediaType: "text/plain", content: Buffer.from("Quantity: 5000，待确认") }).attachment;
 		expect(await service.previewAttachment(scope, stored.attachmentId, new AbortController().signal)).toMatchObject({ attachmentId: stored.attachmentId, sha256: stored.sha256, parserVersion: "windows-utf8.v1", inspection: { kind: "text", status: "parsed" } });
-		const invalid = attachments.put({ ...scope, conversationId: scope.runId }, { requestId: "bad-encoding", name: "invalid.txt", mediaType: "text/plain", content: Buffer.from([0xc3, 0x28]) }).attachment;
-		await expect(service.previewAttachment(scope, invalid.attachmentId, new AbortController().signal)).rejects.toThrow("UTF-8");
+		expect(() => attachments.put({ ...scope, conversationId: scope.runId }, { requestId: "bad-encoding", name: "invalid.txt", mediaType: "text/plain", content: Buffer.from([0xc3, 0x28]) })).toThrow("UTF-8");
 	}, 30000);
 	it("reads exact UTF-8 under LPAC and rejects malformed/binary inputs without a Host fallback", async () => {
 		for (let i = 0; i < 3; ++i) {
