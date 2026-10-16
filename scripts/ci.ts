@@ -25,6 +25,7 @@ const windowsFiles = [
 	"eval/ciCommand.test.ts",
 	"eval/windowsProductionBoundary.test.ts",
 	"eval/windowsBuildJob.test.ts",
+	"eval/windowsBuildJobLifecycle.test.ts",
 ];
 
 function ensure(condition: unknown, message: string): asserts condition {
@@ -265,7 +266,19 @@ async function main(task: string) {
 			const parsed = JSON.parse(readFileSync(report, "utf8"));
 			validateTestReport(parsed, windowsFiles, true);
 			console.log(JSON.stringify({ suite: "windows-local-data", total: parsed.numTotalTests, passed: parsed.numPassedTests, pending: parsed.numPendingTests }));
-			console.log(await runWindowsIsolationProbe(testEnvironment(process.env)));
+			console.log(await runWindowsIsolationProbe(testEnvironment(process.env), async (build) => {
+				const file = "server/runtime/windowsTextSandboxedToolExecutor.test.ts", report = resolve("temp/ci-windows-text.json"); rmSync(report, { force: true });
+				try { console.log(execute(process.execPath, ["node_modules/vitest/vitest.mjs", "run", file, "--reporter=json", `--outputFile=${report}`], { PACKX_WINDOWS_NATIVE_TOOLS: build })); }
+				catch (error) {
+					if (existsSync(report)) {
+						const failed = JSON.parse(readFileSync(report, "utf8"));
+						console.error(JSON.stringify({ suite: "windows-protected-text", failed: failed.testResults.flatMap((suite: { assertionResults: Array<{ status: string; fullName: string; failureMessages: string[] }> }) => suite.assertionResults.filter((test) => test.status === "failed").map((test) => ({ name: test.fullName, failure: test.failureMessages.join("\n").slice(-12000) }))) }));
+					}
+					throw error;
+				}
+				const parsed = JSON.parse(readFileSync(report, "utf8")); validateTestReport(parsed, [file], true);
+				console.log(JSON.stringify({ suite: "windows-protected-text", total: parsed.numTotalTests, passed: parsed.numPassedTests, pending: parsed.numPendingTests }));
+			}));
 			break;
 		}
 		case "browser-install": console.log(execute(process.execPath, ["node_modules/@playwright/test/cli.js", "install", "chromium", "--only-shell", "--with-deps"])); break;

@@ -2,6 +2,7 @@
 #define NOMINMAX
 #include <winsock2.h>
 #include <windows.h>
+#include <sddl.h>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -44,10 +45,11 @@ static void writeReport(const fs::path& stage, const std::string& value) {
 	{ std::ofstream report(pending); report << value; check(report.good(), "write_probe_report"); }
 	fs::rename(pending, stage / L"output" / L"report.txt");
 }
-enum class NetworkOutcome { InitializationFailed, SocketFailed, Connected, AccessDenied, ConnectionFailed };
+enum class NetworkOutcome { InitializationFailed, SocketFailed, SocketAccessDenied, Connected, AccessDenied, ConnectionFailed };
 struct NetworkProbe {
 	int startup = -1;
 	int error = -1;
+	int socketError = -1;
 	LSTATUS catalogAccess = ERROR_INVALID_FUNCTION;
 	NetworkOutcome outcome = NetworkOutcome::InitializationFailed;
 };
@@ -55,6 +57,7 @@ static const char* outcomeName(NetworkOutcome outcome) {
 	switch (outcome) {
 		case NetworkOutcome::InitializationFailed: return "initialization_failed";
 		case NetworkOutcome::SocketFailed: return "socket_failed";
+		case NetworkOutcome::SocketAccessDenied: return "socket_access_denied";
 		case NetworkOutcome::Connected: return "connected";
 		case NetworkOutcome::AccessDenied: return "access_denied";
 		case NetworkOutcome::ConnectionFailed: return "connection_failed";
@@ -70,7 +73,8 @@ static NetworkProbe inspectNetwork(unsigned short port) {
 	WSADATA sockets{}; result.startup = WSAStartup(MAKEWORD(2, 2), &sockets);
 	if (result.startup != 0) return result;
 	SOCKET connection = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	if (connection == INVALID_SOCKET) { result.error = WSAGetLastError(); result.outcome = NetworkOutcome::SocketFailed; WSACleanup(); return result; }
+	if (connection == INVALID_SOCKET) { result.socketError = WSAGetLastError(); result.outcome = result.socketError == WSAEACCES ? NetworkOutcome::SocketAccessDenied : NetworkOutcome::SocketFailed; WSACleanup(); return result; }
+	result.socketError = 0;
 	u_long nonblocking = 1; check(ioctlsocket(connection, FIONBIO, &nonblocking) == 0, "nonblocking_network_probe");
 	sockaddr_in address{}; address.sin_family = AF_INET; address.sin_port = htons(port); address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 	const int connected = connect(connection, reinterpret_cast<sockaddr*>(&address), sizeof(address));
@@ -87,7 +91,7 @@ static NetworkProbe inspectNetwork(unsigned short port) {
 	closesocket(connection); WSACleanup();
 	return result;
 }
-static int child(const fs::path& stage, const fs::path& denied, unsigned short port, DWORD hostPid) {
+static int child(const fs::path& stage, const fs::path& denied, unsigned short port, DWORD hostPid, const wchar_t* registrySid = nullptr, const wchar_t* privateRegistry = nullptr) {
 	unsigned passed = 0;
 	auto expect = [&](bool ok, const char* name) { check(ok, name); ++passed; std::ofstream progress(stage / L"output" / L"progress.txt"); progress << passed << " " << name; };
 	HANDLE rawToken = nullptr;
@@ -100,7 +104,32 @@ static int child(const fs::path& stage, const fs::path& denied, unsigned short p
 	GetTokenInformation(token.value, TokenCapabilities, nullptr, 0, &size);
 	std::vector<BYTE> capabilities(size);
 	check(size > 0 && GetTokenInformation(token.value, TokenCapabilities, capabilities.data(), size, &size) != FALSE, "query_capabilities");
-	expect(reinterpret_cast<TOKEN_GROUPS*>(capabilities.data())->GroupCount == 0, "no_capabilities");
+	const auto groups = reinterpret_cast<TOKEN_GROUPS*>(capabilities.data());
+	if (registrySid) {
+		PSID expected = nullptr; check(ConvertStringSidToSidW(registrySid, &expected) != FALSE, "registry_capability_sid");
+		const bool exact = groups->GroupCount == 1 && EqualSid(groups->Groups[0].Sid, expected) && (groups->Groups[0].Attributes & SE_GROUP_ENABLED); LocalFree(expected);
+		expect(exact, "only_registry_read_capability");
+		for (const auto access : { KEY_QUERY_VALUE, KEY_SET_VALUE }) {
+			HKEY key = nullptr; const LSTATUS status = RegOpenKeyExW(HKEY_USERS, privateRegistry, 0, access, &key); if (key) RegCloseKey(key);
+			expect(status == ERROR_ACCESS_DENIED, access == KEY_QUERY_VALUE ? "private_registry_read_denied" : "private_registry_write_denied");
+		}
+		unsigned scopeChecks = 0; auto scopeExpect = [&](bool ok, const char* name) { check(ok, name); ++scopeChecks; };
+		for (const std::wstring leaf : { L"credential-fixture", L"model-settings-fixture" }) for (const auto access : { KEY_QUERY_VALUE, KEY_SET_VALUE }) {
+			HKEY fixture = nullptr; const LSTATUS status = RegOpenKeyExW(HKEY_USERS, (std::wstring(privateRegistry) + L"\\" + leaf).c_str(), 0, access, &fixture); if (fixture) RegCloseKey(fixture);
+			scopeExpect(status == ERROR_ACCESS_DENIED, "user_only_registry_resource_denied");
+		}
+		HKEY shared = nullptr; const auto sharedPath = std::wstring(privateRegistry) + L"\\capability-readable-fixture";
+		const LSTATUS sharedRead = RegOpenKeyExW(HKEY_USERS, sharedPath.c_str(), 0, KEY_QUERY_VALUE, &shared);
+		wchar_t value[64]{}; DWORD bytes = sizeof(value), type = 0;
+		const LSTATUS queried = sharedRead == ERROR_SUCCESS ? RegQueryValueExW(shared, L"fixture", nullptr, &type, reinterpret_cast<BYTE*>(value), &bytes) : sharedRead; if (shared) RegCloseKey(shared);
+		scopeExpect(queried == ERROR_SUCCESS && type == REG_SZ && std::wstring(value) == L"synthetic-not-a-secret", "explicitly_capability_granted_user_key_readable");
+		shared = nullptr; const LSTATUS sharedWrite = RegOpenKeyExW(HKEY_USERS, sharedPath.c_str(), 0, KEY_SET_VALUE, &shared); if (shared) RegCloseKey(shared);
+		scopeExpect(sharedWrite == ERROR_ACCESS_DENIED, "read_grant_does_not_grant_write");
+		HKEY catalog = nullptr; const LSTATUS catalogRead = RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Services\\WinSock2\\Parameters", 0, KEY_QUERY_VALUE, &catalog);
+		DWORD values = 0; const LSTATUS metadata = catalogRead == ERROR_SUCCESS ? RegQueryInfoKeyW(catalog, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, &values, nullptr, nullptr, nullptr, nullptr) : catalogRead; if (catalog) RegCloseKey(catalog);
+		scopeExpect(metadata == ERROR_SUCCESS, "system_network_catalog_metadata_readable");
+		{ std::ofstream scope(stage / L"output" / L"registry-scope.txt"); scope << scopeChecks; check(scope.good(), "write_registry_scope_evidence"); }
+	} else expect(groups->GroupCount == 0, "no_capabilities");
 	expect(canOpen(stage / L"input.txt", GENERIC_READ), "declared_input_read");
 	expect(!canOpen(stage / L"input.txt", GENERIC_WRITE), "declared_input_write_denied");
 	expect(!canOpen(denied, GENERIC_READ), "other_workspace_read_denied");
@@ -112,12 +141,12 @@ static int child(const fs::path& stage, const fs::path& denied, unsigned short p
 	expect(host.value == nullptr, "privileged_host_process_handle_denied");
 	const auto network = inspectNetwork(port);
 	const int networkInitialization = network.startup, networkError = network.error;
-	const bool networkDenied = network.outcome == NetworkOutcome::AccessDenied;
+	const bool networkDenied = network.outcome == NetworkOutcome::AccessDenied || network.outcome == NetworkOutcome::SocketAccessDenied;
 	// Do not count initialization failure as a network-denial pass. Collect the other independent boundaries first.
-	if (networkDenied) expect(true, "loopback_network_denied");
+	if (networkDenied) expect(true, "network_resource_denied");
 	PROCESS_MITIGATION_CHILD_PROCESS_POLICY childPolicy{};
 	check(GetProcessMitigationPolicy(GetCurrentProcess(), ProcessChildProcessPolicy, &childPolicy, sizeof(childPolicy)) != FALSE, "query_child_process_policy");
-	{ std::ofstream diagnostic(stage / L"output" / L"network-diagnostic.txt"); diagnostic << "startup=" << networkInitialization << "; connect=" << networkError << "; catalogAccess=" << network.catalogAccess << "; observation=" << outcomeName(network.outcome) << "; noChildProcessCreation=" << childPolicy.NoChildProcessCreation << "; workerReadableExecutable=" << canOpen(stage / L"worker.exe", GENERIC_READ | GENERIC_EXECUTE); }
+	{ std::ofstream diagnostic(stage / L"output" / L"network-diagnostic.txt"); diagnostic << "startup=" << networkInitialization << "; socket=" << network.socketError << "; connect=" << networkError << "; catalogAccess=" << network.catalogAccess << "; observation=" << outcomeName(network.outcome) << "; noChildProcessCreation=" << childPolicy.NoChildProcessCreation << "; workerReadableExecutable=" << canOpen(stage / L"worker.exe", GENERIC_READ | GENERIC_EXECUTE); }
 	BOOL inJob = FALSE; check(IsProcessInJob(GetCurrentProcess(), nullptr, &inJob) != FALSE, "query_job");
 	expect(inJob != FALSE, "child_is_in_job");
 	void* excessive = VirtualAlloc(nullptr, 128ULL * 1024 * 1024, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
@@ -128,7 +157,7 @@ static int child(const fs::path& stage, const fs::path& denied, unsigned short p
 	const BOOL spawned = CreateProcessW((stage / L"worker.exe").c_str(), command.data(), nullptr, nullptr, FALSE, CREATE_NO_WINDOW, nullptr, stage.c_str(), &startup, &grandchild);
 	if (spawned) { TerminateProcess(grandchild.hProcess, 1); WaitForSingleObject(grandchild.hProcess, 5000); CloseHandle(grandchild.hThread); CloseHandle(grandchild.hProcess); }
 	expect(!spawned, "child_creation_denied");
-	writeReport(stage, std::to_string(passed) + " 0 " + std::to_string(networkInitialization) + " " + std::to_string(networkDenied) + " " + std::to_string(network.error) + " " + std::to_string(network.catalogAccess) + " " + outcomeName(network.outcome));
+	writeReport(stage, std::to_string(passed) + " 0 " + std::to_string(networkInitialization) + " " + std::to_string(networkDenied) + " " + std::to_string(network.error) + " " + std::to_string(network.catalogAccess) + " " + outcomeName(network.outcome) + " " + std::to_string(network.socketError));
 	Sleep(INFINITE);
 	return 1;
 }
@@ -155,7 +184,7 @@ int wmain(int argc, wchar_t** argv) {
 		if (argc == 4 && std::wstring(argv[1]) == L"--network-control") {
 			const auto result = inspectNetwork(static_cast<unsigned short>(std::stoul(argv[3])));
 			std::ofstream report(fs::path(argv[2]) / L"output" / L"host-network.txt");
-			report << result.startup << " " << result.error << " " << result.catalogAccess << " " << outcomeName(result.outcome);
+			report << result.startup << " " << result.error << " " << result.catalogAccess << " " << outcomeName(result.outcome) << " " << result.socketError;
 			check(report.good(), "host_network_report");
 			return result.outcome == NetworkOutcome::Connected ? 0 : 1;
 		}
@@ -174,9 +203,9 @@ int wmain(int argc, wchar_t** argv) {
 			const bool visible = GetFileInformationByHandle(reinterpret_cast<HANDLE>(std::stoull(argv[2])), &leaked) && leaked.dwVolumeSerialNumber == std::stoul(argv[3]) && fileId(leaked) == std::stoull(argv[4]);
 			return visible ? 1 : 0;
 		}
-		if (argc == 6 && std::wstring(argv[1]) == L"--child") {
+		if ((argc == 6 || argc == 8) && std::wstring(argv[1]) == L"--child") {
 			{ std::ofstream entry(fs::path(argv[2]) / L"output" / L"worker-entry.txt"); entry << "entered"; check(entry.good(), "worker_entry_marker"); }
-			try { return child(argv[2], argv[3], static_cast<unsigned short>(std::stoul(argv[4])), std::stoul(argv[5])); }
+			try { return child(argv[2], argv[3], static_cast<unsigned short>(std::stoul(argv[4])), std::stoul(argv[5]), argc == 8 ? argv[6] : nullptr, argc == 8 ? argv[7] : nullptr); }
 			catch (const std::exception& error) { writeReport(argv[2], std::string("error ") + error.what()); return 1; }
 		}
 		check(false, "fixed_worker_arguments");

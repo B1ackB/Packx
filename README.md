@@ -194,6 +194,8 @@ npm run dev
 
 Open **http://127.0.0.1:5173**. This single command builds the native reader and runs the API host with the Vite UI. A separate frontend terminal is not needed.
 
+The Windows increment is limited to UTF-8 `.txt`, `.md`, `.csv` and `.json` uploads up to 128 KiB, running in LPAC with a single-process Job and no network capability. It requires the [pinned preinstalled toolchain](.github/windows-isolation-toolchain.json); missing binaries or isolation evidence fail closed. Windows desktop installation, PDF/Office, local absolute file paths and arbitrary commands remain unsupported/unvalidated. See the [acceptance plan](docs/production-readiness-plan.md).
+
 `npm run dev` automatically reads `.env`; existing shell environment variables take precedence. `.env` is ignored by Git. Keep keys server-side and never put them in messages, committed files, or `VITE_` variables. Environment loading differs between evaluation commands; check the corresponding `package.json` script and configuration guide before running one.
 
 The provider adapter uses Anthropic Messages, including streaming and tools; the full runtime also uses token counting. `ANTHROPIC_BASE_URL` is the service root: Packx appends `/v1/messages` and `/v1/messages/count_tokens`. An OpenAI Chat Completions endpoint is not interchangeable. A “configured” status does not prove the endpoint supports every required capability. See the [configuration guide](docs/api-configuration.md) and [compatibility notes](docs/anthropic-compatibility.md) (currently Chinese).
@@ -215,7 +217,7 @@ Run `npm run release` to produce a macOS directory, archive and checksum under `
 | `npm run eval:recovery` | Recovery and uncertain-side-effect boundaries | No |
 | `npm run eval:context`, `npm run eval:memory` | Context and personal-memory mechanism checks | No |
 | `npm run eval:plan` | Fixed Plan confirmation and subagent baseline | No |
-| `npm run build:native` | Compile the macOS reader | No |
+| `npm run build:native` | Compile the native reader (macOS; bounded Windows UTF-8 with pinned preinstalled tools) | No |
 | `npm run test:native` | Real macOS sandbox and document tests | No |
 | `npm run eval:product` | Local provider/API/workflow smoke test; cleans up afterward | No |
 | `npm run check:local` | macOS baseline including M1, loop guards, and product checks; run reliability-repairs separately | No |
