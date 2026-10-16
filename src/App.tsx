@@ -20,7 +20,8 @@ import { languageNames, labelFor, statusFor, type Language } from "./i18n";
 import type { AssetInspectionRecord } from "./runtime/assetInspection";
 import { packagingFactKeys } from "./manufacturing/requirementBrief";
 import type { RuntimeActivity } from "./runtime/conversationContracts";
-import type { RuntimeHealth } from "./runtime/contracts";
+import type { HostRuntimeHealth as RuntimeHealth } from "./runtime/hostCapabilities";
+import { documentCapabilityText } from "./runtime/hostCapabilities";
 import { ConversationClient, ConversationClientError } from "./runtime/conversationClient";
 import type {
 	BackgroundTaskView,
@@ -909,6 +910,7 @@ function App() {
 						{!realProvider ? en ? "Model not configured" : "模型尚未配置" : health?.providerStatus === "last_request_succeeded" ? en ? "Last request completed" : "最近处理成功" : health?.providerStatus === "last_request_failed" ? en ? "Last request failed" : "最近处理未完成" : en ? "Model configured · pending verification" : "模型已配置 · 待验证"}
 					</div>
 					<label className="language-selector">{en ? "Language" : "语言"}<select value={language} onChange={(event) => setLanguage(event.target.value as Language)} aria-label={en ? "Language" : "语言"}>{Object.entries(languageNames).map(([value, name]) => <option key={value} value={value}>{name}</option>)}</select></label>
+					<p className="document-capability" role="status">{documentCapabilityText(health?.documents, en)}</p>
 					<details className="permission-summary"><summary>{en ? "File access & permissions" : "文件访问与权限"}</summary><p>{en ? "Packx can read local files within its allowed scope. Before creating, changing or deleting a file, it shows the path and content for your approval and keeps a backup. Files are read on this device; extracted information still needs your confirmation." : "Packx 可在授权范围内读取本机文件。新建、修改或删除前，会展示路径与内容，经你单次批准后执行并保留备份。附件在本机读取，提取的信息仍需你确认。"}</p></details>
 				</div>
 			</aside>
@@ -1049,7 +1051,7 @@ function App() {
 								<input
 									type="file"
 									multiple
-									accept="image/*,.pdf,.docx,.xlsx,.txt,.md,.csv,.json"
+									accept={health?.documents?.scope === "windows-utf8" ? ".txt,.md,.csv,.json" : "image/*,.pdf,.docx,.xlsx,.txt,.md,.csv,.json"}
 									onChange={(event) => void uploadAttachments(event)}
 									disabled={!active || uploading}
 								/>

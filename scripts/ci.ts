@@ -22,6 +22,7 @@ const windowsFiles = [
 	"src/agent/sandboxPaths.test.ts",
 	"eval/windowsIsolationProbe.test.ts",
 	"server/runtime/textDocumentInspection.test.ts",
+	"server/runtime/documentCapabilities.test.ts",
 	"eval/ciCommand.test.ts",
 	"eval/windowsProductionBoundary.test.ts",
 	"eval/windowsBuildJob.test.ts",
