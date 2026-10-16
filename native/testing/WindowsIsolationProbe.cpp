@@ -123,7 +123,7 @@ static PROCESS_INFORMATION launch(const fs::path& executable, std::wstring comma
 	return created;
 }
 
-static int child(const fs::path& stage, const fs::path& denied, unsigned short port, HANDLE inherited, DWORD volume, unsigned long long identity) {
+static int child(const fs::path& stage, const fs::path& denied, unsigned short port) {
 	unsigned passed = 0;
 	auto expect = [&](bool ok, const char* name) { check(ok, name); ++passed; std::ofstream progress(stage / L"output" / L"progress.txt"); progress << passed << " " << name; };
 	HANDLE rawToken = nullptr;
@@ -166,9 +166,7 @@ static int child(const fs::path& stage, const fs::path& denied, unsigned short p
 		networkDenied = connected == SOCKET_ERROR && networkError == WSAEACCES;
 	}
 	// Do not count initialization failure as a network-denial pass. Collect the other independent boundaries first.
-	if (networkDenied) ++passed;
-	BY_HANDLE_FILE_INFORMATION leaked{};
-	expect(!GetFileInformationByHandle(inherited, &leaked) || leaked.dwVolumeSerialNumber != volume || fileId(leaked) != identity, "private_handle_not_inherited");
+	if (networkDenied) expect(true, "loopback_network_denied");
 	BOOL inJob = FALSE; check(IsProcessInJob(GetCurrentProcess(), nullptr, &inJob) != FALSE, "query_job");
 	expect(inJob != FALSE, "child_is_in_job");
 	void* excessive = VirtualAlloc(nullptr, 128ULL * 1024 * 1024, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
@@ -229,7 +227,7 @@ static int probe(const fs::path& root, const std::wstring& profileName) {
 	limits.BasicLimitInformation.ActiveProcessLimit = 2;
 	limits.JobMemoryLimit = 64ULL * 1024 * 1024;
 	check(SetInformationJobObject(job.value, JobObjectExtendedLimitInformation, &limits, sizeof(limits)) != FALSE, "set_job_limits");
-	std::wstring command = quote((stage / L"worker.exe").wstring()) + L" --child " + quote(stage.wstring()) + L" " + quote(denied.wstring()) + L" " + std::to_wstring(ntohs(address.sin_port)) + L" " + std::to_wstring(reinterpret_cast<ULONG_PTR>(privateFile.value)) + L" " + std::to_wstring(identity.dwVolumeSerialNumber) + L" " + std::to_wstring(fileId(identity));
+	std::wstring command = quote((stage / L"worker.exe").wstring()) + L" --child " + quote(stage.wstring()) + L" " + quote(denied.wstring()) + L" " + std::to_wstring(ntohs(address.sin_port));
 	wchar_t windows[MAX_PATH]{}; check(GetWindowsDirectoryW(windows, MAX_PATH) > 0, "windows_directory");
 	LPWSTR sidText = nullptr, folder = nullptr;
 	check(ConvertSidToStringSidW(profile.sid, &sidText) != FALSE, "profile_sid_text");
@@ -249,6 +247,13 @@ static int probe(const fs::path& root, const std::wstring& profileName) {
 	int regularNetworkInitialization = -1;
 	{ std::ifstream status(output / L"network-control.txt"); check(static_cast<bool>(status >> regularNetworkInitialization), "read_regular_network_status"); }
 	controlThread.close(); controlHandle.close();
+	// Invalid-handle checks can deliberately terminate a strict process. Isolate this negative case from the remaining assertions.
+	const auto handleControl = launch(stage / L"worker.exe", quote((stage / L"worker.exe").wstring()) + L" --handle-control " + std::to_wstring(reinterpret_cast<ULONG_PTR>(privateFile.value)) + L" " + std::to_wstring(identity.dwVolumeSerialNumber) + L" " + std::to_wstring(fileId(identity)), stage, environment, profile.sid, job.value, true);
+	Handle handleProcess(handleControl.hProcess), handleThread(handleControl.hThread);
+	check(WaitForSingleObject(handleProcess.value, 5000) == WAIT_OBJECT_0, "handle_control_timeout");
+	DWORD handleExit = 1; check(GetExitCodeProcess(handleProcess.value, &handleExit) != FALSE, "handle_control_status");
+	check(handleExit == 0 || handleExit == 0xC0000008UL, "private_handle_not_inherited");
+	handleThread.close(); handleProcess.close();
 	const auto created = launch(stage / L"worker.exe", command, stage, environment, profile.sid, job.value, true);
 	Handle process(created.hProcess), thread(created.hThread);
 	const auto reportPath = output / L"report.txt";
@@ -257,7 +262,7 @@ static int probe(const fs::path& root, const std::wstring& profileName) {
 	}
 	unsigned passed = 0; DWORD descendantPid = 0; int networkInitialization = -1; bool networkDenied = false;
 	{ std::ifstream report(reportPath); report >> passed >> descendantPid >> networkInitialization >> networkDenied; }
-	if (passed < 14 || !descendantPid) {
+	if (passed < 13 || !descendantPid) {
 		std::ifstream report(reportPath); std::string error; std::getline(report, error);
 		std::ifstream progress(output / L"progress.txt"); std::string step; std::getline(progress, step);
 		DWORD code = STILL_ACTIVE; GetExitCodeProcess(process.value, &code);
@@ -271,8 +276,8 @@ static int probe(const fs::path& root, const std::wstring& profileName) {
 	descendant.close(); thread.close(); process.close(); privateFile.close();
 	closesocket(listener); WSACleanup();
 	profile.remove();
-	std::cout << "{\"probe\":\"windows-lpac-fixed-program\",\"childAssertions\":" << passed << ",\"regularNetworkInitializationError\":" << regularNetworkInitialization << ",\"networkInitializationError\":" << networkInitialization << ",\"networkAccessDenied\":" << (networkDenied ? "true" : "false") << ",\"processTreeTerminated\":true,\"profileDeleted\":true}\n";
-	return passed == 15 && networkDenied ? 0 : 1;
+	std::cout << "{\"probe\":\"windows-lpac-fixed-program\",\"childAssertions\":" << passed << ",\"privateHandleNotInherited\":true,\"regularNetworkInitializationError\":" << regularNetworkInitialization << ",\"networkInitializationError\":" << networkInitialization << ",\"networkAccessDenied\":" << (networkDenied ? "true" : "false") << ",\"processTreeTerminated\":true,\"profileDeleted\":true}\n";
+	return passed == 14 && networkDenied ? 0 : 1;
 }
 
 int wmain(int argc, wchar_t** argv) {
@@ -287,8 +292,13 @@ int wmain(int argc, wchar_t** argv) {
 			if (started == 0) WSACleanup();
 			return 0;
 		}
-		if (argc == 8 && std::wstring(argv[1]) == L"--child") {
-			try { return child(argv[2], argv[3], static_cast<unsigned short>(std::stoul(argv[4])), reinterpret_cast<HANDLE>(std::stoull(argv[5])), std::stoul(argv[6]), std::stoull(argv[7])); }
+		if (argc == 5 && std::wstring(argv[1]) == L"--handle-control") {
+			BY_HANDLE_FILE_INFORMATION leaked{};
+			const bool visible = GetFileInformationByHandle(reinterpret_cast<HANDLE>(std::stoull(argv[2])), &leaked) && leaked.dwVolumeSerialNumber == std::stoul(argv[3]) && fileId(leaked) == std::stoull(argv[4]);
+			return visible ? 1 : 0;
+		}
+		if (argc == 5 && std::wstring(argv[1]) == L"--child") {
+			try { return child(argv[2], argv[3], static_cast<unsigned short>(std::stoul(argv[4]))); }
 			catch (const std::exception& error) { writeReport(argv[2], std::string("error ") + error.what()); return 1; }
 		}
 		check(argc == 4 && std::wstring(argv[1]) == L"--probe", "fixed_probe_arguments");

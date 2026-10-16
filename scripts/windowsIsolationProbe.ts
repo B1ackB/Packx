@@ -30,7 +30,7 @@ export function runWindowsIsolationProbe(environment: NodeJS.ProcessEnv): string
 		const compiler = execFileSync(join(environment.SystemRoot ?? "C:\\Windows", "System32/cmd.exe"), ["/d", "/s", "/c", batch], { ...options, cwd: build });
 		const output = execFileSync(binary, ["--probe", attempt, profile], options);
 		const report = JSON.parse(output);
-		if (report.childAssertions !== 15 || report.networkAccessDenied !== true || report.networkInitializationError !== 0 || report.processTreeTerminated !== true || report.profileDeleted !== true) throw new Error("Native isolation evidence is incomplete");
+		if (report.childAssertions !== 14 || report.privateHandleNotInherited !== true || report.networkAccessDenied !== true || report.networkInitializationError !== 0 || report.processTreeTerminated !== true || report.profileDeleted !== true) throw new Error("Native isolation evidence is incomplete");
 		return `${JSON.stringify({ visualStudio: version, windowsSdk: policy.windowsSdkVersion })}\n${compiler}\n${output}`;
 	} catch (cause) {
 		const diagnostic = cause as { message?: string; stdout?: string; stderr?: string };
