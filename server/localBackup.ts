@@ -1,5 +1,5 @@
 import { constants, copyFileSync, existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync, chmodSync, mkdtempSync, realpathSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { basename, dirname, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { createHash } from "node:crypto";
 import { DatabaseSync } from "node:sqlite";
@@ -59,7 +59,7 @@ export function verifyBackup(directory: string): Manifest {
 	return manifest;
 }
 export function createBackup(root: string, destination: string) {
-	root = realpathSync(root); destination = resolve(realpathSync(dirname(resolve(destination))), resolve(destination).split("/").at(-1)!);
+	root = realpathSync(root); destination = resolve(realpathSync(dirname(resolve(destination))), basename(resolve(destination)));
 	if (!existsSync(root) || within(root, destination) || within(destination, root)) throw new Error("backup_requires_separate_destination");
 	const release = lockLocalData(root);
 	let created = false;
@@ -76,7 +76,7 @@ export function createBackup(root: string, destination: string) {
 	finally { release(); }
 }
 export function restoreBackup(source: string, destination: string) {
-	source = realpathSync(source); destination = resolve(realpathSync(dirname(resolve(destination))), resolve(destination).split("/").at(-1)!);
+	source = realpathSync(source); destination = resolve(realpathSync(dirname(resolve(destination))), basename(resolve(destination)));
 	if (within(source, destination) || within(destination, source)) throw new Error("restore_requires_separate_destination");
 	const manifest = verifyBackup(source);
 	mkdirSync(destination, { mode: 0o700 });

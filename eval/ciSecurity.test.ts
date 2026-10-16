@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
+import { delimiter, dirname } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { parse, stringify } from "yaml";
 import { installTools, testEnvironment, validateAudit, validateBrowserReport, validateTestReport, validateWorkflow } from "../scripts/ci";
@@ -20,6 +21,9 @@ describe("CI workflow security contract", () => {
 		["privileged PR event", (w: ReturnType<typeof parse>) => { w.on.pull_request_target = {}; }],
 		["path filtering", (w: ReturnType<typeof parse>) => { w.on.pull_request.paths = ["src/**"]; }],
 		["skipped job", (w: ReturnType<typeof parse>) => { w.jobs.browser.if = "false"; }],
+		["skipped Windows job", (w: ReturnType<typeof parse>) => { w.jobs["windows-local-data"].if = "false"; }],
+		["simulated Windows runner", (w: ReturnType<typeof parse>) => { w.jobs["windows-local-data"]["runs-on"] = "ubuntu-24.04"; }],
+		["Windows suite replaced", (w: ReturnType<typeof parse>) => { w.jobs["windows-local-data"].steps.at(-1).run = "node --import tsx scripts/ci.ts core"; }],
 		["failure ignored", (w: ReturnType<typeof parse>) => { w.jobs.browser["continue-on-error"] = true; }],
 		["business secret", (w: ReturnType<typeof parse>) => { w.env = { KEY: "${{ secrets.MODEL_KEY }}" }; }],
 		["persisted git credential", (w: ReturnType<typeof parse>) => { w.jobs.browser.steps[0].with["persist-credentials"] = true; }],
@@ -35,8 +39,10 @@ describe("CI workflow security contract", () => {
 		expect(() => validateWorkflow(changed(mutate))).toThrow();
 	});
 	it("removes business credentials, data paths and inherited online settings from test children", () => {
-		const env = testEnvironment({ PATH: "/usr/bin", HOME: "/synthetic-home", ANTHROPIC_API_KEY: "synthetic", BLACKX_EVAL_BASE_URL: "http://127.0.0.1:1234", BLACKX_DATA_ROOT: "/synthetic-data", NODE_OPTIONS: "--require=unsafe", GITHUB_TOKEN: "synthetic", NPM_TOKEN: "synthetic" });
+		const env = testEnvironment({ PATH: "/usr/bin", HOME: "/synthetic-home", SystemRoot: "C:\\Windows", ANTHROPIC_API_KEY: "synthetic", BLACKX_EVAL_BASE_URL: "http://127.0.0.1:1234", BLACKX_DATA_ROOT: "/synthetic-data", NODE_OPTIONS: "--require=unsafe", GITHUB_TOKEN: "synthetic", NPM_TOKEN: "synthetic" });
 		expect(env.HOME).toBe("/synthetic-home");
+		expect(env.SystemRoot).toBe("C:\\Windows");
+		expect(env.PATH).toBe(`${dirname(process.execPath)}${delimiter}/usr/bin`);
 		expect(env.CI).toBe("true");
 		for (const key of ["ANTHROPIC_API_KEY", "BLACKX_EVAL_BASE_URL", "BLACKX_DATA_ROOT", "NODE_OPTIONS", "GITHUB_TOKEN", "NPM_TOKEN"]) expect(env[key]).toBeUndefined();
 	});
@@ -45,11 +51,19 @@ describe("CI workflow security contract", () => {
 		for (const core of ["success", "failure", "skipped", "cancelled"]) {
 			for (const browser of ["success", "failure", "skipped", "cancelled"]) {
 				for (const native of ["success", "failure", "skipped", "cancelled"]) {
-					const result = spawnSync("bash", ["--noprofile", "--norc", "-e", "-c", gate], { env: { CORE_RESULT: core, BROWSER_RESULT: browser, NATIVE_RESULT: native } });
-					expect(result.status === 0).toBe([core, browser, native].every((status) => status === "success"));
+					for (const windows of ["success", "failure", "skipped", "cancelled"]) {
+						const result = spawnSync("bash", ["--noprofile", "--norc", "-e", "-c", gate], { env: { CORE_RESULT: core, BROWSER_RESULT: browser, NATIVE_RESULT: native, WINDOWS_RESULT: windows } });
+						expect(result.status === 0).toBe([core, browser, native, windows].every((status) => status === "success"));
+					}
 				}
 			}
 		}
+	});
+	it("accepts Windows report paths but still refuses missing or skipped Windows evidence", () => {
+		const name = "C:\\checkout\\server\\localBackup.test.ts";
+		expect(() => validateTestReport({ success: true, testResults: [{ name, assertionResults: [{ status: "passed" }] }] }, ["server/localBackup.test.ts"], true)).not.toThrow();
+		expect(() => validateTestReport({ success: true, testResults: [{ name, assertionResults: [{ status: "pending" }] }] }, ["server/localBackup.test.ts"], true)).toThrow();
+		expect(() => validateTestReport({ success: true, testResults: [] }, ["server/localBackup.test.ts"], true)).toThrow();
 	});
 });
 
