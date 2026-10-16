@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { AgentModelProvider } from "../../src/agent/contracts";
 import { SkillRegistry } from "../../src/agent/skills";
-import type { SandboxedToolExecutorPort, ToolExecutionManifest, ToolExecutionResult } from "../../src/agent/sandbox";
+import { compileToolExecutionManifest, type SandboxedToolExecutorPort, type ToolExecutionManifest, type ToolExecutionResult } from "../../src/agent/sandbox";
 import { InMemoryEnterpriseEventStore } from "../../src/enterprise/inMemoryEventStore";
 import { ProposalRunEngine } from "../../src/enterprise/proposalRunEngine";
 import { InMemoryStageJobQueue } from "../../src/enterprise/stageJobQueue";
@@ -84,6 +84,15 @@ function harness(native = false, omitInspection = false, input = documentFixture
 afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); for (const root of directories.splice(0)) rmSync(root, { recursive: true, force: true }); });
 
 describe("asset inspection product slice", () => {
+	it("binds a prepared invocation to its original tenant, workspace and run", async () => {
+		const h = harness(), tool = h.inspector.tool(), signal = new AbortController().signal;
+		const invocation = await tool.createInvocation({ attachmentId: h.stored.attachmentId }, { ...h.run, actorId: context.actorId, stageId: "requirement-brief", executionId: "scope-check", toolCallId: "scope-check", idempotencyKey: "scope-check", sandboxAttemptId: "scope-check", signal });
+		const manifest = compileToolExecutionManifest({ ...h.run, attemptId: "scope-check", stageId: "requirement-brief", executionId: "scope-check", toolCallId: "scope-check", idempotencyKey: "scope-check", tool: { name: tool.name, version: tool.version }, command: { executable: tool.executable, argv: invocation.argv, workingDirectory: invocation.workingDirectory }, paths: invocation.paths, environment: tool.sandbox.environment, network: tool.sandbox.network, limits: { ...tool.sandbox.limits, timeoutMs: tool.timeoutMs } });
+		for (const key of ["tenantId", "workspaceId", "runId"] as const) await expect(h.inspector.execute({ ...manifest, [key]: "other" }, signal)).rejects.toThrow("Host-owned");
+		expect(h.fake.manifests).toHaveLength(0);
+		expect(await h.inspector.execute(manifest, signal)).toMatchObject({ status: "succeeded" });
+		expect(h.fake.manifests).toHaveLength(1);
+	});
 	it("recovers after a checkpoint without invoking the model or parser again", async () => {
 		vi.useFakeTimers();
 		const h = harness();

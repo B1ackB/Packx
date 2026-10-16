@@ -107,7 +107,7 @@ export class AssetInspectionService implements SandboxedToolExecutorPort {
 	async execute(manifest: ToolExecutionManifest, signal: AbortSignal): Promise<ToolExecutionResult> {
 		if (!["asset_metadata_inspect", "document_read"].includes(manifest.tool.name)) return this.executor.execute(manifest, signal);
 		const prepared = this.inputs.get(manifest.attemptId);
-		if (!prepared || manifest.command.executable !== this.executable || manifest.command.argv[0] !== join(prepared.directory, "input.bin")) {
+		if (!prepared || manifest.tenantId !== prepared.run.tenantId || manifest.workspaceId !== prepared.run.workspaceId || manifest.runId !== prepared.run.runId || manifest.command.executable !== this.executable || manifest.command.argv[0] !== join(prepared.directory, "input.bin")) {
 			throw new RuntimeFailure("permission_denied", "Native parser invocation is not Host-owned", false);
 		}
 		try {

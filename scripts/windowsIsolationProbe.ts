@@ -55,11 +55,16 @@ export async function runWindowsIsolationProbe(environment: NodeJS.ProcessEnv, v
 	if (policy.purpose !== "diagnostic_only" || policy.productionAdapterEnabled !== false) throw new Error("Diagnostic toolchain manifest boundary changed");
 	const vswhere = "C:\\Program Files (x86)\\Microsoft Visual Studio\\Installer\\vswhere.exe";
 	const discovery = { encoding: "utf8" as const, timeout: 10_000, env: environment };
-	const help = execFileSync(vswhere, ["-?"], discovery).split(/\r?\n/)[0];
+	const discover = (phase: string, args: string[]) => {
+		const start = Date.now(); console.error(`windows_toolchain:${phase}:started; budget_ms=10000`);
+		try { const output = execFileSync(vswhere, args, discovery); console.error(`windows_toolchain:${phase}:completed; elapsed_ms=${Date.now() - start}`); return output; }
+		catch (cause) { throw new Error(`Windows toolchain discovery failed at ${phase}: ${(cause as NodeJS.ErrnoException).code ?? "exit_failed"}`, { cause }); }
+	};
+	const help = discover("version", ["-?"]).split(/\r?\n/)[0];
 	if (!help.startsWith(`Visual Studio Locator version ${policy.vswhereVersion}+`)) throw new Error("Pinned vswhere is unavailable; refusing to skip");
 	const select = ["-products", "*", "-version", policy.visualStudioRange, "-requires", "Microsoft.VisualStudio.Component.VC.Tools.x86.x64"];
-	const installation = execFileSync(vswhere, [...select, "-property", "installationPath"], discovery).trim();
-	const version = execFileSync(vswhere, [...select, "-property", "installationVersion"], discovery).trim();
+	const installation = discover("installation_path", [...select, "-property", "installationPath"]).trim();
+	const version = discover("installation_version", [...select, "-property", "installationVersion"]).trim();
 	if (!installation || version !== policy.visualStudioVersion) throw new Error("Pinned MSVC installation is unavailable; refusing to skip");
 	mkdirSync("temp", { recursive: true });
 	const scratch = mkdtempSync(resolve("temp/windows-isolation-"));

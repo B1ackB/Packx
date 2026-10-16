@@ -51,3 +51,6 @@ Node 与 broker 的控制管道 EOF 表示取消或 Host 进程退出。broker �
 
 
 后续 CI38967498265 的实际 UTF-8、输入拒绝、三轮 timeout/cancel/output 与三轮 Port AbortSignal 已通过；两项仍失败且未合并。Host 强制终止后原 stdout 连接可丢失，不能用空 stdout 判定资源未清理或假定成功；broker 在 Job 活跃数为0且 profile 删除后，原子保存 Host-owned execution.json，崩溃回归据此验证。此记录不自动推进 Run/Stage，也不等于业务交付。另一项为测试夹具未注册 Worker 允许列表中的 document_read，在执行前被 Unknown allowed tool 正确拒绝；补齐与真实入口一致的注册，并将同一业务流程以 Fake Port 独立离线运行，验证配置、来源 Artifact、事实确认、审批和交付门禁，避免只在远程 Windows 才发现 Host 夹具错误。
+
+
+CI38968307174 在 Windows 本地数据127/127后，于10秒工具链发现预算内出现 vswhere ETIMEDOUT，尚未编译或执行该提交的原生程序；其他必要平台通过。保留此基础设施失败，不当成产品成功或产品失败分数。后续补充发现阶段/version/path/version 的有界耗时与错误码，维持原预算与零自动重试，避免盲目增加时限。另将暂存调用显式绑定原 tenantId/workspaceId/runId，离线验证伪造任一维度不能调用底层执行器且不能破坏原合法执行。
