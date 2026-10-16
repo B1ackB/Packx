@@ -101,6 +101,27 @@ static void writeReport(const fs::path& stage, const std::string& value) {
 	{ std::ofstream report(pending); report << value; check(report.good(), "write_probe_report"); }
 	fs::rename(pending, stage / L"output" / L"report.txt");
 }
+static PROCESS_INFORMATION launch(const fs::path& executable, std::wstring command, const fs::path& directory, std::wstring& environment, PSID sid, HANDLE job, bool lpac) {
+	const DWORD count = lpac ? 2 : 1;
+	SIZE_T size = 0; InitializeProcThreadAttributeList(nullptr, count, 0, &size);
+	std::vector<BYTE> attributes(size);
+	auto list = reinterpret_cast<LPPROC_THREAD_ATTRIBUTE_LIST>(attributes.data());
+	check(InitializeProcThreadAttributeList(list, count, 0, &size) != FALSE, "create_attributes");
+	SECURITY_CAPABILITIES security{}; security.AppContainerSid = sid;
+	DWORD policy = PROCESS_CREATION_ALL_APPLICATION_PACKAGES_OPT_OUT;
+	check(UpdateProcThreadAttribute(list, 0, PROC_THREAD_ATTRIBUTE_SECURITY_CAPABILITIES, &security, sizeof(security), nullptr, nullptr) != FALSE, "set_appcontainer");
+	if (lpac) check(UpdateProcThreadAttribute(list, 0, PROC_THREAD_ATTRIBUTE_ALL_APPLICATION_PACKAGES_POLICY, &policy, sizeof(policy), nullptr, nullptr) != FALSE, "set_lpac");
+	STARTUPINFOEXW startup{}; startup.StartupInfo.cb = sizeof(startup); startup.lpAttributeList = list;
+	PROCESS_INFORMATION created{};
+	const BOOL launched = CreateProcessW(executable.c_str(), command.data(), nullptr, nullptr, FALSE, CREATE_SUSPENDED | EXTENDED_STARTUPINFO_PRESENT | CREATE_UNICODE_ENVIRONMENT | CREATE_NO_WINDOW, environment.data(), directory.c_str(), &startup.StartupInfo, &created);
+	const DWORD error = GetLastError(); DeleteProcThreadAttributeList(list);
+	if (!launched) throw std::runtime_error("create_appcontainer_suspended:" + std::to_string(error));
+	if (!AssignProcessToJobObject(job, created.hProcess) || ResumeThread(created.hThread) == static_cast<DWORD>(-1)) {
+		const DWORD failure = GetLastError(); TerminateProcess(created.hProcess, 1); WaitForSingleObject(created.hProcess, 5000); CloseHandle(created.hThread); CloseHandle(created.hProcess);
+		throw std::runtime_error("assign_job_and_resume:" + std::to_string(failure));
+	}
+	return created;
+}
 
 static int child(const fs::path& stage, const fs::path& denied, unsigned short port, HANDLE inherited, DWORD volume, unsigned long long identity) {
 	unsigned passed = 0;
@@ -110,8 +131,8 @@ static int child(const fs::path& stage, const fs::path& denied, unsigned short p
 	Handle token(rawToken); DWORD actual = 0, size = 0;
 	check(GetTokenInformation(token.value, TokenIsAppContainer, &actual, sizeof(actual), &size) != FALSE, "query_appcontainer");
 	expect(actual == 1, "token_is_appcontainer");
-	check(GetTokenInformation(token.value, TokenIsLessPrivilegedAppContainer, &actual, sizeof(actual), &size) != FALSE, "query_lpac");
-	expect(actual == 1, "token_is_lpac");
+	// Prove the documented LPAC boundary by access, rather than relying on an unsupported token query class.
+	expect(!canOpen(denied.parent_path() / L"all-packages.txt", GENERIC_READ), "all_application_packages_opt_out");
 	GetTokenInformation(token.value, TokenCapabilities, nullptr, 0, &size);
 	std::vector<BYTE> capabilities(size);
 	check(size > 0 && GetTokenInformation(token.value, TokenCapabilities, capabilities.data(), size, &size) != FALSE, "query_capabilities");
@@ -159,9 +180,13 @@ static int probe(const fs::path& root, const std::wstring& profileName) {
 	fs::create_directories(output);
 	{ std::ofstream file(stage / L"input.txt"); file << "synthetic input"; }
 	{ std::ofstream file(denied); file << "synthetic other workspace"; }
+	{ std::ofstream file(root / L"all-packages.txt"); file << "synthetic all-application-packages control"; }
 	wchar_t executable[MAX_PATH]{}; check(GetModuleFileNameW(nullptr, executable, MAX_PATH) > 0, "probe_executable");
 	fs::copy_file(executable, stage / L"worker.exe");
 	Profile profile(profileName);
+	BYTE anyPackage[SECURITY_MAX_SID_SIZE]{}; DWORD sidSize = sizeof(anyPackage);
+	check(CreateWellKnownSid(WinBuiltinAnyPackageSid, nullptr, anyPackage, &sidSize) != FALSE, "all_packages_control_sid");
+	grant(root / L"all-packages.txt", anyPackage, FILE_GENERIC_READ);
 	grant(stage, profile.sid, FILE_GENERIC_READ | FILE_GENERIC_EXECUTE);
 	// Files existed before the inherited grant; grant only these synthetic copies explicitly.
 	grant(stage / L"worker.exe", profile.sid, FILE_GENERIC_READ | FILE_GENERIC_EXECUTE);
@@ -189,14 +214,6 @@ static int probe(const fs::path& root, const std::wstring& profileName) {
 	limits.BasicLimitInformation.ActiveProcessLimit = 2;
 	limits.JobMemoryLimit = 64ULL * 1024 * 1024;
 	check(SetInformationJobObject(job.value, JobObjectExtendedLimitInformation, &limits, sizeof(limits)) != FALSE, "set_job_limits");
-	SIZE_T attributeSize = 0; InitializeProcThreadAttributeList(nullptr, 2, 0, &attributeSize);
-	std::vector<BYTE> attributes(attributeSize);
-	auto list = reinterpret_cast<LPPROC_THREAD_ATTRIBUTE_LIST>(attributes.data());
-	check(InitializeProcThreadAttributeList(list, 2, 0, &attributeSize) != FALSE, "create_attributes");
-	SECURITY_CAPABILITIES security{}; security.AppContainerSid = profile.sid;
-	DWORD lpac = PROCESS_CREATION_ALL_APPLICATION_PACKAGES_OPT_OUT;
-	check(UpdateProcThreadAttribute(list, 0, PROC_THREAD_ATTRIBUTE_SECURITY_CAPABILITIES, &security, sizeof(security), nullptr, nullptr) != FALSE, "set_appcontainer");
-	check(UpdateProcThreadAttribute(list, 0, PROC_THREAD_ATTRIBUTE_ALL_APPLICATION_PACKAGES_POLICY, &lpac, sizeof(lpac), nullptr, nullptr) != FALSE, "set_lpac");
 	std::wstring command = quote((stage / L"worker.exe").wstring()) + L" --child " + quote(stage.wstring()) + L" " + quote(denied.wstring()) + L" " + std::to_wstring(ntohs(address.sin_port)) + L" " + std::to_wstring(reinterpret_cast<ULONG_PTR>(privateFile.value)) + L" " + std::to_wstring(identity.dwVolumeSerialNumber) + L" " + std::to_wstring(fileId(identity));
 	wchar_t windows[MAX_PATH]{}; check(GetWindowsDirectoryW(windows, MAX_PATH) > 0, "windows_directory");
 	LPWSTR sidText = nullptr, folder = nullptr;
@@ -208,15 +225,14 @@ static int probe(const fs::path& root, const std::wstring& profileName) {
 	for (const std::wstring& entry : { L"APPDATA=" + appData, L"LOCALAPPDATA=" + appData, L"SystemRoot=" + std::wstring(windows), L"TEMP=" + output.wstring(), L"TMP=" + output.wstring(), L"USERPROFILE=" + appData }) { environment += entry; environment += L'\0'; }
 	environment += L'\0';
 	SetEnvironmentVariableW(L"PACKX_PROBE_SECRET", L"synthetic-never-inherit");
-	STARTUPINFOEXW startup{}; startup.StartupInfo.cb = sizeof(startup); startup.lpAttributeList = list;
-	PROCESS_INFORMATION created{};
-	const BOOL launched = CreateProcessW((stage / L"worker.exe").c_str(), command.data(), nullptr, nullptr, FALSE, CREATE_SUSPENDED | EXTENDED_STARTUPINFO_PRESENT | CREATE_UNICODE_ENVIRONMENT | CREATE_NO_WINDOW, environment.data(), stage.c_str(), &startup.StartupInfo, &created);
-	const DWORD launchError = GetLastError();
-	DeleteProcThreadAttributeList(list);
-	if (!launched) throw std::runtime_error("create_lpac_suspended:" + std::to_string(launchError));
+	// A separate fixed AppContainer control must read the AAP-only synthetic file; LPAC must then fail to read it.
+	const auto controlProcess = launch(stage / L"worker.exe", quote((stage / L"worker.exe").wstring()) + L" --regular-control " + quote((root / L"all-packages.txt").wstring()), stage, environment, profile.sid, job.value, false);
+	Handle controlHandle(controlProcess.hProcess), controlThread(controlProcess.hThread);
+	check(WaitForSingleObject(controlHandle.value, 5000) == WAIT_OBJECT_0, "regular_appcontainer_control_timeout");
+	DWORD controlExit = 1; check(GetExitCodeProcess(controlHandle.value, &controlExit) != FALSE && controlExit == 0, "regular_appcontainer_control_read");
+	controlThread.close(); controlHandle.close();
+	const auto created = launch(stage / L"worker.exe", command, stage, environment, profile.sid, job.value, true);
 	Handle process(created.hProcess), thread(created.hThread);
-	if (!AssignProcessToJobObject(job.value, process.value)) { const DWORD error = GetLastError(); TerminateProcess(process.value, 1); WaitForSingleObject(process.value, 5000); throw std::runtime_error("assign_job_before_resume:" + std::to_string(error)); }
-	check(ResumeThread(thread.value) != static_cast<DWORD>(-1), "resume_contained_process");
 	const auto reportPath = output / L"report.txt";
 	for (unsigned i = 0; i < 100 && !fs::exists(reportPath); ++i) {
 		if (WaitForSingleObject(process.value, 50) == WAIT_OBJECT_0) break;
@@ -242,6 +258,11 @@ static int probe(const fs::path& root, const std::wstring& profileName) {
 int wmain(int argc, wchar_t** argv) {
 	try {
 		if (argc == 2 && std::wstring(argv[1]) == L"--sleep") { Sleep(INFINITE); return 1; }
+		if (argc == 3 && std::wstring(argv[1]) == L"--regular-control") {
+			HANDLE raw = nullptr; check(OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &raw) != FALSE, "control_token"); Handle token(raw);
+			DWORD actual = 0, size = 0; check(GetTokenInformation(token.value, TokenIsAppContainer, &actual, sizeof(actual), &size) != FALSE && actual == 1, "control_is_appcontainer");
+			check(canOpen(argv[2], GENERIC_READ), "control_reads_all_packages_file"); return 0;
+		}
 		if (argc == 8 && std::wstring(argv[1]) == L"--child") {
 			try { return child(argv[2], argv[3], static_cast<unsigned short>(std::stoul(argv[4])), reinterpret_cast<HANDLE>(std::stoull(argv[5])), std::stoul(argv[6]), std::stoull(argv[7])); }
 			catch (const std::exception& error) { writeReport(argv[2], std::string("error ") + error.what()); return 1; }
