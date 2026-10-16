@@ -158,7 +158,7 @@ static void verifyHostJobControl(const fs::path& executable, const fs::path& sta
 	std::cerr << "host_job_control:descendant_inherits_job; breakaway_denied; root_and_descendant_terminated\n";
 }
 
-static int probe(const fs::path& root, const std::wstring& profileName, const fs::path& worker) {
+static int probe(const fs::path& root, const std::wstring& profileName, const fs::path& worker, bool diagnosticOnly) {
 	check(fs::is_directory(root) && fs::is_empty(root), "fresh_probe_directory");
 	const fs::path stage = root / L"stage", output = stage / L"output", denied = root / L"denied.txt";
 	fs::create_directories(output);
@@ -263,14 +263,17 @@ static int probe(const fs::path& root, const std::wstring& profileName, const fs
 	profile.remove();
 	std::ifstream diagnostic(output / L"network-diagnostic.txt"); std::string boundary; std::getline(diagnostic, boundary);
 	std::cerr << "lpac_boundary:" << boundary << '\n';
-	std::cout << "{\"probe\":\"windows-lpac-fixed-program\",\"childAssertions\":" << passed << ",\"privateHandleNotInherited\":true,\"regularNetworkInitializationError\":" << regularNetworkInitialization << ",\"networkInitializationError\":" << networkInitialization << ",\"networkConnectionError\":" << networkError << ",\"catalogAccessError\":" << catalogAccess << ",\"networkObservation\":\"" << networkObservation << "\",\"unsandboxedNetworkControl\":{\"initializationError\":0,\"connectionError\":0,\"catalogAccessError\":0,\"observation\":\"connected\"},\"networkAccessDenied\":" << (networkDenied ? "true" : "false") << ",\"singleProcessJobRestricted\":true,\"legalHostSingleProcessDenied\":true,\"legalHostJobTreeTerminated\":true,\"lpacProcessTerminated\":true,\"profileDeleted\":true}\n";
-	return passed == 14 && networkDenied ? 0 : 1;
+	std::cout << "{\"schemaVersion\":\"windows-isolation-experiment.v1\",\"experimentOnly\":true,\"productionAdapterEnabled\":false,\"mode\":\"" << (diagnosticOnly ? "diagnostic" : "strict") << "\",";
+	std::cout << "\"probe\":\"windows-lpac-fixed-program\",\"childAssertions\":" << passed << ",\"privateHandleNotInherited\":true,\"regularNetworkInitializationError\":" << regularNetworkInitialization << ",\"networkInitializationError\":" << networkInitialization << ",\"networkConnectionError\":" << networkError << ",\"catalogAccessError\":" << catalogAccess << ",\"networkObservation\":\"" << networkObservation << "\",\"unsandboxedNetworkControl\":{\"initializationError\":0,\"connectionError\":0,\"catalogAccessError\":0,\"observation\":\"connected\"},\"networkAccessDenied\":" << (networkDenied ? "true" : "false") << ",\"singleProcessJobRestricted\":true,\"legalHostSingleProcessDenied\":true,\"legalHostJobTreeTerminated\":true,\"lpacProcessTerminated\":true,\"profileDeleted\":true}\n";
+	const bool networkVerified = passed == 14 && networkDenied && networkInitialization == 0 && networkError == WSAEACCES && networkObservation == "access_denied";
+	const bool characterizedUnavailable = passed == 13 && !networkDenied && networkInitialization == WSASYSCALLFAILURE && networkError == -1 && catalogAccess == ERROR_ACCESS_DENIED && networkObservation == "initialization_failed";
+	return networkVerified || (diagnosticOnly && characterizedUnavailable) ? 0 : 1;
 }
 
 int wmain(int argc, wchar_t** argv) {
 	SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX | SEM_NOOPENFILEERRORBOX);
 	try {
-		check(argc == 5 && std::wstring(argv[1]) == L"--probe", "fixed_probe_arguments");
-		return probe(argv[2], argv[3], argv[4]);
+		check(argc == 5 && (std::wstring(argv[1]) == L"--probe" || std::wstring(argv[1]) == L"--diagnose"), "fixed_probe_arguments");
+		return probe(argv[2], argv[3], argv[4], std::wstring(argv[1]) == L"--diagnose");
 	} catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }
 }

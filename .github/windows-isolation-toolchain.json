@@ -1,4 +1,6 @@
 {
+	"purpose": "diagnostic_only",
+	"productionAdapterEnabled": false,
 	"visualStudioVersion": "18.10.12224.181",
 	"visualStudioRange": "[18.10.12224.181,18.10.12224.182)",
 	"windowsSdkVersion": "10.0.26100.0",

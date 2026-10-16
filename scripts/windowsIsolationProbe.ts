@@ -1,7 +1,25 @@
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
+
+export function assessWindowsIsolationReport(value: unknown) {
+	const reject = (message: string): never => { throw new Error(`Invalid Windows isolation experiment: ${message}`); };
+	if (!value || typeof value !== "object" || Array.isArray(value)) reject("missing report");
+	const report = value as Record<string, unknown>;
+	if (report.schemaVersion !== "windows-isolation-experiment.v1" || report.experimentOnly !== true || report.productionAdapterEnabled !== false || (report.mode !== "diagnostic" && report.mode !== "strict")) reject("experiment boundary changed");
+	for (const key of ["privateHandleNotInherited", "singleProcessJobRestricted", "legalHostSingleProcessDenied", "legalHostJobTreeTerminated", "lpacProcessTerminated", "profileDeleted"]) {
+		if (report[key] !== true) reject(`required evidence missing: ${key}`);
+	}
+	const control = report.unsandboxedNetworkControl as Record<string, unknown> | undefined;
+	if (!control || control.initializationError !== 0 || control.connectionError !== 0 || control.catalogAccessError !== 0 || control.observation !== "connected" || report.regularNetworkInitializationError !== 0) reject("positive network control failed");
+	const networkGate = report.networkObservation === "access_denied" && report.networkInitializationError === 0 && report.networkConnectionError === 10013 && report.networkAccessDenied === true && report.childAssertions === 14 ? "verified" as const
+		: report.networkObservation === "initialization_failed" && report.networkInitializationError === 10107 && report.networkConnectionError === -1 && report.catalogAccessError === 5 && report.networkAccessDenied === false && report.childAssertions === 13 ? "blocked" as const
+		: reject("network denial was not verified or its initialization failure was not characterized");
+	// This is a CI experiment, with no registered production executor. A diagnostic pass cannot enable one.
+	return { schemaVersion: "windows-isolation-assessment.v1" as const, experimentValidated: true as const, productionAdapterEnabled: false as const,
+		mode: report.mode as "diagnostic" | "strict", networkGate, passedChildAssertions: report.childAssertions as number, requiredChildAssertions: 14 as const };
+}
 
 /** Fixed CI experiment, never a production Tool executor. No scripts or system features are installed. */
 export function runWindowsIsolationProbe(environment: NodeJS.ProcessEnv): string {
@@ -10,6 +28,7 @@ export function runWindowsIsolationProbe(environment: NodeJS.ProcessEnv): string
 	// The compiler batch accepts only the known hosted checkout path, never document/model input.
 	if (!/^[A-Za-z]:\\[A-Za-z0-9_.\\-]+$/.test(root)) throw new Error("Unsupported CI checkout path for native probe");
 	const policy = JSON.parse(readFileSync(".github/windows-isolation-toolchain.json", "utf8"));
+	if (policy.purpose !== "diagnostic_only" || policy.productionAdapterEnabled !== false) throw new Error("Windows production adapter must remain disabled");
 	const vswhere = "C:\\Program Files (x86)\\Microsoft Visual Studio\\Installer\\vswhere.exe";
 	const discovery = { encoding: "utf8" as const, timeout: 10_000, env: environment };
 	const help = execFileSync(vswhere, ["-?"], discovery).split(/\r?\n/)[0];
@@ -32,10 +51,18 @@ export function runWindowsIsolationProbe(environment: NodeJS.ProcessEnv): string
 		const options = { encoding: "utf8" as const, timeout: 30_000, maxBuffer: 2 * 1024 * 1024, env: environment };
 		const compiler = execFileSync(join(environment.SystemRoot ?? "C:\\Windows", "System32/cmd.exe"), ["/d", "/s", "/c", batch], { ...options, cwd: build });
 		console.error("fixed_probe:compile_completed; starting_native_probe");
-		const output = execFileSync(binary, ["--probe", attempt, profile, worker], options);
-		const report = JSON.parse(output);
-		if (report.childAssertions !== 14 || report.privateHandleNotInherited !== true || report.networkAccessDenied !== true || report.networkInitializationError !== 0 || report.singleProcessJobRestricted !== true || report.legalHostSingleProcessDenied !== true || report.legalHostJobTreeTerminated !== true || report.lpacProcessTerminated !== true || report.profileDeleted !== true) throw new Error("Native isolation evidence is incomplete");
-		return `${JSON.stringify({ visualStudio: version, windowsSdk: policy.windowsSdkVersion, profileId: profile })}\n${compiler}\n${output}`;
+		const output = execFileSync(binary, ["--diagnose", attempt, profile, worker], options);
+		const assessment = assessWindowsIsolationReport(JSON.parse(output));
+		if (assessment.mode !== "diagnostic") throw new Error("Diagnostic probe did not run");
+		// Independently exercise the strict gate with fresh private resources. An unavailable network must still reject.
+		const strictAttempt = join(scratch, "strict-attempt"), strictProfile = `Packx.Probe.${randomUUID().replaceAll("-", "")}`;
+		mkdirSync(strictAttempt);
+		console.error(`fixed_probe:strict_network_gate_attempt; profile=${strictProfile}`);
+		const strict = spawnSync(binary, ["--probe", strictAttempt, strictProfile, worker], options);
+		if (strict.error || ![0, 1].includes(strict.status ?? -1)) throw new Error(`Strict probe infrastructure failure: ${strict.error?.message ?? strict.status}\n${strict.stderr ?? ""}`);
+		const strictAssessment = assessWindowsIsolationReport(JSON.parse(strict.stdout));
+		if (strictAssessment.mode !== "strict" || strictAssessment.networkGate !== assessment.networkGate || strict.status !== (assessment.networkGate === "blocked" ? 1 : 0)) throw new Error("Strict probe no longer enforces the network gate");
+		return `${JSON.stringify({ visualStudio: version, windowsSdk: policy.windowsSdkVersion, profileId: profile, strictProfileId: strictProfile })}\n${compiler}\n${output}\n${JSON.stringify({ assessment, strictAssessment, strictExitCode: strict.status })}`;
 	} catch (cause) {
 		failed = true;
 		const diagnostic = cause as { message?: string; stdout?: string; stderr?: string };

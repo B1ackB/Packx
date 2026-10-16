@@ -1,6 +1,10 @@
 # 原生隔离探针与清理回归：2026-10-16
 
-PR：[44](https://github.com/B1ackB/Packx/pull/44)，保持 draft。此文件记录失败与边界，不作为 Windows 产品支持声明。临时交接 `/tmp/packx-production-handoff-2026-10-16.md` 的关键事实归档于此；原有 review-v27 未提交材料未纳入。
+PR：[44](https://github.com/B1ackB/Packx/pull/44)，收窄为默认未启用的实验合同，只有当前提交全部必要 CI 成功后才可合并。此文件记录失败与边界，不作为 Windows 产品支持声明。临时交接 `/tmp/packx-production-handoff-2026-10-16.md` 的关键事实归档于此；原有 review-v27 未提交材料未纳入。
+
+## 当前验收范围
+
+诊断模式执行全部检查，已分类的初始化不可用仍显示 13/14、网络门禁 blocked、生产 Adapter 禁用；严格模式必须继续返回 1。CI 分别用新建私有资源实际运行诊断和严格模式，并验证这个拒绝；没有跳过连接探针或把初始化失败称为网络通过。协议版本区分实验报告与 Tool Execution Result，篡改生产启用标记、正向控制失败、缺失清理、意外连接成功或伪造网络通过均由离线回归拒绝。真实网络拒绝即使通过，也不等于 Host 崩溃／磁盘配额／完整工具执行器已通过。
 
 ## 已合并基线
 
@@ -39,7 +43,13 @@ PR41（平台路径边界）合并为 `6b77141bb45bddec4e1f9e83bf9aaba28f6e4a9c`
 
 此轮唯一未计数项仍是网络：`networkInitializationError=10107, networkAccessDenied=false`，普通 AppContainer 初始化为 0；`connect=-1` 表示没有执行连接，不能当作拒绝连接通过。探针以退出码 1 阻断 CI，PR44 不合并。后续删除诊断期间的动态系统 API 表，恢复普通 Windows 导入，保留 worker／broker 分离、单进程合同及全部检查，避免把失败实验的复杂度长期保留；对应提交仍须真实 CI。
 
-## macOS 清理回归
+## 同一函数网络对照
+
+[`6d2531a` 的运行](https://github.com/B1ackB/Packx/actions/runs/38951508155)，Windows job `117143762662`：同一个 `inspectNetwork` 函数在相同 worker、环境及单进程 Job 的合法非沙箱控制中初始化 0、连接成功、目录访问 0；LPAC 为 `startup=10107, connect=-1, catalogAccess=5, observation=initialization_failed`。这证明当前未到连接阶段，并存在不可读的协议目录依赖；没有跟踪 Winsock 内部调用，不能将具体失败调用断言为该注册表访问，更不能称为网络策略拒绝。
+
+主源：[微软 LPAC 文档](https://learn.microsoft.com/en-us/windows/win32/secauthz/implementing-an-appcontainer) 说明零 capability LPAC 的注册表访问限制；[Winsock 错误码](https://learn.microsoft.com/en-us/windows/win32/winsock/windows-sockets-error-codes-2) 将 10107 定义为通用系统调用失败，包含协议目录注册表失败等场景。没有添加 registryRead／网络 capability 或修改系统配置以使测试通过。
+
+## macOS 清理回归（已独立合并）
 
 上述 f814e3a 运行同时在 `macOsSeatbeltSandboxedToolExecutor.test.ts` 的超时清理断言失败：`kill(pid, 0)` 未抛错。该调用无法区分活进程、僵尸或 PID 重用，历史日志未保存足够状态，不能断言当时属于其中哪一种。
 

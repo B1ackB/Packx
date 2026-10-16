@@ -29,7 +29,7 @@
 
 ## 尚缺证据
 
-阶段 3B 的 [PR #44](https://github.com/B1ackB/Packx/pull/44) 仍为 draft：零 capability LPAC 的 Winsock 初始化和后代创建尚未通过，不能以启动失败作为网络拒绝通过。真实错误、macOS 清理断言改进及此前交接已持久化于[探针证据](evidence/windows-isolation-probe-2026-10-16.md)。未完成隔离验收前不接入 Windows 文档解析。
+阶段 3B 的 [PR #44](https://github.com/B1ackB/Packx/pull/44) 收窄为默认禁用的实验边界：同一函数的非沙箱初始化／连接成功、LPAC 初始化 10107／目录访问 5 已对照；不能以启动失败作为网络策略通过。诊断报告可验收该不可用状态，但 CI 还须实际验证严格模式仍退出 1，所有生产 Adapter 标记保持 false。只有当前提交全部必要 CI 成功才能合并实验代码，不能由此启用 Windows 文档解析。真实错误、macOS 清理回归及此前交接已持久化于[探针证据](evidence/windows-isolation-probe-2026-10-16.md)。
 
 独立 [PR #45](https://github.com/B1ackB/Packx/pull/45) 已在全部必要 CI 成功后合并为 `a71c30b7c95ec8c1cd69dda34d8bee0dfc811ac6`，完成身份感知的 macOS 成功／超时／取消／执行失败清理回归和 spawn 异常清理（真实原生 47/47）。Windows 的创建时 NoChild 属性组合于 main 前退出 `0xC0000142`，改用 ADR0032 的内核单进程 Job 合同后，LPAC 已完成 13 项独立检查及根进程／profile 清理；合法宿主的单进程拒绝和双进程树清理亦通过。网络 Winsock 初始化仍返回 10107，未执行连接，继续阻断；没有增加 capability 或将宿主证据冒充 LPAC 成功。Windows 文档 Adapter 保持未接入。
 

@@ -15,6 +15,7 @@
 4. 隔离候选采用微软公开的 AppContainer／LPAC 与 Job Object 机制。AppContainer 提供身份／资源边界，Job Object 提供资源和进程树生命周期；不能把 Job Object 或路径检查单独称为安全沙箱。实现前须证明文件、网络、环境、取消及 Host 崩溃的实际边界。
 5. Windows 文档读取按已验证格式逐项开放，校验签名／格式、输入字节／解压／输出／时间预算、失败分类、源 hash、解析器版本和 Artifact 来源。未支持格式明确失败，不伪造空文本成功。
 6. 首个 LPAC 候选只允许一个工具进程，使用内核 Job `ActiveProcessLimit=1`、禁止 breakaway 和关闭 Job 后强制终止；暂停创建、入 Job 后才恢复。Host 查询实际 Job 限制，LPAC 负向验证派生拒绝及无法取得宿主的创建进程／复制句柄权限。合法固定宿主独立验证单进程限制与 breakaway 拒绝，另用允许两个进程的 Job 验证父子生命周期。创建时的 `PROCESS_CREATION_CHILD_PROCESS_RESTRICTED` 组合在已固定镜像上反复于 main 前失败（含最小 worker，`0xC0000142`），不能将它称为可用防线；这个替代方案保持“不能派生”的能力合同，未增加 LPAC capability、文件／网络权限或特权句柄。需要多进程的工具不在首段支持范围。这些控制不取消原定网络、Host 崩溃、取消和资源验收；任何未通过项继续阻断生产 Adapter。
+7. 固定实验与生产可用性明确分离。`--diagnose` 仅允许“真实网络拒绝”或“经同一非沙箱正向探针及目录访问对照确认的初始化不可用”两种已分类结果；后者仍记录 13/14，网络门禁 `blocked`，不宣称网络隔离通过。默认 `--probe` 严格模式在后者必须退出 1。CI 用新建 profile／目录分别运行两种模式，要求诊断完整且严格模式保持拒绝；不是跳过网络检查。两种模式均固定 `experimentOnly=true, productionAdapterEnabled=false`，未注册生产 Executor；诊断回归通过只允许合并实验边界，不能启用 Windows 文档读取。
 
 ## 替代方案与影响
 
