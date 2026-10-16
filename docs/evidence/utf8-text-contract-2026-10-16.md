@@ -9,3 +9,5 @@
 后续接入必须在已验证的 Sandbox Port 内执行，并由 Host 验证租户/文件权限、源版本、完成证据和 Artifact 版本/来源。这个内存函数不是沙箱、不读取任意路径、不承诺抢占同步解码；执行器仍须负责超时/取消/资源/崩溃恢复。它的成功不允许绕过 Windows 网络隔离门禁。
 
 离线回归覆盖四种格式、Unicode/换行/BOM、畸形编码、伪装文件、输入与输出边界、来源变化、取消及重复计算。Windows 必需套件明确包含该文件，实际运行结果须以 PR 当前 head 为准；不冒充 Windows 已支持客户文档读取。
+
+[PR46](https://github.com/B1ackB/Packx/pull/46) 的 `47116a7` 已通过[全部必要CI](https://github.com/B1ackB/Packx/actions/runs/38953331357)：真实Windows111/111、其中本合同12/12，macOS原生47/47，固定eval/构建/浏览器均通过且无跳过。作者自审后于2026-10-16 19:16:39 UTC合并为 `9d48164374232d3af1f7a9e56f992ed810b593f0`；没有注册Windows生产读取器。

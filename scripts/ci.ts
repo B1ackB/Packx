@@ -22,6 +22,7 @@ const windowsFiles = [
 	"src/agent/sandboxPaths.test.ts",
 	"eval/windowsIsolationProbe.test.ts",
 	"server/runtime/textDocumentInspection.test.ts",
+	"eval/ciCommand.test.ts",
 ];
 
 function ensure(condition: unknown, message: string): asserts condition {
@@ -94,9 +95,10 @@ export function testEnvironment(input: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
 	return { ...Object.fromEntries(allowed.filter((key) => input[key] !== undefined).map((key) => [key, input[key]])), PATH: [dirname(process.execPath), input.PATH].filter(Boolean).join(delimiter), CI: "true", npm_config_audit: "false", npm_config_fund: "false", npm_config_update_notifier: "false" };
 }
 
-function execute(file: string, args: string[], extraEnv: NodeJS.ProcessEnv = {}, timeout = 10 * 60_000) {
+export function execute(file: string, args: string[], extraEnv: NodeJS.ProcessEnv = {}, timeout = 10 * 60_000) {
 	const result = spawnSync(file, args, { env: { ...testEnvironment(process.env), ...extraEnv }, encoding: "utf8", timeout, maxBuffer: 64 * 1024 * 1024 });
-	ensure(!result.error && result.status === 0, `Command failed: ${basename(file)} ${args.slice(0, 3).join(" ")} (status ${result.status ?? "unavailable"})\n${(result.stdout + result.stderr).slice(-12_000)}`);
+	const errorCode = (result.error as NodeJS.ErrnoException | undefined)?.code;
+	if (result.error || result.status !== 0) throw new Error(`Command failed: ${basename(file)} ${args.slice(0, 3).join(" ")} (status ${result.status ?? "unavailable"}${errorCode ? `, error ${errorCode}` : ""})\n${`${result.stdout ?? ""}${result.stderr ?? ""}`.slice(-12_000)}`, { cause: result.error });
 	return result.stdout;
 }
 function npm(args: string[], env: NodeJS.ProcessEnv = {}) {
