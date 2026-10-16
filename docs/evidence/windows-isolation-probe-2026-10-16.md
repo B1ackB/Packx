@@ -35,6 +35,10 @@ PR41（平台路径边界）合并为 `6b77141bb45bddec4e1f9e83bf9aaba28f6e4a9c`
 
 后续候选按 ADR0032 改用显式内核 Job 单进程合同：`ActiveProcessLimit=1`、无 breakaway、暂停入 Job 后才执行、Job 关闭强制终止；Host 查询实际限制，合法宿主单独验证拒绝派生与 breakaway，LPAC 继续验证自己的派生拒绝，并新增对宿主创建进程／复制句柄权限的拒绝与 Host 正向控制。原两进程宿主的树清理控制保留。没有将 Job 当作文件／网络沙箱，LPAC、零 capability、文件边界和真实网络拒绝条件保持不变；尚未通过前不启用生产 Adapter。新候选不再宣称创建时 NoChildProcess mitigation 可用。
 
+[`2e76a46` 的运行](https://github.com/B1ackB/Packx/actions/runs/38950301532)，Windows job `117139707188`：83 项通过；双进程树控制、单进程派生与 breakaway 拒绝均通过。LPAC 完成 13 项独立检查（含宿主高权限句柄拒绝），报告 `singleProcessJobRestricted=true, legalHostSingleProcessDenied=true, legalHostJobTreeTerminated=true, lpacProcessTerminated=true, profileDeleted=true`。主程序启动与完整清理证据已取得，不再将先前 NoChild 创建属性当成可用防线。
+
+此轮唯一未计数项仍是网络：`networkInitializationError=10107, networkAccessDenied=false`，普通 AppContainer 初始化为 0；`connect=-1` 表示没有执行连接，不能当作拒绝连接通过。探针以退出码 1 阻断 CI，PR44 不合并。后续删除诊断期间的动态系统 API 表，恢复普通 Windows 导入，保留 worker／broker 分离、单进程合同及全部检查，避免把失败实验的复杂度长期保留；对应提交仍须真实 CI。
+
 ## macOS 清理回归
 
 上述 f814e3a 运行同时在 `macOsSeatbeltSandboxedToolExecutor.test.ts` 的超时清理断言失败：`kill(pid, 0)` 未抛错。该调用无法区分活进程、僵尸或 PID 重用，历史日志未保存足够状态，不能断言当时属于其中哪一种。

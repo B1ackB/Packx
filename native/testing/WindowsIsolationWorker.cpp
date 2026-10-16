@@ -2,7 +2,6 @@
 #define NOMINMAX
 #include <winsock2.h>
 #include <windows.h>
-#include <bit>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -45,77 +44,20 @@ static void writeReport(const fs::path& stage, const std::string& value) {
 	{ std::ofstream report(pending); report << value; check(report.good(), "write_probe_report"); }
 	fs::rename(pending, stage / L"output" / L"report.txt");
 }
-struct NetworkEvidence {
-	int initialization = -1;
-	int error = -1;
-	bool denied = false;
-	DWORD moduleLoadError = 0;
-};
-template <typename T> static T systemApi(HMODULE module, const char* name) {
-	const auto address = GetProcAddress(module, name);
-	check(address != nullptr, name);
-	return std::bit_cast<T>(address);
-}
-static NetworkEvidence inspectNetwork(unsigned short port) {
-	NetworkEvidence result;
-	// Load after entry, so an unavailable network DLL cannot hide independent file/Job checks.
-	const HMODULE module = LoadLibraryExW(L"ws2_32.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32);
-	if (!module) { result.moduleLoadError = GetLastError(); return result; }
-	const auto wsStartup = systemApi<decltype(&::WSAStartup)>(module, "WSAStartup");
-	const auto wsCleanup = systemApi<decltype(&::WSACleanup)>(module, "WSACleanup");
-	const auto wsSocket = systemApi<decltype(&::socket)>(module, "socket");
-	const auto wsClose = systemApi<decltype(&::closesocket)>(module, "closesocket");
-	const auto wsNonblock = systemApi<decltype(&::ioctlsocket)>(module, "ioctlsocket");
-	const auto wsConnect = systemApi<decltype(&::connect)>(module, "connect");
-	const auto wsError = systemApi<decltype(&::WSAGetLastError)>(module, "WSAGetLastError");
-	const auto wsSelect = systemApi<decltype(&::select)>(module, "select");
-	const auto wsStatus = systemApi<decltype(&::getsockopt)>(module, "getsockopt");
-	const auto wsHtons = systemApi<decltype(&::htons)>(module, "htons");
-	const auto wsHtonl = systemApi<decltype(&::htonl)>(module, "htonl");
-	WSADATA sockets{};
-	result.initialization = wsStartup(MAKEWORD(2, 2), &sockets);
-	if (result.initialization == 0 && port != 0) {
-		SOCKET connection = wsSocket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-		check(connection != INVALID_SOCKET, "child_socket");
-		u_long nonblocking = 1; check(wsNonblock(connection, FIONBIO, &nonblocking) == 0, "nonblocking_network_probe");
-		sockaddr_in address{}; address.sin_family = AF_INET; address.sin_port = wsHtons(port); address.sin_addr.s_addr = wsHtonl(INADDR_LOOPBACK);
-		const int connected = wsConnect(connection, reinterpret_cast<sockaddr*>(&address), sizeof(address));
-		result.error = wsError();
-		if (connected == SOCKET_ERROR && result.error == WSAEWOULDBLOCK) {
-			fd_set writable; FD_ZERO(&writable); FD_SET(connection, &writable);
-			fd_set failed; FD_ZERO(&failed); FD_SET(connection, &failed); timeval timeout{1, 0};
-			const int ready = wsSelect(0, nullptr, &writable, &failed, &timeout);
-			int length = sizeof(result.error);
-			if (ready > 0) check(wsStatus(connection, SOL_SOCKET, SO_ERROR, reinterpret_cast<char*>(&result.error), &length) == 0, "network_probe_status");
-			else result.error = WSAETIMEDOUT;
-		}
-		wsClose(connection);
-		result.denied = connected == SOCKET_ERROR && result.error == WSAEACCES;
-	}
-	if (result.initialization == 0) wsCleanup();
-	FreeLibrary(module);
-	return result;
-}
-
 static int child(const fs::path& stage, const fs::path& denied, unsigned short port, DWORD hostPid) {
 	unsigned passed = 0;
 	auto expect = [&](bool ok, const char* name) { check(ok, name); ++passed; std::ofstream progress(stage / L"output" / L"progress.txt"); progress << passed << " " << name; };
-	const HMODULE security = LoadLibraryExW(L"advapi32.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32);
-	check(security != nullptr, "load_security_api");
-	const auto openToken = systemApi<decltype(&::OpenProcessToken)>(security, "OpenProcessToken");
-	const auto getTokenInfo = systemApi<decltype(&::GetTokenInformation)>(security, "GetTokenInformation");
 	HANDLE rawToken = nullptr;
-	check(openToken(GetCurrentProcess(), TOKEN_QUERY, &rawToken) != FALSE, "query_probe_token");
+	check(OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &rawToken) != FALSE, "query_probe_token");
 	Handle token(rawToken); DWORD actual = 0, size = 0;
-	check(getTokenInfo(token.value, TokenIsAppContainer, &actual, sizeof(actual), &size) != FALSE, "query_appcontainer");
+	check(GetTokenInformation(token.value, TokenIsAppContainer, &actual, sizeof(actual), &size) != FALSE, "query_appcontainer");
 	expect(actual == 1, "token_is_appcontainer");
 	// Prove the documented LPAC boundary by access, rather than relying on an unsupported token query class.
 	expect(!canOpen(denied.parent_path() / L"all-packages.txt", GENERIC_READ), "all_application_packages_opt_out");
-	getTokenInfo(token.value, TokenCapabilities, nullptr, 0, &size);
+	GetTokenInformation(token.value, TokenCapabilities, nullptr, 0, &size);
 	std::vector<BYTE> capabilities(size);
-	check(size > 0 && getTokenInfo(token.value, TokenCapabilities, capabilities.data(), size, &size) != FALSE, "query_capabilities");
+	check(size > 0 && GetTokenInformation(token.value, TokenCapabilities, capabilities.data(), size, &size) != FALSE, "query_capabilities");
 	expect(reinterpret_cast<TOKEN_GROUPS*>(capabilities.data())->GroupCount == 0, "no_capabilities");
-	FreeLibrary(security);
 	expect(canOpen(stage / L"input.txt", GENERIC_READ), "declared_input_read");
 	expect(!canOpen(stage / L"input.txt", GENERIC_WRITE), "declared_input_write_denied");
 	expect(!canOpen(denied, GENERIC_READ), "other_workspace_read_denied");
@@ -125,14 +67,33 @@ static int child(const fs::path& stage, const fs::path& denied, unsigned short p
 	expect(GetEnvironmentVariableW(L"PACKX_PROBE_SECRET", secret, 64) == 0, "parent_environment_not_inherited");
 	Handle host(OpenProcess(PROCESS_CREATE_PROCESS | PROCESS_DUP_HANDLE, FALSE, hostPid));
 	expect(host.value == nullptr, "privileged_host_process_handle_denied");
-	const auto network = inspectNetwork(port);
-	const int networkInitialization = network.initialization, networkError = network.error;
-	const bool networkDenied = network.denied;
+	WSADATA sockets{};
+	const int networkInitialization = WSAStartup(MAKEWORD(2, 2), &sockets);
+	int networkError = -1;
+	bool networkDenied = false;
+	if (networkInitialization == 0) {
+		SOCKET connection = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+		check(connection != INVALID_SOCKET, "child_socket");
+		u_long nonblocking = 1; check(ioctlsocket(connection, FIONBIO, &nonblocking) == 0, "nonblocking_network_probe");
+		sockaddr_in address{}; address.sin_family = AF_INET; address.sin_port = htons(port); address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+		const int connected = connect(connection, reinterpret_cast<sockaddr*>(&address), sizeof(address));
+		networkError = WSAGetLastError();
+		if (connected == SOCKET_ERROR && networkError == WSAEWOULDBLOCK) {
+			fd_set writable; FD_ZERO(&writable); FD_SET(connection, &writable);
+			fd_set failed; FD_ZERO(&failed); FD_SET(connection, &failed); timeval timeout{1, 0};
+			const int ready = select(0, nullptr, &writable, &failed, &timeout);
+			int length = sizeof(networkError);
+			if (ready > 0) check(getsockopt(connection, SOL_SOCKET, SO_ERROR, reinterpret_cast<char*>(&networkError), &length) == 0, "network_probe_status");
+			else networkError = WSAETIMEDOUT;
+		}
+		closesocket(connection); WSACleanup();
+		networkDenied = connected == SOCKET_ERROR && networkError == WSAEACCES;
+	}
 	// Do not count initialization failure as a network-denial pass. Collect the other independent boundaries first.
 	if (networkDenied) expect(true, "loopback_network_denied");
 	PROCESS_MITIGATION_CHILD_PROCESS_POLICY childPolicy{};
 	check(GetProcessMitigationPolicy(GetCurrentProcess(), ProcessChildProcessPolicy, &childPolicy, sizeof(childPolicy)) != FALSE, "query_child_process_policy");
-	{ std::ofstream diagnostic(stage / L"output" / L"network-diagnostic.txt"); diagnostic << "startup=" << networkInitialization << "; connect=" << networkError << "; noChildProcessCreation=" << childPolicy.NoChildProcessCreation << "; moduleLoad=" << network.moduleLoadError << "; workerReadableExecutable=" << canOpen(stage / L"worker.exe", GENERIC_READ | GENERIC_EXECUTE); }
+	{ std::ofstream diagnostic(stage / L"output" / L"network-diagnostic.txt"); diagnostic << "startup=" << networkInitialization << "; connect=" << networkError << "; noChildProcessCreation=" << childPolicy.NoChildProcessCreation << "; workerReadableExecutable=" << canOpen(stage / L"worker.exe", GENERIC_READ | GENERIC_EXECUTE); }
 	BOOL inJob = FALSE; check(IsProcessInJob(GetCurrentProcess(), nullptr, &inJob) != FALSE, "query_job");
 	expect(inJob != FALSE, "child_is_in_job");
 	void* excessive = VirtualAlloc(nullptr, 128ULL * 1024 * 1024, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
@@ -158,7 +119,7 @@ int wmain(int argc, wchar_t** argv) {
 			STARTUPINFOW startup{}; startup.cb = sizeof(startup); PROCESS_INFORMATION created{};
 			const BOOL spawned = CreateProcessW(argv[0], command.data(), nullptr, nullptr, FALSE, CREATE_NO_WINDOW, nullptr, argv[2], &startup, &created);
 			if (single && spawned) { TerminateProcess(created.hProcess, 1); WaitForSingleObject(created.hProcess, 5000); }
-			Handle process(created.hProcess), thread(created.hThread);
+			Handle process(spawned ? created.hProcess : nullptr), thread(spawned ? created.hThread : nullptr);
 			check(single ? !spawned : spawned != FALSE, "host_control_child_creation_contract");
 			PROCESS_INFORMATION escaped{};
 			const BOOL brokeAway = CreateProcessW(argv[0], command.data(), nullptr, nullptr, FALSE, CREATE_NO_WINDOW | CREATE_BREAKAWAY_FROM_JOB, nullptr, argv[2], &startup, &escaped);
@@ -168,16 +129,12 @@ int wmain(int argc, wchar_t** argv) {
 			Sleep(INFINITE); return 1;
 		}
 		if (argc == 3 && std::wstring(argv[1]) == L"--regular-control") {
-			const HMODULE security = LoadLibraryExW(L"advapi32.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32);
-			check(security != nullptr, "control_load_security_api");
-			const auto openToken = systemApi<decltype(&::OpenProcessToken)>(security, "OpenProcessToken");
-			const auto getTokenInfo = systemApi<decltype(&::GetTokenInformation)>(security, "GetTokenInformation");
-			HANDLE raw = nullptr; check(openToken(GetCurrentProcess(), TOKEN_QUERY, &raw) != FALSE, "control_token"); Handle token(raw);
-			DWORD actual = 0, size = 0; check(getTokenInfo(token.value, TokenIsAppContainer, &actual, sizeof(actual), &size) != FALSE && actual == 1, "control_is_appcontainer");
-			FreeLibrary(security);
+			HANDLE raw = nullptr; check(OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &raw) != FALSE, "control_token"); Handle token(raw);
+			DWORD actual = 0, size = 0; check(GetTokenInformation(token.value, TokenIsAppContainer, &actual, sizeof(actual), &size) != FALSE && actual == 1, "control_is_appcontainer");
 			check(canOpen(argv[2], GENERIC_READ), "control_reads_all_packages_file");
-			const int started = inspectNetwork(0).initialization;
+			WSADATA sockets{}; const int started = WSAStartup(MAKEWORD(2, 2), &sockets);
 			{ std::ofstream status(fs::path(argv[2]).parent_path() / L"stage" / L"output" / L"network-control.txt"); status << started; check(status.good(), "write_regular_network_status"); }
+			if (started == 0) WSACleanup();
 			return 0;
 		}
 		if (argc == 6 && std::wstring(argv[1]) == L"--handle-control") {
