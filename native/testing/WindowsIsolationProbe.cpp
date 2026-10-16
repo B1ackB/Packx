@@ -272,9 +272,9 @@ static int probe(const fs::path& root, const std::wstring& profileName, const fs
 	Handle networkProcess(networkControl.hProcess), networkThread(networkControl.hThread);
 	check(WaitForSingleObject(networkProcess.value, 5000) == WAIT_OBJECT_0, "host_network_control_timeout");
 	DWORD networkControlExit = 1; check(GetExitCodeProcess(networkProcess.value, &networkControlExit) != FALSE, "host_network_control_status");
-	int hostStartup = -1, hostError = -1; LSTATUS hostCatalog = -1; std::string hostObservation;
-	{ std::ifstream report(output / L"host-network.txt"); check(static_cast<bool>(report >> hostStartup >> hostError >> hostCatalog >> hostObservation), "host_network_control_report"); }
-	check(networkControlExit == 0 && hostStartup == 0 && hostError == 0 && hostCatalog == ERROR_SUCCESS && hostObservation == "connected", "same_probe_unsandboxed_network_control");
+	int hostStartup = -1, hostError = -1, hostSocket = -1; LSTATUS hostCatalog = -1; std::string hostObservation;
+	{ std::ifstream report(output / L"host-network.txt"); check(static_cast<bool>(report >> hostStartup >> hostError >> hostCatalog >> hostObservation >> hostSocket), "host_network_control_report"); }
+	check(networkControlExit == 0 && hostStartup == 0 && hostSocket == 0 && hostError == 0 && hostCatalog == ERROR_SUCCESS && hostObservation == "connected", "same_probe_unsandboxed_network_control");
 	networkThread.close(); networkProcess.close();
 	std::cerr << "same_probe_network_control:startup=0; connected=true; catalogAccess=0\n";
 	SetEnvironmentVariableW(L"PACKX_PROBE_SECRET", L"synthetic-never-inherit");
@@ -302,8 +302,8 @@ static int probe(const fs::path& root, const std::wstring& profileName, const fs
 	for (unsigned i = 0; i < 100 && !fs::exists(reportPath); ++i) {
 		if (WaitForSingleObject(process.value, 50) == WAIT_OBJECT_0) break;
 	}
-	unsigned passed = 0; DWORD descendantPid = 0; int networkInitialization = -1, networkError = -1; LSTATUS catalogAccess = -1; bool networkDenied = false; std::string networkObservation;
-	{ std::ifstream report(reportPath); report >> passed >> descendantPid >> networkInitialization >> networkDenied >> networkError >> catalogAccess >> networkObservation; }
+	unsigned passed = 0; DWORD descendantPid = 0; int networkInitialization = -1, networkError = -1, networkSocket = -1; LSTATUS catalogAccess = -1; bool networkDenied = false; std::string networkObservation;
+	{ std::ifstream report(reportPath); report >> passed >> descendantPid >> networkInitialization >> networkDenied >> networkError >> catalogAccess >> networkObservation >> networkSocket; }
 	if (passed < (registryRead ? 15u : 13u)) {
 		std::ifstream report(reportPath); std::string error; std::getline(report, error);
 		std::ifstream progress(output / L"progress.txt"); std::string step; std::getline(progress, step);
@@ -319,12 +319,14 @@ static int probe(const fs::path& root, const std::wstring& profileName, const fs
 	if (privateRegistry) privateRegistry->remove();
 	std::ifstream diagnostic(output / L"network-diagnostic.txt"); std::string boundary; std::getline(diagnostic, boundary);
 	std::cerr << "lpac_boundary:" << boundary << '\n';
-	std::cout << "{\"schemaVersion\":\"windows-isolation-experiment.v1\",\"experimentOnly\":true,\"productionAdapterEnabled\":false,\"mode\":\"" << (diagnosticOnly ? "diagnostic" : "strict") << "\",";
+	std::cout << "{\"schemaVersion\":\"windows-isolation-experiment.v2\",\"experimentOnly\":true,\"productionAdapterEnabled\":false,\"mode\":\"" << (diagnosticOnly ? "diagnostic" : "strict") << "\",";
 	std::cout << "\"capabilityPolicy\":\"" << (registryRead ? "registry-read-only" : "zero-capabilities") << "\",\"capabilities\":" << (registryRead ? "[\"registryRead\"]" : "[]") << ",";
 	if (registryRead) std::cout << "\"privateRegistryReadDenied\":true,\"privateRegistryWriteDenied\":true,\"privateRegistryDeleted\":true,";
-	std::cout << "\"probe\":\"windows-lpac-fixed-program\",\"childAssertions\":" << passed << ",\"privateHandleNotInherited\":true,\"regularNetworkInitializationError\":" << regularNetworkInitialization << ",\"networkInitializationError\":" << networkInitialization << ",\"networkConnectionError\":" << networkError << ",\"catalogAccessError\":" << catalogAccess << ",\"networkObservation\":\"" << networkObservation << "\",\"unsandboxedNetworkControl\":{\"initializationError\":0,\"connectionError\":0,\"catalogAccessError\":0,\"observation\":\"connected\"},\"networkAccessDenied\":" << (networkDenied ? "true" : "false") << ",\"singleProcessJobRestricted\":true,\"legalHostSingleProcessDenied\":true,\"legalHostJobTreeTerminated\":true,\"lpacProcessTerminated\":true,\"profileDeleted\":true}\n";
-	const bool networkVerified = passed == (registryRead ? 16u : 14u) && networkDenied && networkInitialization == 0 && networkError == WSAEACCES && networkObservation == "access_denied";
-	const bool characterizedUnavailable = passed == 13 && !networkDenied && networkInitialization == WSASYSCALLFAILURE && networkError == -1 && catalogAccess == ERROR_ACCESS_DENIED && networkObservation == "initialization_failed";
+	std::cout << "\"probe\":\"windows-lpac-fixed-program\",\"childAssertions\":" << passed << ",\"privateHandleNotInherited\":true,\"regularNetworkInitializationError\":" << regularNetworkInitialization << ",\"networkInitializationError\":" << networkInitialization << ",\"networkSocketError\":" << networkSocket << ",\"networkConnectionError\":" << networkError << ",\"catalogAccessError\":" << catalogAccess << ",\"networkObservation\":\"" << networkObservation << "\",\"unsandboxedNetworkControl\":{\"initializationError\":0,\"socketError\":0,\"connectionError\":0,\"catalogAccessError\":0,\"observation\":\"connected\"},\"networkAccessDenied\":" << (networkDenied ? "true" : "false") << ",\"singleProcessJobRestricted\":true,\"legalHostSingleProcessDenied\":true,\"legalHostJobTreeTerminated\":true,\"lpacProcessTerminated\":true,\"profileDeleted\":true}\n";
+	const bool socketDenied = networkSocket == WSAEACCES && networkError == -1 && networkObservation == "socket_access_denied";
+	const bool connectDenied = networkSocket == 0 && networkError == WSAEACCES && networkObservation == "access_denied";
+	const bool networkVerified = passed == (registryRead ? 16u : 14u) && networkDenied && networkInitialization == 0 && (socketDenied || connectDenied);
+	const bool characterizedUnavailable = passed == 13 && !networkDenied && networkInitialization == WSASYSCALLFAILURE && networkSocket == -1 && networkError == -1 && catalogAccess == ERROR_ACCESS_DENIED && networkObservation == "initialization_failed";
 	return networkVerified || (diagnosticOnly && characterizedUnavailable) ? 0 : 1;
 }
 

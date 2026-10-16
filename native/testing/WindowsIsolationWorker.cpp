@@ -45,10 +45,11 @@ static void writeReport(const fs::path& stage, const std::string& value) {
 	{ std::ofstream report(pending); report << value; check(report.good(), "write_probe_report"); }
 	fs::rename(pending, stage / L"output" / L"report.txt");
 }
-enum class NetworkOutcome { InitializationFailed, SocketFailed, Connected, AccessDenied, ConnectionFailed };
+enum class NetworkOutcome { InitializationFailed, SocketFailed, SocketAccessDenied, Connected, AccessDenied, ConnectionFailed };
 struct NetworkProbe {
 	int startup = -1;
 	int error = -1;
+	int socketError = -1;
 	LSTATUS catalogAccess = ERROR_INVALID_FUNCTION;
 	NetworkOutcome outcome = NetworkOutcome::InitializationFailed;
 };
@@ -56,6 +57,7 @@ static const char* outcomeName(NetworkOutcome outcome) {
 	switch (outcome) {
 		case NetworkOutcome::InitializationFailed: return "initialization_failed";
 		case NetworkOutcome::SocketFailed: return "socket_failed";
+		case NetworkOutcome::SocketAccessDenied: return "socket_access_denied";
 		case NetworkOutcome::Connected: return "connected";
 		case NetworkOutcome::AccessDenied: return "access_denied";
 		case NetworkOutcome::ConnectionFailed: return "connection_failed";
@@ -71,7 +73,8 @@ static NetworkProbe inspectNetwork(unsigned short port) {
 	WSADATA sockets{}; result.startup = WSAStartup(MAKEWORD(2, 2), &sockets);
 	if (result.startup != 0) return result;
 	SOCKET connection = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	if (connection == INVALID_SOCKET) { result.error = WSAGetLastError(); result.outcome = NetworkOutcome::SocketFailed; WSACleanup(); return result; }
+	if (connection == INVALID_SOCKET) { result.socketError = WSAGetLastError(); result.outcome = result.socketError == WSAEACCES ? NetworkOutcome::SocketAccessDenied : NetworkOutcome::SocketFailed; WSACleanup(); return result; }
+	result.socketError = 0;
 	u_long nonblocking = 1; check(ioctlsocket(connection, FIONBIO, &nonblocking) == 0, "nonblocking_network_probe");
 	sockaddr_in address{}; address.sin_family = AF_INET; address.sin_port = htons(port); address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 	const int connected = connect(connection, reinterpret_cast<sockaddr*>(&address), sizeof(address));
@@ -122,12 +125,12 @@ static int child(const fs::path& stage, const fs::path& denied, unsigned short p
 	expect(host.value == nullptr, "privileged_host_process_handle_denied");
 	const auto network = inspectNetwork(port);
 	const int networkInitialization = network.startup, networkError = network.error;
-	const bool networkDenied = network.outcome == NetworkOutcome::AccessDenied;
+	const bool networkDenied = network.outcome == NetworkOutcome::AccessDenied || network.outcome == NetworkOutcome::SocketAccessDenied;
 	// Do not count initialization failure as a network-denial pass. Collect the other independent boundaries first.
-	if (networkDenied) expect(true, "loopback_network_denied");
+	if (networkDenied) expect(true, "network_resource_denied");
 	PROCESS_MITIGATION_CHILD_PROCESS_POLICY childPolicy{};
 	check(GetProcessMitigationPolicy(GetCurrentProcess(), ProcessChildProcessPolicy, &childPolicy, sizeof(childPolicy)) != FALSE, "query_child_process_policy");
-	{ std::ofstream diagnostic(stage / L"output" / L"network-diagnostic.txt"); diagnostic << "startup=" << networkInitialization << "; connect=" << networkError << "; catalogAccess=" << network.catalogAccess << "; observation=" << outcomeName(network.outcome) << "; noChildProcessCreation=" << childPolicy.NoChildProcessCreation << "; workerReadableExecutable=" << canOpen(stage / L"worker.exe", GENERIC_READ | GENERIC_EXECUTE); }
+	{ std::ofstream diagnostic(stage / L"output" / L"network-diagnostic.txt"); diagnostic << "startup=" << networkInitialization << "; socket=" << network.socketError << "; connect=" << networkError << "; catalogAccess=" << network.catalogAccess << "; observation=" << outcomeName(network.outcome) << "; noChildProcessCreation=" << childPolicy.NoChildProcessCreation << "; workerReadableExecutable=" << canOpen(stage / L"worker.exe", GENERIC_READ | GENERIC_EXECUTE); }
 	BOOL inJob = FALSE; check(IsProcessInJob(GetCurrentProcess(), nullptr, &inJob) != FALSE, "query_job");
 	expect(inJob != FALSE, "child_is_in_job");
 	void* excessive = VirtualAlloc(nullptr, 128ULL * 1024 * 1024, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
@@ -138,7 +141,7 @@ static int child(const fs::path& stage, const fs::path& denied, unsigned short p
 	const BOOL spawned = CreateProcessW((stage / L"worker.exe").c_str(), command.data(), nullptr, nullptr, FALSE, CREATE_NO_WINDOW, nullptr, stage.c_str(), &startup, &grandchild);
 	if (spawned) { TerminateProcess(grandchild.hProcess, 1); WaitForSingleObject(grandchild.hProcess, 5000); CloseHandle(grandchild.hThread); CloseHandle(grandchild.hProcess); }
 	expect(!spawned, "child_creation_denied");
-	writeReport(stage, std::to_string(passed) + " 0 " + std::to_string(networkInitialization) + " " + std::to_string(networkDenied) + " " + std::to_string(network.error) + " " + std::to_string(network.catalogAccess) + " " + outcomeName(network.outcome));
+	writeReport(stage, std::to_string(passed) + " 0 " + std::to_string(networkInitialization) + " " + std::to_string(networkDenied) + " " + std::to_string(network.error) + " " + std::to_string(network.catalogAccess) + " " + outcomeName(network.outcome) + " " + std::to_string(network.socketError));
 	Sleep(INFINITE);
 	return 1;
 }
@@ -165,7 +168,7 @@ int wmain(int argc, wchar_t** argv) {
 		if (argc == 4 && std::wstring(argv[1]) == L"--network-control") {
 			const auto result = inspectNetwork(static_cast<unsigned short>(std::stoul(argv[3])));
 			std::ofstream report(fs::path(argv[2]) / L"output" / L"host-network.txt");
-			report << result.startup << " " << result.error << " " << result.catalogAccess << " " << outcomeName(result.outcome);
+			report << result.startup << " " << result.error << " " << result.catalogAccess << " " << outcomeName(result.outcome) << " " << result.socketError;
 			check(report.good(), "host_network_report");
 			return result.outcome == NetworkOutcome::Connected ? 0 : 1;
 		}
