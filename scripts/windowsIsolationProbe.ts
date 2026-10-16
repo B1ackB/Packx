@@ -2,6 +2,7 @@ import { execFileSync, spawnSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
+import { runWindowsBuildJob } from "./windowsBuildJob";
 
 export function assessWindowsIsolationReport(value: unknown) {
 	const reject = (message: string): never => { throw new Error(`Invalid Windows isolation experiment: ${message}`); };
@@ -22,7 +23,7 @@ export function assessWindowsIsolationReport(value: unknown) {
 }
 
 /** Fixed CI experiment, never a production Tool executor. No scripts or system features are installed. */
-export function runWindowsIsolationProbe(environment: NodeJS.ProcessEnv): string {
+export async function runWindowsIsolationProbe(environment: NodeJS.ProcessEnv): Promise<string> {
 	if (process.platform !== "win32") throw new Error("Windows isolation probe requires Windows");
 	const root = resolve(".");
 	// The compiler batch accepts only the known hosted checkout path, never document/model input.
@@ -49,7 +50,7 @@ export function runWindowsIsolationProbe(environment: NodeJS.ProcessEnv): string
 		const compilerFlags = "/nologo /std:c++20 /W4 /WX /MT /EHsc /DUNICODE /D_UNICODE /D_WIN32_WINNT=0x0A00";
 		writeFileSync(batch, `@echo off\r\ncall "${installation}\\VC\\Auxiliary\\Build\\vcvars64.bat" ${policy.windowsSdkVersion}\r\nif errorlevel 1 exit /b 1\r\ncl ${compilerFlags} "${join(root, "native/testing/WindowsIsolationProbe.cpp")}" /Fe:"${binary}" /link userenv.lib advapi32.lib ws2_32.lib ole32.lib\r\nif errorlevel 1 exit /b 1\r\ncl ${compilerFlags} "${join(root, "native/testing/WindowsIsolationWorker.cpp")}" /Fe:"${worker}" /link advapi32.lib ws2_32.lib\r\n`);
 		const options = { encoding: "utf8" as const, timeout: 30_000, maxBuffer: 2 * 1024 * 1024, env: environment };
-		const compiler = execFileSync(join(environment.SystemRoot ?? "C:\\Windows", "System32/cmd.exe"), ["/d", "/s", "/c", batch], { ...options, cwd: build });
+		const compiler = await runWindowsBuildJob(join(environment.SystemRoot ?? "C:\\Windows", "System32/cmd.exe"), ["/d", "/s", "/c", batch], build, environment);
 		console.error("fixed_probe:compile_completed; starting_native_probe");
 		const output = execFileSync(binary, ["--diagnose", attempt, profile, worker], options);
 		const assessment = assessWindowsIsolationReport(JSON.parse(output));
@@ -62,7 +63,7 @@ export function runWindowsIsolationProbe(environment: NodeJS.ProcessEnv): string
 		if (strict.error || ![0, 1].includes(strict.status ?? -1)) throw new Error(`Strict probe infrastructure failure: ${strict.error?.message ?? strict.status}\n${strict.stderr ?? ""}`);
 		const strictAssessment = assessWindowsIsolationReport(JSON.parse(strict.stdout));
 		if (strictAssessment.mode !== "strict" || strictAssessment.networkGate !== assessment.networkGate || strict.status !== (assessment.networkGate === "blocked" ? 1 : 0)) throw new Error("Strict probe no longer enforces the network gate");
-		return `${JSON.stringify({ visualStudio: version, windowsSdk: policy.windowsSdkVersion, profileId: profile, strictProfileId: strictProfile })}\n${compiler}\n${output}\n${JSON.stringify({ assessment, strictAssessment, strictExitCode: strict.status })}`;
+		return `${JSON.stringify({ visualStudio: version, windowsSdk: policy.windowsSdkVersion, profileId: profile, strictProfileId: strictProfile, build: compiler.report })}\n${compiler.stdout}${compiler.stderr}\n${output}\n${JSON.stringify({ assessment, strictAssessment, strictExitCode: strict.status })}`;
 	} catch (cause) {
 		failed = true;
 		const diagnostic = cause as { message?: string; stdout?: string; stderr?: string };

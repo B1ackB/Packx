@@ -24,6 +24,7 @@ const windowsFiles = [
 	"server/runtime/textDocumentInspection.test.ts",
 	"eval/ciCommand.test.ts",
 	"eval/windowsProductionBoundary.test.ts",
+	"eval/windowsBuildJob.test.ts",
 ];
 
 function ensure(condition: unknown, message: string): asserts condition {
@@ -264,7 +265,7 @@ async function main(task: string) {
 			const parsed = JSON.parse(readFileSync(report, "utf8"));
 			validateTestReport(parsed, windowsFiles, true);
 			console.log(JSON.stringify({ suite: "windows-local-data", total: parsed.numTotalTests, passed: parsed.numPassedTests, pending: parsed.numPendingTests }));
-			console.log(runWindowsIsolationProbe(testEnvironment(process.env)));
+			console.log(await runWindowsIsolationProbe(testEnvironment(process.env)));
 			break;
 		}
 		case "browser-install": console.log(execute(process.execPath, ["node_modules/@playwright/test/cli.js", "install", "chromium", "--only-shell", "--with-deps"])); break;
