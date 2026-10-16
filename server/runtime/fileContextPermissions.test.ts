@@ -44,13 +44,28 @@ it.each(["live", "history", "legacy", "archive", "legacy_externalized"] as const
 });
 
 it("revalidates live bytes while retaining a permitted immutable historical version", async () => {
-	const h = await fixture(), input = { path: h.path }, execution = { ...scope, stageId: "conversation", executionId: "read", toolCallId: "read", idempotencyKey: "read", signal: new AbortController().signal };
+	const h = await fixture(), input = { path: join(h.root, "unmanaged.md") }, execution = { ...scope, stageId: "conversation", executionId: "read", toolCallId: "read", idempotencyKey: "read", signal: new AbortController().signal };
+	writeFileSync(input.path, "unmanaged source");
 	const validator = h.files.tools().find((tool) => tool.name === "file_read")!.validateContextResult!;
-	const live = JSON.stringify(h.files.readLocal(scope, h.path)), historical = JSON.stringify(h.files.read(scope, h.path, 1));
+	const live = JSON.stringify(h.files.readLocal(scope, input.path)), historical = JSON.stringify(h.files.read(scope, h.path, 1));
 	validator(input, live, execution);
-	writeFileSync(h.path, "changed by external user");
+	writeFileSync(input.path, "changed by external user");
 	expect(() => validator(input, live, execution)).toThrow("来源已变化");
-	expect(() => validator({ ...input, version: 1 }, historical, execution)).not.toThrow();
+	expect(() => validator({ path: h.path, version: 1 }, historical, execution)).not.toThrow();
+});
+
+it("continues a real read then approved mutation through the next model call and a later turn", async () => {
+	const h = await fixture(); let calls = 0;
+	const provider = { generate: async () => ({ text: calls++ ? "edit recorded" : "", toolCalls: calls === 1 ? [{ id: "read", name: "file_read", input: { path: h.path } }, { id: "edit", name: "file_write", input: { path: h.path, content: "approved update", expectedSha256: h.files.readLocal(scope, h.path).sha256 } }] : [], usage: { inputTokens: 0, outputTokens: 0, cachedInputTokens: 0, reasoningOutputTokens: 0 } }) };
+	const runtime = new BlackxAgentRuntime({ sessions: h.state, snapshots: h.state, executions: h.state, traces: h.state, audit: h.state, tools: h.files.tools(), skills: new SkillRegistry(), provider, approval: { authorize: async (request, signal) => { const waiting = h.files.authorize(request, signal); h.files.decide(scope, h.files.list(scope).approvals[0].id, "approved"); return waiting; } } });
+	const request = { ...turn, allowedTools: ["file_read", "file_write"], policy: { ...turn.policy, sandboxMode: "workspace-write" as const, approvalPolicy: "required" as const } };
+	const edited = await runtime.executeTurn(request);
+	expect(edited.events.filter((event) => event.type === "tool.completed")).toContainEqual(expect.objectContaining({ tool: "file_write", status: "succeeded" }));
+	expect(edited.finalResponse).toBe("edit recorded");
+	await expect(runtime.executeTurn({ ...request, idempotencyKey: "next", input: "继续" })).resolves.toMatchObject({ finalResponse: "edit recorded" });
+	expect(readFileSync(h.path, "utf8")).toBe("approved update");
+	expect(h.files.read(scope, h.path, 1).content).toBe("SYNTHETIC_SOURCE");
+	expect(calls).toBe(3);
 });
 
 it("cancels newly forbidden pending previews and rejects their cached file_list output", async () => {

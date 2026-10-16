@@ -32,6 +32,8 @@
 
 调用减少1次来自权限拒绝发生在Provider之前，不代表真实模型成本或质量提升。异常人工核对分别为撤权后的重新取材、无可靠回执的未知操作。后者保留started未决记录，不假装成功。错误分类保留cancelled、permission_denied、unknown_side_effect_requires_review；基线另有permission_history_bypass和permission_context_replay。
 
+这些errors为Eval场景分类；撤权恢复的实际Runtime失败码是context_failure，直接历史读取为file_path_denied，不将测试标签冒充新增的Runtime枚举。
+
 ## 真实缺陷及最小修复
 
 `ConversationFileService.readLocal` 检查当前路径策略，但指定历史版本的read/content只校验内部备份hash，收紧权限后仍可读取旧字节。file_read没有来源校验钩子，成功结果恢复后也继续进入模型。
@@ -39,6 +41,8 @@
 修复仅在Enterprise Host/Adapter：历史内容继承当前源路径权限；file_read使用既有validateContextResult比对当前授权与来源；file_list校验包含字节的待审批预览，路径或父目录权限变化时取消待审批记录。Runtime恢复旧协议组时通过原Tool名称/输入调用当前Adapter校验器。没有来源信息的旧单条Tool档案返回不可重试的context_failure，要求重新构建任务上下文，不猜测权限。旧审批/已完成操作审计继续保留，不覆写历史版本。
 
 长期回归还覆盖实时内容变化、允许读取的不可变旧版本、旧协议记录、压缩档案、缺少来源的旧外置档案和撤权待审批预览；在下一次Provider调用前拒绝危险恢复。Agent Core、Loop、Provider协议、公开Schema未修改，无新增依赖。
+
+首次[必要CI 38957707243](https://github.com/B1ackB/Packx/actions/runs/38957707243)中，core、browser、Windows通过，macOS原生47/47通过，但HTTP产品回归在批准覆盖文件后失败：初版来源校验把先前读取的v1与新v2比较，导致context_failure。这是本次改动引入的回归，未重试掩盖或跳过。随后按输出中的不可变版本校验任务文件；绝对路径的历史读取按hash核验已批准变更保留的preimage，仍检查当前路径权限。未保存为批准历史的外部内容变化继续拒绝。新增真实Runtime“读取→批准修改→下次模型调用→后续Turn”和历史删除回归，完整产品smoke保持原断言。
 
 ## Windows独立复查
 
@@ -50,6 +54,6 @@
 
 ## 复现与完成边界
 
-`npm run eval:packaging-lifecycle`，可附加一个JSON输出路径。闭环测试和文件权限回归加入core必需套件，独立Eval加入core离线序列；Windows入口回归加入windows-local-data必需套件。必要CI和合并证据在本PR完成后记录。
+`npm run eval:packaging-lifecycle`，可附加一个JSON输出路径。闭环测试和文件权限回归加入core必需套件，独立Eval加入core离线序列；Windows入口回归加入windows-local-data必需套件。后续必要CI及合并状态以[PR48](https://github.com/B1ackB/Packx/pull/48)的对应提交为准，不以首次失败运行作为通过证据。
 
 本轮完成条件就是六类验收、真实权限缺陷回归、Windows禁用边界复查和必要CI/合并。后续可在既有授权内顺序推进macOS员工试用准备、同预算模型质量评测设计及明确的用户恢复入口；在线付费调用、权限扩张、发布部署继续排除。完整Windows支持和生产就绪声明均未达成。

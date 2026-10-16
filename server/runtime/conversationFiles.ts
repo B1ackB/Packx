@@ -290,7 +290,15 @@ export class ConversationFileService implements AgentToolApprovalPort {
 				...(name === "file_read" ? { validateContextResult: (input: unknown, output: string, context: AgentToolExecutionContext) => {
 					const value = input as { path: string; version?: number };
 					const prior = JSON.parse(output);
-					const current = isAbsolute(value.path) && value.version === undefined ? this.readLocal(context, value.path) : this.read(context, value.path, value.version);
+					// Task-file output already identifies an immutable version. A later
+					// approved edit must not relabel that earlier read as the new version.
+					const version = value.version ?? prior.file?.version;
+					const local = isAbsolute(value.path) && value.version === undefined;
+					const snapshot = local ? this.load(context).versions.find((file) => file.path === value.path && file.sha256 === prior.sha256 && file.status !== "deleted") : undefined;
+					// An approved mutation retains its preimage by hash. That historical
+					// read remains valid, but content() still enforces today's path policy.
+					const current = snapshot ? { absolutePath: value.path, content: this.content(context, snapshot), sha256: snapshot.sha256, size: snapshot.size }
+						: local ? this.readLocal(context, value.path) : this.read(context, value.path, version);
 					if (JSON.stringify(prior) !== JSON.stringify(current)) fail("file_version_conflict", "文件来源已变化，请重新读取");
 				} } : {}),
 				...(list ? { validateContextResult: (input: unknown, output: string, context: AgentToolExecutionContext) => {
