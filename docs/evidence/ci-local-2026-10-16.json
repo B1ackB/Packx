@@ -1,0 +1,163 @@
+{
+	"schemaVersion": "ci-local-validation.v1",
+	"generatedAt": "2026-10-16T07:38:49.703028+00:00",
+	"status": "local-verified-remote-pending",
+	"baseCommit": "191379a633442d01f165e48469f6276db99cdc40",
+	"environment": {
+		"platform": "macOS arm64",
+		"node": "24.14.0",
+		"npm": "11.9.0",
+		"cleanInstall": "npm ci --ignore-scripts --no-audit --no-fund",
+		"isolatedCopy": true,
+		"businessSecretsInjected": false,
+		"realModelCalls": 0
+	},
+	"candidateSha256": {
+		".github/ci-tools.json": "568f573d6991eede5a633a016bc76b78de04f03c052f84be9ed06ec15efd3ec6",
+		".github/gitleaks.toml": "5857b4db4cff6576edfde7729badc5cd6ae8c394fc5a1a994f2965f43b178b8f",
+		".github/workflows/pr-checks.yml": "339007984ed92f1f981c93d20362dd01691a45bc0c59a447d4ff3cb06f517aa6",
+		"scripts/ci.ts": "2f8d2fc221ef420514cd791a2ac592e02bc8a4b864861479d294eb271f87bd01",
+		"eval/ciSecurity.test.ts": "c85f2d21ed33ec889cb718f6087ae79f590c0a0efb620fa7d97a24bd02e16bde",
+		"package.json": "a14ceed825258784dc864acbcceab548282f9fe665ce4c88b3a1660dacda8a59",
+		"package-lock.json": "1d7c1d7e3f2d3fc19cbe9b82a39587a87e565e25af2411be73130a92d63566fd",
+		"docs/ci-security-plan.md": "a4c00954fb74d08859feab90cf6ae8abd74e67e096f689e607818004d6e68052",
+		"docs/ci-operations.md": "8243f5c70a644ea0d1febeafcc26eeb197f1d197137bb3214954f2f1878d2dd3",
+		"docs/README.md": "95002bd32dd4ff85e155761df98ef4407852604e47f6821a071369d2970ae486",
+		"docs/dependencies.md": "6ac26b6536d5369133bed41289f0eea899595b2a5c3506a0bacfea1d3577113b"
+	},
+	"checks": {
+		"actionlint": {
+			"version": "1.7.12",
+			"passed": true
+		},
+		"workflowPolicy": {
+			"passed": true,
+			"securityContractTests": 24,
+			"gateStatusCombinations": 64
+		},
+		"gitleaks": {
+			"version": "8.30.1",
+			"currentTrackedSnapshot": "passed",
+			"availableGitHistory": "passed",
+			"archiveDepth": 2,
+			"decodeDepth": 2,
+			"negativeCredentialAndRedactionControls": "passed",
+			"scope": "Reachable history text diffs plus current tracked files; not an exhaustive proof of absence of secrets."
+		},
+		"npmAudit": {
+			"info": 0,
+			"low": 0,
+			"moderate": 0,
+			"high": 0,
+			"critical": 0,
+			"total": 0,
+			"exceptions": []
+		},
+		"core": {
+			"passed": 1030,
+			"skipped": 33,
+			"total": 1063,
+			"typecheck": "passed",
+			"build": "passed",
+			"skipBoundary": "Opt-in suites are reported as skipped here. Native checks run independently below; counts overlap."
+		},
+		"offlineEvaluations": [
+			"offline",
+			"context",
+			"recovery",
+			"loop-safety",
+			"memory",
+			"m1",
+			"m2",
+			"plan"
+		],
+		"native": {
+			"passed": 42,
+			"skipped": 0,
+			"requiredSuites": 3,
+			"productHttpSmoke": "passed",
+			"provider": "loopback deterministic fixture"
+		},
+		"browser": {
+			"passed": 24,
+			"skipped": 0,
+			"failed": 0,
+			"flaky": 0,
+			"projects": [
+				"desktop-zh",
+				"narrow-zh",
+				"narrow-en"
+			]
+		},
+		"negativeProbes": {
+			"forbidden_tracked_env_rejected": true,
+			"type_defect_rejected": true,
+			"broken_assertion_rejected": true,
+			"lifecycle_script_not_executed": true,
+			"lockfile_mismatch_rejected": true
+		},
+		"preservation": {
+			"preExistingFilesFingerprinted": 1037,
+			"unrelatedFilesCompared": 1032,
+			"changedUnrelatedFiles": 0,
+			"missingUnrelatedFiles": 0,
+			"originalWorktreeIndexModified": false,
+			"otherWorktreeModified": false
+		}
+	},
+	"pending": [
+		"Linux hosted runner execution",
+		"Actual GitHub Actions runs and fork/cancellation enforcement",
+		"User approval before pushing or opening a PR",
+		"User approval before changing required checks, action restrictions, retention or other GitHub settings",
+		"Read-back of 7-day log retention and account budget"
+	],
+	"remoteActions": {
+		"pushed": false,
+		"pullRequestCreated": false,
+		"settingsChanged": false
+	},
+	"prePushVerification": {
+		"verifiedAt": "2026-10-16T07:44:46.509346+00:00",
+		"upstreamCommit": "191379a633442d01f165e48469f6276db99cdc40",
+		"candidateContainsUpstream": true,
+		"candidateSha256": {
+			".github/ci-tools.json": "568f573d6991eede5a633a016bc76b78de04f03c052f84be9ed06ec15efd3ec6",
+			".github/gitleaks.toml": "5857b4db4cff6576edfde7729badc5cd6ae8c394fc5a1a994f2965f43b178b8f",
+			".github/workflows/pr-checks.yml": "339007984ed92f1f981c93d20362dd01691a45bc0c59a447d4ff3cb06f517aa6",
+			"scripts/ci.ts": "2f8d2fc221ef420514cd791a2ac592e02bc8a4b864861479d294eb271f87bd01",
+			"eval/ciSecurity.test.ts": "c85f2d21ed33ec889cb718f6087ae79f590c0a0efb620fa7d97a24bd02e16bde",
+			"package.json": "a14ceed825258784dc864acbcceab548282f9fe665ce4c88b3a1660dacda8a59",
+			"package-lock.json": "1d7c1d7e3f2d3fc19cbe9b82a39587a87e565e25af2411be73130a92d63566fd",
+			"docs/ci-security-plan.md": "ab51998ed2688f66c1c11618ac60dd1076c50938d262392438e23e97641717f1",
+			"docs/ci-operations.md": "74e42d83ae12c3b1fb71baac80a65637e635ed9301669c2559d97ec848a7c7f1",
+			"docs/README.md": "95002bd32dd4ff85e155761df98ef4407852604e47f6821a071369d2970ae486",
+			"docs/dependencies.md": "6ac26b6536d5369133bed41289f0eea899595b2a5c3506a0bacfea1d3577113b"
+		},
+		"validation": {
+			"corePassed": 1030,
+			"coreSkipped": 33,
+			"typecheck": "passed",
+			"build": "passed",
+			"offlineEvaluationsPassed": 8,
+			"nativePassed": 42,
+			"nativeSkipped": 0,
+			"productHttpSmoke": "passed",
+			"browserPassed": 24,
+			"browserSkipped": 0,
+			"auditTotal": 0,
+			"policy": "passed",
+			"secretScanCurrentAndAvailableHistory": "passed"
+		},
+		"logSha256": {
+			"core": "1d44f5712ef63a5d64a14971815ec6e51235432af0d62613f68efb7af3e3a162",
+			"native": "a24d4a7b0075c66abe04822ea5ba915820627cabecd56b62baf91d707df7570e",
+			"browser": "4377250efdaf96e5f0c1e78e656a96cc666486f3184a858b349bea6c75a6b03a"
+		},
+		"authorization": {
+			"pushAndCreatePullRequest": true,
+			"onlyApprovedFiles": 12,
+			"githubSettings": "Requires separate confirmation after hosted CI passes"
+		}
+	}
+}

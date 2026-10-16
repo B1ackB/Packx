@@ -1,0 +1,109 @@
+name: PR checks
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: pr-checks-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  core-offline:
+    name: core-offline
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Check out candidate merge and available history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, MIT
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Set up pinned Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0, MIT
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+      - name: Install locked dependencies without lifecycle scripts
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Record non-sensitive execution metadata
+        run: node --import tsx scripts/ci.ts metadata
+      - name: Install checksum-verified CI tools
+        run: node --import tsx scripts/ci.ts tools
+      - name: Validate workflow and security policy
+        run: node --import tsx scripts/ci.ts policy
+      - name: Scan tracked files and Git history for secrets
+        run: node --import tsx scripts/ci.ts secrets
+      - name: Audit production and development dependencies
+        run: node --import tsx scripts/ci.ts audit
+      - name: Test, type check, build and run offline evaluations
+        run: node --import tsx scripts/ci.ts core
+
+  browser:
+    name: browser
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Check out candidate merge
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, MIT
+        with:
+          persist-credentials: false
+      - name: Set up pinned Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0, MIT
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+      - name: Install locked dependencies without lifecycle scripts
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Install locked Chromium and system dependencies
+        run: node --import tsx scripts/ci.ts browser-install
+      - name: Browser regression
+        run: node --import tsx scripts/ci.ts browser
+
+  native-product:
+    name: native-product
+    runs-on: macos-15
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    steps:
+      - name: Check out candidate merge
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, MIT
+        with:
+          persist-credentials: false
+      - name: Set up pinned Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0, MIT
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+      - name: Install locked dependencies without lifecycle scripts
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Build and verify actual macOS sandbox and product behavior
+        run: node --import tsx scripts/ci.ts native
+
+  ci-required:
+    name: ci-required
+    runs-on: ubuntu-24.04
+    timeout-minutes: 1
+    permissions: {}
+    needs: [core-offline, browser, native-product]
+    if: ${{ always() }}
+    steps:
+      - name: Require every execution job to succeed
+        env:
+          CORE_RESULT: ${{ needs.core-offline.result }}
+          BROWSER_RESULT: ${{ needs.browser.result }}
+          NATIVE_RESULT: ${{ needs.native-product.result }}
+        run: |
+          test "$CORE_RESULT" = success
+          test "$BROWSER_RESULT" = success
+          test "$NATIVE_RESULT" = success

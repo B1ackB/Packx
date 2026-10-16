@@ -1,0 +1,23 @@
+title = "Packx CI secret scanning"
+
+[extend]
+useDefault = true
+
+# Evidence manifests map source paths to SHA-256 content digests.
+# Keep this scoped to that exact line format and the generic detector only.
+[[allowlists]]
+description = "Source-file SHA-256 entries in versioned evidence manifests"
+targetRules = ["generic-api-key"]
+condition = "AND"
+paths = ['''(^|/)docs/evidence/.*\.(json|json\.gz|tar\.gz)(!.*)?$''', '''(^|/)eval/baselines/context-v1/manifest\.json$''', '''^docs/interview/validation-2026-09-22\.json$''']
+regexTarget = "line"
+regexes = ['''^\s*"(server|src|eval|scripts|native)/[^"\r\n]+\.(ts|tsx|mjs|swift|c)"\s*:\s*"[a-f0-9]{64}",?\s*$''']
+
+# These are three literal, non-credential idempotency IDs in offline fixtures.
+[[allowlists]]
+description = "Exact synthetic idempotency IDs in three named test fixtures"
+targetRules = ["generic-api-key"]
+condition = "AND"
+paths = ['''(^|/|!)(eval/sealingBagFixture\.ts|server/runtime/(compressionContinuation\.audit|macOsSeatbeltSandboxedToolExecutor)\.test\.ts)$''']
+regexTarget = "match"
+regexes = ['''^idempotencyKey:\s*"(eval-sealing-bag-001-turn-1|seatbelt-fixture-1|boundary-129)"$''']
