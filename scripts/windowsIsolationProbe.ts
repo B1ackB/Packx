@@ -8,7 +8,7 @@ function experimentReport(value: unknown) {
 	const reject = (message: string): never => { throw new Error(`Invalid Windows isolation experiment: ${message}`); };
 	if (!value || typeof value !== "object" || Array.isArray(value)) reject("missing report");
 	const report = value as Record<string, unknown>;
-	if (report.schemaVersion !== "windows-isolation-experiment.v2" || report.experimentOnly !== true || report.productionAdapterEnabled !== false || (report.mode !== "diagnostic" && report.mode !== "strict")) reject("experiment boundary changed");
+	if (!["windows-isolation-experiment.v2", "windows-isolation-experiment.v3"].includes(String(report.schemaVersion)) || report.experimentOnly !== true || report.productionAdapterEnabled !== false || (report.mode !== "diagnostic" && report.mode !== "strict")) reject("experiment boundary changed");
 	for (const key of ["privateHandleNotInherited", "singleProcessJobRestricted", "legalHostSingleProcessDenied", "legalHostJobTreeTerminated", "lpacProcessTerminated", "profileDeleted"]) {
 		if (report[key] !== true) reject(`required evidence missing: ${key}`);
 	}
@@ -26,7 +26,7 @@ function networkDenialStage(report: Record<string, unknown>) {
 
 export function assessWindowsIsolationReport(value: unknown) {
 	const { report, reject } = experimentReport(value);
-	if (report.capabilityPolicy !== "zero-capabilities" || !Array.isArray(report.capabilities) || report.capabilities.length !== 0) reject("zero-capability baseline changed");
+	if (report.schemaVersion !== "windows-isolation-experiment.v2" || report.capabilityPolicy !== "zero-capabilities" || !Array.isArray(report.capabilities) || report.capabilities.length !== 0) reject("zero-capability baseline changed");
 	const denialStage = networkDenialStage(report);
 	const networkGate = denialStage && report.childAssertions === 14 ? "verified" as const
 		: report.networkObservation === "initialization_failed" && report.networkInitializationError === 10107 && report.networkSocketError === -1 && report.networkConnectionError === -1 && report.catalogAccessError === 5 && report.networkAccessDenied === false && report.childAssertions === 13 ? "blocked" as const
@@ -38,11 +38,14 @@ export function assessWindowsIsolationReport(value: unknown) {
 
 export function assessRegistryReadCandidate(value: unknown) {
 	const { report, reject } = experimentReport(value);
-	if (report.mode !== "strict" || report.capabilityPolicy !== "registry-read-only" || JSON.stringify(report.capabilities) !== '["registryRead"]') reject("unexpected candidate capabilities");
+	if (report.schemaVersion !== "windows-isolation-experiment.v3" || report.mode !== "strict" || report.capabilityPolicy !== "registry-read-only" || JSON.stringify(report.capabilities) !== '["registryRead"]') reject("unexpected candidate capabilities");
 	for (const key of ["privateRegistryReadDenied", "privateRegistryWriteDenied", "privateRegistryDeleted"]) if (report[key] !== true) reject(`private registry boundary missing: ${key}`);
+	const scope = report.registryScope as Record<string, unknown> | undefined;
+	if (!scope || scope.assertions !== 7 || JSON.stringify(scope.systemReadCategories) !== '["winsock-catalog-metadata"]' || scope.realUserSecretsAccessed !== false) reject("registry resource scope missing");
+	for (const key of ["credentialFixtureReadDenied", "credentialFixtureWriteDenied", "modelSettingsFixtureReadDenied", "modelSettingsFixtureWriteDenied", "capabilityGrantedUserFixtureReadable", "capabilityGrantedUserFixtureWriteDenied"]) if (scope![key] !== true) reject(`registry resource boundary missing: ${key}`);
 	const denialStage = networkDenialStage(report);
 	if (report.childAssertions !== 16 || !denialStage) reject("candidate did not verify network denial");
-	return { schemaVersion: "windows-registry-read-feasibility.v1", networkGate: "verified", denialStage, passedChildAssertions: 16, productionAdapterEnabled: false };
+	return { schemaVersion: "windows-registry-read-feasibility.v1", networkGate: "verified", denialStage, passedChildAssertions: 16, registryScopeAssertions: 7, productionAdapterEnabled: false };
 }
 
 /** Fixed CI experiment, never a production Tool executor. No scripts or system features are installed. */

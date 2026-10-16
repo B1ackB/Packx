@@ -54,3 +54,16 @@ Node 与 broker 的控制管道 EOF 表示取消或 Host 进程退出。broker �
 
 
 CI38968307174 在 Windows 本地数据127/127后，于10秒工具链发现预算内出现 vswhere ETIMEDOUT，尚未编译或执行该提交的原生程序；其他必要平台通过。保留此基础设施失败，不当成产品成功或产品失败分数。后续补充发现阶段/version/path/version 的有界耗时与错误码，维持原预算与零自动重试，避免盲目增加时限。另将暂存调用显式绑定原 tenantId/workspaceId/runId，离线验证伪造任一维度不能调用底层执行器且不能破坏原合法执行。
+
+
+## registryRead实际资源范围（合成矩阵验证中）
+
+它只作为每个LPAC进程SECURITY_CAPABILITIES中的唯一SID，不修改系统全局能力、现有键ACL、用户账户权限或网络例外。LPAC仍取用户Token与资源允许SID的交集；能力名称不等于“全注册表只读”，AppContainer自己的私有资源仍可能可写，也不能保证所有应用写进共享键的秘密都不可读。
+
+新增独立7项范围证据，与原16项隔离断言分开记录，候选报告v3必须两者完整：公开HKLM Winsock配置键仅查询元数据；当前用户+SYSTEM且禁止继承的credential/model-settings合成键分别拒绝读写；一个仅在本次拥有的合成用户子键上显式给registryRead授予KR，必须能读到合成canary而拒绝写入。后者明确证明“有能力授予的用户键可读”，不得宣称所有HKCU都不可达。所有值均合成，宿主正向读写可用，最后删除本次拥有的根及所有子键并验证不存在。
+
+未打开或读取真实用户敏感键/凭据，故不对实际账户每种秘密存储作未经测试的绝对保证。产品固定worker只做Token/网络边界验证和UTF-8读取，不提供注册表工具、任意程序或Host秘密环境；秘密不得放入授予这些能力或Package SID的共享资源。扫描/Office等格式保持不可用。
+
+## Host崩溃与Node生命周期
+
+CI38969996377中构建131/131、启动期取消三轮、原子创建入Job及正常/超时/取消通过；实际业务与其余原生检查也通过，独立Host崩溃证据未产生。Node24.14实际uv版本1.51.0，其[Windows实现](https://raw.githubusercontent.com/libuv/libuv/v1.51.0/src/win/process.c)将非detached子进程放入Host拥有的关闭即杀Job，所以Host死亡会先杀broker，不能仅推断stdout丢失。可信broker现按[Node detached机制](https://nodejs.org/download/release/v24.14.0/docs/api/child_process.html#optionsdetached)独立于该自动清理关系，不unref，保留控制管道、墙钟和close等待，收到EOF就终止并核验自己持有的worker Job再删profile。detached不设置CREATE_BREAKAWAY_FROM_JOB；worker仍在原子分配的单进程Job与LPAC内，没有放开其隔离或进程树。新的真实Host强制结束三轮必须实际通过。

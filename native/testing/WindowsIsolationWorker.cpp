@@ -113,6 +113,22 @@ static int child(const fs::path& stage, const fs::path& denied, unsigned short p
 			HKEY key = nullptr; const LSTATUS status = RegOpenKeyExW(HKEY_USERS, privateRegistry, 0, access, &key); if (key) RegCloseKey(key);
 			expect(status == ERROR_ACCESS_DENIED, access == KEY_QUERY_VALUE ? "private_registry_read_denied" : "private_registry_write_denied");
 		}
+		unsigned scopeChecks = 0; auto scopeExpect = [&](bool ok, const char* name) { check(ok, name); ++scopeChecks; };
+		for (const std::wstring leaf : { L"credential-fixture", L"model-settings-fixture" }) for (const auto access : { KEY_QUERY_VALUE, KEY_SET_VALUE }) {
+			HKEY fixture = nullptr; const LSTATUS status = RegOpenKeyExW(HKEY_USERS, (std::wstring(privateRegistry) + L"\\" + leaf).c_str(), 0, access, &fixture); if (fixture) RegCloseKey(fixture);
+			scopeExpect(status == ERROR_ACCESS_DENIED, "user_only_registry_resource_denied");
+		}
+		HKEY shared = nullptr; const auto sharedPath = std::wstring(privateRegistry) + L"\\capability-readable-fixture";
+		const LSTATUS sharedRead = RegOpenKeyExW(HKEY_USERS, sharedPath.c_str(), 0, KEY_QUERY_VALUE, &shared);
+		wchar_t value[64]{}; DWORD bytes = sizeof(value), type = 0;
+		const LSTATUS queried = sharedRead == ERROR_SUCCESS ? RegQueryValueExW(shared, L"fixture", nullptr, &type, reinterpret_cast<BYTE*>(value), &bytes) : sharedRead; if (shared) RegCloseKey(shared);
+		scopeExpect(queried == ERROR_SUCCESS && type == REG_SZ && std::wstring(value) == L"synthetic-not-a-secret", "explicitly_capability_granted_user_key_readable");
+		shared = nullptr; const LSTATUS sharedWrite = RegOpenKeyExW(HKEY_USERS, sharedPath.c_str(), 0, KEY_SET_VALUE, &shared); if (shared) RegCloseKey(shared);
+		scopeExpect(sharedWrite == ERROR_ACCESS_DENIED, "read_grant_does_not_grant_write");
+		HKEY catalog = nullptr; const LSTATUS catalogRead = RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Services\\WinSock2\\Parameters", 0, KEY_QUERY_VALUE, &catalog);
+		DWORD values = 0; const LSTATUS metadata = catalogRead == ERROR_SUCCESS ? RegQueryInfoKeyW(catalog, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, &values, nullptr, nullptr, nullptr, nullptr) : catalogRead; if (catalog) RegCloseKey(catalog);
+		scopeExpect(metadata == ERROR_SUCCESS, "system_network_catalog_metadata_readable");
+		{ std::ofstream scope(stage / L"output" / L"registry-scope.txt"); scope << scopeChecks; check(scope.good(), "write_registry_scope_evidence"); }
 	} else expect(groups->GroupCount == 0, "no_capabilities");
 	expect(canOpen(stage / L"input.txt", GENERIC_READ), "declared_input_read");
 	expect(!canOpen(stage / L"input.txt", GENERIC_WRITE), "declared_input_write_denied");

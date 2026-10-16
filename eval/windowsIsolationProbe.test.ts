@@ -33,7 +33,8 @@ describe("Windows isolation experimental boundary", () => {
 	});
 });
 
-const registryCandidate = { ...unavailable, mode: "strict", capabilityPolicy: "registry-read-only", capabilities: ["registryRead"], childAssertions: 16, privateRegistryReadDenied: true, privateRegistryWriteDenied: true, privateRegistryDeleted: true, networkObservation: "access_denied", networkInitializationError: 0, networkSocketError: 0, networkConnectionError: 10013, networkAccessDenied: true };
+const registryScope = { assertions: 7, systemReadCategories: ["winsock-catalog-metadata"], credentialFixtureReadDenied: true, credentialFixtureWriteDenied: true, modelSettingsFixtureReadDenied: true, modelSettingsFixtureWriteDenied: true, capabilityGrantedUserFixtureReadable: true, capabilityGrantedUserFixtureWriteDenied: true, realUserSecretsAccessed: false };
+const registryCandidate = { ...unavailable, schemaVersion: "windows-isolation-experiment.v3", registryScope, mode: "strict", capabilityPolicy: "registry-read-only", capabilities: ["registryRead"], childAssertions: 16, privateRegistryReadDenied: true, privateRegistryWriteDenied: true, privateRegistryDeleted: true, networkObservation: "access_denied", networkInitializationError: 0, networkSocketError: 0, networkConnectionError: 10013, networkAccessDenied: true };
 it("keeps the registry-only feasibility policy separate from the zero-capability baseline", () => {
 	expect(assessRegistryReadCandidate(registryCandidate)).toMatchObject({ networkGate: "verified", passedChildAssertions: 16, productionAdapterEnabled: false });
 	expect(() => assessWindowsIsolationReport(registryCandidate)).toThrow();
@@ -46,3 +47,5 @@ it("distinguishes direct socket permission denial from connection denial without
 it.each([{ capabilities: ["registryRead", "internetClient"] }, { privateRegistryReadDenied: false }, { privateRegistryWriteDenied: false }, { privateRegistryDeleted: false }, { networkInitializationError: 10107 }, { networkObservation: "connected", networkConnectionError: 0 }, { childAssertions: 15 }])("rejects a candidate with unproven permissions or network denial: %j", (change) => {
 	expect(() => assessRegistryReadCandidate({ ...registryCandidate, ...change })).toThrow();
 });
+
+it.each([{ registryScope: undefined }, { registryScope: { ...registryScope, credentialFixtureReadDenied: false } }, { registryScope: { ...registryScope, modelSettingsFixtureReadDenied: false } }, { registryScope: { ...registryScope, realUserSecretsAccessed: true } }, { registryScope: { ...registryScope, capabilityGrantedUserFixtureReadable: false } }, { registryScope: { ...registryScope, assertions: 6 } }])("rejects missing or misleading registry scope evidence: %j", (change) => { expect(() => assessRegistryReadCandidate({ ...registryCandidate, ...change })).toThrow(); });

@@ -40,7 +40,7 @@ async function until(check: () => boolean) { for (let i = 0; i < 500; ++i) { if 
 function broker(stage: string, input: string, timeout: number, output = 1048576, ownerProcess = false) {
 	const args = [stage, `Packx.Text.${randomUUID().replaceAll("-", "")}`, input, join(binary, "text-fault-worker.exe"), String(timeout), String(output)];
 	const program = join(binary, "text-inspector.exe");
-	const ownerCode = 'import {spawn} from "node:child_process"; const [exe,...args]=JSON.parse(process.argv[1]); const child=spawn(exe,args,{stdio:["pipe",process.stdout,process.stderr]}); child.on("error",()=>process.exit(9)); setInterval(()=>{},1000);';
+	const ownerCode = 'import {spawn} from "node:child_process"; const [exe,...args]=JSON.parse(process.argv[1]); const child=spawn(exe,args,{detached:true,windowsHide:true,stdio:["pipe",process.stdout,process.stderr]}); child.on("error",()=>process.exit(9)); setInterval(()=>{},1000);';
 	const child = ownerProcess ? spawn(process.execPath, ["--input-type=module", "--eval", ownerCode, JSON.stringify([program, ...args])], { stdio: ["pipe", "pipe", "pipe"] }) : spawn(program, args, { stdio: ["pipe", "pipe", "pipe"] });
 	const chunks: Buffer[] = []; child.stdout.on("data", (data) => chunks.push(data)); let errors = ""; child.stderr.on("data", (data) => { errors += data; });
 	const done = new Promise<Record<string, unknown>>((accept, reject) => { child.on("error", reject); child.on("close", (code) => {

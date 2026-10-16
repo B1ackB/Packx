@@ -19,7 +19,7 @@
 // An owned, synthetic HKCU leaf only. Never edits system/catalog ACLs or existing keys.
 struct PrivateRegistry {
 	std::wstring key, userPath; bool owned = false;
-	explicit PrivateRegistry(const std::wstring& nonce) {
+	explicit PrivateRegistry(const std::wstring& nonce, PSID capability) {
 		Handle token; check(OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &token.value) != FALSE, "registry_owner_token");
 		DWORD size = 0; GetTokenInformation(token.value, TokenUser, nullptr, 0, &size); std::vector<BYTE> data(size);
 		check(GetTokenInformation(token.value, TokenUser, data.data(), size, &size) != FALSE, "registry_owner_sid");
@@ -36,6 +36,21 @@ struct PrivateRegistry {
 		HKEY control = nullptr; const LSTATUS readable = RegOpenKeyExW(HKEY_USERS, userPath.c_str(), 0, KEY_QUERY_VALUE | KEY_SET_VALUE, &control);
 		if (control) RegCloseKey(control);
 		if (readable != ERROR_SUCCESS) { RegDeleteTreeW(HKEY_CURRENT_USER, key.c_str()); owned = false; throw std::runtime_error("private_registry_positive_control:" + std::to_string(readable)); }
+		try {
+		LPWSTR capabilityText = nullptr; check(ConvertSidToStringSidW(capability, &capabilityText) != FALSE, "registry_resource_sid");
+		const std::wstring capabilitySid(capabilityText); LocalFree(capabilityText);
+		for (const std::wstring leaf : { L"credential-fixture", L"model-settings-fixture", L"capability-readable-fixture" }) {
+			const std::wstring acl = sddl + (leaf == L"capability-readable-fixture" ? L"(A;;KR;;;" + capabilitySid + L")" : L"");
+			PSECURITY_DESCRIPTOR resource = nullptr; check(ConvertStringSecurityDescriptorToSecurityDescriptorW(acl.c_str(), SDDL_REVISION_1, &resource, nullptr) != FALSE, "fixture_registry_acl");
+			SECURITY_ATTRIBUTES attributes{sizeof(SECURITY_ATTRIBUTES), resource, FALSE}; HKEY fixture = nullptr; DWORD createdNew = 0;
+			const LSTATUS made = RegCreateKeyExW(HKEY_CURRENT_USER, (key + L"\\" + leaf).c_str(), 0, nullptr, 0, KEY_ALL_ACCESS, &attributes, &fixture, &createdNew); LocalFree(resource);
+			if (made != ERROR_SUCCESS) throw std::runtime_error("create_registry_resource:" + std::to_string(made));
+			const wchar_t value[] = L"synthetic-not-a-secret";
+			const LSTATUS written = RegSetValueExW(fixture, L"fixture", 0, REG_SZ, reinterpret_cast<const BYTE*>(value), static_cast<DWORD>(sizeof(value)));
+			wchar_t actual[64]{}; DWORD bytes = sizeof(actual), type = 0; const LSTATUS queried = RegQueryValueExW(fixture, L"fixture", nullptr, &type, reinterpret_cast<BYTE*>(actual), &bytes); RegCloseKey(fixture);
+			check(createdNew == REG_CREATED_NEW_KEY && written == ERROR_SUCCESS && queried == ERROR_SUCCESS && type == REG_SZ && std::wstring(actual) == value, "synthetic_registry_positive_control");
+		}
+		} catch (...) { const LSTATUS cleanup = RegDeleteTreeW(HKEY_CURRENT_USER, key.c_str()); if (cleanup != ERROR_SUCCESS) std::cerr << "registry_construction_cleanup_failed:" << cleanup << '\n'; owned = false; throw; }
 	}
 	~PrivateRegistry() { if (owned && RegDeleteTreeW(HKEY_CURRENT_USER, key.c_str()) != ERROR_SUCCESS) std::cerr << "private_registry_cleanup_failed\n"; }
 	void remove() {
@@ -98,7 +113,7 @@ static int probe(const fs::path& root, const std::wstring& profileName, const fs
 	Profile profile(profileName);
 	std::unique_ptr<RegistryCapability> registryCapability;
 	std::unique_ptr<PrivateRegistry> privateRegistry;
-	if (registryRead) { registryCapability = std::make_unique<RegistryCapability>(); privateRegistry = std::make_unique<PrivateRegistry>(profileName); }
+	if (registryRead) { registryCapability = std::make_unique<RegistryCapability>(); privateRegistry = std::make_unique<PrivateRegistry>(profileName, registryCapability->sid); }
 	BYTE anyPackage[SECURITY_MAX_SID_SIZE]{}; DWORD sidSize = sizeof(anyPackage);
 	check(CreateWellKnownSid(WinBuiltinAnyPackageSid, nullptr, anyPackage, &sidSize) != FALSE, "all_packages_control_sid");
 	grant(root / L"all-packages.txt", anyPackage, FILE_GENERIC_READ);
@@ -200,13 +215,15 @@ static int probe(const fs::path& root, const std::wstring& profileName, const fs
 	check(WaitForSingleObject(process.value, 5000) == WAIT_OBJECT_0, "job_close_kills_child");
 	thread.close(); process.close(); privateFile.close();
 	closesocket(listener); WSACleanup();
+	if (registryRead) { unsigned assertions = 0; std::ifstream scope(output / L"registry-scope.txt"); scope >> assertions; check(assertions == 7, "registry_scope_evidence_missing"); }
 	profile.remove();
 	if (privateRegistry) privateRegistry->remove();
 	std::ifstream diagnostic(output / L"network-diagnostic.txt"); std::string boundary; std::getline(diagnostic, boundary);
 	std::cerr << "lpac_boundary:" << boundary << '\n';
-	std::cout << "{\"schemaVersion\":\"windows-isolation-experiment.v2\",\"experimentOnly\":true,\"productionAdapterEnabled\":false,\"mode\":\"" << (diagnosticOnly ? "diagnostic" : "strict") << "\",";
+	std::cout << "{\"schemaVersion\":\"windows-isolation-experiment." << (registryRead ? "v3" : "v2") << "\",\"experimentOnly\":true,\"productionAdapterEnabled\":false,\"mode\":\"" << (diagnosticOnly ? "diagnostic" : "strict") << "\",";
 	std::cout << "\"capabilityPolicy\":\"" << (registryRead ? "registry-read-only" : "zero-capabilities") << "\",\"capabilities\":" << (registryRead ? "[\"registryRead\"]" : "[]") << ",";
 	if (registryRead) std::cout << "\"privateRegistryReadDenied\":true,\"privateRegistryWriteDenied\":true,\"privateRegistryDeleted\":true,";
+	if (registryRead) std::cout << "\"registryScope\":{\"assertions\":7,\"systemReadCategories\":[\"winsock-catalog-metadata\"],\"credentialFixtureReadDenied\":true,\"credentialFixtureWriteDenied\":true,\"modelSettingsFixtureReadDenied\":true,\"modelSettingsFixtureWriteDenied\":true,\"capabilityGrantedUserFixtureReadable\":true,\"capabilityGrantedUserFixtureWriteDenied\":true,\"realUserSecretsAccessed\":false},";
 	std::cout << "\"probe\":\"windows-lpac-fixed-program\",\"childAssertions\":" << passed << ",\"privateHandleNotInherited\":true,\"regularNetworkInitializationError\":" << regularNetworkInitialization << ",\"networkInitializationError\":" << networkInitialization << ",\"networkSocketError\":" << networkSocket << ",\"networkConnectionError\":" << networkError << ",\"catalogAccessError\":" << catalogAccess << ",\"networkObservation\":\"" << networkObservation << "\",\"unsandboxedNetworkControl\":{\"initializationError\":0,\"socketError\":0,\"connectionError\":0,\"catalogAccessError\":0,\"observation\":\"connected\"},\"networkAccessDenied\":" << (networkDenied ? "true" : "false") << ",\"singleProcessJobRestricted\":true,\"legalHostSingleProcessDenied\":true,\"legalHostJobTreeTerminated\":true,\"lpacProcessTerminated\":true,\"profileDeleted\":true}\n";
 	const bool socketDenied = networkSocket == WSAEACCES && networkError == -1 && networkObservation == "socket_access_denied";
 	const bool connectDenied = networkSocket == 0 && networkError == WSAEACCES && networkObservation == "access_denied";

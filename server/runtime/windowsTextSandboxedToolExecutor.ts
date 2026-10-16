@@ -47,8 +47,9 @@ export class WindowsTextSandboxedToolExecutor implements SandboxedToolExecutorPo
 		};
 		try {
 			const outcome = await new Promise<{ output: string; code: number | null; forced: boolean; expired: boolean }>((accept, reject) => {
+				// Detached avoids libuv killing this trusted cleanup broker with the Host; keep its pipe and process reference.
 				// This trusted broker receives no model/customer credentials. The worker receives an even smaller native allowlist.
-				const child = spawn(this.broker, [stage, profile, source, this.executable, String(manifest.limits.timeoutMs), String(Math.min(manifest.limits.maxStdoutBytes, 1048576))], { cwd: dirname(this.broker), windowsHide: true, env: { SystemRoot: process.env.SystemRoot, SystemDrive: process.env.SystemDrive, LOCALAPPDATA: process.env.LOCALAPPDATA, USERPROFILE: process.env.USERPROFILE }, stdio: ["pipe", "pipe", "pipe"] });
+				const child = spawn(this.broker, [stage, profile, source, this.executable, String(manifest.limits.timeoutMs), String(Math.min(manifest.limits.maxStdoutBytes, 1048576))], { cwd: dirname(this.broker), detached: true, windowsHide: true, env: { SystemRoot: process.env.SystemRoot, SystemDrive: process.env.SystemDrive, LOCALAPPDATA: process.env.LOCALAPPDATA, USERPROFILE: process.env.USERPROFILE }, stdio: ["pipe", "pipe", "pipe"] });
 				const chunks: Buffer[] = []; let size = 0, forced = false, expired = false;
 				const cancel = () => child.stdin.destroy(); // EOF also occurs when the Node Host crashes; broker kills Job and deletes its profile.
 				const deadline = setTimeout(() => { expired = true; cancel(); }, manifest.limits.timeoutMs);
