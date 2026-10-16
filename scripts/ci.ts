@@ -9,6 +9,7 @@ import { parseDocument } from "yaml";
 import { runWindowsIsolationProbe } from "./windowsIsolationProbe";
 
 const checkout = "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1";
+const uploadArtifact = "actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9";
 const setupNode = "actions/setup-node@820762786026740c76f36085b0efc47a31fe5020";
 const jobs = ["core-offline", "browser", "native-product", "windows-local-data"];
 const install = "npm ci --ignore-scripts --no-audit --no-fund";
@@ -27,6 +28,7 @@ const windowsFiles = [
 	"eval/windowsProductionBoundary.test.ts",
 	"eval/windowsBuildJob.test.ts",
 	"eval/windowsBuildJobLifecycle.test.ts",
+	"eval/releasePackaging.test.ts",
 ];
 
 function ensure(condition: unknown, message: string): asserts condition {
@@ -64,19 +66,26 @@ export function validateWorkflow(source: string) {
 		keys(job, ["name", "runs-on", "timeout-minutes", "permissions", "steps"]);
 		same(job.name, name, "Check names must remain stable");
 		same(job["runs-on"], name === "native-product" ? "macos-15" : name === "windows-local-data" ? "windows-2025" : "ubuntu-24.04", "Unexpected runner");
-		same(job["timeout-minutes"], { "core-offline": 20, browser: 15, "native-product": 25, "windows-local-data": 10 }[name], "Unexpected job timeout");
+		same(job["timeout-minutes"], { "core-offline": 20, browser: 15, "native-product": 25, "windows-local-data": 15 }[name], "Unexpected job timeout");
 		same(job.permissions, { contents: "read" }, "Execution jobs must be read-only");
 		ensure(Array.isArray(job.steps), "Missing execution steps");
 		const steps = job.steps.map(record);
-		same(steps.length, commands[name].length + 2, "Missing or additional execution step");
+		same(steps.length, commands[name].length + 2 + (name === "windows-local-data" ? 1 : 0), "Missing or additional execution step");
 		for (const step of steps.slice(0, 2)) keys(step, ["name", "uses", "with"]);
 		same(steps[0].uses, checkout, "Checkout must use the audited commit");
 		same(steps[0].with, { "persist-credentials": false, ...(name === "core-offline" ? { "fetch-depth": 0 } : {}) }, "Checkout credentials/history policy changed");
 		same(steps[1].uses, setupNode, "setup-node must use the audited commit");
 		same(steps[1].with, { "node-version-file": ".nvmrc", "package-manager-cache": false }, "Node pinning/cache policy changed");
-		for (const [index, step] of steps.slice(2).entries()) {
+		for (const [index, step] of steps.slice(2, 2 + commands[name].length).entries()) {
 			keys(step, ["name", "run"]);
 			same(step.run, commands[name][index], "Required command changed or unsafe step added");
+		}
+
+		if (name === "windows-local-data") {
+			const upload = steps.at(-1)!;
+			keys(upload, ["name", "uses", "with"]);
+			same(upload.uses, uploadArtifact, "Artifact upload must use the audited commit");
+			same(upload.with, { name: "windows-x64-unsigned-validation", path: "temp/windows-release-artifacts/*.zip\ntemp/windows-release-artifacts/*.zip.sha256\n", "if-no-files-found": "error", "retention-days": 7, "compression-level": 0, "include-hidden-files": false }, "Artifact boundary changed");
 		}
 	}
 	const required = record(configured["ci-required"]);
@@ -279,6 +288,10 @@ async function main(task: string) {
 				}
 				const parsed = JSON.parse(readFileSync(report, "utf8")); validateTestReport(parsed, [file], true);
 				console.log(JSON.stringify({ suite: "windows-protected-text", total: parsed.numTotalTests, passed: parsed.numPassedTests, pending: parsed.numPendingTests }));
+				console.log(npm(["run", "build"]));
+				const output = resolve("temp/windows-release-artifacts/Packx-0.1.0-windows-x64");
+				console.log(execute(process.execPath, ["scripts/build-release.mjs", output, build]));
+				console.log(execute(process.execPath, ["--import", "tsx", "eval/portableReleaseSmoke.ts", `${output}.zip`], {}, 6 * 60_000));
 			}));
 			break;
 		}
