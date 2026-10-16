@@ -144,14 +144,20 @@ static int child(const fs::path& stage, const fs::path& denied, unsigned short p
 	{ std::ofstream output(stage / L"output" / L"allowed.txt"); output << "synthetic"; expect(output.good(), "declared_output_write"); }
 	wchar_t secret[64]{};
 	expect(GetEnvironmentVariableW(L"PACKX_PROBE_SECRET", secret, 64) == 0, "parent_environment_not_inherited");
-	WSADATA sockets{}; check(WSAStartup(MAKEWORD(2, 2), &sockets) == 0, "child_winsock");
-	SOCKET connection = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	check(connection != INVALID_SOCKET, "child_socket");
-	sockaddr_in address{}; address.sin_family = AF_INET; address.sin_port = htons(port); address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-	const int connected = connect(connection, reinterpret_cast<sockaddr*>(&address), sizeof(address));
-	const int networkError = WSAGetLastError();
-	closesocket(connection); WSACleanup();
-	expect(connected == SOCKET_ERROR && networkError == WSAEACCES, "loopback_network_denied");
+	WSADATA sockets{};
+	const int networkInitialization = WSAStartup(MAKEWORD(2, 2), &sockets);
+	bool networkDenied = false;
+	if (networkInitialization == 0) {
+		SOCKET connection = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+		check(connection != INVALID_SOCKET, "child_socket");
+		sockaddr_in address{}; address.sin_family = AF_INET; address.sin_port = htons(port); address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+		const int connected = connect(connection, reinterpret_cast<sockaddr*>(&address), sizeof(address));
+		const int networkError = WSAGetLastError();
+		closesocket(connection); WSACleanup();
+		networkDenied = connected == SOCKET_ERROR && networkError == WSAEACCES;
+	}
+	// Do not count initialization failure as a network-denial pass. Collect the other independent boundaries first.
+	if (networkDenied) ++passed;
 	BY_HANDLE_FILE_INFORMATION leaked{};
 	expect(!GetFileInformationByHandle(inherited, &leaked) || leaked.dwVolumeSerialNumber != volume || fileId(leaked) != identity, "private_handle_not_inherited");
 	BOOL inJob = FALSE; check(IsProcessInJob(GetCurrentProcess(), nullptr, &inJob) != FALSE, "query_job");
@@ -169,7 +175,7 @@ static int child(const fs::path& stage, const fs::path& denied, unsigned short p
 	const BOOL brokeAway = CreateProcessW((stage / L"worker.exe").c_str(), command.data(), nullptr, nullptr, FALSE, CREATE_NO_WINDOW | CREATE_BREAKAWAY_FROM_JOB, nullptr, stage.c_str(), &startup, &escaped);
 	if (brokeAway) { TerminateProcess(escaped.hProcess, 1); WaitForSingleObject(escaped.hProcess, 5000); CloseHandle(escaped.hThread); CloseHandle(escaped.hProcess); }
 	expect(!brokeAway, "job_breakaway_denied");
-	writeReport(stage, std::to_string(passed) + " " + std::to_string(grandchild.dwProcessId));
+	writeReport(stage, std::to_string(passed) + " " + std::to_string(grandchild.dwProcessId) + " " + std::to_string(networkInitialization) + " " + std::to_string(networkDenied));
 	Sleep(INFINITE);
 	return 1;
 }
@@ -222,7 +228,7 @@ static int probe(const fs::path& root, const std::wstring& profileName) {
 	if (FAILED(folderResult)) throw std::runtime_error("private_profile_folder:" + std::to_string(static_cast<unsigned long>(folderResult)));
 	const std::wstring appData(folder); CoTaskMemFree(folder);
 	std::wstring environment;
-	for (const std::wstring& entry : { L"APPDATA=" + appData, L"LOCALAPPDATA=" + appData, L"SystemRoot=" + std::wstring(windows), L"TEMP=" + output.wstring(), L"TMP=" + output.wstring(), L"USERPROFILE=" + appData }) { environment += entry; environment += L'\0'; }
+	for (const std::wstring& entry : { L"APPDATA=" + appData, L"LOCALAPPDATA=" + appData, L"SystemDrive=" + fs::path(windows).root_name().wstring(), L"SystemRoot=" + std::wstring(windows), L"TEMP=" + output.wstring(), L"TMP=" + output.wstring(), L"USERPROFILE=" + appData, L"windir=" + std::wstring(windows) }) { environment += entry; environment += L'\0'; }
 	environment += L'\0';
 	SetEnvironmentVariableW(L"PACKX_PROBE_SECRET", L"synthetic-never-inherit");
 	// A separate fixed AppContainer control must read the AAP-only synthetic file; LPAC must then fail to read it.
@@ -237,9 +243,9 @@ static int probe(const fs::path& root, const std::wstring& profileName) {
 	for (unsigned i = 0; i < 100 && !fs::exists(reportPath); ++i) {
 		if (WaitForSingleObject(process.value, 50) == WAIT_OBJECT_0) break;
 	}
-	unsigned passed = 0; DWORD descendantPid = 0;
-	{ std::ifstream report(reportPath); report >> passed >> descendantPid; }
-	if (passed != 15 || !descendantPid) {
+	unsigned passed = 0; DWORD descendantPid = 0; int networkInitialization = -1; bool networkDenied = false;
+	{ std::ifstream report(reportPath); report >> passed >> descendantPid >> networkInitialization >> networkDenied; }
+	if (passed < 14 || !descendantPid) {
 		std::ifstream report(reportPath); std::string error; std::getline(report, error);
 		throw std::runtime_error("contained_probe_failed:" + error.substr(0, 512));
 	}
@@ -251,8 +257,8 @@ static int probe(const fs::path& root, const std::wstring& profileName) {
 	descendant.close(); thread.close(); process.close(); privateFile.close();
 	closesocket(listener); WSACleanup();
 	profile.remove();
-	std::cout << "{\"probe\":\"windows-lpac-fixed-program\",\"childAssertions\":15,\"processTreeTerminated\":true,\"profileDeleted\":true}\n";
-	return 0;
+	std::cout << "{\"probe\":\"windows-lpac-fixed-program\",\"childAssertions\":" << passed << ",\"networkInitializationError\":" << networkInitialization << ",\"networkAccessDenied\":" << (networkDenied ? "true" : "false") << ",\"processTreeTerminated\":true,\"profileDeleted\":true}\n";
+	return passed == 15 && networkDenied ? 0 : 1;
 }
 
 int wmain(int argc, wchar_t** argv) {
@@ -261,7 +267,10 @@ int wmain(int argc, wchar_t** argv) {
 		if (argc == 3 && std::wstring(argv[1]) == L"--regular-control") {
 			HANDLE raw = nullptr; check(OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &raw) != FALSE, "control_token"); Handle token(raw);
 			DWORD actual = 0, size = 0; check(GetTokenInformation(token.value, TokenIsAppContainer, &actual, sizeof(actual), &size) != FALSE && actual == 1, "control_is_appcontainer");
-			check(canOpen(argv[2], GENERIC_READ), "control_reads_all_packages_file"); return 0;
+			check(canOpen(argv[2], GENERIC_READ), "control_reads_all_packages_file");
+			WSADATA sockets{}; const int started = WSAStartup(MAKEWORD(2, 2), &sockets);
+			if (started != 0) throw std::runtime_error("regular_appcontainer_winsock:" + std::to_string(started));
+			WSACleanup(); return 0;
 		}
 		if (argc == 8 && std::wstring(argv[1]) == L"--child") {
 			try { return child(argv[2], argv[3], static_cast<unsigned short>(std::stoul(argv[4])), reinterpret_cast<HANDLE>(std::stoull(argv[5])), std::stoul(argv[6]), std::stoull(argv[7])); }
