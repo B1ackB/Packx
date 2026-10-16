@@ -46,3 +46,21 @@ Transformers.js 依赖 ONNX Runtime 1.30.0（MIT）、ONNX Runtime Web 1.31.0 �
 按 [Playwright 官方浏览器准备方式](https://playwright.dev/docs/browsers) 单独下载 Chromium Headless Shell；本次锁定清单为 revision 1248 / 156.0.8078.4，并随安装准备 FFmpeg revision 1013。实际来源由该版 `playwright-core/browsers.json` 与安装器固定，本机 macOS arm64 下载来自 `cdn.playwright.dev`。Chromium 主体采用 BSD 条款，其他组成部分以随附 `LICENSE.headless_shell` 为准；FFmpeg 附带 `COPYING.LGPLv2.1`。它们仅保存在开发环境浏览器缓存中，不加入 Packx 发行物；分发二进制时需另行遵循各自完整许可要求。
 
 测试使用独立浏览器上下文、本机 Vite 与合成 API fixture，拒绝非 GET、未登记 API 和外部 HTTP 请求，不访问用户业务数据、真实模型或付费服务。失败截图与轨迹只写入已忽略的 `temp/browser-tests/`；依赖/浏览器首次准备需要访问上述公开下载源，测试数据不上传。运行方法与验证边界见 [浏览器回归说明](../tests/browser/README.md)。
+
+## 2026-10-16：CI 安全检查与漏洞修复
+
+本次不新增产品运行时直接依赖。新增开发依赖与独立检查工具如下，来源和下载校验值固定在锁文件及 [CI 工具清单](../.github/ci-tools.json)：
+
+| 工具或依赖 | 固定来源 | 许可与用途 |
+| --- | --- | --- |
+| `yaml@2.9.1` | npm 官方 registry；[上游源码](https://github.com/eemeli/yaml/tree/v2.9.1)，无新增传递依赖 | ISC；仅解析工作流结构，保留包内 LICENSE |
+| `actions/checkout@v7.0.1` | [完整提交](https://github.com/actions/checkout/tree/3d3c42e5aac5ba805825da76410c181273ba90b1) | MIT；仅检出代码，不持久化凭据 |
+| `actions/setup-node@v7.0.0` | [完整提交](https://github.com/actions/setup-node/tree/820762786026740c76f36085b0efc47a31fe5020) | MIT；固定 Node，不启用包管理器缓存 |
+| `actionlint@1.7.12` | [官方 release](https://github.com/rhysd/actionlint/releases/tag/v1.7.12)；Linux x64、macOS arm64/x64 包均固定 SHA-256 | MIT；本地语法检查，下载后保留 LICENSE.txt；禁用可选外部 shellcheck/pyflakes 集成 |
+| `gitleaks@8.30.1` | [官方 release](https://github.com/gitleaks/gitleaks/releases/tag/v8.30.1)；上述三个平台包固定 SHA-256 | MIT；使用 CLI 二进制，不引入 Gitleaks Action 或商业服务，保留 LICENSE；扫描数据不上传 |
+
+GitHub API 已核对两个 Action tag 指向上述原仓库 commit；工具归档 SHA-256 与官方 release asset digest 一致，本地 macOS arm64 下载后实际比对通过。Linux/macOS x64 下载仍需各自运行器实际验收。下载的是固定归档，不执行在线安装脚本；本仓库不提交或分发这些二进制。
+
+首次审计发现 [sharp 高危公告 GHSA-wq5f-xc86-pv6w](https://github.com/advisories/GHSA-wq5f-xc86-pv6w) 与 [source-map-js 高危公告 GHSA-68fv-2mgg-jv7q](https://github.com/advisories/GHSA-68fv-2mgg-jv7q)。仅在现有依赖范围内更新传递锁定：`sharp 0.35.4 → 0.35.5`、对应平台包同版更新、`@img/sharp-libvips-* 1.3.3 → 1.3.4`、`source-map-js 1.2.1 → 1.2.2`。未运行 `npm audit fix`，未放宽版本范围或忽略漏洞；更新后审计为 0 findings。
+
+实际锁文件的 sharp 元数据为 Apache-2.0，libvips 平台包为 LGPL-3.0-or-later，部分 Windows/WASM 包包含组合许可，source-map-js 为 BSD-3-Clause；与更新前各对应条目的 SPDX 相同。以当前锁文件及各包完整 LICENSE/NOTICE 为准，不能沿用上文历史段落中的简化 libvips 许可说明。本轮检查保留已安装包的许可文件，不打包分发原生库；未来发行物包含这些组件时仍须单独核对适用许可、NOTICE 与源代码提供等义务，不把漏洞审计通过视为再分发许可已审核完成。

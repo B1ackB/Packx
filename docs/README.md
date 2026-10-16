@@ -21,6 +21,7 @@
 | 暂无人工评审时如何评测，哪些证据仍缺失 | [自动任务评测与可靠性计划](task-evaluation-plan.md)、[自动任务协议](../eval/fixtures/requirement-automatic-v1/README.md) | [真实模型任务对照](evidence/automatic-online-2026-09-26.md)、[复核输出与费用](evidence/review-output-2026-09-26.md)、[位置与动作边界](evidence/review-boundary-2026-09-26.md)、[精简指令与传输停止](evidence/review-concise-2026-09-26.md)、[联网前验证](evidence/automatic-eval-2026-09-26.md)、[历史结果审计](evidence/requirement-intake-automatic-audit-2026-09-26.json) |
 | 资料如何检索、来源是否适用 | [知识系统入口](knowledge/README.md)、[证据规则](knowledge/evidence.md) | [RAG ADR-0018](adr/0018-packaging-evidence-retrieval.md)、[重排对照](knowledge/overlap-rerank.md) |
 | 如何运行、备份、排障、发布本地包 | [本地运维](local-operations.md)、[启动与发布](release-start.md)、[配置](api-configuration.md) | [本地交付工作单](local-product-completion.md) |
+| 如何搭建安全、可审计的 CI 与合并检查 | [CI 建设计划](ci-security-plan.md)、[CI 运行与验收](ci-operations.md) | [仓库约束](../AGENTS.md)、[依赖记录](dependencies.md)；远端运行与设置待用户确认 |
 | 下一步优先做什么 | [路线图](roadmap.md)、[用户验证模板](user-validation-template.md) | [项目决策](project-decisions.md) |
 | 如何核对原文、记录人工试用与复现进程中断 | [试用协议与记录入口](user-validation-template.md) | [本轮产品验证](evidence/requirement-review-2026-09-26.md)、[进程终止原始记录](evidence/process-recovery-2026-09-26.json) |
 
