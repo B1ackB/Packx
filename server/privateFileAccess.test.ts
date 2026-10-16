@@ -8,6 +8,10 @@ const owner = "S-1-5-21-111-222-333-1001", safe = `D:P(A;;FA;;;${owner})(A;;FA;;
 describe("private Windows settings ACL", () => {
  it("requires protected explicit full access for the actual owner and SYSTEM only", () => {
   expect(privateWindowsDacl(safe, owner)).toBe(true);
+  const administrator = "S-1-5-21-111-222-333-500", alias = "D:P(A;;FA;;;LA)(A;;FA;;;SY)";
+  expect(privateWindowsDacl(alias, administrator, true)).toBe(true);
+  expect(privateWindowsDacl(alias, administrator)).toBe(false);
+  expect(privateWindowsDacl(alias, owner, true)).toBe(false);
   for (const sddl of [safe.replace("D:P", "D:AI"), safe + "(A;;FR;;;BU)", safe.replace(owner, "S-1-5-21-1-2-3-1001"), safe.replace("A;;FA;;;SY", "A;ID;FA;;;SY"), "D:P", safe + "(XA;;FA;;;WD)", safe.replace(";;;SY", ";;;BA"), "D:P(A;;FA;;;SY)(A;;FA;;;S-1-5-18)"]) expect(privateWindowsDacl(sddl, owner)).toBe(false);
  });
  it("uses a Fake OS adapter and fails closed when permission evidence cannot be read", () => {

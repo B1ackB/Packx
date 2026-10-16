@@ -24,6 +24,8 @@ Windows 首个执行候选 run [38974684391](https://github.com/B1ackB/Packx/act
 
 run [38975614384](https://github.com/B1ackB/Packx/actions/runs/38975614384) 已通过 ZIP 解压、独立依赖安装、Host 启动和受保护附件预览，随后发现私密设置保存被 POSIX mode 规则拒绝（settings_file_unsafe）。修复不是关闭检查：Host OS Adapter 对新建空 O_EXCL 临时文件以系统 whoami/icacls 收紧 DACL，只有当前用户和 SYSTEM 的显式 Full Access、禁用继承，通过系统导出的 SDDL 验证后才写入秘密；已有宽权限文件继续拒绝读取。命令只接收路径/SID，不接收密钥，OS 子进程不继承模型凭据。仅作用于本应用新建文件，不修改全局 ACL。Fake OS 回归验证严格 SDDL，真实 Windows 合成文件回归验证保存/重启读取、秘密掩码和追加 Everyone 读权限后的失败关闭；不触碰真实秘密或用户既有文件。
 
+真实合成权限探针 run [38976511845](https://github.com/B1ackB/Packx/actions/runs/38976511845) 证明原 OS 输出为 `D:PAI(A;;FA;;;SY)(A;;FA;;;BA)(A;;FA;;;LA)`：空文件保留了 Administrators 显式 ACE，并将本机 RID 500 管理员写为 LA。最终 prepare 在空文件上移除 Administrators ACE，仍只接受当前用户与 SYSTEM；只有 whoami 的机器名前缀与 OS hostname 一致、SID 为 RID 500 时才解析 LA 为当前用户，不能仅凭域账号的 RID 推断。Fake 回归明确拒绝未验证 LA、其他 SID、BA/Everyone、继承与未知 ACE。只处理新建空文件，不读写真实秘密。命令和 SID 别名依据微软 [icacls](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/icacls)、[whoami](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/whoami) 与 [SID Strings](https://learn.microsoft.com/en-us/windows/win32/secauthz/sid-strings) 官方文档。
+
 ## 精确阻塞：Windows ZIP 保留
 
 首次 run [38974328660](https://github.com/B1ackB/Packx/actions/runs/38974328660) 在启动前被 GitHub action allowlist 拒绝，未运行任何任务：只允许固定 checkout/setup-node，新官方 upload-artifact 提交未被允许。远端只读 API 同时确认 allowed_actions=selected、github_owned_allowed=false、sha_pinning_required=true。
