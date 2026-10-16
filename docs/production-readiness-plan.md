@@ -31,6 +31,10 @@
 
 阶段 3B 的 [PR #44](https://github.com/B1ackB/Packx/pull/44) 收窄为默认禁用的实验边界：同一函数的非沙箱初始化／连接成功、LPAC 初始化 10107／目录访问 5 已对照；不能以启动失败作为网络策略通过。诊断报告可验收该不可用状态，但 CI 还须实际验证严格模式仍退出 1，所有生产 Adapter 标记保持 false。只有当前提交全部必要 CI 成功才能合并实验代码，不能由此启用 Windows 文档解析。真实错误、macOS 清理回归及此前交接已持久化于[探针证据](evidence/windows-isolation-probe-2026-10-16.md)。
 
+PR44 的 `1871c7c` 已通过[全部必要 CI](https://github.com/B1ackB/Packx/actions/runs/38952303354)，真实 Windows99/99、macOS原生47/47、无跳过；诊断/严格模式均保留13/14和blocked，严格退出1。按作者自审与现有分支保护，于2026-10-16 19:09:01 UTC合并为 `2ece1c088f5a202c383a64ef30867c60264e3305`。仅合并实验边界，不是启用生产能力的批准。
+
+阶段3C先独立实现[有界UTF-8文本合同](evidence/utf8-text-contract-2026-10-16.md)：纯字节解析、来源hash及稳定失败码，可离线和真实Windows测试；未接入Tool或文件读取。PDF/Office、原生生产执行器及Windows未信任文档仍待隔离门禁，不提供无隔离fallback。
+
 独立 [PR #45](https://github.com/B1ackB/Packx/pull/45) 已在全部必要 CI 成功后合并为 `a71c30b7c95ec8c1cd69dda34d8bee0dfc811ac6`，完成身份感知的 macOS 成功／超时／取消／执行失败清理回归和 spawn 异常清理（真实原生 47/47）。Windows 的创建时 NoChild 属性组合于 main 前退出 `0xC0000142`，改用 ADR0032 的内核单进程 Job 合同后，LPAC 已完成 13 项独立检查及根进程／profile 清理；合法宿主的单进程拒绝和双进程树清理亦通过。网络 Winsock 初始化仍返回 10107，未执行连接，继续阻断；没有增加 capability 或将宿主证据冒充 LPAC 成功。Windows 文档 Adapter 保持未接入。
 
 Windows Sandbox Adapter、原生文档读取与完整安装链路尚不存在或未验收；真实客户素材／员工试用、签名与干净设备发行、生产多用户边界、断电／故障磁盘语义仍待完成。遇到确需新增权限、付费、凭据扩张或破坏性迁移时，先保存已完成成果，再单独说明必要动作及风险，不把当前授权扩大为这些动作。

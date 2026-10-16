@@ -1,6 +1,6 @@
 # ADR-0032：Windows 原生工具边界分阶段接入
 
-状态：Accepted for path contract；原生隔离与文档 Adapter 尚待实测。
+状态：路径合同与禁用实验边界已验收；生产原生隔离与文档 Adapter 尚未验收。
 日期：2026-10-16
 
 ## 背景
