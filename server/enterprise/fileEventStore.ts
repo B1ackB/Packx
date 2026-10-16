@@ -1,4 +1,5 @@
 import { FileWriteLockError, withFileWriteLock } from "../fileWriteLock";
+import { syncDirectory } from "../syncDirectory";
 import {
 	chmodSync,
 	closeSync,
@@ -449,7 +450,7 @@ export class FileEnterpriseEventStore implements EnterpriseEventStore {
 				flag: "wx",
 			});
 			created = true;
-			const handle = openSync(temporaryPath, "r");
+			const handle = openSync(temporaryPath, "r+");
 			try {
 				fsyncSync(handle);
 			} finally {
@@ -457,12 +458,7 @@ export class FileEnterpriseEventStore implements EnterpriseEventStore {
 			}
 			renameSync(temporaryPath, this.filePath);
 			chmodSync(this.filePath, 0o600);
-			const directoryHandle = openSync(directory, "r");
-			try {
-				fsyncSync(directoryHandle);
-			} finally {
-				closeSync(directoryHandle);
-			}
+			syncDirectory(directory);
 		} catch (error) {
 			// Only remove a temporary file this write created; a pre-existing file at that path belongs to someone else.
 			if (created && existsSync(temporaryPath)) unlinkSync(temporaryPath);

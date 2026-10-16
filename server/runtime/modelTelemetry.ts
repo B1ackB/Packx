@@ -1,4 +1,5 @@
 import { createHash, randomUUID } from "node:crypto";
+import { syncDirectory } from "../syncDirectory";
 import { constants, closeSync, existsSync, fsyncSync, lstatSync, mkdirSync, openSync, readFileSync, realpathSync, renameSync, unlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import type { AgentModelProvider, AgentModelResponse, AgentModelRequest } from "../../src/agent/contracts";
@@ -43,8 +44,7 @@ export class ModelTelemetryStore {
 			const fd = openSync(temporary, constants.O_WRONLY | constants.O_CREAT | constants.O_EXCL | constants.O_NOFOLLOW, 0o600);
 			try { writeFileSync(fd, JSON.stringify(index)); fsyncSync(fd); } finally { closeSync(fd); }
 			renameSync(temporary, path);
-			const directory = openSync(this.root, constants.O_RDONLY);
-			try { fsyncSync(directory); } finally { closeSync(directory); }
+			syncDirectory(this.root);
 		} finally { if (existsSync(temporary)) unlinkSync(temporary); }
 	}
 	view(scope: Scope): ModelTelemetryView {

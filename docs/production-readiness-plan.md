@@ -15,7 +15,7 @@
 | 阶段 | 可验收输出 | 必须通过的证据 | 当前状态 |
 | --- | --- | --- | --- |
 | 1. 固定基线与路径边界 | 确认真实 repo／Node／提交；修复共享目录判断 | 原实现复现 Windows 路径穿越；修复后相关测试、类型与必要 CI 成功 | [PR #41](https://github.com/B1ackB/Packx/pull/41) 已合并，`6b77141bb45bddec4e1f9e83bf9aaba28f6e4a9c`；[证据](evidence/platform-boundary-2026-10-16.md) |
-| 2. Windows 本地数据切片 | 消除备份目标的 POSIX 拆分；增加 Windows 必需 CI | 真实 Windows 上路径、备份／SQLite WAL 恢复、目录 junction 拒绝、迁移与强制终止后的写锁恢复；缺失／跳过／失败均阻断 | 本增量新增该 Gate；真实 Windows 结果以对应提交的 `windows-local-data` 为准 |
+| 2. Windows 本地数据切片 | 消除备份目标的 POSIX 拆分；增加 Windows 必需 CI | 真实 Windows 上路径、备份／SQLite WAL 恢复、目录 junction 拒绝、迁移与强制终止后的写锁恢复；缺失／跳过／失败均阻断 | [PR #42](https://github.com/B1ackB/Packx/pull/42)／[失败与修复记录](evidence/windows-local-data-2026-10-16.md)；结果以对应提交的 `windows-local-data` 为准 |
 | 3. Windows 受控工具隔离 | 在公开 Sandbox Port 下选择 OS Adapter、文档读取方案与威胁模型 | Windows 上验证未授权文件／网络拒绝、Secret 不继承、超时／取消／进程树清理、资源和输出限制；隔离不可用拒绝执行 | 待设计和真实平台证据；不得以关闭隔离兼容 |
 | 4. 核心任务闭环 | 输入来源→候选事实→不可变需求单→确认／审批→导出 | 固定任务集中关键事实有来源；未确认值不升级；过期版本不得交付；失败保留草稿与可解释恢复入口 | 复用现有 M2 及任务集，待当前提交逐项复验；真实员工试用仍缺失 |
 | 5. 上下文与执行恢复 | 压缩／暂停／崩溃后恢复当前事实和执行证据 | 来源变更拒绝旧快照；重复投递不重复副作用；unknown 不自动重放；租户和审批边界覆盖 | 复用 Runtime Contract、恢复测试和固定 Eval，待当前提交逐项复验 |

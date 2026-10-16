@@ -45,7 +45,7 @@ node --import tsx scripts/ci.ts windows-local-data
 | 依赖审计 | 修复并重跑；本版不接受 blanket ignore 或自动 `audit fix` |
 | 核心测试或类型 | 修代码；报告还要求关键 Runtime、恢复、事件存储、记忆套件实际执行 |
 | 原生检查 | 检查 macOS、编译器、系统沙箱和报告；要求每个指定套件有成功断言且无跳过 |
-| Windows 本地数据 | 检查真实 Windows runner、固定 Node、四个指定文件的实际断言和 junction／崩溃回归；不换成路径模拟或跳过失败用例 |
+| Windows 本地数据 | 检查真实 Windows runner、固定 Node、八个指定文件的实际断言和 junction／崩溃／队列／定时存储回归；不换成路径模拟或跳过失败用例 |
 | 浏览器 | 检查 `temp/browser-tests/`；报告必须涵盖三个项目且无失败、跳过或 flaky |
 | 汇总门禁 | 查看四个前置 Job；失败、跳过、取消均不放行，不删除依赖让结果变绿 |
 

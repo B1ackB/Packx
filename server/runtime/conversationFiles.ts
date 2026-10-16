@@ -1,4 +1,5 @@
 import { createHash, randomUUID } from "node:crypto";
+import { syncDirectory } from "../syncDirectory";
 import { constants, closeSync, existsSync, fsyncSync, lstatSync, mkdirSync, openSync, readFileSync, realpathSync, renameSync, unlinkSync, writeFileSync } from "node:fs";
 import { isAbsolute, join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
@@ -78,8 +79,7 @@ export class ConversationFileService implements AgentToolApprovalPort {
 			if (Buffer.byteLength(serialized) > 20 * 1024 * 1024) fail("file_quota_exceeded", "当前会话文件区记录已达到配额", 413);
 			this.writeNew(temporary, serialized);
 			renameSync(temporary, join(directory, "index.json"));
-			const fd = openSync(directory, constants.O_RDONLY);
-			try { fsyncSync(fd); } finally { closeSync(fd); }
+			syncDirectory(directory);
 		} finally { if (existsSync(temporary)) unlinkSync(temporary); }
 	}
 

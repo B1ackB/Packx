@@ -15,7 +15,10 @@ const command = (name: string) => `node --import tsx scripts/ci.ts ${name}`;
 const gate = 'test "$CORE_RESULT" = success\ntest "$BROWSER_RESULT" = success\ntest "$NATIVE_RESULT" = success\ntest "$WINDOWS_RESULT" = success';
 const toolsDirectory = resolve("temp/ci-tools");
 const nativeFiles = ["macOsSeatbeltSandboxedToolExecutor.test.ts", "assetInspection.test.ts", "documentRead.test.ts"];
-const windowsFiles = ["server/localDataBoundary.test.ts", "server/localBackup.test.ts", "server/localDataMigration.test.ts", "server/fileWriteLock.test.ts"];
+const windowsFiles = [
+	"server/localDataBoundary.test.ts", "server/localBackup.test.ts", "server/localDataMigration.test.ts", "server/fileWriteLock.test.ts", "server/syncDirectory.test.ts",
+	"server/enterprise/fileEventStoreRecovery.test.ts", "server/enterprise/fileStageJobQueue.test.ts", "server/enterprise/fileCronScheduleStore.test.ts",
+];
 
 function ensure(condition: unknown, message: string): asserts condition {
 	if (!condition) throw new Error(message);
