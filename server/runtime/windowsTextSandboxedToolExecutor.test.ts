@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { existsSync, linkSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, linkSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -29,10 +29,10 @@ import { WindowsTextSandboxedToolExecutor } from "./windowsTextSandboxedToolExec
 const roots: string[] = [], binary = process.env.PACKX_WINDOWS_NATIVE_TOOLS ?? resolve(".blackx-tools");
 const root = () => { const path = mkdtempSync(join(tmpdir(), "packx-protected-text-")); roots.push(path); return path; };
 afterEach(() => { for (const path of roots.splice(0)) rmSync(path, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 }); });
-function fixture(bytes = Buffer.from("中文包装\nQuantity: 5000")) {
+function fixture(bytes = Buffer.from("中文包装\nQuantity: 5000"), tools = binary) {
 	const workspace = root(), attemptId = randomUUID(), directory = join(workspace, ".blackx-tool-inputs", attemptId); mkdirSync(directory, { recursive: true });
 	const input = join(directory, "input.bin"); writeFileSync(input, bytes);
-	const executor = new WindowsTextSandboxedToolExecutor(workspace, binary);
+	const executor = new WindowsTextSandboxedToolExecutor(workspace, tools);
 	const manifest = compileToolExecutionManifest({ attemptId, tenantId: "tenant", workspaceId: "workspace", runId: "run", stageId: "stage", executionId: "execution", toolCallId: "call", idempotencyKey: attemptId, tool: { name: "asset_metadata_inspect", version: "windows-utf8.v1" }, command: { executable: executor.executable, argv: [input, "1"], workingDirectory: directory }, paths: { readOnly: [input], writable: [], temporaryDirectory: join(directory, "output") }, environment: { LANG: "en_US.UTF-8" }, network: { mode: "deny-all", allowedDomains: [] }, limits: { timeoutMs: 10000, maxCpuSeconds: 30, maxMemoryBytes: 64 * 1024 * 1024, maxProcesses: 1, maxStdoutBytes: 1048576, maxStderrBytes: 4096, maxOutputFiles: 0, maxOutputBytes: 0 } });
 	return { workspace, directory, input, executor, manifest };
 }
@@ -44,6 +44,8 @@ function broker(stage: string, input: string, timeout: number, output = 1048576,
 	const child = ownerProcess ? spawn(process.execPath, ["--input-type=module", "--eval", ownerCode, JSON.stringify([program, ...args])], { stdio: ["pipe", "pipe", "pipe"] }) : spawn(program, args, { stdio: ["pipe", "pipe", "pipe"] });
 	const chunks: Buffer[] = []; child.stdout.on("data", (data) => chunks.push(data)); let errors = ""; child.stderr.on("data", (data) => { errors += data; });
 	const done = new Promise<Record<string, unknown>>((accept, reject) => { child.on("error", reject); child.on("close", (code) => { try { if (!ownerProcess && code !== 0) throw new Error(errors); accept(JSON.parse(Buffer.concat(chunks).toString("utf8"))); } catch (cause) { reject(new Error(`Native lifecycle failure ${errors}`, { cause })); } }); });
+	void done.catch(() => {}); // A readiness assertion may fail first; the owned process still has a bounded lifetime.
+	const guard = setTimeout(() => { child.stdin.destroy(); child.kill(); }, 15000); child.once("close", () => clearTimeout(guard));
 	return { child, done };
 }
 
@@ -51,7 +53,7 @@ describe.skipIf(process.platform !== "win32" || !process.env.PACKX_WINDOWS_NATIV
 	it("reads exact UTF-8 under LPAC and rejects malformed/binary inputs without a Host fallback", async () => {
 		for (let i = 0; i < 3; ++i) {
 			const f = fixture(Buffer.from("\ufeff中文\n\\\"".repeat(2000))), result = await f.executor.execute(f.manifest, new AbortController().signal);
-			expect(result).toMatchObject({ status: "succeeded", exitCode: 0, sandbox: { terminationReason: "lpac_registry_read_job_cleanup_verified" } });
+			expect(result, JSON.stringify(result)).toMatchObject({ status: "succeeded", exitCode: 0, sandbox: { terminationReason: "lpac_registry_read_job_cleanup_verified" } });
 			expect(JSON.parse(result.stdout.text).pages[0].text).toBe(readFileSync(f.input, "utf8").slice(1));
 			expect(existsSync(join(f.directory, "native"))).toBe(false);
 		}
@@ -68,7 +70,7 @@ describe.skipIf(process.platform !== "win32" || !process.env.PACKX_WINDOWS_NATIV
 	it("bounds timeout, cancellation and output, cleaning only the owned Job and profile in three rounds", async () => {
 		for (let i = 0; i < 3; ++i) for (const mode of ["timeout", "cancel", "output"] as const) {
 			const f = fixture(Buffer.from(mode)), stage = join(f.directory, "native"); const run = broker(stage, f.input, mode === "timeout" ? 200 : 10000, mode === "output" ? 1024 : 1048576);
-			if (mode === "cancel") { await until(() => existsSync(join(stage, "worker.json"))); run.child.stdin.end(); }
+			if (mode === "cancel") { await until(() => existsSync(join(stage, "worker.json"))); run.child.stdin.destroy(); }
 			expect(await run.done).toMatchObject({ status: mode === "timeout" ? "timed_out" : mode === "cancel" ? "cancelled" : "resource_exhausted", cleanupVerified: true, profileDeleted: true });
 			rmSync(stage, { recursive: true }); expect(existsSync(stage)).toBe(false);
 		}
@@ -79,6 +81,20 @@ describe.skipIf(process.platform !== "win32" || !process.env.PACKX_WINDOWS_NATIV
 			await until(() => existsSync(join(stage, "worker.json"))); run.child.kill("SIGKILL");
 			expect(await run.done).toMatchObject({ status: "cancelled", cleanupVerified: true, profileDeleted: true });
 			rmSync(stage, { recursive: true });
+		}
+	}, 60000);
+	it("propagates AbortSignal promptly through the actual Port and verifies cleanup in three rounds", async () => {
+		const tools = root();
+		copyFileSync(join(binary, "text-inspector.exe"), join(tools, "text-inspector.exe"));
+		// Deliberately injected Host-owned fixture, with no production registration or model-selected command.
+		copyFileSync(join(binary, "text-fault-worker.exe"), join(tools, "text-inspector-worker.exe"));
+		for (let i = 0; i < 3; ++i) {
+			const f = fixture(Buffer.from("sleep"), tools), controller = new AbortController();
+			const pending = f.executor.execute(f.manifest, controller.signal);
+			await until(() => existsSync(join(f.directory, "native", "worker.json")));
+			const cancelledAt = Date.now(); controller.abort();
+			expect(await pending).toMatchObject({ status: "cancelled", sandbox: { terminationReason: "owner_cancelled_cleanup_verified" } });
+			expect(Date.now() - cancelledAt).toBeLessThan(5000); expect(existsSync(join(f.directory, "native"))).toBe(false);
 		}
 	}, 60000);
 	it("runs upload → native Tool → versioned Artifact → confirmation → approval → delivery, and recovers source observations", async () => {

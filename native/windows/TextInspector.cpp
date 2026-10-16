@@ -2,6 +2,7 @@
 #include "IsolationSupport.h"
 #include <fstream>
 #include <algorithm>
+#include <objbase.h>
 
 static bool ownerClosed() {
 	DWORD available = 0;
@@ -29,7 +30,14 @@ static int run(const fs::path& stage, const std::wstring& name, const fs::path& 
 	Handle nullInput(CreateFileW(L"NUL", GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, &inherited, OPEN_EXISTING, 0, nullptr));
 	check(nullInput.value != INVALID_HANDLE_VALUE, "empty_worker_stdin");
 	wchar_t windows[MAX_PATH]{}; check(GetWindowsDirectoryW(windows, MAX_PATH) > 0, "windows_directory");
-	std::wstring environment = L"LANG=en_US.UTF-8"; environment += L'\0'; environment += L"SystemRoot=" + std::wstring(windows); environment += L'\0'; environment += L"windir=" + std::wstring(windows); environment += L'\0'; environment += L'\0';
+	LPWSTR sidText = nullptr, folder = nullptr;
+	check(ConvertSidToStringSidW(profile.sid, &sidText) != FALSE, "private_profile_sid");
+	const HRESULT folderResult = GetAppContainerFolderPath(sidText, &folder); LocalFree(sidText);
+	if (FAILED(folderResult)) throw std::runtime_error("private_profile_folder:" + std::to_string(static_cast<unsigned long>(folderResult)));
+	const std::wstring appData(folder); CoTaskMemFree(folder);
+	std::wstring environment;
+	for (const std::wstring& entry : { L"APPDATA=" + appData, std::wstring(L"LANG=en_US.UTF-8"), L"LOCALAPPDATA=" + appData, L"SystemDrive=" + fs::path(windows).root_name().wstring(), L"SystemRoot=" + std::wstring(windows), L"TEMP=" + appData, L"TMP=" + appData, L"USERPROFILE=" + appData, L"windir=" + std::wstring(windows) }) { environment += entry; environment += L'\0'; }
+	environment += L'\0';
 	check(!ownerClosed(), "owner_already_closed");
 	const auto created = launch(stage / L"worker.exe", quote((stage / L"worker.exe").wstring()) + L" " + quote((stage / L"input.bin").wstring()), stage, environment, profile.sid, job.value, true, registry.sid, writer.value, nullInput.value);
 	Handle process(created.hProcess), thread(created.hThread); writer.close(); nullInput.close();

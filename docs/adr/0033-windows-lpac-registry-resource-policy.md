@@ -45,3 +45,6 @@ Node 与 broker 的控制管道 EOF 表示取消或 Host 进程退出。broker �
 通过现有 SandboxedToolExecutorPort 接入 AssetInspectionService，parserVersion=windows-utf8.v1，缓存键与 macOS 1.3.0 分开；复用版本化 Artifact、来源摘要、显式确认和 Approval，Core 不变。启动只使用预装且固定的 CI 工具链，缺原生二进制/能力/隔离证据失败关闭。Windows 2025 CI 不能证明 Windows 11 用户桌面、安装包、PDF/Office 或生产就绪。
 
 必要回归：真实 UTF-8/BOM/转义字符、编码与格式失败、权限拒绝、3 轮超时/取消/输出超限、3 轮真实 Node Host 终止后的 Job/profile 清理、上传→原生 Tool→Artifact→人工事实确认→版本审批→需求单下载；离线模型仅作为确定性驱动，不当作真实模型效果。
+
+
+产品接入的首个启动失败保留：CI38966529838/38967037675 中严格探针仍通过，新 broker 的 CreateProcess 返回203（环境字段缺失），worker 尚未开始，相关任务和清理测试按失败处理。修复复用已验证探针的显式 OS 字段：SystemDrive/SystemRoot/windir，以及指向本次私有 profile 的 APPDATA/LOCALAPPDATA/USERPROFILE/TEMP/TMP；不借用真实用户目录、不继承 Provider 变量。ole32 只在可信 broker 释放系统分配的路径内存使用，没有给 LPAC 增加 COM 能力。控制管道采用 destroy 完整关闭连接，避免把 writable end 等同于跨平台句柄关闭，实际 AbortSignal 另有三轮回归。

@@ -73,7 +73,7 @@ export async function runWindowsIsolationProbe(environment: NodeJS.ProcessEnv, v
 		const compilerFlags = "/nologo /std:c++20 /W4 /WX /MT /EHsc /DUNICODE /D_UNICODE /D_WIN32_WINNT=0x0A00";
 		writeFileSync(batch, `@echo off\r\ncall "${installation}\\VC\\Auxiliary\\Build\\vcvars64.bat" ${policy.windowsSdkVersion}\r\nif errorlevel 1 exit /b 1\r\ncl ${compilerFlags} "${join(root, "native/testing/WindowsIsolationProbe.cpp")}" /Fe:"${binary}" /link userenv.lib advapi32.lib ws2_32.lib ole32.lib OneCoreUAP.lib\r\nif errorlevel 1 exit /b 1\r\ncl ${compilerFlags} "${join(root, "native/testing/WindowsIsolationWorker.cpp")}" /Fe:"${worker}" /link advapi32.lib ws2_32.lib\r\n`);
 		writeFileSync(batch, readFileSync(batch, "utf8") + [
-			["native/windows/TextInspector.cpp", "text-inspector.exe", "userenv.lib advapi32.lib OneCoreUAP.lib"],
+			["native/windows/TextInspector.cpp", "text-inspector.exe", "userenv.lib advapi32.lib ole32.lib OneCoreUAP.lib"],
 			["native/windows/TextInspectorWorker.cpp", "text-inspector-worker.exe", "advapi32.lib ws2_32.lib OneCoreUAP.lib"],
 			["native/testing/WindowsTextFaultWorker.cpp", "text-fault-worker.exe", ""],
 		].map(([source, output, libraries]) => `if errorlevel 1 exit /b 1\r\ncl ${compilerFlags} "${join(root, source!)}" /Fe:"${join(build, output!)}" /link ${libraries}\r\n`).join(""));
