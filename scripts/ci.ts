@@ -21,6 +21,7 @@ const windowsFiles = [
 	"server/enterprise/fileEventStoreRecovery.test.ts", "server/enterprise/fileStageJobQueue.test.ts", "server/enterprise/fileCronScheduleStore.test.ts",
 	"src/agent/sandboxPaths.test.ts",
 	"eval/windowsIsolationProbe.test.ts",
+	"server/runtime/textDocumentInspection.test.ts",
 ];
 
 function ensure(condition: unknown, message: string): asserts condition {
