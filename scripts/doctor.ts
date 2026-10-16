@@ -3,6 +3,7 @@ import { existsSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { resolve } from "node:path";
 import { configureLocalData, within } from "../server/localData";
+import { documentCapabilities } from "../server/runtime/documentCapabilities";
 
 let failures = 0;
 function report(ok: boolean, label: string, action: string) {
@@ -11,14 +12,15 @@ function report(ok: boolean, label: string, action: string) {
 }
 const [major, minor] = process.versions.node.split(".").map(Number);
 report(major === 24 && minor >= 14, "Node 24.14+", "Use the Node version recorded in .nvmrc.");
-report(process.platform === "darwin", "macOS native document support", "Full local document workflow currently requires macOS.");
+const documents = documentCapabilities();
+report(documents.scope !== "unavailable", "Native document platform", "Use a supported macOS build or the limited Windows UTF-8 package.");
+console.log(`INFO · Document scope: ${documents.scope}; isolation is checked per execution, not proven by component presence.`);
 report(existsSync("node_modules/tsx"), "Workspace dependencies", "Run npm ci.");
 if (process.platform === "darwin" && !existsSync("packx-release.json")) report(spawnSync("/usr/bin/xcrun", ["--find", "swiftc"], { encoding: "utf8", timeout: 10_000 }).status === 0, "Native compiler", "Install Apple Command Line Tools.");
-report(existsSync(".blackx-tools/asset-inspector"), "Native document reader", "Run npm run build:native.");
+report(documents.components === "present", "Native document components", "Obtain a complete matching release, or build the documented native tools.");
 const environment = { ...process.env };
 try { new ModelSettings(resolve(".packx-settings.json"), environment).apply(environment); }
 catch { report(false, "Private settings file", "Check file permissions and format; never paste its credentials into logs."); }
-report(existsSync(".blackx-tools/tool-supervisor"), "Native resource supervisor", "Build native tools or obtain a complete release.");
 const data = configureLocalData(environment);
 report(!existsSync(resolve(data.root, ".packx-operation.lock")), "Data root available", "Stop Packx before maintenance; for an abandoned lock, follow docs/local-operations.md.");
 report(!existsSync(resolve(data.root, ".packx-incomplete")), "No interrupted restore", "Use the original data or repeat restore into a new directory.");

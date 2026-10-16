@@ -84,6 +84,14 @@ async function productSlice(factory: (workspace: string) => SandboxedToolExecuto
 }
 
 describe.skipIf(process.platform !== "win32" || !process.env.PACKX_WINDOWS_NATIVE_TOOLS)("actual Windows protected UTF-8 operation", () => {
+	it("previews an uploaded attachment by identity, without a fabricated local path", async () => {
+		const workspace = root(), scope = { tenantId: "tenant", workspaceId: "workspace", actorId: "user", runId: "preview-conversation" };
+		const attachments = new FileConversationAttachmentStore(join(workspace, "attachments")), executor = new WindowsTextSandboxedToolExecutor(workspace, binary);
+		const service = new AssetInspectionService(new ProposalRunEngine(new InMemoryEnterpriseEventStore()), attachments, executor, workspace, executor.executable, undefined, "windows-utf8.v1");
+		const stored = attachments.put({ ...scope, conversationId: scope.runId }, { requestId: "preview-source", name: "中文 需求.txt", mediaType: "text/plain", content: Buffer.from("Quantity: 5000，待确认") }).attachment;
+		expect(await service.previewAttachment(scope, stored.attachmentId, new AbortController().signal)).toMatchObject({ attachmentId: stored.attachmentId, sha256: stored.sha256, parserVersion: "windows-utf8.v1", inspection: { kind: "text", status: "parsed" } });
+		expect(() => attachments.put({ ...scope, conversationId: scope.runId }, { requestId: "bad-encoding", name: "invalid.txt", mediaType: "text/plain", content: Buffer.from([0xc3, 0x28]) })).toThrow("UTF-8");
+	}, 30000);
 	it("reads exact UTF-8 under LPAC and rejects malformed/binary inputs without a Host fallback", async () => {
 		for (let i = 0; i < 3; ++i) {
 			const f = fixture(Buffer.from("\ufeff中文\n\\\"".repeat(2000))), result = await f.executor.execute(f.manifest, new AbortController().signal);

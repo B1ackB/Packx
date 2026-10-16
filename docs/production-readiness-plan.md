@@ -62,3 +62,10 @@ PR44 的 `1871c7c` 已通过[全部必要 CI](https://github.com/B1ackB/Packx/ac
 用户桌面若要复核，需要既有Windows x64环境、Node24.14.x、PowerShell7及仓库固定的MSVC/SDK，源码构建目录须满足当前严格ASCII路径合同。不自动安装工具、修改执行策略/防火墙、放开隔离或新增付费。已有CI只证明该Server2025切片；Windows11干净设备、企业策略与发行安装需另行真实验收。
 
 后续可靠性修复见[回调/退出/Job证据](evidence/windows-lifecycle-followup-2026-10-16.md)：等待supervisor close、保留主错误及清理错误、JOB_LIST创建时原子分配，独立broker通过EOF清理且保留close引用。重启回收只有在broker已退出且profile清理有持久证据后删除Native暂存；未知记录保留人工检查，不静默抹除。原始失败与发现超时继续留在ADR/PR，不以历史绿灯掩盖。
+
+
+## 平台能力与发行入口（下一增量）
+
+Host健康接口单独报告文档格式/大小范围及组件是否存在；组件存在不表示隔离已通过，仍逐次校验。Windows入口仅上传UTF-8 txt/md/csv/json且最多128KiB，不支持格式在入库前明确拒绝。附件预览按attachmentId绑定当前会话，不伪造成本地路径；解析失败给出编码、超时、取消或组件/保护不可用的安全原因。模型连接状态与文档组件状态分开显示；这不增加Core或模型Provider能力。
+
+现有build-release/launch仍只支持macOS，不能用开发脚本冒充Windows发行。Windows未签名便携包与空白依赖、中文/空格路径、启停和升级回退另做独立增量；本段UI状态不等于安装包已验收。

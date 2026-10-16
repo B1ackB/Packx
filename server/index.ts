@@ -20,6 +20,7 @@ import { AgentPlanStore } from "./enterprise/agentPlanStore";
 import { AgentPlanWorkflow } from "./enterprise/agentPlanWorkflow";
 import { PlanError } from "../src/enterprise/agentPlan";
 import { deliveryHtml, deliveryMarkdown, type RequirementDelivery } from "../src/manufacturing/requirementDelivery";
+import { documentCapabilities, assertDocumentUpload, UnsupportedDocumentError } from "./runtime/documentCapabilities";
 import { AssetInspectionService } from "./runtime/assetInspection";
 import { MacOsSeatbeltSandboxedToolExecutor } from "./runtime/macOsSeatbeltSandboxedToolExecutor";
 import { WindowsTextSandboxedToolExecutor } from "./runtime/windowsTextSandboxedToolExecutor";
@@ -471,7 +472,7 @@ server.on("request", async (request, response) => {
 		return;
 	}
   if (request.method === "GET" && url.pathname === "/api/runtime/health") {
-    json(response, 200, await runtime.health());
+    json(response, 200, { ...await runtime.health(), documents: documentCapabilities() });
     return;
   }
 
@@ -592,11 +593,8 @@ server.on("request", async (request, response) => {
 		const controller = new AbortController(); response.on("close", () => controller.abort());
 		try {
 			const stored = conversationAttachments.read({ ...scope, conversationId }, attachmentId);
-			const document = await assetInspection.preview(scope, `/attachment-preview/${stored.attachment.name}`, () => {
-				if (conversationApi.get(context, conversationId).status !== 200) throw new Error("Conversation unavailable");
-				const current = conversationAttachments.read({ ...scope, conversationId }, attachmentId);
-				return { content: current.content, sha256: current.attachment.sha256 };
-			}, controller.signal, url.searchParams.get("ocrCursor") ?? undefined);
+			const document = await assetInspection.previewAttachment(scope, attachmentId, controller.signal, url.searchParams.get("ocrCursor") ?? undefined);
+			const currentAccess = conversationApi.get(context, conversationId); if (currentAccess.status !== 200) { json(response, currentAccess.status, currentAccess.body); return; }
 			json(response, 200, { document: { ...document, attachmentId, sourceRef: stored.attachment.sourceRef } });
 		} catch (error) { json(response, 422, { code: "document_import_failed", message: error instanceof Error ? error.message : "文档导入失败，请检查是否加密、损坏或超限" }); }
 		return;
@@ -672,7 +670,10 @@ server.on("request", async (request, response) => {
 				json(response, 200, { attachments: conversationAttachments.list(attachmentScope) });
 				return;
 			}
-			const content = await readBody(request, 10 * 1024 * 1024);
+			const capability = documentCapabilities(), name = url.searchParams.get("name") ?? "";
+			assertDocumentUpload(capability, name, 1);
+			const content = await readBody(request, capability.scope === "windows-utf8" ? capability.maxBytes : 10 * 1024 * 1024);
+			assertDocumentUpload(capability, name, content.length);
 			const currentAccess = conversationApi.get(context, conversationId);
 			if (currentAccess.status !== 200) { json(response, currentAccess.status, currentAccess.body); return; }
 			const result = conversationAttachments.put(attachmentScope, {
@@ -683,8 +684,9 @@ server.on("request", async (request, response) => {
 			});
 			json(response, result.duplicate ? 200 : 201, result);
 		} catch (error) {
+			if (error instanceof UnsupportedDocumentError) { request.resume(); json(response, error.code === "document_size_limit" ? 413 : 415, { code: error.code, message: error.message }); return; }
 			if (error instanceof Error && error.message === "request_too_large") {
-				json(response, 413, { code: "request_too_large", message: "附件不能超过 10 MB" });
+				json(response, 413, { code: "request_too_large", message: process.platform === "win32" ? "Windows 文本附件不能超过 128 KiB" : "附件不能超过 10 MB" });
 				return;
 			}
 			const known = error instanceof ConversationAttachmentError ? error : undefined;

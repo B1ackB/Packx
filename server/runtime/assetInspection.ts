@@ -46,16 +46,31 @@ export class AssetInspectionService implements SandboxedToolExecutorPort {
 	}
 
 	async preview(context: { tenantId: string; workspaceId: string; actorId: string; runId: string }, path: string, readLocal: (context: AgentToolExecutionContext, path: string) => { content: Buffer; sha256: string }, signal: AbortSignal, ocrCursor?: string): Promise<AssetInspectionRecord> {
+		const { record, scope } = await this.previewInput(context, { path, ...(ocrCursor ? { ocrCursor } : {}) }, readLocal, signal);
+		if (readLocal(scope, path).sha256 !== record.sha256) throw new RuntimeFailure("context_failure", "Document source changed", false);
+		return record;
+	}
+
+	async previewAttachment(context: { tenantId: string; workspaceId: string; actorId: string; runId: string }, attachmentId: string, signal: AbortSignal, ocrCursor?: string): Promise<AssetInspectionRecord> {
+		const { record } = await this.previewInput(context, { attachmentId, ...(ocrCursor ? { ocrCursor } : {}) }, () => { throw new RuntimeFailure("permission_denied", "Local path is not part of attachment preview", false); }, signal);
+		if (this.attachments.read({ ...context, conversationId: context.runId }, attachmentId).attachment.sha256 !== record.sha256) throw new RuntimeFailure("context_failure", "Document source changed", false);
+		return record;
+	}
+
+	private async previewInput(context: { tenantId: string; workspaceId: string; actorId: string; runId: string }, input: { path?: string; attachmentId?: string; ocrCursor?: string }, readLocal: (context: AgentToolExecutionContext, path: string) => { content: Buffer; sha256: string }, signal: AbortSignal): Promise<{ record: AssetInspectionRecord; scope: AgentToolExecutionContext }> {
 		const tool = this.documentTool(readLocal);
 		const id = randomUUID();
 		const scope = { ...context, signal, stageId: "document-preview", executionId: id, toolCallId: id, idempotencyKey: id, sandboxAttemptId: id };
-		const invocation = await tool.createInvocation({ path, ...(ocrCursor ? { ocrCursor } : {}) }, scope);
+		const invocation = await tool.createInvocation(input, scope);
 		const manifest = compileToolExecutionManifest({ ...scope, attemptId: id, tool: { name: tool.name, version: tool.version }, command: { executable: tool.executable, argv: invocation.argv, workingDirectory: invocation.workingDirectory }, paths: invocation.paths, environment: tool.sandbox.environment, network: tool.sandbox.network, limits: { ...tool.sandbox.limits, timeoutMs: tool.timeoutMs } });
 		const result = await this.execute(manifest, signal);
-		if (result.status !== "succeeded") throw new RuntimeFailure("invalid_output", "Document parser failed: " + result.status, false);
+		if (result.status !== "succeeded") {
+			const reason = result.sandbox.terminationReason;
+			const message = reason === "invalid_encoding" ? "附件不是有效 UTF-8，请转换编码后重试。" : reason === "binary_content" || reason === "unsupported_format" ? "附件包含二进制或未支持的文档格式，请提供 UTF-8 文本。" : result.status === "sandbox_unavailable" ? "本机读取组件或保护不可用，请检查安装。" : result.status === "timed_out" ? "本机读取超时，请缩小资料后重试。" : result.status === "cancelled" ? "读取已取消。" : "本机文档读取未完成，请检查格式、大小与安装状态。";
+			throw new RuntimeFailure("invalid_output", message, false);
+		}
 		const record = JSON.parse(result.stdout.text) as AssetInspectionRecord;
-		if (readLocal(scope, path).sha256 !== record.sha256) throw new RuntimeFailure("context_failure", "Document source changed", false);
-		return this.mergedRecord(context, record);
+		return { record: this.mergedRecord(context, record), scope };
 	}
 
 	tool(readLocal?: (context: AgentToolExecutionContext, path: string) => { content: Buffer; sha256: string }): AgentSandboxedTool {
