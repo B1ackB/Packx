@@ -48,7 +48,11 @@ async function request(path: string, method = "GET", body?: unknown) {
 try {
  const tar = process.platform === "win32" ? join(process.env.SystemRoot!, "System32", "tar.exe") : "/usr/bin/tar";
  for (const app of [appA, appB]) {
-  mkdirSync(app); assert.equal(spawnSync(tar, ["-xf", archive, "-C", app]).status, 0);
+  mkdirSync(app);
+  const extracted = process.platform === "win32"
+   ? spawnSync(join(process.env.SystemRoot!, "System32", "WindowsPowerShell", "v1.0", "powershell.exe"), ["-NoLogo", "-NoProfile", "-NonInteractive", "-Command", "$ErrorActionPreference='Stop'; Expand-Archive -LiteralPath $env:PACKX_TEST_ARCHIVE -DestinationPath $env:PACKX_TEST_DESTINATION"], { env: { ...testEnvironment(process.env), PACKX_TEST_ARCHIVE: archive, PACKX_TEST_DESTINATION: app }, encoding: "utf8", timeout: 30000 })
+   : spawnSync(tar, ["-xf", archive, "-C", app], { encoding: "utf8", timeout: 30000 });
+  assert.equal(extracted.status, 0, `System extraction failed: ${extracted.error?.message ?? ""} ${extracted.stderr}`);
   const manifest = JSON.parse(readFileSync(join(app, "packx-release.json"), "utf8"));
   assert.equal(manifest.platform, process.platform); assert.equal(manifest.arch, process.arch); assert.equal(manifest.signed, false);
   for (const file of manifest.files) {

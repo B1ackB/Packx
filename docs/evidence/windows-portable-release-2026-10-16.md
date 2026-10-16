@@ -20,6 +20,8 @@ PR52 在 Host/发行适配层扩展便携验证，不修改 Agent Core Loop 或�
 
 同一脚本在真实 Windows CI 追加无 Node 命令错误、UTF-8 上传与固定原生预览、PDF/Office/图片及超限拒绝；不得跳过或使用 Fake native executor。业务模型保持 Fake，以隔离外部费用和网络变量。Windows Job 仍使用原有限额和隔离合同；工作流预算增至 15 分钟是增加实际干净安装/便携回归的总预算，没有扩大原生编译或任务预算，也没有自动重试。
 
+Windows 首个执行候选 run [38974684391](https://github.com/B1ackB/Packx/actions/runs/38974684391) 已成功编译、通过固定原生测试并生成 ZIP，但系统 tar.exe 解压到中文目标目录返回 1；当时断言没有保留 stderr，不能确定更细的原因。Windows 解压验收改用系统自带 Expand-Archive 的 .NET 路径接口（固定命令、环境变量传递 LiteralPath，不改执行策略），保留 stderr/超时/退出码，之后继续逐文件摘要核对；不是把测试跳过或换成开发依赖。最终是否通过仍以最终 CI 为准。
+
 ## 精确阻塞：Windows ZIP 保留
 
 首次 run [38974328660](https://github.com/B1ackB/Packx/actions/runs/38974328660) 在启动前被 GitHub action allowlist 拒绝，未运行任何任务：只允许固定 checkout/setup-node，新官方 upload-artifact 提交未被允许。远端只读 API 同时确认 allowed_actions=selected、github_owned_allowed=false、sha_pinning_required=true。
