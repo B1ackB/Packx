@@ -29,6 +29,8 @@ PR41（平台路径边界）合并为 `6b77141bb45bddec4e1f9e83bf9aaba28f6e4a9c`
 
 后续独立 worker 已从自有固定探针中提取，保留相同负向检查和禁止派生，使用同一锁定工具链与静态 CRT，但不链接 broker 的 userenv／COM／ACL 管理入口。只有 broker 创建 profile 和授权合成路径，受限 worker 不加载这些管理依赖；是否解决初始化仍以对应 Windows CI 为准，不提前声明成功。
 
+[`3677906` 的运行](https://github.com/B1ackB/Packx/actions/runs/38948665627) 中两个可执行文件均已编译，83 项数据测试和合法宿主 Job 控制通过，但 LPAC 仍在进入主程序前退出 `0xC0000142`，故排除仅靠移除 broker 管理依赖即可解决的假设。下一次将安全与网络系统 DLL 的加载延后到固定 worker 进入主程序之后，以报告具体模块加载失败；只从 System32 加载，未修改 capability、mitigation 或门禁。模块不可用仍是失败，不作为网络拒绝通过。
+
 ## macOS 清理回归
 
 上述 f814e3a 运行同时在 `macOsSeatbeltSandboxedToolExecutor.test.ts` 的超时清理断言失败：`kill(pid, 0)` 未抛错。该调用无法区分活进程、僵尸或 PID 重用，历史日志未保存足够状态，不能断言当时属于其中哪一种。

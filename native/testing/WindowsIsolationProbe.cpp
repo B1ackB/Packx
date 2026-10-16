@@ -209,6 +209,7 @@ static int probe(const fs::path& root, const std::wstring& profileName, const fs
 	if (controlExit != 0) throw std::runtime_error("regular_appcontainer_control_exit:" + std::to_string(controlExit));
 	int regularNetworkInitialization = -1;
 	{ std::ifstream status(output / L"network-control.txt"); check(static_cast<bool>(status >> regularNetworkInitialization), "read_regular_network_status"); }
+	check(regularNetworkInitialization == 0, "regular_network_initialization_control");
 	controlThread.close(); controlHandle.close();
 	// Invalid-handle checks can deliberately terminate a strict process. Isolate this negative case from the remaining assertions.
 	const auto handleControl = launch(stage / L"worker.exe", quote((stage / L"worker.exe").wstring()) + L" --handle-control " + std::to_wstring(reinterpret_cast<ULONG_PTR>(privateFile.value)) + L" " + std::to_wstring(identity.dwVolumeSerialNumber) + L" " + std::to_wstring(fileId(identity)) + L" " + quote(stage.wstring()), stage, environment, profile.sid, job.value, true);
@@ -231,7 +232,7 @@ static int probe(const fs::path& root, const std::wstring& profileName, const fs
 		std::ifstream progress(output / L"progress.txt"); std::string step; std::getline(progress, step);
 		std::ifstream diagnostic(output / L"network-diagnostic.txt"); std::string boundary; std::getline(diagnostic, boundary);
 		DWORD code = STILL_ACTIVE; GetExitCodeProcess(process.value, &code);
-		throw std::runtime_error("contained_probe_failed:" + error.substr(0, 512) + "; last_step=" + step.substr(0, 200) + "; child_exit=" + std::to_string(code) + "; " + boundary + "; regular_startup=" + std::to_string(regularNetworkInitialization));
+		throw std::runtime_error("contained_probe_failed:" + error.substr(0, 512) + "; last_step=" + step.substr(0, 200) + "; child_exit=" + std::to_string(code) + "; worker_entry=" + std::to_string(fs::exists(output / L"worker-entry.txt")) + "; " + boundary + "; regular_startup=" + std::to_string(regularNetworkInitialization));
 	}
 	job.close();
 	check(WaitForSingleObject(process.value, 5000) == WAIT_OBJECT_0, "job_close_kills_child");
