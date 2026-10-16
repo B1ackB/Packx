@@ -17,7 +17,7 @@ export interface AssetInspectionRecord {
 	sha256: string;
 	sourceRef: string;
 	inspection: AssetInspection;
-	parserVersion: "1.0.0" | "1.1.0" | "1.2.0" | "1.3.0";
+	parserVersion: "1.0.0" | "1.1.0" | "1.2.0" | "1.3.0" | "windows-utf8.v1";
 	ocrCursor?: string;
 	continuation?: { cursor: string | null; offset: number; total: number; sourceTruncated: boolean; error?: string };
 }

@@ -46,7 +46,7 @@ export function assessRegistryReadCandidate(value: unknown) {
 }
 
 /** Fixed CI experiment, never a production Tool executor. No scripts or system features are installed. */
-export async function runWindowsIsolationProbe(environment: NodeJS.ProcessEnv): Promise<string> {
+export async function runWindowsIsolationProbe(environment: NodeJS.ProcessEnv, verifyText?: (build: string) => Promise<void>): Promise<string> {
 	if (process.platform !== "win32") throw new Error("Windows isolation probe requires Windows");
 	const root = resolve(".");
 	// The compiler batch accepts only the known hosted checkout path, never document/model input.
@@ -72,6 +72,11 @@ export async function runWindowsIsolationProbe(environment: NodeJS.ProcessEnv): 
 		const worker = join(build, "isolation-worker.exe");
 		const compilerFlags = "/nologo /std:c++20 /W4 /WX /MT /EHsc /DUNICODE /D_UNICODE /D_WIN32_WINNT=0x0A00";
 		writeFileSync(batch, `@echo off\r\ncall "${installation}\\VC\\Auxiliary\\Build\\vcvars64.bat" ${policy.windowsSdkVersion}\r\nif errorlevel 1 exit /b 1\r\ncl ${compilerFlags} "${join(root, "native/testing/WindowsIsolationProbe.cpp")}" /Fe:"${binary}" /link userenv.lib advapi32.lib ws2_32.lib ole32.lib OneCoreUAP.lib\r\nif errorlevel 1 exit /b 1\r\ncl ${compilerFlags} "${join(root, "native/testing/WindowsIsolationWorker.cpp")}" /Fe:"${worker}" /link advapi32.lib ws2_32.lib\r\n`);
+		writeFileSync(batch, readFileSync(batch, "utf8") + [
+			["native/windows/TextInspector.cpp", "text-inspector.exe", "userenv.lib advapi32.lib OneCoreUAP.lib"],
+			["native/windows/TextInspectorWorker.cpp", "text-inspector-worker.exe", "advapi32.lib ws2_32.lib OneCoreUAP.lib"],
+			["native/testing/WindowsTextFaultWorker.cpp", "text-fault-worker.exe", ""],
+		].map(([source, output, libraries]) => `if errorlevel 1 exit /b 1\r\ncl ${compilerFlags} "${join(root, source!)}" /Fe:"${join(build, output!)}" /link ${libraries}\r\n`).join(""));
 		const options = { encoding: "utf8" as const, timeout: 30_000, maxBuffer: 2 * 1024 * 1024, env: environment };
 		const compiler = await runWindowsBuildJob(join(environment.SystemRoot ?? "C:\\Windows", "System32/cmd.exe"), ["/d", "/s", "/c", batch], build, environment);
 		console.error("fixed_probe:compile_completed; starting_native_probe");
@@ -89,6 +94,7 @@ export async function runWindowsIsolationProbe(environment: NodeJS.ProcessEnv): 
 		const candidateAttempt = join(scratch, "registry-attempt"), candidateProfile = `Packx.Probe.${randomUUID().replaceAll("-", "")}`; mkdirSync(candidateAttempt);
 		const candidateOutput = execFileSync(binary, ["--registry-read", candidateAttempt, candidateProfile, worker], options);
 		const candidateAssessment = assessRegistryReadCandidate(JSON.parse(candidateOutput));
+		if (verifyText) await verifyText(build);
 		return `${JSON.stringify({ visualStudio: version, windowsSdk: policy.windowsSdkVersion, profileId: profile, strictProfileId: strictProfile, build: compiler.report })}\n${compiler.stdout}${compiler.stderr}\n${output}\n${candidateOutput}\n${JSON.stringify({ assessment, strictAssessment, strictExitCode: strict.status, candidateAssessment })}`;
 	} catch (cause) {
 		failed = true;

@@ -22,6 +22,7 @@ import { PlanError } from "../src/enterprise/agentPlan";
 import { deliveryHtml, deliveryMarkdown, type RequirementDelivery } from "../src/manufacturing/requirementDelivery";
 import { AssetInspectionService } from "./runtime/assetInspection";
 import { MacOsSeatbeltSandboxedToolExecutor } from "./runtime/macOsSeatbeltSandboxedToolExecutor";
+import { WindowsTextSandboxedToolExecutor } from "./runtime/windowsTextSandboxedToolExecutor";
 import { LocalAccess } from "./localAccess";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { resolve } from "node:path";
@@ -116,7 +117,8 @@ const conversationFiles = new ConversationFileService(resolve(process.env.BLACKX
 	if (scope.tenantId !== localAccess.identity.tenantId || scope.workspaceId !== localAccess.identity.workspaceId || scope.actorId !== localAccess.identity.actorId) throw new TaskFileError("file_scope_denied", "本机文件仅供当前 Host 用户访问", 403);
 	if (!agentState.getSession({ ...scope, sessionId: scope.runId })) throw new TaskFileError("conversation_not_found", "会话已删除或不存在", 404);
 }, undefined, [modelSettings.path, localData.root, resolve(".blackx-data"), ...[process.env.BLACKX_AGENT_STATE_PATH, process.env.BLACKX_EVENT_STORE_PATH, process.env.BLACKX_ARTIFACT_STORE_PATH, process.env.BLACKX_ATTACHMENT_STORE_PATH, process.env.BLACKX_STAGE_JOB_QUEUE_PATH, process.env.BLACKX_CRON_SCHEDULE_PATH, process.env.BLACKX_INSPECTION_CACHE_PATH].filter((path): path is string => !!path).map((path) => resolve(path))], workspaceRoot);
-const assetInspection = new AssetInspectionService(requirementBriefEngine, conversationAttachments, new MacOsSeatbeltSandboxedToolExecutor({ workspaceRoot, protectedPaths: [localData.root, modelSettings.path] }), workspaceRoot, undefined, process.env.BLACKX_INSPECTION_CACHE_PATH);
+const windowsTextExecutor = process.platform === "win32" ? new WindowsTextSandboxedToolExecutor(workspaceRoot) : undefined;
+const assetInspection = new AssetInspectionService(requirementBriefEngine, conversationAttachments, windowsTextExecutor ?? new MacOsSeatbeltSandboxedToolExecutor({ workspaceRoot, protectedPaths: [localData.root, modelSettings.path] }), workspaceRoot, windowsTextExecutor?.executable, process.env.BLACKX_INSPECTION_CACHE_PATH, windowsTextExecutor ? "windows-utf8.v1" : "1.3.0");
 const knowledgeReranker = process.env.PACKX_KNOWLEDGE_RERANKER === "local-mmarco"
 	? await (await import("./knowledge/onnxReranker")).OnnxReranker.create() : undefined;
 const knowledgeStore = new KnowledgeStore(resolve(localData.root, "knowledge"), process.env.PACKX_KNOWLEDGE_MODEL === "local-e5"
