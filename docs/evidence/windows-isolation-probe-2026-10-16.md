@@ -23,6 +23,10 @@ PR41（平台路径边界）合并为 `6b77141bb45bddec4e1f9e83bf9aaba28f6e4a9c`
 
 [`dfdc214` 的运行](https://github.com/B1ackB/Packx/actions/runs/38947602625) 中九文件 83 项仍通过，但约 30 秒后 scratch 清理的 `EPERM` 掩盖了原始错误，因此不能将此轮归因到 LPAC 或编译器。后续增加编译完成标记、仅对子进程继承的进程级错误弹窗抑制，以及暂存删除的有界重试；清理失败单独报告，保留原始编译／探针失败，不修改全局错误策略或将失败转成功。
 
+[`1fb1370` 的运行](https://github.com/B1ackB/Packx/actions/runs/38948038732)，Windows job `117132048863`：九文件 83/83、pending0；`fixed_probe:compile_completed`；合法宿主 Job 三项控制再次通过；随后 `contained_probe_failed:; last_step=; child_exit=3221225794; ; regular_startup=0`。原始失败已保留，未再被清理错误覆盖。`3221225794 = 0xC0000142`，表示尚未进入固定 LPAC 主程序；移除新增注册表导入不足以消除失败。这个启动组合下无法验证显式派生限制及网络边界，不能声称它们通过。失败路径已尝试清理，但没有完整 `profileDeleted` 或 LPAC 根进程清理成功报告；合法宿主 Job 清理成功仅限其独立控制。
+
+当前阻塞是零 capability LPAC 与显式启动限制下的初始化兼容性，以及此前的 Winsock 10107。没有工具审批拒绝或待批权限；也尚未证明必须扩张权限才能解决。下一步可在同权限下将最小 worker 与 broker 导入分开做启动定位；未经验证不能先增加 registryRead、网络能力或放宽隔离。Windows 文档 Adapter 保持未接入。
+
 ## macOS 清理回归
 
 上述 f814e3a 运行同时在 `macOsSeatbeltSandboxedToolExecutor.test.ts` 的超时清理断言失败：`kill(pid, 0)` 未抛错。该调用无法区分活进程、僵尸或 PID 重用，历史日志未保存足够状态，不能断言当时属于其中哪一种。
@@ -36,5 +40,7 @@ PR41（平台路径边界）合并为 `6b77141bb45bddec4e1f9e83bf9aaba28f6e4a9c`
 ## 额度与下一步
 
 官方只读工具在 2026-10-16 18:14:29 UTC 返回周窗口剩余 70%，secondary=null；不可见窗口不推算，未购买或重置额度。每阶段及长操作前继续读取，遵循工作单的 20%／10% 守卫。
+
+2026-10-16 18:29:43 UTC 阶段内复读仍为周窗口剩余 70%、secondary=null。
 
 先取得完整 Windows 网络及合法测试宿主的 Job 清理证据，再决定生产 Windows Adapter。探针缺失证据继续阻断，不修改门禁以通过；macOS 的清理回归可独立交付。没有部署、真实模型调用、业务数据迁移或新增依赖。
