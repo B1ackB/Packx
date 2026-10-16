@@ -14,6 +14,7 @@
 3. 这只是语法合同，不授予文件权限、不提供 OS 隔离。Windows Runtime 在真实 Adapter 及攻击回归通过之前继续拒绝原生工具执行；不接入无隔离解析器。
 4. 隔离候选采用微软公开的 AppContainer／LPAC 与 Job Object 机制。AppContainer 提供身份／资源边界，Job Object 提供资源和进程树生命周期；不能把 Job Object 或路径检查单独称为安全沙箱。实现前须证明文件、网络、环境、取消及 Host 崩溃的实际边界。
 5. Windows 文档读取按已验证格式逐项开放，校验签名／格式、输入字节／解压／输出／时间预算、失败分类、源 hash、解析器版本和 Artifact 来源。未支持格式明确失败，不伪造空文本成功。
+6. 首个 LPAC 候选只允许一个工具进程，启动时显式设置 `PROCESS_CREATION_CHILD_PROCESS_RESTRICTED`，同时检查实际进程 mitigation 和派生拒绝；未配置该策略时观察到的错误 5 不算显式禁派生合同。合法宿主中的固定合成父子程序独立验证 Job 继承、禁止 breakaway 和关闭 Job 后全部终止。这项控制不证明 LPAC 能创建后代，也不取消原定网络、Host 崩溃、取消和资源验收；任何未通过项继续阻断生产 Adapter。
 
 ## 替代方案与影响
 

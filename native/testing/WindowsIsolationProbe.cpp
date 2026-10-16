@@ -101,16 +101,18 @@ static void writeReport(const fs::path& stage, const std::string& value) {
 	{ std::ofstream report(pending); report << value; check(report.good(), "write_probe_report"); }
 	fs::rename(pending, stage / L"output" / L"report.txt");
 }
-static PROCESS_INFORMATION launch(const fs::path& executable, std::wstring command, const fs::path& directory, std::wstring& environment, PSID sid, HANDLE job, bool lpac) {
-	const DWORD count = lpac ? 2 : 1;
+static PROCESS_INFORMATION launch(const fs::path& executable, std::wstring command, const fs::path& directory, std::wstring& environment, PSID sid, HANDLE job, bool lpac, bool restrictChildren = false) {
+	const DWORD count = (lpac ? 2 : 1) + (restrictChildren ? 1 : 0);
 	SIZE_T size = 0; InitializeProcThreadAttributeList(nullptr, count, 0, &size);
 	std::vector<BYTE> attributes(size);
 	auto list = reinterpret_cast<LPPROC_THREAD_ATTRIBUTE_LIST>(attributes.data());
 	check(InitializeProcThreadAttributeList(list, count, 0, &size) != FALSE, "create_attributes");
 	SECURITY_CAPABILITIES security{}; security.AppContainerSid = sid;
 	DWORD policy = PROCESS_CREATION_ALL_APPLICATION_PACKAGES_OPT_OUT;
+	DWORD childPolicy = PROCESS_CREATION_CHILD_PROCESS_RESTRICTED;
 	check(UpdateProcThreadAttribute(list, 0, PROC_THREAD_ATTRIBUTE_SECURITY_CAPABILITIES, &security, sizeof(security), nullptr, nullptr) != FALSE, "set_appcontainer");
 	if (lpac) check(UpdateProcThreadAttribute(list, 0, PROC_THREAD_ATTRIBUTE_ALL_APPLICATION_PACKAGES_POLICY, &policy, sizeof(policy), nullptr, nullptr) != FALSE, "set_lpac");
+	if (restrictChildren) check(UpdateProcThreadAttribute(list, 0, PROC_THREAD_ATTRIBUTE_CHILD_PROCESS_POLICY, &childPolicy, sizeof(childPolicy), nullptr, nullptr) != FALSE, "restrict_child_creation");
 	STARTUPINFOEXW startup{}; startup.StartupInfo.cb = sizeof(startup); startup.lpAttributeList = list;
 	PROCESS_INFORMATION created{};
 	const BOOL launched = CreateProcessW(executable.c_str(), command.data(), nullptr, nullptr, FALSE, CREATE_SUSPENDED | EXTENDED_STARTUPINFO_PRESENT | CREATE_UNICODE_ENVIRONMENT | CREATE_NO_WINDOW, environment.data(), directory.c_str(), &startup.StartupInfo, &created);
@@ -121,6 +123,36 @@ static PROCESS_INFORMATION launch(const fs::path& executable, std::wstring comma
 		throw std::runtime_error("assign_job_and_resume:" + std::to_string(failure));
 	}
 	return created;
+}
+
+// A separate trusted, fixed host program verifies Job lifecycle; it is not an LPAC escape or a production Tool.
+static void verifyHostJobTree(const fs::path& executable, const fs::path& stage, std::wstring& environment) {
+	Handle job(CreateJobObjectW(nullptr, nullptr)); check(job.value != nullptr, "host_control_job");
+	JOBOBJECT_EXTENDED_LIMIT_INFORMATION limits{};
+	limits.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE | JOB_OBJECT_LIMIT_ACTIVE_PROCESS;
+	limits.BasicLimitInformation.ActiveProcessLimit = 2;
+	check(SetInformationJobObject(job.value, JobObjectExtendedLimitInformation, &limits, sizeof(limits)) != FALSE, "host_control_limits");
+	std::wstring command = quote(executable.wstring()) + L" --job-tree " + quote(stage.wstring());
+	STARTUPINFOW startup{}; startup.cb = sizeof(startup); PROCESS_INFORMATION created{};
+	check(CreateProcessW(executable.c_str(), command.data(), nullptr, nullptr, FALSE, CREATE_SUSPENDED | CREATE_UNICODE_ENVIRONMENT | CREATE_NO_WINDOW, environment.data(), stage.c_str(), &startup, &created) != FALSE, "host_control_create_suspended");
+	Handle root(created.hProcess), thread(created.hThread);
+	if (!AssignProcessToJobObject(job.value, root.value) || ResumeThread(thread.value) == static_cast<DWORD>(-1)) {
+		const DWORD failure = GetLastError(); TerminateProcess(root.value, 1); WaitForSingleObject(root.value, 5000);
+		throw std::runtime_error("host_control_assign_resume:" + std::to_string(failure));
+	}
+	const auto reportPath = stage / L"output" / L"job-tree.txt";
+	DWORD descendantPid = 0;
+	for (unsigned i = 0; i < 100 && !descendantPid; ++i) {
+		{ std::ifstream report(reportPath); report >> descendantPid; }
+		if (WaitForSingleObject(root.value, 20) == WAIT_OBJECT_0) break;
+	}
+	check(descendantPid > 0, "host_control_reached_descendant");
+	Handle descendant(OpenProcess(SYNCHRONIZE | PROCESS_QUERY_LIMITED_INFORMATION, FALSE, descendantPid));
+	BOOL inJob = FALSE;
+	check(descendant.value && IsProcessInJob(descendant.value, job.value, &inJob) && inJob, "host_control_descendant_same_job");
+	job.close();
+	check(WaitForSingleObject(root.value, 5000) == WAIT_OBJECT_0 && WaitForSingleObject(descendant.value, 5000) == WAIT_OBJECT_0, "host_control_job_tree_cleanup");
+	std::cerr << "host_job_control:descendant_inherits_job; breakaway_denied; root_and_descendant_terminated\n";
 }
 
 static int child(const fs::path& stage, const fs::path& denied, unsigned short port) {
@@ -170,7 +202,11 @@ static int child(const fs::path& stage, const fs::path& denied, unsigned short p
 	if (networkDenied) expect(true, "loopback_network_denied");
 	PROCESS_MITIGATION_CHILD_PROCESS_POLICY childPolicy{};
 	check(GetProcessMitigationPolicy(GetCurrentProcess(), ProcessChildProcessPolicy, &childPolicy, sizeof(childPolicy)) != FALSE, "query_child_process_policy");
-	{ std::ofstream diagnostic(stage / L"output" / L"network-diagnostic.txt"); diagnostic << "startup=" << networkInitialization << "; connect=" << networkError << "; noChildProcessCreation=" << childPolicy.NoChildProcessCreation; }
+	HKEY catalog = nullptr;
+	const LSTATUS catalogStatus = RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Services\\WinSock2\\Parameters", 0, KEY_READ, &catalog);
+	if (catalogStatus == ERROR_SUCCESS) RegCloseKey(catalog);
+	{ std::ofstream diagnostic(stage / L"output" / L"network-diagnostic.txt"); diagnostic << "startup=" << networkInitialization << "; connect=" << networkError << "; noChildProcessCreation=" << childPolicy.NoChildProcessCreation << "; winsockCatalogOpen=" << catalogStatus << "; workerReadableExecutable=" << canOpen(stage / L"worker.exe", GENERIC_READ | GENERIC_EXECUTE); }
+	expect(childPolicy.NoChildProcessCreation != 0, "explicit_child_creation_restricted");
 	BOOL inJob = FALSE; check(IsProcessInJob(GetCurrentProcess(), nullptr, &inJob) != FALSE, "query_job");
 	expect(inJob != FALSE, "child_is_in_job");
 	void* excessive = VirtualAlloc(nullptr, 128ULL * 1024 * 1024, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
@@ -178,15 +214,10 @@ static int child(const fs::path& stage, const fs::path& denied, unsigned short p
 	expect(excessive == nullptr, "job_memory_limit");
 	std::wstring command = quote((stage / L"worker.exe").wstring()) + L" --sleep";
 	STARTUPINFOW startup{}; startup.cb = sizeof(startup); PROCESS_INFORMATION grandchild{};
-	check(CreateProcessW((stage / L"worker.exe").c_str(), command.data(), nullptr, nullptr, FALSE, CREATE_NO_WINDOW, nullptr, stage.c_str(), &startup, &grandchild) != FALSE, "spawn_contained_child");
-	Handle descendant(grandchild.hProcess), descendantThread(grandchild.hThread);
-	BOOL sameJob = FALSE; check(IsProcessInJob(descendant.value, nullptr, &sameJob) != FALSE, "query_descendant_job");
-	expect(sameJob != FALSE, "descendant_inherits_job");
-	PROCESS_INFORMATION escaped{};
-	const BOOL brokeAway = CreateProcessW((stage / L"worker.exe").c_str(), command.data(), nullptr, nullptr, FALSE, CREATE_NO_WINDOW | CREATE_BREAKAWAY_FROM_JOB, nullptr, stage.c_str(), &startup, &escaped);
-	if (brokeAway) { TerminateProcess(escaped.hProcess, 1); WaitForSingleObject(escaped.hProcess, 5000); CloseHandle(escaped.hThread); CloseHandle(escaped.hProcess); }
-	expect(!brokeAway, "job_breakaway_denied");
-	writeReport(stage, std::to_string(passed) + " " + std::to_string(grandchild.dwProcessId) + " " + std::to_string(networkInitialization) + " " + std::to_string(networkDenied));
+	const BOOL spawned = CreateProcessW((stage / L"worker.exe").c_str(), command.data(), nullptr, nullptr, FALSE, CREATE_NO_WINDOW, nullptr, stage.c_str(), &startup, &grandchild);
+	if (spawned) { TerminateProcess(grandchild.hProcess, 1); WaitForSingleObject(grandchild.hProcess, 5000); CloseHandle(grandchild.hThread); CloseHandle(grandchild.hProcess); }
+	expect(!spawned, "child_creation_denied");
+	writeReport(stage, std::to_string(passed) + " 0 " + std::to_string(networkInitialization) + " " + std::to_string(networkDenied));
 	Sleep(INFINITE);
 	return 1;
 }
@@ -241,6 +272,7 @@ static int probe(const fs::path& root, const std::wstring& profileName) {
 	std::wstring environment;
 	for (const std::wstring& entry : { L"APPDATA=" + appData, L"LOCALAPPDATA=" + appData, L"SystemDrive=" + fs::path(windows).root_name().wstring(), L"SystemRoot=" + std::wstring(windows), L"TEMP=" + output.wstring(), L"TMP=" + output.wstring(), L"USERPROFILE=" + appData, L"windir=" + std::wstring(windows) }) { environment += entry; environment += L'\0'; }
 	environment += L'\0';
+	verifyHostJobTree(stage / L"worker.exe", stage, environment);
 	SetEnvironmentVariableW(L"PACKX_PROBE_SECRET", L"synthetic-never-inherit");
 	// A separate fixed AppContainer control must read the AAP-only synthetic file; LPAC must then fail to read it.
 	const auto controlProcess = launch(stage / L"worker.exe", quote((stage / L"worker.exe").wstring()) + L" --regular-control " + quote((root / L"all-packages.txt").wstring()), stage, environment, profile.sid, job.value, false);
@@ -259,7 +291,7 @@ static int probe(const fs::path& root, const std::wstring& profileName) {
 	{ std::ifstream marker(output / L"handle-control.txt"); std::string entered; marker >> entered; check(entered == "entered", "handle_control_reached_query"); }
 	check(handleExit == 0 || handleExit == 0xC0000008UL, "private_handle_not_inherited");
 	handleThread.close(); handleProcess.close();
-	const auto created = launch(stage / L"worker.exe", command, stage, environment, profile.sid, job.value, true);
+	const auto created = launch(stage / L"worker.exe", command, stage, environment, profile.sid, job.value, true, true);
 	Handle process(created.hProcess), thread(created.hThread);
 	const auto reportPath = output / L"report.txt";
 	for (unsigned i = 0; i < 100 && !fs::exists(reportPath); ++i) {
@@ -267,28 +299,39 @@ static int probe(const fs::path& root, const std::wstring& profileName) {
 	}
 	unsigned passed = 0; DWORD descendantPid = 0; int networkInitialization = -1; bool networkDenied = false;
 	{ std::ifstream report(reportPath); report >> passed >> descendantPid >> networkInitialization >> networkDenied; }
-	if (passed < 13 || !descendantPid) {
+	if (passed < 13) {
 		std::ifstream report(reportPath); std::string error; std::getline(report, error);
 		std::ifstream progress(output / L"progress.txt"); std::string step; std::getline(progress, step);
 		std::ifstream diagnostic(output / L"network-diagnostic.txt"); std::string boundary; std::getline(diagnostic, boundary);
 		DWORD code = STILL_ACTIVE; GetExitCodeProcess(process.value, &code);
 		throw std::runtime_error("contained_probe_failed:" + error.substr(0, 512) + "; last_step=" + step.substr(0, 200) + "; child_exit=" + std::to_string(code) + "; " + boundary + "; regular_startup=" + std::to_string(regularNetworkInitialization));
 	}
-	Handle descendant(OpenProcess(SYNCHRONIZE | PROCESS_QUERY_LIMITED_INFORMATION, FALSE, descendantPid));
-	check(descendant.value != nullptr, "observe_descendant");
 	job.close();
 	check(WaitForSingleObject(process.value, 5000) == WAIT_OBJECT_0, "job_close_kills_child");
-	check(WaitForSingleObject(descendant.value, 5000) == WAIT_OBJECT_0, "job_close_kills_descendant");
-	descendant.close(); thread.close(); process.close(); privateFile.close();
+	thread.close(); process.close(); privateFile.close();
 	closesocket(listener); WSACleanup();
 	profile.remove();
-	std::cout << "{\"probe\":\"windows-lpac-fixed-program\",\"childAssertions\":" << passed << ",\"privateHandleNotInherited\":true,\"regularNetworkInitializationError\":" << regularNetworkInitialization << ",\"networkInitializationError\":" << networkInitialization << ",\"networkAccessDenied\":" << (networkDenied ? "true" : "false") << ",\"processTreeTerminated\":true,\"profileDeleted\":true}\n";
+	std::ifstream diagnostic(output / L"network-diagnostic.txt"); std::string boundary; std::getline(diagnostic, boundary);
+	std::cerr << "lpac_boundary:" << boundary << '\n';
+	std::cout << "{\"probe\":\"windows-lpac-fixed-program\",\"childAssertions\":" << passed << ",\"privateHandleNotInherited\":true,\"regularNetworkInitializationError\":" << regularNetworkInitialization << ",\"networkInitializationError\":" << networkInitialization << ",\"networkAccessDenied\":" << (networkDenied ? "true" : "false") << ",\"childProcessCreationRestricted\":true,\"legalHostJobTreeTerminated\":true,\"lpacProcessTerminated\":true,\"profileDeleted\":true}\n";
 	return passed == 14 && networkDenied ? 0 : 1;
 }
 
 int wmain(int argc, wchar_t** argv) {
 	try {
 		if (argc == 2 && std::wstring(argv[1]) == L"--sleep") { Sleep(INFINITE); return 1; }
+		if (argc == 3 && std::wstring(argv[1]) == L"--job-tree") {
+			std::wstring command = quote(argv[0]) + L" --sleep";
+			STARTUPINFOW startup{}; startup.cb = sizeof(startup); PROCESS_INFORMATION created{};
+			check(CreateProcessW(argv[0], command.data(), nullptr, nullptr, FALSE, CREATE_NO_WINDOW, nullptr, argv[2], &startup, &created) != FALSE, "host_tree_descendant");
+			Handle process(created.hProcess), thread(created.hThread);
+			PROCESS_INFORMATION escaped{};
+			const BOOL brokeAway = CreateProcessW(argv[0], command.data(), nullptr, nullptr, FALSE, CREATE_NO_WINDOW | CREATE_BREAKAWAY_FROM_JOB, nullptr, argv[2], &startup, &escaped);
+			if (brokeAway) { TerminateProcess(escaped.hProcess, 1); WaitForSingleObject(escaped.hProcess, 5000); CloseHandle(escaped.hThread); CloseHandle(escaped.hProcess); }
+			check(!brokeAway, "host_tree_breakaway_denied");
+			{ std::ofstream report(fs::path(argv[2]) / L"output" / L"job-tree.txt"); report << created.dwProcessId; check(report.good(), "host_tree_report"); }
+			Sleep(INFINITE); return 1;
+		}
 		if (argc == 3 && std::wstring(argv[1]) == L"--regular-control") {
 			HANDLE raw = nullptr; check(OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &raw) != FALSE, "control_token"); Handle token(raw);
 			DWORD actual = 0, size = 0; check(GetTokenInformation(token.value, TokenIsAppContainer, &actual, sizeof(actual), &size) != FALSE && actual == 1, "control_is_appcontainer");
