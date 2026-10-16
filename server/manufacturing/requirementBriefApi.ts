@@ -1,3 +1,5 @@
+import { RequirementTemplateLibrary, TemplateLibraryError } from "./requirementTemplateLibrary";
+import type { TemplateLibraryRef } from "../../src/manufacturing/requirementTemplate";
 import { RequirementTemplateService } from "./requirementTemplate";
 import { OfficeTemplateError } from "../runtime/officeTemplate";
 import { validRequirementTrial, type RequirementTrialObservation } from "../../src/manufacturing/requirementTrial";
@@ -66,6 +68,7 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 		private readonly now: () => string = () => new Date().toISOString(),
 		readPlan?: (scope: PlanScope) => PlanWorkspace,
 		private readonly knowledge?: KnowledgeService,
+		private readonly templateLibrary?: RequirementTemplateLibrary,
 	) {
 		super(conversations, requirementEngine, requirementArtifacts, outbox, requirementScheduler, {
 			responseKey: "requirementBrief",
@@ -249,19 +252,57 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 	template(context: Parameters<ConversationApiController["get"]>[0], conversationId: unknown, action: string, id: string, payload: unknown) {
 		return this.respond(() => {
 			const { scope } = this.target(context, conversationId);
-			const service = new RequirementTemplateService(this.requirementArtifacts, this.now);
+			const actorId = context.actorId ?? "";
+			const canRead = (source: string) => {
+				const response = this.conversations.get(context, source);
+				if (response.status >= 500) throw new ArtifactStoreError("artifact_store_unavailable", "无法校验模板来源，请重试");
+				return response.status === 200;
+			};
+			const service = new RequirementTemplateService(this.requirementArtifacts, this.now, this.templateLibrary ? { store: this.templateLibrary, actorId, canRead } : undefined);
 			try {
+				if (action === "catalog") {
+					const deliveries = new Map<number, RequirementDelivery | { unavailable: string }>();
+					return { status: 200, body: { selected: this.templateLibrary?.selection({ ...scope, actorId }, String(conversationId)), templates: service.localTemplates(scope), library: this.templateLibrary?.list({ ...scope, actorId }, canRead) ?? [], history: service.history(scope, (version) => {
+						if (!deliveries.has(version)) {
+							const response = this.delivery(context, conversationId, version);
+							if (response.status >= 500) throw new ArtifactStoreError("artifact_store_unavailable", "无法校验交付历史，请重试");
+							deliveries.set(version, response.status === 200 ? (response.body as { delivery: RequirementDelivery }).delivery : { unavailable: (response.body as { message?: string }).message ?? "需求或来源不可用，请核对当前版本" });
+						}
+						return deliveries.get(version)!;
+					}) } };
+				}
+				if (action === "save-config") {
+					if (!this.templateLibrary) throw new TemplateLibraryError(503, "模板库未配置");
+					let original;
+					try { original = service.original(scope, id); }
+					catch (error) {
+						if (!(error instanceof ArtifactStoreError && error.code === "artifact_not_found")) throw error;
+						// Resolve the pinned source before the store checks replay or the expected update version.
+						original = service.source(scope, id, (payload as { library?: TemplateLibraryRef })?.library, false);
+					}
+					const entry = this.templateLibrary.save({ ...scope, actorId }, String(conversationId), original.view, Buffer.from(original.record.data, "base64"), payload, canRead, original.sourceConversationIds);
+					this.templateLibrary.remember({ ...scope, actorId }, String(conversationId), { libraryId: entry.libraryId, version: entry.version });
+					return { status: 201, body: { entry } };
+				}
+				if (action === "select-library") {
+					if (!this.templateLibrary) throw new TemplateLibraryError(503, "模板库未配置");
+					const ref = { libraryId: id, version: (payload as { version?: number })?.version! };
+					const { record } = this.templateLibrary.resolve({ ...scope, actorId }, ref, canRead, true);
+					const template = record.template;
+					this.templateLibrary.remember({ ...scope, actorId }, String(conversationId), ref);
+					return { status: 200, body: { template, mapping: record.mapping, library: ref } };
+				}
 				if (action === "upload") {
 					const input = payload as { name: string; data: Buffer };
 					return { status: 201, body: { template: service.upload(scope, context.actorId ?? "", input.name, input.data) } };
 				}
 				if (action === "view") return { status: 200, body: { template: service.view(scope, id) } };
-				const input = payload as { version: number; mapping?: unknown; confirmed?: unknown; reviewHash?: unknown };
+				const input = payload as { version: number; mapping?: unknown; confirmed?: unknown; reviewHash?: unknown; library?: TemplateLibraryRef };
 				if (!input || !Number.isSafeInteger(input.version)) throw new OfficeTemplateError("请选择需求版本");
 				const response = this.delivery(context, conversationId, input.version);
 				if (response.status !== 200) return response;
 				const { delivery } = response.body as { delivery: RequirementDelivery };
-				if (action === "preview") return { status: 200, body: { preview: service.preview(scope, id, delivery, input.mapping) } };
+				if (action === "preview") return { status: 200, body: { preview: service.preview(scope, id, delivery, input.mapping, input.library) } };
 				if (action === "generate") return { status: 201, body: service.generate(scope, context.actorId ?? "", id, delivery, input) };
 				if (action === "download") {
 					const file = service.download(scope, id, delivery);
@@ -269,6 +310,7 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 				}
 				throw new OfficeTemplateError("模板操作无效");
 			} catch (error) {
+				if (error instanceof TemplateLibraryError) return { status: error.status, body: { code: "template_configuration_error", message: error.message } };
 				if (error instanceof OfficeTemplateError) return { status: 400, body: { code: "invalid_office_template", message: error.message } };
 				if (error instanceof ArtifactStoreError && error.code === "artifact_not_found") return { status: 404, body: { code: error.code } };
 				throw error;

@@ -1,0 +1,115 @@
+{
+	"schemaVersion": "template-library-local-validation.v1",
+	"checkedAtUtc": "2026-10-16T08:42:13.356911+00:00",
+	"baseCommit": "b35a3e53684186465dc100fe0745bccaa61b40ed",
+	"remoteMainVerified": "b35a3e53684186465dc100fe0745bccaa61b40ed",
+	"branch": "codex/template-library-ready",
+	"nodeVersion": "v24.14.0",
+	"scope": "Workspace template library, immutable versions, task selection and delivery history; UI copy integration and save replay repair.",
+	"status": "LOCAL_VALIDATION_PASSED_AWAITING_USER_COMMIT_AND_UPLOAD_CONFIRMATION",
+	"validation": {
+		"core": {
+			"command": "node --import tsx scripts/ci.ts core",
+			"passed": true,
+			"testFiles": 112,
+			"testsPassed": 1035,
+			"testsSkipped": 33,
+			"testsFailed": 0,
+			"typesAndBuildPassed": true,
+			"offlineEvaluations": [
+				"offline",
+				"context",
+				"recovery",
+				"loop-safety",
+				"memory",
+				"m1",
+				"m2",
+				"plan"
+			],
+			"rawReport": "temp/ci-core.json"
+		},
+		"browser": {
+			"command": "node --import tsx scripts/ci.ts browser",
+			"passed": true,
+			"projects": [
+				"desktop-zh",
+				"narrow-zh",
+				"narrow-en"
+			],
+			"testsPassed": 27,
+			"testsSkipped": 0,
+			"flaky": 0,
+			"rawReport": "temp/ci-browser.json"
+		},
+		"nativeProduct": {
+			"command": "node --import tsx scripts/ci.ts native",
+			"passed": true,
+			"nativeTestsPassed": 42,
+			"nativeTestsSkipped": 0,
+			"httpProductSmokePassed": true,
+			"rawReport": "temp/ci-native.json"
+		},
+		"workflowPolicy": {
+			"command": "node --import tsx scripts/ci.ts policy",
+			"passed": true,
+			"existingWorkflowUnchanged": true
+		},
+		"candidateSecrets": {
+			"tool": "gitleaks 8.30.1",
+			"mode": "dir",
+			"redacted": true,
+			"scope": "All changed and untracked candidate files, including the local validation record; originals and unrelated evaluations excluded.",
+			"passed": true,
+			"findings": 0
+		}
+	},
+	"regressions": [
+		"Same unchanged in-page create/update save reuses its request ID after a lost success response.",
+		"Changing the saved content creates a new save intent; successful saves clear the pending intent.",
+		"Pinned source resolution allows replay of a committed cross-order update; a new stale writer still receives 409.",
+		"Reload restores saved configuration without restoring preview/confirmation or making a selection write.",
+		"New orders use their own 9900 unverified quantity; prior order values and approval are not copied.",
+		"Historical exports retain their pinned configuration; current source and approval checks gate download.",
+		"Source deletion blocks library reuse and historical downloads.",
+		"Customer copy remains bilingual, without internal hashes or Office XML paths."
+	],
+	"preservation": {
+		"originalFilesVerifiedUnchanged": 197,
+		"originalWorkingTreeStatusesUnchanged": true,
+		"oldCiDraftPreservedAtSourceAndExcluded": true,
+		"reviewV27MaterialsUntouched": true,
+		"dependencyAndCiConfigurationUnchanged": true
+	},
+	"sideEffects": {
+		"realModelRequests": 0,
+		"commitsCreated": 0,
+		"uploaded": false,
+		"githubSettingsChanged": false
+	},
+	"limits": [
+		"Pending browser save IDs survive only within the current page; after refresh inspect the library before starting another save.",
+		"Local fake/fixture/native checks are not remote CI, real-model quality, customer acceptance or Office-native layout/recalculation evidence."
+	],
+	"candidateSourceHashes": {
+		"README.md": "0b358c077f9018d4cf6b9e50cdd02d96c101d048918c7052df8ed8c552a19413",
+		"docs/dependencies.md": "84f8c401da13dd67b0732fd54284df47dca4c93c1cb938358a20855a18c68161",
+		"docs/document-import-and-templates.md": "bfb0568f08b183ce2ec7cf91125c6da916a2f78cf7f448ef83f26c20f51885f0",
+		"eval/productSmoke.ts": "ac4adf090c4706abe1e83da323fa44aebd13bad49b293d6e8dbf6ee885af0f71",
+		"server/artifacts/fileArtifactStore.ts": "7becb2ce6cb6eca5098d8367aa58327e8171bf2a011716656c4e7c0b3590603d",
+		"server/enterprise/evidenceReviewWorkflow.test.ts": "886a636eba220cf8baa83c2fe6a7484cb87b264a7fd31389346a3897a437d6a2",
+		"server/index.ts": "016078e09345eab4deea81e548640f7774dd2eb3954b7a5429ad505dbf42badf",
+		"server/manufacturing/requirementBriefApi.ts": "054cc9580aa16b028fddd8d7546ea5896c95f4ea6034c394a960cddde0e542ae",
+		"server/manufacturing/requirementTemplate.ts": "0df80e6430579c819564887ba4d013ef59e45576b2dd9ee14ced2f639be28002",
+		"src/components/DeliveryPreview.tsx": "1245b362d5e22a56b8eb5c821dbc63c43b20ee5fa2b9942be4b100e4890c10ef",
+		"src/components/RequirementTemplate.tsx": "6886019c1d25a6381b4d444900c0d8b0d947a45bd550463f3fe62585281ee88b",
+		"src/enterprise/artifactStore.ts": "57dd23ecc7b069084fc5974e40f1fde52663d62e98434074818ad6d706a5b260",
+		"src/manufacturing/requirementTemplate.ts": "6d72b751ef07721e46a86d65ac4b0cbc0dd909f03b46a21026ed0c0aec50f824",
+		"src/runtime/conversationClient.ts": "4316265b784c26192c216ac227476535230486dbcb94c1540be217d4b92653d6",
+		"src/styles.css": "4fe322b8f20219a2b4fdd4972e4f42abc629ba9e5f0ff824770e1e5b7dfc001c",
+		"tests/browser/README.md": "ce8c7cfc4ca9ea455070d5900426ace9281c56b5a8b47404a5b58306d7677780",
+		"tests/browser/customerCopy.spec.ts": "2ab2f73feb5c3eb855cea213a1e0652d5da1fc7bfe22ec94ddb7b7949ac39410",
+		"tests/browser/workspaceFixture.ts": "66560988be06ab42937dca9802fd7b9b9d85ca1234bada9279c13ff9b02e5b68",
+		"server/manufacturing/requirementTemplateLibrary.test.ts": "130cfb4f866afda042a4b80b584ec21cd08b54adea55ca6fe67bf66a365bdcd1",
+		"server/manufacturing/requirementTemplateLibrary.ts": "4f3d90c9daf00329563d4db9ca5fa0e852cb52e993547ba2c06785436875c4a1"
+	}
+}

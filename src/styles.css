@@ -710,3 +710,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .composer-attachments[open] > summary { margin-bottom: 8px; }
 .composer-attachments .attachment-list { max-height: 220px; }
 .composer-attachments .attachment-item { padding-bottom: 8px; }
+
+.template-history-item { padding: 10px 0; border-top: 1px solid #ded6c9; overflow-wrap: anywhere; }
+.requirement-template > label { display: block; margin: 8px 0; }
+.requirement-template > label > input:not([type="checkbox"]):not([type="file"]), .requirement-template > label > select { display: block; width: 100%; margin-top: 4px; }

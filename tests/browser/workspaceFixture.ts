@@ -51,6 +51,7 @@ export const responses: Record<string, unknown> = {
 	[`${root}/activity`]: {},
 	[`${root}/plan`]: { plan: { revision: 0, mode: "execute", versions: [] } satisfies PlanWorkspace },
 	[`${root}/requirement-brief`]: { requirementBrief: requirement },
+	[`${root}/requirement-brief/templates`]: { library: [], templates: [], history: [] },
 	[`${root}/files`]: { files: [], approvals: [] } satisfies ConversationFilesView,
 	[`${root}/files/directories`]: { locations: { workingDirectory: "/synthetic-workspace" }, files: [] } satisfies LocalFileLocations,
 	[`${root}/memory`]: { items: [], limits: { active: 16, items: 64, contentChars: 600 } } satisfies MemoryView,
