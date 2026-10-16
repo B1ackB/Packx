@@ -22,18 +22,28 @@ export function runWindowsIsolationProbe(environment: NodeJS.ProcessEnv): string
 	const scratch = mkdtempSync(resolve("temp/windows-isolation-"));
 	const build = join(scratch, "build"), attempt = join(scratch, "attempt");
 	const profile = `Packx.Probe.${randomUUID().replaceAll("-", "")}`;
+	let failed = false;
 	try {
 		mkdirSync(build); mkdirSync(attempt);
 		const binary = join(build, "isolation-probe.exe"), batch = join(build, "compile.cmd");
 		writeFileSync(batch, `@echo off\r\ncall "${installation}\\VC\\Auxiliary\\Build\\vcvars64.bat" ${policy.windowsSdkVersion}\r\nif errorlevel 1 exit /b 1\r\ncl /nologo /std:c++20 /W4 /WX /MT /EHsc /DUNICODE /D_UNICODE /D_WIN32_WINNT=0x0A00 "${join(root, "native/testing/WindowsIsolationProbe.cpp")}" /Fe:"${binary}" /link userenv.lib advapi32.lib ws2_32.lib ole32.lib\r\n`);
 		const options = { encoding: "utf8" as const, timeout: 30_000, maxBuffer: 2 * 1024 * 1024, env: environment };
 		const compiler = execFileSync(join(environment.SystemRoot ?? "C:\\Windows", "System32/cmd.exe"), ["/d", "/s", "/c", batch], { ...options, cwd: build });
+		console.error("fixed_probe:compile_completed; starting_native_probe");
 		const output = execFileSync(binary, ["--probe", attempt, profile], options);
 		const report = JSON.parse(output);
 		if (report.childAssertions !== 14 || report.privateHandleNotInherited !== true || report.networkAccessDenied !== true || report.networkInitializationError !== 0 || report.childProcessCreationRestricted !== true || report.legalHostJobTreeTerminated !== true || report.lpacProcessTerminated !== true || report.profileDeleted !== true) throw new Error("Native isolation evidence is incomplete");
 		return `${JSON.stringify({ visualStudio: version, windowsSdk: policy.windowsSdkVersion, profileId: profile })}\n${compiler}\n${output}`;
 	} catch (cause) {
+		failed = true;
 		const diagnostic = cause as { message?: string; stdout?: string; stderr?: string };
 		throw new Error(`Fixed isolation probe failed; requested test profile ${profile}; no production tool was enabled\n${[diagnostic.message, diagnostic.stdout, diagnostic.stderr].filter(Boolean).join("\n").slice(-12000)}`, { cause });
-	} finally { rmSync(scratch, { recursive: true, force: true }); }
+	} finally {
+		try { rmSync(scratch, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 }); }
+		catch (cause) {
+			const cleanup = new Error(`Fixed probe scratch cleanup failed: ${(cause as Error).message}`, { cause });
+			if (!failed) throw cleanup;
+			console.error(cleanup.message); // Preserve the original compile/probe failure; cleanup failure never passes the gate.
+		}
+	}
 }

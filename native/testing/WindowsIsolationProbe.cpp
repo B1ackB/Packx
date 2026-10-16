@@ -315,6 +315,7 @@ static int probe(const fs::path& root, const std::wstring& profileName) {
 }
 
 int wmain(int argc, wchar_t** argv) {
+	SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX | SEM_NOOPENFILEERRORBOX);
 	try {
 		if (argc == 2 && std::wstring(argv[1]) == L"--sleep") { Sleep(INFINITE); return 1; }
 		if (argc == 3 && std::wstring(argv[1]) == L"--job-tree") {

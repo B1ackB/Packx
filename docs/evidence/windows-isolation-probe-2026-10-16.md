@@ -21,6 +21,8 @@ PR41（平台路径边界）合并为 `6b77141bb45bddec4e1f9e83bf9aaba28f6e4a9c`
 
 [`bf78f75` 的运行](https://github.com/B1ackB/Packx/actions/runs/38947188759) 中，合法宿主的后代继承、禁止 breakaway、关闭 Job 后根与后代终止已实际通过；LPAC 在进入主程序前退出为 `0xC0000142`，没有输出计数或完整网络证据。该次同时新增了注册表诊断导入与派生限制，不能直接归因；先移除新增导入单独核验，不添加 capability。该失败继续阻断。
 
+[`dfdc214` 的运行](https://github.com/B1ackB/Packx/actions/runs/38947602625) 中九文件 83 项仍通过，但约 30 秒后 scratch 清理的 `EPERM` 掩盖了原始错误，因此不能将此轮归因到 LPAC 或编译器。后续增加编译完成标记、仅对子进程继承的进程级错误弹窗抑制，以及暂存删除的有界重试；清理失败单独报告，保留原始编译／探针失败，不修改全局错误策略或将失败转成功。
+
 ## macOS 清理回归
 
 上述 f814e3a 运行同时在 `macOsSeatbeltSandboxedToolExecutor.test.ts` 的超时清理断言失败：`kill(pid, 0)` 未抛错。该调用无法区分活进程、僵尸或 PID 重用，历史日志未保存足够状态，不能断言当时属于其中哪一种。
