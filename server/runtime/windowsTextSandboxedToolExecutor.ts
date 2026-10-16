@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 import { lstatSync, realpathSync, rmSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { randomUUID } from "node:crypto";
 import { validToolExecutionManifest, type SandboxedToolExecutorPort, type ToolExecutionManifest, type ToolExecutionResult, type ToolSandboxStatus } from "../../src/agent/sandbox";
 import { isAssetInspection } from "../../src/runtime/assetInspection";
@@ -23,7 +23,14 @@ export class WindowsTextSandboxedToolExecutor implements SandboxedToolExecutorPo
 		if (signal.aborted) return result("cancelled", "cancelled_before_launch");
 		if (process.platform !== "win32") return result("sandbox_unavailable", "windows_required");
 		const directory = join(this.workspaceRoot, ".blackx-tool-inputs", manifest.attemptId), source = join(directory, "input.bin");
-		if (!validToolExecutionManifest(manifest) || !/^[A-Za-z0-9-]{1,128}$/.test(manifest.attemptId) || !["asset_metadata_inspect", "document_read"].includes(manifest.tool.name) || manifest.tool.version !== "windows-utf8.v1" || manifest.command.executable !== this.executable || manifest.command.workingDirectory !== directory || JSON.stringify(manifest.command.argv) !== JSON.stringify([source, "1"]) || JSON.stringify(manifest.paths.readOnly) !== JSON.stringify([source]) || manifest.paths.writable.length || manifest.paths.temporaryDirectory !== join(directory, "output") || manifest.network.mode !== "deny-all" || manifest.network.allowedDomains.length || JSON.stringify(manifest.environment) !== '{"LANG":"en_US.UTF-8"}' || manifest.limits.maxOutputFiles !== 0 || manifest.limits.maxOutputBytes !== 0 || (manifest.limits.maxMemoryBytes ?? 0) < 64 * 1024 * 1024 || (manifest.limits.maxCpuSeconds ?? 0) < 30 || manifest.limits.timeoutMs > 60000) return result("policy_denied", "fixed_text_policy_required");
+		const policyMatches = validToolExecutionManifest(manifest) && manifest.schemaVersion === "tool-execution-manifest.v1" && manifest.sandboxProfile === "blackx-local-tool-sandbox.v1" &&
+			/^[A-Za-z0-9-]{1,128}$/.test(manifest.attemptId) && ["asset_metadata_inspect", "document_read"].includes(manifest.tool.name) && manifest.tool.version === "windows-utf8.v1" &&
+			manifest.command.executable === this.executable && manifest.command.workingDirectory === directory && JSON.stringify(manifest.command.argv) === JSON.stringify([source, "1"]) &&
+			JSON.stringify(manifest.paths.readOnly) === JSON.stringify([source]) && manifest.paths.writable.length === 0 && manifest.paths.temporaryDirectory === join(directory, "output") &&
+			manifest.network.mode === "deny-all" && manifest.network.allowedDomains.length === 0 && JSON.stringify(manifest.environment) === '{"LANG":"en_US.UTF-8"}' &&
+			manifest.limits.maxOutputFiles === 0 && manifest.limits.maxOutputBytes === 0 && (manifest.limits.maxMemoryBytes ?? 0) >= 64 * 1024 * 1024 &&
+			(manifest.limits.maxCpuSeconds ?? 0) >= 30 && manifest.limits.timeoutMs <= 60000;
+		if (!policyMatches) return result("policy_denied", "fixed_text_policy_required");
 		try {
 			for (const path of [this.workspaceRoot, join(this.workspaceRoot, ".blackx-tool-inputs"), directory, source, this.broker, this.executable]) {
 				const info = lstatSync(path);
@@ -34,10 +41,14 @@ export class WindowsTextSandboxedToolExecutor implements SandboxedToolExecutorPo
 		} catch { return result("sandbox_unavailable", "native_text_binary_or_input_unavailable"); }
 		const stage = join(directory, "native"), profile = `Packx.Text.${randomUUID().replaceAll("-", "")}`;
 		let cleanupVerified = false;
+		const unavailable = (reason: string) => {
+			console.error(JSON.stringify({ type: "windows_text.execution_unavailable", cleanupVerified, tenantId: manifest.tenantId, workspaceId: manifest.workspaceId, runId: manifest.runId, attemptId: manifest.attemptId, profile, reason }));
+			return result("sandbox_unavailable", reason);
+		};
 		try {
 			const outcome = await new Promise<{ output: string; code: number | null; forced: boolean; expired: boolean }>((accept, reject) => {
 				// This trusted broker receives no model/customer credentials. The worker receives an even smaller native allowlist.
-				const child = spawn(this.broker, [stage, profile, source, this.executable, String(manifest.limits.timeoutMs), String(Math.min(manifest.limits.maxStdoutBytes, 1048576))], { windowsHide: true, env: { SystemRoot: process.env.SystemRoot, SystemDrive: process.env.SystemDrive, LOCALAPPDATA: process.env.LOCALAPPDATA, USERPROFILE: process.env.USERPROFILE }, stdio: ["pipe", "pipe", "pipe"] });
+				const child = spawn(this.broker, [stage, profile, source, this.executable, String(manifest.limits.timeoutMs), String(Math.min(manifest.limits.maxStdoutBytes, 1048576))], { cwd: dirname(this.broker), windowsHide: true, env: { SystemRoot: process.env.SystemRoot, SystemDrive: process.env.SystemDrive, LOCALAPPDATA: process.env.LOCALAPPDATA, USERPROFILE: process.env.USERPROFILE }, stdio: ["pipe", "pipe", "pipe"] });
 				const chunks: Buffer[] = []; let size = 0, forced = false, expired = false;
 				const cancel = () => child.stdin.end(); // EOF also occurs when the Node Host crashes; broker kills Job and deletes its profile.
 				const deadline = setTimeout(() => { expired = true; cancel(); }, manifest.limits.timeoutMs);
@@ -50,16 +61,21 @@ export class WindowsTextSandboxedToolExecutor implements SandboxedToolExecutorPo
 				child.once("error", (error) => { clear(); reject(error); });
 				child.once("close", (code) => { clear(); accept({ output: Buffer.concat(chunks).toString("utf8"), code, forced, expired }); });
 			});
-			if (outcome.code !== 0 || outcome.forced) return result("sandbox_unavailable", "broker_failed_cleanup_unconfirmed");
+			if (outcome.code !== 0 || outcome.forced) return unavailable("broker_failed_cleanup_unconfirmed");
 			const report = JSON.parse(outcome.output) as Record<string, unknown>;
-			if (report.schemaVersion !== "windows-text-execution.v1" || report.cleanupVerified !== true || report.profileDeleted !== true || !Number.isSafeInteger(report.workerPid) || !["succeeded", "failed", "cancelled", "timed_out", "resource_exhausted"].includes(String(report.status))) return result("sandbox_unavailable", "native_evidence_invalid");
+			if (report.schemaVersion !== "windows-text-execution.v1" || report.cleanupVerified !== true || report.profileDeleted !== true || !Number.isSafeInteger(report.workerPid) || !["succeeded", "failed", "cancelled", "timed_out", "resource_exhausted"].includes(String(report.status))) return unavailable("native_evidence_invalid");
 			cleanupVerified = true;
 			if (signal.aborted) return result("cancelled", "owner_cancelled_cleanup_verified");
 			if (outcome.expired || report.status === "timed_out") return result("timed_out", "deadline_cleanup_verified");
+			if (report.status === "failed" && report.diagnostic && typeof report.diagnostic === "object") {
+				const code = (report.diagnostic as { error?: unknown }).error;
+				const known = ["token_unavailable", "token_boundary_missing", "capability_boundary_missing", "network_initialization_failed", "network_boundary_not_verified", "input_unavailable", "input_limit_or_identity", "input_read_failed", "binary_content", "unsupported_format", "invalid_encoding", "empty_input"];
+				if (typeof code === "string" && known.includes(code)) return result(/^(token|capability|network)_/.test(code) ? "sandbox_unavailable" : "failed", code);
+			}
 			if (report.status !== "succeeded") return result(report.status as ToolSandboxStatus, "native_text_" + report.status);
 			if (report.exitCode !== 0 || !isAssetInspection(report.inspection) || report.inspection.kind !== "text" || report.inspection.bytes !== lstatSync(source).size) return result("failed", "native_text_output_invalid");
 			return result("succeeded", "lpac_registry_read_job_cleanup_verified", JSON.stringify(report.inspection), 0);
-		} catch { return result("sandbox_unavailable", "broker_or_report_failed_cleanup_unconfirmed"); }
+		} catch { return unavailable(cleanupVerified ? "native_result_validation_failed" : "broker_or_report_failed_cleanup_unconfirmed"); }
 		finally {
 			// Do not delete an uncertain broker's resources while it might still own them.
 			if (cleanupVerified) rmSync(stage, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 });

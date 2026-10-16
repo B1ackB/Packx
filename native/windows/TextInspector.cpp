@@ -58,7 +58,7 @@ static int run(const fs::path& stage, const std::wstring& name, const fs::path& 
 	process.close(); thread.close(); reader.close(); job.close();
 	profile.remove();
 	// The model never receives paths, profile names, or host environment through this result.
-	std::cout << "{\"schemaVersion\":\"windows-text-execution.v1\",\"status\":\"" << status << "\",\"exitCode\":" << (exit == STILL_ACTIVE ? -1 : static_cast<long long>(exit)) << ",\"workerPid\":" << created.dwProcessId << ",\"cleanupVerified\":true,\"profileDeleted\":true,\"inspection\":" << (status == "succeeded" ? output : "null") << "}\n";
+	std::cout << "{\"schemaVersion\":\"windows-text-execution.v1\",\"status\":\"" << status << "\",\"exitCode\":" << (exit == STILL_ACTIVE ? -1 : static_cast<long long>(exit)) << ",\"workerPid\":" << created.dwProcessId << ",\"cleanupVerified\":true,\"profileDeleted\":true,\"diagnostic\":" << (status == "failed" && exit == 2 ? output : "null") << ",\"inspection\":" << (status == "succeeded" ? output : "null") << "}\n";
 	return 0;
 }
 int wmain(int argc, wchar_t** argv) {
