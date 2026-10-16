@@ -4,7 +4,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "nod
 import { join, resolve } from "node:path";
 import { runWindowsBuildJob } from "./windowsBuildJob";
 
-export function assessWindowsIsolationReport(value: unknown) {
+function experimentReport(value: unknown) {
 	const reject = (message: string): never => { throw new Error(`Invalid Windows isolation experiment: ${message}`); };
 	if (!value || typeof value !== "object" || Array.isArray(value)) reject("missing report");
 	const report = value as Record<string, unknown>;
@@ -14,12 +14,26 @@ export function assessWindowsIsolationReport(value: unknown) {
 	}
 	const control = report.unsandboxedNetworkControl as Record<string, unknown> | undefined;
 	if (!control || control.initializationError !== 0 || control.connectionError !== 0 || control.catalogAccessError !== 0 || control.observation !== "connected" || report.regularNetworkInitializationError !== 0) reject("positive network control failed");
+	return { report, reject };
+}
+
+export function assessWindowsIsolationReport(value: unknown) {
+	const { report, reject } = experimentReport(value);
+	if (report.capabilityPolicy !== "zero-capabilities" || !Array.isArray(report.capabilities) || report.capabilities.length !== 0) reject("zero-capability baseline changed");
 	const networkGate = report.networkObservation === "access_denied" && report.networkInitializationError === 0 && report.networkConnectionError === 10013 && report.networkAccessDenied === true && report.childAssertions === 14 ? "verified" as const
 		: report.networkObservation === "initialization_failed" && report.networkInitializationError === 10107 && report.networkConnectionError === -1 && report.catalogAccessError === 5 && report.networkAccessDenied === false && report.childAssertions === 13 ? "blocked" as const
 		: reject("network denial was not verified or its initialization failure was not characterized");
 	// This is a CI experiment, with no registered production executor. A diagnostic pass cannot enable one.
 	return { schemaVersion: "windows-isolation-assessment.v1" as const, experimentValidated: true as const, productionAdapterEnabled: false as const,
 		mode: report.mode as "diagnostic" | "strict", networkGate, passedChildAssertions: report.childAssertions as number, requiredChildAssertions: 14 as const };
+}
+
+export function assessRegistryReadCandidate(value: unknown) {
+	const { report, reject } = experimentReport(value);
+	if (report.mode !== "strict" || report.capabilityPolicy !== "registry-read-only" || JSON.stringify(report.capabilities) !== '["registryRead"]') reject("unexpected candidate capabilities");
+	for (const key of ["privateRegistryReadDenied", "privateRegistryWriteDenied", "privateRegistryDeleted"]) if (report[key] !== true) reject(`private registry boundary missing: ${key}`);
+	if (report.childAssertions !== 16 || report.networkInitializationError !== 0 || report.networkConnectionError !== 10013 || report.networkObservation !== "access_denied" || report.networkAccessDenied !== true) reject("candidate did not verify network denial");
+	return { schemaVersion: "windows-registry-read-feasibility.v1", networkGate: "verified", passedChildAssertions: 16, productionAdapterEnabled: false };
 }
 
 /** Fixed CI experiment, never a production Tool executor. No scripts or system features are installed. */
@@ -48,7 +62,7 @@ export async function runWindowsIsolationProbe(environment: NodeJS.ProcessEnv): 
 		const binary = join(build, "isolation-probe.exe"), batch = join(build, "compile.cmd");
 		const worker = join(build, "isolation-worker.exe");
 		const compilerFlags = "/nologo /std:c++20 /W4 /WX /MT /EHsc /DUNICODE /D_UNICODE /D_WIN32_WINNT=0x0A00";
-		writeFileSync(batch, `@echo off\r\ncall "${installation}\\VC\\Auxiliary\\Build\\vcvars64.bat" ${policy.windowsSdkVersion}\r\nif errorlevel 1 exit /b 1\r\ncl ${compilerFlags} "${join(root, "native/testing/WindowsIsolationProbe.cpp")}" /Fe:"${binary}" /link userenv.lib advapi32.lib ws2_32.lib ole32.lib\r\nif errorlevel 1 exit /b 1\r\ncl ${compilerFlags} "${join(root, "native/testing/WindowsIsolationWorker.cpp")}" /Fe:"${worker}" /link advapi32.lib ws2_32.lib\r\n`);
+		writeFileSync(batch, `@echo off\r\ncall "${installation}\\VC\\Auxiliary\\Build\\vcvars64.bat" ${policy.windowsSdkVersion}\r\nif errorlevel 1 exit /b 1\r\ncl ${compilerFlags} "${join(root, "native/testing/WindowsIsolationProbe.cpp")}" /Fe:"${binary}" /link userenv.lib advapi32.lib ws2_32.lib ole32.lib OneCoreUAP.lib\r\nif errorlevel 1 exit /b 1\r\ncl ${compilerFlags} "${join(root, "native/testing/WindowsIsolationWorker.cpp")}" /Fe:"${worker}" /link advapi32.lib ws2_32.lib\r\n`);
 		const options = { encoding: "utf8" as const, timeout: 30_000, maxBuffer: 2 * 1024 * 1024, env: environment };
 		const compiler = await runWindowsBuildJob(join(environment.SystemRoot ?? "C:\\Windows", "System32/cmd.exe"), ["/d", "/s", "/c", batch], build, environment);
 		console.error("fixed_probe:compile_completed; starting_native_probe");
@@ -63,7 +77,10 @@ export async function runWindowsIsolationProbe(environment: NodeJS.ProcessEnv): 
 		if (strict.error || ![0, 1].includes(strict.status ?? -1)) throw new Error(`Strict probe infrastructure failure: ${strict.error?.message ?? strict.status}\n${strict.stderr ?? ""}`);
 		const strictAssessment = assessWindowsIsolationReport(JSON.parse(strict.stdout));
 		if (strictAssessment.mode !== "strict" || strictAssessment.networkGate !== assessment.networkGate || strict.status !== (assessment.networkGate === "blocked" ? 1 : 0)) throw new Error("Strict probe no longer enforces the network gate");
-		return `${JSON.stringify({ visualStudio: version, windowsSdk: policy.windowsSdkVersion, profileId: profile, strictProfileId: strictProfile, build: compiler.report })}\n${compiler.stdout}${compiler.stderr}\n${output}\n${JSON.stringify({ assessment, strictAssessment, strictExitCode: strict.status })}`;
+		const candidateAttempt = join(scratch, "registry-attempt"), candidateProfile = `Packx.Probe.${randomUUID().replaceAll("-", "")}`; mkdirSync(candidateAttempt);
+		const candidateOutput = execFileSync(binary, ["--registry-read", candidateAttempt, candidateProfile, worker], options);
+		const candidateAssessment = assessRegistryReadCandidate(JSON.parse(candidateOutput));
+		return `${JSON.stringify({ visualStudio: version, windowsSdk: policy.windowsSdkVersion, profileId: profile, strictProfileId: strictProfile, build: compiler.report })}\n${compiler.stdout}${compiler.stderr}\n${output}\n${candidateOutput}\n${JSON.stringify({ assessment, strictAssessment, strictExitCode: strict.status, candidateAssessment })}`;
 	} catch (cause) {
 		failed = true;
 		const diagnostic = cause as { message?: string; stdout?: string; stderr?: string };

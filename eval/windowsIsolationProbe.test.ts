@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { assessWindowsIsolationReport } from "../scripts/windowsIsolationProbe";
+import { assessRegistryReadCandidate, assessWindowsIsolationReport } from "../scripts/windowsIsolationProbe";
 
 const unavailable = {
 	schemaVersion: "windows-isolation-experiment.v1", experimentOnly: true, productionAdapterEnabled: false, mode: "diagnostic",
+	capabilityPolicy: "zero-capabilities", capabilities: [],
 	privateHandleNotInherited: true, singleProcessJobRestricted: true, legalHostSingleProcessDenied: true,
 	legalHostJobTreeTerminated: true, lpacProcessTerminated: true, profileDeleted: true,
 	unsandboxedNetworkControl: { initializationError: 0, connectionError: 0, catalogAccessError: 0, observation: "connected" },
@@ -30,4 +31,13 @@ describe("Windows isolation experimental boundary", () => {
 	])("rejects incomplete or misleading evidence: %j", (change) => {
 		expect(() => assessWindowsIsolationReport({ ...unavailable, ...change })).toThrow("Invalid Windows isolation experiment");
 	});
+});
+
+const registryCandidate = { ...unavailable, mode: "strict", capabilityPolicy: "registry-read-only", capabilities: ["registryRead"], childAssertions: 16, privateRegistryReadDenied: true, privateRegistryWriteDenied: true, privateRegistryDeleted: true, networkObservation: "access_denied", networkInitializationError: 0, networkConnectionError: 10013, networkAccessDenied: true };
+it("keeps the registry-only feasibility policy separate from the zero-capability baseline", () => {
+	expect(assessRegistryReadCandidate(registryCandidate)).toMatchObject({ networkGate: "verified", passedChildAssertions: 16, productionAdapterEnabled: false });
+	expect(() => assessWindowsIsolationReport(registryCandidate)).toThrow();
+});
+it.each([{ capabilities: ["registryRead", "internetClient"] }, { privateRegistryReadDenied: false }, { privateRegistryWriteDenied: false }, { privateRegistryDeleted: false }, { networkInitializationError: 10107 }, { networkObservation: "connected", networkConnectionError: 0 }, { childAssertions: 15 }])("rejects a candidate with unproven permissions or network denial: %j", (change) => {
+	expect(() => assessRegistryReadCandidate({ ...registryCandidate, ...change })).toThrow();
 });

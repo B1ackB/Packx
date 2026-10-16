@@ -13,6 +13,7 @@
 #include <string>
 #include <vector>
 #include <utility>
+#include <memory>
 
 namespace fs = std::filesystem;
 static void check(bool ok, const char* stage) {
@@ -46,6 +47,51 @@ struct Profile {
 	void remove() {
 		const HRESULT hr = DeleteAppContainerProfile(name.c_str());
 		if (FAILED(hr)) throw std::runtime_error("delete_private_app_profile:" + std::to_string(static_cast<unsigned long>(hr)));
+		owned = false;
+	}
+};
+
+struct RegistryCapability {
+	PSID sid = nullptr;
+	RegistryCapability() {
+		PSID* groups = nullptr; PSID* capabilities = nullptr; DWORD groupCount = 0, count = 0;
+		const BOOL derived = DeriveCapabilitySidsFromName(L"registryRead", &groups, &groupCount, &capabilities, &count);
+		const DWORD failure = derived ? ERROR_INVALID_DATA : GetLastError();
+		if (groups) for (DWORD i = 0; i < groupCount; ++i) LocalFree(groups[i]);
+		if (groups) LocalFree(groups);
+		if (derived && capabilities && count == 1) sid = capabilities[0];
+		else if (capabilities) for (DWORD i = 0; i < count; ++i) LocalFree(capabilities[i]);
+		if (capabilities) LocalFree(capabilities);
+		if (!sid) throw std::runtime_error("derive_registry_read_capability:" + std::to_string(failure));
+	}
+	~RegistryCapability() { if (sid) LocalFree(sid); }
+};
+// An owned, synthetic HKCU leaf only. Never edits system/catalog ACLs or existing keys.
+struct PrivateRegistry {
+	std::wstring key, userPath; bool owned = false;
+	explicit PrivateRegistry(const std::wstring& nonce) {
+		Handle token; check(OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &token.value) != FALSE, "registry_owner_token");
+		DWORD size = 0; GetTokenInformation(token.value, TokenUser, nullptr, 0, &size); std::vector<BYTE> data(size);
+		check(GetTokenInformation(token.value, TokenUser, data.data(), size, &size) != FALSE, "registry_owner_sid");
+		LPWSTR sid = nullptr; check(ConvertSidToStringSidW(reinterpret_cast<TOKEN_USER*>(data.data())->User.Sid, &sid) != FALSE, "registry_owner_text");
+		const std::wstring owner(sid); LocalFree(sid);
+		key = L"Software\\PackxProbe." + nonce; userPath = owner + L"\\" + key;
+		const std::wstring sddl = L"D:P(A;;KA;;;SY)(A;;KA;;;" + owner + L")";
+		PSECURITY_DESCRIPTOR descriptor = nullptr; check(ConvertStringSecurityDescriptorToSecurityDescriptorW(sddl.c_str(), SDDL_REVISION_1, &descriptor, nullptr) != FALSE, "private_registry_acl");
+		SECURITY_ATTRIBUTES security{sizeof(SECURITY_ATTRIBUTES), descriptor, FALSE}; HKEY created = nullptr; DWORD disposition = 0;
+		const LSTATUS status = RegCreateKeyExW(HKEY_CURRENT_USER, key.c_str(), 0, nullptr, 0, KEY_ALL_ACCESS, &security, &created, &disposition); LocalFree(descriptor);
+		if (status != ERROR_SUCCESS) throw std::runtime_error("create_private_registry:" + std::to_string(status));
+		RegCloseKey(created);
+		check(disposition == REG_CREATED_NEW_KEY, "private_registry_must_be_new"); owned = true;
+		HKEY control = nullptr; const LSTATUS readable = RegOpenKeyExW(HKEY_USERS, userPath.c_str(), 0, KEY_QUERY_VALUE | KEY_SET_VALUE, &control);
+		if (control) RegCloseKey(control);
+		if (readable != ERROR_SUCCESS) { RegDeleteTreeW(HKEY_CURRENT_USER, key.c_str()); owned = false; throw std::runtime_error("private_registry_positive_control:" + std::to_string(readable)); }
+	}
+	~PrivateRegistry() { if (owned && RegDeleteTreeW(HKEY_CURRENT_USER, key.c_str()) != ERROR_SUCCESS) std::cerr << "private_registry_cleanup_failed\n"; }
+	void remove() {
+		const LSTATUS status = RegDeleteTreeW(HKEY_CURRENT_USER, key.c_str()); if (status != ERROR_SUCCESS) throw std::runtime_error("private_registry_cleanup:" + std::to_string(status));
+		HKEY remaining = nullptr; const LSTATUS missing = RegOpenKeyExW(HKEY_CURRENT_USER, key.c_str(), 0, KEY_QUERY_VALUE, &remaining); if (remaining) RegCloseKey(remaining);
+		if (missing != ERROR_FILE_NOT_FOUND) throw std::runtime_error("private_registry_still_present:" + std::to_string(missing));
 		owned = false;
 	}
 };
@@ -96,13 +142,15 @@ static bool canOpen(const fs::path& path, DWORD rights) {
 static unsigned long long fileId(const BY_HANDLE_FILE_INFORMATION& info) {
 	return (static_cast<unsigned long long>(info.nFileIndexHigh) << 32) | info.nFileIndexLow;
 }
-static PROCESS_INFORMATION launch(const fs::path& executable, std::wstring command, const fs::path& directory, std::wstring& environment, PSID sid, HANDLE job, bool lpac) {
+static PROCESS_INFORMATION launch(const fs::path& executable, std::wstring command, const fs::path& directory, std::wstring& environment, PSID sid, HANDLE job, bool lpac, PSID registryCapability = nullptr) {
 	const DWORD count = lpac ? 2 : 1;
 	SIZE_T size = 0; InitializeProcThreadAttributeList(nullptr, count, 0, &size);
 	std::vector<BYTE> attributes(size);
 	auto list = reinterpret_cast<LPPROC_THREAD_ATTRIBUTE_LIST>(attributes.data());
 	check(InitializeProcThreadAttributeList(list, count, 0, &size) != FALSE, "create_attributes");
 	SECURITY_CAPABILITIES security{}; security.AppContainerSid = sid;
+	SID_AND_ATTRIBUTES capability{registryCapability, SE_GROUP_ENABLED};
+	if (registryCapability) { security.Capabilities = &capability; security.CapabilityCount = 1; }
 	DWORD policy = PROCESS_CREATION_ALL_APPLICATION_PACKAGES_OPT_OUT;
 	check(UpdateProcThreadAttribute(list, 0, PROC_THREAD_ATTRIBUTE_SECURITY_CAPABILITIES, &security, sizeof(security), nullptr, nullptr) != FALSE, "set_appcontainer");
 	if (lpac) check(UpdateProcThreadAttribute(list, 0, PROC_THREAD_ATTRIBUTE_ALL_APPLICATION_PACKAGES_POLICY, &policy, sizeof(policy), nullptr, nullptr) != FALSE, "set_lpac");
@@ -158,7 +206,7 @@ static void verifyHostJobControl(const fs::path& executable, const fs::path& sta
 	std::cerr << "host_job_control:descendant_inherits_job; breakaway_denied; root_and_descendant_terminated\n";
 }
 
-static int probe(const fs::path& root, const std::wstring& profileName, const fs::path& worker, bool diagnosticOnly) {
+static int probe(const fs::path& root, const std::wstring& profileName, const fs::path& worker, bool diagnosticOnly, bool registryRead = false) {
 	check(fs::is_directory(root) && fs::is_empty(root), "fresh_probe_directory");
 	const fs::path stage = root / L"stage", output = stage / L"output", denied = root / L"denied.txt";
 	fs::create_directories(output);
@@ -167,6 +215,9 @@ static int probe(const fs::path& root, const std::wstring& profileName, const fs
 	{ std::ofstream file(root / L"all-packages.txt"); file << "synthetic all-application-packages control"; }
 	fs::copy_file(worker, stage / L"worker.exe");
 	Profile profile(profileName);
+	std::unique_ptr<RegistryCapability> registryCapability;
+	std::unique_ptr<PrivateRegistry> privateRegistry;
+	if (registryRead) { registryCapability = std::make_unique<RegistryCapability>(); privateRegistry = std::make_unique<PrivateRegistry>(profileName); }
 	BYTE anyPackage[SECURITY_MAX_SID_SIZE]{}; DWORD sidSize = sizeof(anyPackage);
 	check(CreateWellKnownSid(WinBuiltinAnyPackageSid, nullptr, anyPackage, &sidSize) != FALSE, "all_packages_control_sid");
 	grant(root / L"all-packages.txt", anyPackage, FILE_GENERIC_READ);
@@ -202,6 +253,10 @@ static int probe(const fs::path& root, const std::wstring& profileName, const fs
 	JOBOBJECT_EXTENDED_LIMIT_INFORMATION actualLimits{};
 	check(QueryInformationJobObject(job.value, JobObjectExtendedLimitInformation, &actualLimits, sizeof(actualLimits), nullptr) && actualLimits.BasicLimitInformation.ActiveProcessLimit == 1 && (actualLimits.BasicLimitInformation.LimitFlags & JOB_OBJECT_LIMIT_ACTIVE_PROCESS) && !(actualLimits.BasicLimitInformation.LimitFlags & (JOB_OBJECT_LIMIT_BREAKAWAY_OK | JOB_OBJECT_LIMIT_SILENT_BREAKAWAY_OK)), "single_process_job_contract");
 	std::wstring command = quote((stage / L"worker.exe").wstring()) + L" --child " + quote(stage.wstring()) + L" " + quote(denied.wstring()) + L" " + std::to_wstring(ntohs(address.sin_port)) + L" " + std::to_wstring(GetCurrentProcessId());
+	if (registryRead) {
+		LPWSTR capabilityText = nullptr; check(ConvertSidToStringSidW(registryCapability->sid, &capabilityText) != FALSE, "registry_capability_text");
+		command += L" " + quote(capabilityText) + L" " + quote(privateRegistry->userPath); LocalFree(capabilityText);
+	}
 	wchar_t windows[MAX_PATH]{}; check(GetWindowsDirectoryW(windows, MAX_PATH) > 0, "windows_directory");
 	LPWSTR sidText = nullptr, folder = nullptr;
 	check(ConvertSidToStringSidW(profile.sid, &sidText) != FALSE, "profile_sid_text");
@@ -234,14 +289,14 @@ static int probe(const fs::path& root, const std::wstring& profileName, const fs
 	check(regularNetworkInitialization == 0, "regular_network_initialization_control");
 	controlThread.close(); controlHandle.close();
 	// Invalid-handle checks can deliberately terminate a strict process. Isolate this negative case from the remaining assertions.
-	const auto handleControl = launch(stage / L"worker.exe", quote((stage / L"worker.exe").wstring()) + L" --handle-control " + std::to_wstring(reinterpret_cast<ULONG_PTR>(privateFile.value)) + L" " + std::to_wstring(identity.dwVolumeSerialNumber) + L" " + std::to_wstring(fileId(identity)) + L" " + quote(stage.wstring()), stage, environment, profile.sid, job.value, true);
+	const auto handleControl = launch(stage / L"worker.exe", quote((stage / L"worker.exe").wstring()) + L" --handle-control " + std::to_wstring(reinterpret_cast<ULONG_PTR>(privateFile.value)) + L" " + std::to_wstring(identity.dwVolumeSerialNumber) + L" " + std::to_wstring(fileId(identity)) + L" " + quote(stage.wstring()), stage, environment, profile.sid, job.value, true, registryRead ? registryCapability->sid : nullptr);
 	Handle handleProcess(handleControl.hProcess), handleThread(handleControl.hThread);
 	check(WaitForSingleObject(handleProcess.value, 5000) == WAIT_OBJECT_0, "handle_control_timeout");
 	DWORD handleExit = 1; check(GetExitCodeProcess(handleProcess.value, &handleExit) != FALSE, "handle_control_status");
 	{ std::ifstream marker(output / L"handle-control.txt"); std::string entered; marker >> entered; check(entered == "entered", "handle_control_reached_query"); }
 	check(handleExit == 0 || handleExit == 0xC0000008UL, "private_handle_not_inherited");
 	handleThread.close(); handleProcess.close();
-	const auto created = launch(stage / L"worker.exe", command, stage, environment, profile.sid, job.value, true);
+	const auto created = launch(stage / L"worker.exe", command, stage, environment, profile.sid, job.value, true, registryRead ? registryCapability->sid : nullptr);
 	Handle process(created.hProcess), thread(created.hThread);
 	const auto reportPath = output / L"report.txt";
 	for (unsigned i = 0; i < 100 && !fs::exists(reportPath); ++i) {
@@ -249,7 +304,7 @@ static int probe(const fs::path& root, const std::wstring& profileName, const fs
 	}
 	unsigned passed = 0; DWORD descendantPid = 0; int networkInitialization = -1, networkError = -1; LSTATUS catalogAccess = -1; bool networkDenied = false; std::string networkObservation;
 	{ std::ifstream report(reportPath); report >> passed >> descendantPid >> networkInitialization >> networkDenied >> networkError >> catalogAccess >> networkObservation; }
-	if (passed < 13) {
+	if (passed < (registryRead ? 15u : 13u)) {
 		std::ifstream report(reportPath); std::string error; std::getline(report, error);
 		std::ifstream progress(output / L"progress.txt"); std::string step; std::getline(progress, step);
 		std::ifstream diagnostic(output / L"network-diagnostic.txt"); std::string boundary; std::getline(diagnostic, boundary);
@@ -261,11 +316,14 @@ static int probe(const fs::path& root, const std::wstring& profileName, const fs
 	thread.close(); process.close(); privateFile.close();
 	closesocket(listener); WSACleanup();
 	profile.remove();
+	if (privateRegistry) privateRegistry->remove();
 	std::ifstream diagnostic(output / L"network-diagnostic.txt"); std::string boundary; std::getline(diagnostic, boundary);
 	std::cerr << "lpac_boundary:" << boundary << '\n';
 	std::cout << "{\"schemaVersion\":\"windows-isolation-experiment.v1\",\"experimentOnly\":true,\"productionAdapterEnabled\":false,\"mode\":\"" << (diagnosticOnly ? "diagnostic" : "strict") << "\",";
+	std::cout << "\"capabilityPolicy\":\"" << (registryRead ? "registry-read-only" : "zero-capabilities") << "\",\"capabilities\":" << (registryRead ? "[\"registryRead\"]" : "[]") << ",";
+	if (registryRead) std::cout << "\"privateRegistryReadDenied\":true,\"privateRegistryWriteDenied\":true,\"privateRegistryDeleted\":true,";
 	std::cout << "\"probe\":\"windows-lpac-fixed-program\",\"childAssertions\":" << passed << ",\"privateHandleNotInherited\":true,\"regularNetworkInitializationError\":" << regularNetworkInitialization << ",\"networkInitializationError\":" << networkInitialization << ",\"networkConnectionError\":" << networkError << ",\"catalogAccessError\":" << catalogAccess << ",\"networkObservation\":\"" << networkObservation << "\",\"unsandboxedNetworkControl\":{\"initializationError\":0,\"connectionError\":0,\"catalogAccessError\":0,\"observation\":\"connected\"},\"networkAccessDenied\":" << (networkDenied ? "true" : "false") << ",\"singleProcessJobRestricted\":true,\"legalHostSingleProcessDenied\":true,\"legalHostJobTreeTerminated\":true,\"lpacProcessTerminated\":true,\"profileDeleted\":true}\n";
-	const bool networkVerified = passed == 14 && networkDenied && networkInitialization == 0 && networkError == WSAEACCES && networkObservation == "access_denied";
+	const bool networkVerified = passed == (registryRead ? 16u : 14u) && networkDenied && networkInitialization == 0 && networkError == WSAEACCES && networkObservation == "access_denied";
 	const bool characterizedUnavailable = passed == 13 && !networkDenied && networkInitialization == WSASYSCALLFAILURE && networkError == -1 && catalogAccess == ERROR_ACCESS_DENIED && networkObservation == "initialization_failed";
 	return networkVerified || (diagnosticOnly && characterizedUnavailable) ? 0 : 1;
 }
@@ -273,7 +331,7 @@ static int probe(const fs::path& root, const std::wstring& profileName, const fs
 int wmain(int argc, wchar_t** argv) {
 	SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX | SEM_NOOPENFILEERRORBOX);
 	try {
-		check(argc == 5 && (std::wstring(argv[1]) == L"--probe" || std::wstring(argv[1]) == L"--diagnose"), "fixed_probe_arguments");
-		return probe(argv[2], argv[3], argv[4], std::wstring(argv[1]) == L"--diagnose");
+		check(argc == 5 && (std::wstring(argv[1]) == L"--probe" || std::wstring(argv[1]) == L"--diagnose" || std::wstring(argv[1]) == L"--registry-read"), "fixed_probe_arguments");
+		return probe(argv[2], argv[3], argv[4], std::wstring(argv[1]) == L"--diagnose", std::wstring(argv[1]) == L"--registry-read");
 	} catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }
 }

@@ -2,6 +2,7 @@
 #define NOMINMAX
 #include <winsock2.h>
 #include <windows.h>
+#include <sddl.h>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -87,7 +88,7 @@ static NetworkProbe inspectNetwork(unsigned short port) {
 	closesocket(connection); WSACleanup();
 	return result;
 }
-static int child(const fs::path& stage, const fs::path& denied, unsigned short port, DWORD hostPid) {
+static int child(const fs::path& stage, const fs::path& denied, unsigned short port, DWORD hostPid, const wchar_t* registrySid = nullptr, const wchar_t* privateRegistry = nullptr) {
 	unsigned passed = 0;
 	auto expect = [&](bool ok, const char* name) { check(ok, name); ++passed; std::ofstream progress(stage / L"output" / L"progress.txt"); progress << passed << " " << name; };
 	HANDLE rawToken = nullptr;
@@ -100,7 +101,16 @@ static int child(const fs::path& stage, const fs::path& denied, unsigned short p
 	GetTokenInformation(token.value, TokenCapabilities, nullptr, 0, &size);
 	std::vector<BYTE> capabilities(size);
 	check(size > 0 && GetTokenInformation(token.value, TokenCapabilities, capabilities.data(), size, &size) != FALSE, "query_capabilities");
-	expect(reinterpret_cast<TOKEN_GROUPS*>(capabilities.data())->GroupCount == 0, "no_capabilities");
+	const auto groups = reinterpret_cast<TOKEN_GROUPS*>(capabilities.data());
+	if (registrySid) {
+		PSID expected = nullptr; check(ConvertStringSidToSidW(registrySid, &expected) != FALSE, "registry_capability_sid");
+		const bool exact = groups->GroupCount == 1 && EqualSid(groups->Groups[0].Sid, expected) && (groups->Groups[0].Attributes & SE_GROUP_ENABLED); LocalFree(expected);
+		expect(exact, "only_registry_read_capability");
+		for (const auto access : { KEY_QUERY_VALUE, KEY_SET_VALUE }) {
+			HKEY key = nullptr; const LSTATUS status = RegOpenKeyExW(HKEY_USERS, privateRegistry, 0, access, &key); if (key) RegCloseKey(key);
+			expect(status == ERROR_ACCESS_DENIED, access == KEY_QUERY_VALUE ? "private_registry_read_denied" : "private_registry_write_denied");
+		}
+	} else expect(groups->GroupCount == 0, "no_capabilities");
 	expect(canOpen(stage / L"input.txt", GENERIC_READ), "declared_input_read");
 	expect(!canOpen(stage / L"input.txt", GENERIC_WRITE), "declared_input_write_denied");
 	expect(!canOpen(denied, GENERIC_READ), "other_workspace_read_denied");
@@ -174,9 +184,9 @@ int wmain(int argc, wchar_t** argv) {
 			const bool visible = GetFileInformationByHandle(reinterpret_cast<HANDLE>(std::stoull(argv[2])), &leaked) && leaked.dwVolumeSerialNumber == std::stoul(argv[3]) && fileId(leaked) == std::stoull(argv[4]);
 			return visible ? 1 : 0;
 		}
-		if (argc == 6 && std::wstring(argv[1]) == L"--child") {
+		if ((argc == 6 || argc == 8) && std::wstring(argv[1]) == L"--child") {
 			{ std::ofstream entry(fs::path(argv[2]) / L"output" / L"worker-entry.txt"); entry << "entered"; check(entry.good(), "worker_entry_marker"); }
-			try { return child(argv[2], argv[3], static_cast<unsigned short>(std::stoul(argv[4])), std::stoul(argv[5])); }
+			try { return child(argv[2], argv[3], static_cast<unsigned short>(std::stoul(argv[4])), std::stoul(argv[5]), argc == 8 ? argv[6] : nullptr, argc == 8 ? argv[7] : nullptr); }
 			catch (const std::exception& error) { writeReport(argv[2], std::string("error ") + error.what()); return 1; }
 		}
 		check(false, "fixed_worker_arguments");
