@@ -34,6 +34,7 @@
 		"eval:plan": "node --import tsx eval/planSubagents.ts",
 		"eval:loop-safety": "node --import tsx eval/loopSafety.ts",
 		"eval:m2": "node --import tsx eval/m2RequirementBrief.ts",
+		"eval:packaging-lifecycle": "node --import tsx eval/packagingLifecycle.ts",
 		"eval:requirement-intake": "node --env-file-if-exists=.env --import tsx eval/requirementIntakeRun.ts",
 		"eval:requirement-intake-audit": "node --import tsx eval/requirementIntakeAudit.ts",
 		"eval:requirement-automatic": "node --env-file-if-exists=.env --import tsx eval/requirementAutomaticRun.ts",
