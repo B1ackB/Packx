@@ -211,10 +211,11 @@ static int probe(const fs::path& root, const std::wstring& profileName) {
 	STARTUPINFOEXW startup{}; startup.StartupInfo.cb = sizeof(startup); startup.lpAttributeList = list;
 	PROCESS_INFORMATION created{};
 	const BOOL launched = CreateProcessW((stage / L"worker.exe").c_str(), command.data(), nullptr, nullptr, FALSE, CREATE_SUSPENDED | EXTENDED_STARTUPINFO_PRESENT | CREATE_UNICODE_ENVIRONMENT | CREATE_NO_WINDOW, environment.data(), stage.c_str(), &startup.StartupInfo, &created);
+	const DWORD launchError = GetLastError();
 	DeleteProcThreadAttributeList(list);
-	check(launched != FALSE, "create_lpac_suspended");
+	if (!launched) throw std::runtime_error("create_lpac_suspended:" + std::to_string(launchError));
 	Handle process(created.hProcess), thread(created.hThread);
-	if (!AssignProcessToJobObject(job.value, process.value)) { TerminateProcess(process.value, 1); WaitForSingleObject(process.value, 5000); check(false, "assign_job_before_resume"); }
+	if (!AssignProcessToJobObject(job.value, process.value)) { const DWORD error = GetLastError(); TerminateProcess(process.value, 1); WaitForSingleObject(process.value, 5000); throw std::runtime_error("assign_job_before_resume:" + std::to_string(error)); }
 	check(ResumeThread(thread.value) != static_cast<DWORD>(-1), "resume_contained_process");
 	const auto reportPath = output / L"report.txt";
 	for (unsigned i = 0; i < 100 && !fs::exists(reportPath); ++i) {
