@@ -1,6 +1,7 @@
 import { closeSync, fsyncSync, openSync, constants, existsSync, lstatSync, readFileSync, realpathSync, renameSync, unlinkSync, writeFileSync } from "node:fs";
 import { basename, dirname, resolve } from "node:path";
 import { randomUUID } from "node:crypto";
+import { PrivateFileAccess } from "./privateFileAccess";
 import type { ModelSettingsInput, ModelSettingsView } from "../src/runtime/modelSettings";
 
 type Saved = ModelSettingsInput & { schemaVersion: "model-settings.v1"; actor: string; at: string };
@@ -21,14 +22,15 @@ function validate(p: ModelSettingsInput) {
 export class ModelSettings {
 	private readonly initial: string;
 	readonly path: string;
-	constructor(path: string, private readonly environment: NodeJS.ProcessEnv) {
+	constructor(path: string, private readonly environment: NodeJS.ProcessEnv, private readonly access = new PrivateFileAccess()) {
 		this.path = resolve(realpathSync(dirname(path)), basename(path));
 		this.initial = JSON.stringify(this.read());
 	}
 	private read(): Saved | undefined {
 		if (!existsSync(this.path)) return undefined;
 		const stat = lstatSync(this.path);
-		if (!stat.isFile() || stat.isSymbolicLink() || stat.nlink !== 1 || (stat.mode & 0o077) || stat.size > 16_384) throw new SettingsError("settings_file_unsafe", 503);
+		if (!stat.isFile() || stat.isSymbolicLink() || stat.nlink !== 1 || stat.size > 16_384) throw new SettingsError("settings_file_unsafe", 503);
+		try { this.access.assert(this.path); } catch { throw new SettingsError("settings_file_unsafe", 503); }
 		try {
 			const value = JSON.parse(readFileSync(this.path, "utf8")) as Saved;
 			if (value.schemaVersion !== "model-settings.v1") throw new Error();
@@ -66,7 +68,7 @@ export class ModelSettings {
 		const temporary = `${this.path}.${randomUUID()}.tmp`;
 		try {
 			const fd = openSync(temporary, constants.O_CREAT | constants.O_EXCL | constants.O_WRONLY | constants.O_NOFOLLOW, 0o600);
-			try { writeFileSync(fd, JSON.stringify(saved)); fsyncSync(fd); } finally { closeSync(fd); }
+			try { this.access.prepare(temporary); writeFileSync(fd, JSON.stringify(saved)); fsyncSync(fd); } finally { closeSync(fd); }
 			renameSync(temporary, this.path);
 		} finally { if (existsSync(temporary)) unlinkSync(temporary); }
 		return this.view();

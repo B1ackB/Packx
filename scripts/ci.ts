@@ -17,6 +17,7 @@ const gate = 'test "$CORE_RESULT" = success\ntest "$BROWSER_RESULT" = success\nt
 const toolsDirectory = resolve("temp/ci-tools");
 const nativeFiles = ["macOsSeatbeltSandboxedToolExecutor.test.ts", "assetInspection.test.ts", "documentRead.test.ts"];
 const windowsFiles = [
+	"server/privateFileAccess.test.ts", "server/windowsModelSettings.test.ts",
 	"server/localDataBoundary.test.ts", "server/localBackup.test.ts", "server/localDataMigration.test.ts", "server/fileWriteLock.test.ts", "server/syncDirectory.test.ts",
 	"server/enterprise/fileEventStoreRecovery.test.ts", "server/enterprise/fileStageJobQueue.test.ts", "server/enterprise/fileCronScheduleStore.test.ts",
 	"src/agent/sandboxPaths.test.ts",

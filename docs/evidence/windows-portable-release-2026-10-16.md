@@ -22,6 +22,8 @@ PR52 在 Host/发行适配层扩展便携验证，不修改 Agent Core Loop 或�
 
 Windows 首个执行候选 run [38974684391](https://github.com/B1ackB/Packx/actions/runs/38974684391) 已成功编译、通过固定原生测试并生成 ZIP，但系统 tar.exe 解压到中文目标目录返回 1；当时断言没有保留 stderr，不能确定更细的原因。后续 Windows PowerShell 5 的 Expand-Archive 又触发 30 秒超时（run 38975053541），仍未进入启动验收。解压改为既有构建 Harness 已用的 PowerShell 7 中直接调用 .NET ZipFile 路径接口，关闭 stdin、固定命令且以环境变量传路径，不加载 Archive 模块或改变执行策略；仍维持 30 秒预算，先验证 ZIP 魔数，保留 stderr/超时/退出码，再逐文件核对摘要；不是把测试跳过或换成开发依赖。最终是否通过仍以最终 CI 为准。
 
+run [38975614384](https://github.com/B1ackB/Packx/actions/runs/38975614384) 已通过 ZIP 解压、独立依赖安装、Host 启动和受保护附件预览，随后发现私密设置保存被 POSIX mode 规则拒绝（settings_file_unsafe）。修复不是关闭检查：Host OS Adapter 对新建空 O_EXCL 临时文件以系统 whoami/icacls 收紧 DACL，只有当前用户和 SYSTEM 的显式 Full Access、禁用继承，通过系统导出的 SDDL 验证后才写入秘密；已有宽权限文件继续拒绝读取。命令只接收路径/SID，不接收密钥，OS 子进程不继承模型凭据。仅作用于本应用新建文件，不修改全局 ACL。Fake OS 回归验证严格 SDDL，真实 Windows 合成文件回归验证保存/重启读取、秘密掩码和追加 Everyone 读权限后的失败关闭；不触碰真实秘密或用户既有文件。
+
 ## 精确阻塞：Windows ZIP 保留
 
 首次 run [38974328660](https://github.com/B1ackB/Packx/actions/runs/38974328660) 在启动前被 GitHub action allowlist 拒绝，未运行任何任务：只允许固定 checkout/setup-node，新官方 upload-artifact 提交未被允许。远端只读 API 同时确认 allowed_actions=selected、github_owned_allowed=false、sha_pinning_required=true。
