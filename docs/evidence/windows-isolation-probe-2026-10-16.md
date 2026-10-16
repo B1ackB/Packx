@@ -27,6 +27,8 @@ PR41（平台路径边界）合并为 `6b77141bb45bddec4e1f9e83bf9aaba28f6e4a9c`
 
 当前阻塞是零 capability LPAC 与显式启动限制下的初始化兼容性，以及此前的 Winsock 10107。没有工具审批拒绝或待批权限；也尚未证明必须扩张权限才能解决。下一步可在同权限下将最小 worker 与 broker 导入分开做启动定位；未经验证不能先增加 registryRead、网络能力或放宽隔离。Windows 文档 Adapter 保持未接入。
 
+后续独立 worker 已从自有固定探针中提取，保留相同负向检查和禁止派生，使用同一锁定工具链与静态 CRT，但不链接 broker 的 userenv／COM／ACL 管理入口。只有 broker 创建 profile 和授权合成路径，受限 worker 不加载这些管理依赖；是否解决初始化仍以对应 Windows CI 为准，不提前声明成功。
+
 ## macOS 清理回归
 
 上述 f814e3a 运行同时在 `macOsSeatbeltSandboxedToolExecutor.test.ts` 的超时清理断言失败：`kill(pid, 0)` 未抛错。该调用无法区分活进程、僵尸或 PID 重用，历史日志未保存足够状态，不能断言当时属于其中哪一种。

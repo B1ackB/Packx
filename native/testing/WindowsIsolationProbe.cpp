@@ -96,11 +96,6 @@ static bool canOpen(const fs::path& path, DWORD rights) {
 static unsigned long long fileId(const BY_HANDLE_FILE_INFORMATION& info) {
 	return (static_cast<unsigned long long>(info.nFileIndexHigh) << 32) | info.nFileIndexLow;
 }
-static void writeReport(const fs::path& stage, const std::string& value) {
-	const fs::path pending = stage / L"output" / L"report.tmp";
-	{ std::ofstream report(pending); report << value; check(report.good(), "write_probe_report"); }
-	fs::rename(pending, stage / L"output" / L"report.txt");
-}
 static PROCESS_INFORMATION launch(const fs::path& executable, std::wstring command, const fs::path& directory, std::wstring& environment, PSID sid, HANDLE job, bool lpac, bool restrictChildren = false) {
 	const DWORD count = (lpac ? 2 : 1) + (restrictChildren ? 1 : 0);
 	SIZE_T size = 0; InitializeProcThreadAttributeList(nullptr, count, 0, &size);
@@ -155,79 +150,14 @@ static void verifyHostJobTree(const fs::path& executable, const fs::path& stage,
 	std::cerr << "host_job_control:descendant_inherits_job; breakaway_denied; root_and_descendant_terminated\n";
 }
 
-static int child(const fs::path& stage, const fs::path& denied, unsigned short port) {
-	unsigned passed = 0;
-	auto expect = [&](bool ok, const char* name) { check(ok, name); ++passed; std::ofstream progress(stage / L"output" / L"progress.txt"); progress << passed << " " << name; };
-	HANDLE rawToken = nullptr;
-	check(OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &rawToken) != FALSE, "query_probe_token");
-	Handle token(rawToken); DWORD actual = 0, size = 0;
-	check(GetTokenInformation(token.value, TokenIsAppContainer, &actual, sizeof(actual), &size) != FALSE, "query_appcontainer");
-	expect(actual == 1, "token_is_appcontainer");
-	// Prove the documented LPAC boundary by access, rather than relying on an unsupported token query class.
-	expect(!canOpen(denied.parent_path() / L"all-packages.txt", GENERIC_READ), "all_application_packages_opt_out");
-	GetTokenInformation(token.value, TokenCapabilities, nullptr, 0, &size);
-	std::vector<BYTE> capabilities(size);
-	check(size > 0 && GetTokenInformation(token.value, TokenCapabilities, capabilities.data(), size, &size) != FALSE, "query_capabilities");
-	expect(reinterpret_cast<TOKEN_GROUPS*>(capabilities.data())->GroupCount == 0, "no_capabilities");
-	expect(canOpen(stage / L"input.txt", GENERIC_READ), "declared_input_read");
-	expect(!canOpen(stage / L"input.txt", GENERIC_WRITE), "declared_input_write_denied");
-	expect(!canOpen(denied, GENERIC_READ), "other_workspace_read_denied");
-	expect(!canOpen(denied, GENERIC_WRITE), "other_workspace_write_denied");
-	{ std::ofstream output(stage / L"output" / L"allowed.txt"); output << "synthetic"; expect(output.good(), "declared_output_write"); }
-	wchar_t secret[64]{};
-	expect(GetEnvironmentVariableW(L"PACKX_PROBE_SECRET", secret, 64) == 0, "parent_environment_not_inherited");
-	WSADATA sockets{};
-	const int networkInitialization = WSAStartup(MAKEWORD(2, 2), &sockets);
-	int networkError = 0;
-	bool networkDenied = false;
-	if (networkInitialization == 0) {
-		SOCKET connection = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-		check(connection != INVALID_SOCKET, "child_socket");
-		u_long nonblocking = 1; check(ioctlsocket(connection, FIONBIO, &nonblocking) == 0, "nonblocking_network_probe");
-		sockaddr_in address{}; address.sin_family = AF_INET; address.sin_port = htons(port); address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-		const int connected = connect(connection, reinterpret_cast<sockaddr*>(&address), sizeof(address));
-		networkError = WSAGetLastError();
-		if (connected == SOCKET_ERROR && networkError == WSAEWOULDBLOCK) {
-			fd_set writable; FD_ZERO(&writable); FD_SET(connection, &writable);
-			fd_set failed; FD_ZERO(&failed); FD_SET(connection, &failed); timeval timeout{1, 0};
-			const int ready = select(0, nullptr, &writable, &failed, &timeout);
-			int length = sizeof(networkError);
-			if (ready > 0) check(getsockopt(connection, SOL_SOCKET, SO_ERROR, reinterpret_cast<char*>(&networkError), &length) == 0, "network_probe_status");
-			else networkError = WSAETIMEDOUT;
-		}
-		closesocket(connection); WSACleanup();
-		networkDenied = connected == SOCKET_ERROR && networkError == WSAEACCES;
-	}
-	// Do not count initialization failure as a network-denial pass. Collect the other independent boundaries first.
-	if (networkDenied) expect(true, "loopback_network_denied");
-	PROCESS_MITIGATION_CHILD_PROCESS_POLICY childPolicy{};
-	check(GetProcessMitigationPolicy(GetCurrentProcess(), ProcessChildProcessPolicy, &childPolicy, sizeof(childPolicy)) != FALSE, "query_child_process_policy");
-	{ std::ofstream diagnostic(stage / L"output" / L"network-diagnostic.txt"); diagnostic << "startup=" << networkInitialization << "; connect=" << networkError << "; noChildProcessCreation=" << childPolicy.NoChildProcessCreation << "; workerReadableExecutable=" << canOpen(stage / L"worker.exe", GENERIC_READ | GENERIC_EXECUTE); }
-	expect(childPolicy.NoChildProcessCreation != 0, "explicit_child_creation_restricted");
-	BOOL inJob = FALSE; check(IsProcessInJob(GetCurrentProcess(), nullptr, &inJob) != FALSE, "query_job");
-	expect(inJob != FALSE, "child_is_in_job");
-	void* excessive = VirtualAlloc(nullptr, 128ULL * 1024 * 1024, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
-	if (excessive) VirtualFree(excessive, 0, MEM_RELEASE);
-	expect(excessive == nullptr, "job_memory_limit");
-	std::wstring command = quote((stage / L"worker.exe").wstring()) + L" --sleep";
-	STARTUPINFOW startup{}; startup.cb = sizeof(startup); PROCESS_INFORMATION grandchild{};
-	const BOOL spawned = CreateProcessW((stage / L"worker.exe").c_str(), command.data(), nullptr, nullptr, FALSE, CREATE_NO_WINDOW, nullptr, stage.c_str(), &startup, &grandchild);
-	if (spawned) { TerminateProcess(grandchild.hProcess, 1); WaitForSingleObject(grandchild.hProcess, 5000); CloseHandle(grandchild.hThread); CloseHandle(grandchild.hProcess); }
-	expect(!spawned, "child_creation_denied");
-	writeReport(stage, std::to_string(passed) + " 0 " + std::to_string(networkInitialization) + " " + std::to_string(networkDenied));
-	Sleep(INFINITE);
-	return 1;
-}
-
-static int probe(const fs::path& root, const std::wstring& profileName) {
+static int probe(const fs::path& root, const std::wstring& profileName, const fs::path& worker) {
 	check(fs::is_directory(root) && fs::is_empty(root), "fresh_probe_directory");
 	const fs::path stage = root / L"stage", output = stage / L"output", denied = root / L"denied.txt";
 	fs::create_directories(output);
 	{ std::ofstream file(stage / L"input.txt"); file << "synthetic input"; }
 	{ std::ofstream file(denied); file << "synthetic other workspace"; }
 	{ std::ofstream file(root / L"all-packages.txt"); file << "synthetic all-application-packages control"; }
-	wchar_t executable[MAX_PATH]{}; check(GetModuleFileNameW(nullptr, executable, MAX_PATH) > 0, "probe_executable");
-	fs::copy_file(executable, stage / L"worker.exe");
+	fs::copy_file(worker, stage / L"worker.exe");
 	Profile profile(profileName);
 	BYTE anyPackage[SECURITY_MAX_SID_SIZE]{}; DWORD sidSize = sizeof(anyPackage);
 	check(CreateWellKnownSid(WinBuiltinAnyPackageSid, nullptr, anyPackage, &sidSize) != FALSE, "all_packages_control_sid");
@@ -317,39 +247,7 @@ static int probe(const fs::path& root, const std::wstring& profileName) {
 int wmain(int argc, wchar_t** argv) {
 	SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX | SEM_NOOPENFILEERRORBOX);
 	try {
-		if (argc == 2 && std::wstring(argv[1]) == L"--sleep") { Sleep(INFINITE); return 1; }
-		if (argc == 3 && std::wstring(argv[1]) == L"--job-tree") {
-			std::wstring command = quote(argv[0]) + L" --sleep";
-			STARTUPINFOW startup{}; startup.cb = sizeof(startup); PROCESS_INFORMATION created{};
-			check(CreateProcessW(argv[0], command.data(), nullptr, nullptr, FALSE, CREATE_NO_WINDOW, nullptr, argv[2], &startup, &created) != FALSE, "host_tree_descendant");
-			Handle process(created.hProcess), thread(created.hThread);
-			PROCESS_INFORMATION escaped{};
-			const BOOL brokeAway = CreateProcessW(argv[0], command.data(), nullptr, nullptr, FALSE, CREATE_NO_WINDOW | CREATE_BREAKAWAY_FROM_JOB, nullptr, argv[2], &startup, &escaped);
-			if (brokeAway) { TerminateProcess(escaped.hProcess, 1); WaitForSingleObject(escaped.hProcess, 5000); CloseHandle(escaped.hThread); CloseHandle(escaped.hProcess); }
-			check(!brokeAway, "host_tree_breakaway_denied");
-			{ std::ofstream report(fs::path(argv[2]) / L"output" / L"job-tree.txt"); report << created.dwProcessId; check(report.good(), "host_tree_report"); }
-			Sleep(INFINITE); return 1;
-		}
-		if (argc == 3 && std::wstring(argv[1]) == L"--regular-control") {
-			HANDLE raw = nullptr; check(OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &raw) != FALSE, "control_token"); Handle token(raw);
-			DWORD actual = 0, size = 0; check(GetTokenInformation(token.value, TokenIsAppContainer, &actual, sizeof(actual), &size) != FALSE && actual == 1, "control_is_appcontainer");
-			check(canOpen(argv[2], GENERIC_READ), "control_reads_all_packages_file");
-			WSADATA sockets{}; const int started = WSAStartup(MAKEWORD(2, 2), &sockets);
-			{ std::ofstream status(fs::path(argv[2]).parent_path() / L"stage" / L"output" / L"network-control.txt"); status << started; check(status.good(), "write_regular_network_status"); }
-			if (started == 0) WSACleanup();
-			return 0;
-		}
-		if (argc == 6 && std::wstring(argv[1]) == L"--handle-control") {
-			{ std::ofstream marker(fs::path(argv[5]) / L"output" / L"handle-control.txt"); marker << "entered"; check(marker.good(), "handle_query_marker"); }
-			BY_HANDLE_FILE_INFORMATION leaked{};
-			const bool visible = GetFileInformationByHandle(reinterpret_cast<HANDLE>(std::stoull(argv[2])), &leaked) && leaked.dwVolumeSerialNumber == std::stoul(argv[3]) && fileId(leaked) == std::stoull(argv[4]);
-			return visible ? 1 : 0;
-		}
-		if (argc == 5 && std::wstring(argv[1]) == L"--child") {
-			try { return child(argv[2], argv[3], static_cast<unsigned short>(std::stoul(argv[4]))); }
-			catch (const std::exception& error) { writeReport(argv[2], std::string("error ") + error.what()); return 1; }
-		}
-		check(argc == 4 && std::wstring(argv[1]) == L"--probe", "fixed_probe_arguments");
-		return probe(argv[2], argv[3]);
+		check(argc == 5 && std::wstring(argv[1]) == L"--probe", "fixed_probe_arguments");
+		return probe(argv[2], argv[3], argv[4]);
 	} catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }
 }
