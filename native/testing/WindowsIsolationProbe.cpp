@@ -146,6 +146,7 @@ static int child(const fs::path& stage, const fs::path& denied, unsigned short p
 	expect(GetEnvironmentVariableW(L"PACKX_PROBE_SECRET", secret, 64) == 0, "parent_environment_not_inherited");
 	WSADATA sockets{};
 	const int networkInitialization = WSAStartup(MAKEWORD(2, 2), &sockets);
+	int networkError = 0;
 	bool networkDenied = false;
 	if (networkInitialization == 0) {
 		SOCKET connection = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -153,7 +154,7 @@ static int child(const fs::path& stage, const fs::path& denied, unsigned short p
 		u_long nonblocking = 1; check(ioctlsocket(connection, FIONBIO, &nonblocking) == 0, "nonblocking_network_probe");
 		sockaddr_in address{}; address.sin_family = AF_INET; address.sin_port = htons(port); address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 		const int connected = connect(connection, reinterpret_cast<sockaddr*>(&address), sizeof(address));
-		int networkError = WSAGetLastError();
+		networkError = WSAGetLastError();
 		if (connected == SOCKET_ERROR && networkError == WSAEWOULDBLOCK) {
 			fd_set writable; FD_ZERO(&writable); FD_SET(connection, &writable);
 			fd_set failed; FD_ZERO(&failed); FD_SET(connection, &failed); timeval timeout{1, 0};
@@ -167,6 +168,9 @@ static int child(const fs::path& stage, const fs::path& denied, unsigned short p
 	}
 	// Do not count initialization failure as a network-denial pass. Collect the other independent boundaries first.
 	if (networkDenied) expect(true, "loopback_network_denied");
+	PROCESS_MITIGATION_CHILD_PROCESS_POLICY childPolicy{};
+	check(GetProcessMitigationPolicy(GetCurrentProcess(), ProcessChildProcessPolicy, &childPolicy, sizeof(childPolicy)) != FALSE, "query_child_process_policy");
+	{ std::ofstream diagnostic(stage / L"output" / L"network-diagnostic.txt"); diagnostic << "startup=" << networkInitialization << "; connect=" << networkError << "; noChildProcessCreation=" << childPolicy.NoChildProcessCreation; }
 	BOOL inJob = FALSE; check(IsProcessInJob(GetCurrentProcess(), nullptr, &inJob) != FALSE, "query_job");
 	expect(inJob != FALSE, "child_is_in_job");
 	void* excessive = VirtualAlloc(nullptr, 128ULL * 1024 * 1024, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
@@ -266,8 +270,9 @@ static int probe(const fs::path& root, const std::wstring& profileName) {
 	if (passed < 13 || !descendantPid) {
 		std::ifstream report(reportPath); std::string error; std::getline(report, error);
 		std::ifstream progress(output / L"progress.txt"); std::string step; std::getline(progress, step);
+		std::ifstream diagnostic(output / L"network-diagnostic.txt"); std::string boundary; std::getline(diagnostic, boundary);
 		DWORD code = STILL_ACTIVE; GetExitCodeProcess(process.value, &code);
-		throw std::runtime_error("contained_probe_failed:" + error.substr(0, 512) + "; last_step=" + step.substr(0, 200) + "; child_exit=" + std::to_string(code));
+		throw std::runtime_error("contained_probe_failed:" + error.substr(0, 512) + "; last_step=" + step.substr(0, 200) + "; child_exit=" + std::to_string(code) + "; " + boundary + "; regular_startup=" + std::to_string(regularNetworkInitialization));
 	}
 	Handle descendant(OpenProcess(SYNCHRONIZE | PROCESS_QUERY_LIMITED_INFORMATION, FALSE, descendantPid));
 	check(descendant.value != nullptr, "observe_descendant");
