@@ -200,7 +200,23 @@ export function reapAbandonedInputs(root: string) {
 			if (!stat.isFile() || stat.isSymbolicLink() || stat.size > 1024) continue;
 			let pid: number;
 			try { pid = JSON.parse(readFileSync(owner, "utf8")).pid; } catch { continue; }
-			if (processIsGone(pid)) rmSync(directory, { recursive: true, force: true });
+			if (processIsGone(pid)) {
+				const native = join(directory, "native");
+				if (existsSync(native)) {
+					// The detached trusted broker may still be cleaning after its Node owner died.
+					// Retain uncertain profile evidence; never race a live broker or erase an unconfirmed cleanup.
+					try {
+						if (lstatSync(native).isSymbolicLink()) continue;
+						const brokerPath = join(native, "broker.json"), resultPath = join(native, "execution.json");
+						for (const path of [brokerPath, resultPath]) { const info = lstatSync(path); if (!info.isFile() || info.isSymbolicLink() || info.size > (path === brokerPath ? 1024 : 2 * 1024 * 1024)) throw new Error("unsafe_native_cleanup_record"); }
+						const broker = JSON.parse(readFileSync(brokerPath, "utf8"));
+						if (!processIsGone(broker.pid)) continue;
+						const result = JSON.parse(readFileSync(resultPath, "utf8"));
+						if (result.schemaVersion !== "windows-text-execution.v1" || result.cleanupVerified !== true || result.profileDeleted !== true) continue;
+					} catch { continue; }
+				}
+				rmSync(directory, { recursive: true, force: true });
+			}
 		} else if (Date.now() - statSync(directory).mtimeMs > 86_400_000) {
 			// Compatibility cleanup for old releases whose native jobs were limited to 15 seconds.
 			rmSync(directory, { recursive: true, force: true });

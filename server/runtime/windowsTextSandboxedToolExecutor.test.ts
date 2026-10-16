@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { copyFileSync, existsSync, linkSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { compileToolExecutionManifest, type ToolExecutionManifest, type SandboxedToolExecutorPort } from "../../src/agent/sandbox";
 import type { AgentModelProvider } from "../../src/agent/contracts";
 import { SkillRegistry } from "../../src/agent/skills";
@@ -18,7 +18,7 @@ import { RequirementBriefWorker } from "../manufacturing/requirementBriefWorker"
 import { RequirementBriefWorkspaceApiController } from "../manufacturing/requirementBriefApi";
 import { StageJobOutbox } from "../workers/stageJobOutbox";
 import { StageJobScheduler } from "../workers/stageJobScheduler";
-import { AssetInspectionService, inspectionArtifactId } from "./assetInspection";
+import { AssetInspectionService, inspectionArtifactId, reapAbandonedInputs } from "./assetInspection";
 import { FileConversationAttachmentStore } from "./conversationAttachments";
 import { BlackxAgentRuntime } from "./agentRuntime";
 import { FileAgentStateStore } from "./fileAgentStateStore";
@@ -113,9 +113,10 @@ describe.skipIf(process.platform !== "win32" || !process.env.PACKX_WINDOWS_NATIV
 	it("cleans a running LPAC worker and owned profile after the real Node Host is killed", async () => {
 		for (let i = 0; i < 3; ++i) {
 			const f = fixture(Buffer.from("sleep")), stage = join(f.directory, "native"), run = broker(stage, f.input, 10000, 1048576, true);
-			await until(() => existsSync(join(stage, "worker.json"))); run.child.kill("SIGKILL");
+			await until(() => existsSync(join(stage, "worker.json")));
+			writeFileSync(join(f.directory, ".owner.json"), JSON.stringify({ pid: run.child.pid })); run.child.kill("SIGKILL");
 			expect(await run.done).toMatchObject({ status: "cancelled", cleanupVerified: true, profileDeleted: true });
-			rmSync(stage, { recursive: true });
+			await until(() => { reapAbandonedInputs(join(f.workspace, ".blackx-tool-inputs")); return !existsSync(f.directory); });
 		}
 	}, 60000);
 	it("propagates AbortSignal promptly through the actual Port and verifies cleanup in three rounds", async () => {
@@ -143,4 +144,21 @@ it("retains Windows parser provenance through the generic business gates (offlin
 			stdout: { text: JSON.stringify({ schemaVersion: "asset-inspection.v1", bytes: bytes.length, kind: "text", status: "parsed", pages: [{ page: 1, text: bytes.toString("utf8"), method: "text" }], truncated: false }), truncated: false }, stderr: { text: "", truncated: false }, outputs: [],
 			sandbox: { profile: manifest.sandboxProfile, platform: "fake", permissions: { readOnlyPaths: 1, writablePaths: 0, network: "deny-all", environmentKeys: ["LANG"] } } };
 	} }));
+});
+
+it("retains live or unconfirmed native cleanup evidence during Host restart (fake liveness)", () => {
+	const inputRoot = join(root(), ".blackx-tool-inputs"), directory = join(inputRoot, "attempt"), native = join(directory, "native"); mkdirSync(native, { recursive: true });
+	writeFileSync(join(directory, ".owner.json"), '{"pid":12345}');
+	const broker = join(native, "broker.json"), report = join(native, "execution.json");
+	const completed = { schemaVersion: "windows-text-execution.v1", cleanupVerified: true, profileDeleted: true };
+	const liveness = vi.spyOn(process, "kill").mockImplementation((pid) => { if (pid === 12345) throw Object.assign(new Error("dead fixture"), { code: "ESRCH" }); return true; });
+	try {
+		writeFileSync(broker, '{"pid":23456}'); writeFileSync(report, JSON.stringify(completed));
+		reapAbandonedInputs(inputRoot); expect(existsSync(directory)).toBe(true); // broker still live
+		writeFileSync(broker, '{"pid":12345}'); rmSync(report);
+		reapAbandonedInputs(inputRoot); expect(existsSync(directory)).toBe(true); // no durable cleanup proof
+		writeFileSync(report, JSON.stringify({ ...completed, profileDeleted: false }));
+		reapAbandonedInputs(inputRoot); expect(existsSync(directory)).toBe(true); // unresolved private profile
+		writeFileSync(report, JSON.stringify(completed)); reapAbandonedInputs(inputRoot); expect(existsSync(directory)).toBe(false);
+	} finally { liveness.mockRestore(); }
 });

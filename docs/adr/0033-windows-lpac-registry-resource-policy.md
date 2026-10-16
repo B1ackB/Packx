@@ -1,6 +1,6 @@
 # ADR-0033：Windows LPAC最小注册表资源策略
 
-状态：受控候选已取得 16/16 直接证据；固定 UTF-8 Port 与产品闭环实现待 CI 验证。
+状态：固定 UTF-8 Port 与业务闭环已取得真实 Windows CI 证据；仅在最新必需 CI 通过后按限定范围启用。
 日期：2026-10-16
 
 ## 背景
@@ -67,3 +67,8 @@ CI38968307174 在 Windows 本地数据127/127后，于10秒工具链发现预算
 ## Host崩溃与Node生命周期
 
 CI38969996377中构建131/131、启动期取消三轮、原子创建入Job及正常/超时/取消通过；实际业务与其余原生检查也通过，独立Host崩溃证据未产生。Node24.14实际uv版本1.51.0，其[Windows实现](https://raw.githubusercontent.com/libuv/libuv/v1.51.0/src/win/process.c)将非detached子进程放入Host拥有的关闭即杀Job，所以Host死亡会先杀broker，不能仅推断stdout丢失。可信broker现按[Node detached机制](https://nodejs.org/download/release/v24.14.0/docs/api/child_process.html#optionsdetached)独立于该自动清理关系，不unref，保留控制管道、墙钟和close等待，收到EOF就终止并核验自己持有的worker Job再删profile。detached不设置CREATE_BREAKAWAY_FROM_JOB；worker仍在原子分配的单进程Job与LPAC内，没有放开其隔离或进程树。新的真实Host强制结束三轮必须实际通过。
+
+
+CI38970539090全部必需检查通过：Windows137/137，受保护任务7/7无跳过（含真实Host终止三轮、Port取消三轮及业务交付），macOS原生48/48；构建50个总进程、active=0、createdInJob/cleanupVerified均true；原零能力严格拒绝，候选16+7资源断言全部通过。该成绩不覆盖之后新增的重启回收保护，最终提交须再次通过门禁。
+
+独立broker在创建profile前写入Host-owned broker.json（PID、profile名称和creation=intent，不把意图当作已创建证明）。Node重启时，活broker或没有profileDeleted/cleanupVerified持久证据的Native目录保留；只在broker已退出且证据完整时回收。离线fake liveness覆盖存活/缺失/否定/完成四种分流，真实Host崩溃三轮继续验证后续回收，不按PID杀进程，PID复用只会保守保留。

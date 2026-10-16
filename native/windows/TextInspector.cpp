@@ -14,6 +14,8 @@ static int run(const fs::path& stage, const std::wstring& name, const fs::path& 
 	check(name.size() == 43 && name.rfind(L"Packx.Text.", 0) == 0 && name.find_first_not_of(L"0123456789abcdef", 11) == std::wstring::npos, "private_profile_name");
 	check(timeout >= 1 && timeout <= 60000 && outputLimit >= 1 && outputLimit <= 1048576, "bounded_limits");
 	check(!fs::exists(stage) && fs::create_directory(stage), "exclusive_private_stage");
+	std::string profileText; for (wchar_t c : name) profileText += static_cast<char>(c);
+	{ std::ofstream owner(stage / L"broker.json"); owner << "{\"pid\":" << GetCurrentProcessId() << ",\"profile\":\"" << profileText << "\",\"creation\":\"intent\"}"; owner.close(); check(owner.good(), "record_broker_owner"); }
 	check(fs::copy_file(input, stage / L"input.bin") && fs::copy_file(worker, stage / L"worker.exe"), "copy_fixed_inputs");
 	Profile profile(name); RegistryCapability registry;
 	grant(stage, profile.sid, FILE_GENERIC_READ | FILE_GENERIC_EXECUTE);
