@@ -48,3 +48,6 @@ Node 与 broker 的控制管道 EOF 表示取消或 Host 进程退出。broker �
 
 
 产品接入的首个启动失败保留：CI38966529838/38967037675 中严格探针仍通过，新 broker 的 CreateProcess 返回203（环境字段缺失），worker 尚未开始，相关任务和清理测试按失败处理。修复复用已验证探针的显式 OS 字段：SystemDrive/SystemRoot/windir，以及指向本次私有 profile 的 APPDATA/LOCALAPPDATA/USERPROFILE/TEMP/TMP；不借用真实用户目录、不继承 Provider 变量。ole32 只在可信 broker 释放系统分配的路径内存使用，没有给 LPAC 增加 COM 能力。控制管道采用 destroy 完整关闭连接，避免把 writable end 等同于跨平台句柄关闭，实际 AbortSignal 另有三轮回归。
+
+
+后续 CI38967498265 的实际 UTF-8、输入拒绝、三轮 timeout/cancel/output 与三轮 Port AbortSignal 已通过；两项仍失败且未合并。Host 强制终止后原 stdout 连接可丢失，不能用空 stdout 判定资源未清理或假定成功；broker 在 Job 活跃数为0且 profile 删除后，原子保存 Host-owned execution.json，崩溃回归据此验证。此记录不自动推进 Run/Stage，也不等于业务交付。另一项为测试夹具未注册 Worker 允许列表中的 document_read，在执行前被 Unknown allowed tool 正确拒绝；补齐与真实入口一致的注册，并将同一业务流程以 Fake Port 独立离线运行，验证配置、来源 Artifact、事实确认、审批和交付门禁，避免只在远程 Windows 才发现 Host 夹具错误。

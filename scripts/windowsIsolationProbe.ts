@@ -52,7 +52,7 @@ export async function runWindowsIsolationProbe(environment: NodeJS.ProcessEnv, v
 	// The compiler batch accepts only the known hosted checkout path, never document/model input.
 	if (!/^[A-Za-z]:\\[A-Za-z0-9_.\\-]+$/.test(root)) throw new Error("Unsupported CI checkout path for native probe");
 	const policy = JSON.parse(readFileSync(".github/windows-isolation-toolchain.json", "utf8"));
-	if (policy.purpose !== "diagnostic_only" || policy.productionAdapterEnabled !== false) throw new Error("Windows production adapter must remain disabled");
+	if (policy.purpose !== "diagnostic_only" || policy.productionAdapterEnabled !== false) throw new Error("Diagnostic toolchain manifest boundary changed");
 	const vswhere = "C:\\Program Files (x86)\\Microsoft Visual Studio\\Installer\\vswhere.exe";
 	const discovery = { encoding: "utf8" as const, timeout: 10_000, env: environment };
 	const help = execFileSync(vswhere, ["-?"], discovery).split(/\r?\n/)[0];
@@ -99,7 +99,7 @@ export async function runWindowsIsolationProbe(environment: NodeJS.ProcessEnv, v
 	} catch (cause) {
 		failed = true;
 		const diagnostic = cause as { message?: string; stdout?: string; stderr?: string };
-		throw new Error(`Fixed isolation probe failed; requested test profile ${profile}; no production tool was enabled\n${[diagnostic.message, diagnostic.stdout, diagnostic.stderr].filter(Boolean).join("\n").slice(-12000)}`, { cause });
+		throw new Error(`Fixed isolation probe failed; requested test profile ${profile}; Windows support remains unverified\n${[diagnostic.message, diagnostic.stdout, diagnostic.stderr].filter(Boolean).join("\n").slice(-12000)}`, { cause });
 	} finally {
 		try { rmSync(scratch, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 }); }
 		catch (cause) {

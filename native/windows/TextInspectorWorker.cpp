@@ -34,7 +34,8 @@ static std::string inspect(const wchar_t* path) {
 	const BOOL loaded = ReadFile(file, text.data(), info.nFileSizeLow, &read, nullptr); CloseHandle(file);
 	require(loaded && read == info.nFileSizeLow, "input_read_failed");
 	require(text.find('\0') == std::string::npos, "binary_content");
-	require(text.rfind("%PDF-", 0) != 0 && text.rfind("PK", 0) != 0, "unsupported_format");
+	const bool zip = text.size() >= 4 && text[0] == 'P' && text[1] == 'K' && ((text[2] == 3 && text[3] == 4) || (text[2] == 5 && text[3] == 6) || (text[2] == 7 && text[3] == 8));
+	require(text.rfind("%PDF-", 0) != 0 && !zip, "unsupported_format");
 	require(MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, text.data(), static_cast<int>(text.size()), nullptr, 0) > 0, "invalid_encoding");
 	if (text.rfind("\xef\xbb\xbf", 0) == 0) text.erase(0, 3);
 	require(!text.empty(), "empty_input");
