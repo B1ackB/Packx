@@ -176,7 +176,11 @@ static int probe(const fs::path& root, const std::wstring& profileName, const fs
 	check(regularNetworkInitialization == 0, "regular_network_initialization_control");
 	controlThread.close(); controlHandle.close();
 	// Invalid-handle checks can deliberately terminate a strict process. Isolate this negative case from the remaining assertions.
-	const auto handleControl = launch(stage / L"worker.exe", quote((stage / L"worker.exe").wstring()) + L" --handle-control " + std::to_wstring(reinterpret_cast<ULONG_PTR>(privateFile.value)) + L" " + std::to_wstring(identity.dwVolumeSerialNumber) + L" " + std::to_wstring(fileId(identity)) + L" " + quote(stage.wstring()), stage, environment, profile.sid, job.value, true, registryRead ? registryCapability->sid : nullptr);
+	HANDLE outputRead = nullptr, outputWrite = nullptr;
+	check(CreatePipe(&outputRead, &outputWrite, &inheritedAttributes, 4096) != FALSE, "explicit_output_pipe"); Handle explicitReader(outputRead), explicitWriter(outputWrite);
+	check(SetHandleInformation(explicitReader.value, HANDLE_FLAG_INHERIT, 0) != FALSE, "private_output_reader");
+	Handle emptyInput(CreateFileW(L"NUL", GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, &inheritedAttributes, OPEN_EXISTING, 0, nullptr)); check(emptyInput.value != INVALID_HANDLE_VALUE, "explicit_empty_stdin");
+	const auto handleControl = launch(stage / L"worker.exe", quote((stage / L"worker.exe").wstring()) + L" --handle-control " + std::to_wstring(reinterpret_cast<ULONG_PTR>(privateFile.value)) + L" " + std::to_wstring(identity.dwVolumeSerialNumber) + L" " + std::to_wstring(fileId(identity)) + L" " + quote(stage.wstring()), stage, environment, profile.sid, job.value, true, registryRead ? registryCapability->sid : nullptr, explicitWriter.value, emptyInput.value);
 	Handle handleProcess(handleControl.hProcess), handleThread(handleControl.hThread);
 	check(WaitForSingleObject(handleProcess.value, 5000) == WAIT_OBJECT_0, "handle_control_timeout");
 	DWORD handleExit = 1; check(GetExitCodeProcess(handleProcess.value, &handleExit) != FALSE, "handle_control_status");

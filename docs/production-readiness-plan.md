@@ -4,7 +4,7 @@
 
 目标是包装售前需求单的可验证交付与恢复；Core 保持行业无关，先修 Host／Adapter 与实际业务闭环。每个增量默认 draft PR，经代码审查、必要 CI 和分支保护检查后合并，记录真实合并提交；不部署、不迁移现有业务数据、不新增付费服务或凭据权限。
 
-**当前阻塞：Windows生产网络门禁仍blocked（LPAC初始化10107、未连接、13/14），生产执行器和文档Adapter默认未接入。全绿诊断CI不等于Windows受支持。** UTF-8文本合同仅为字节模块；PDF/Office、完整Windows发行、真实员工试用及生产多用户验证仍缺证据。
+**当前阶段：原零能力 LPAC 仍为 13/14、严格拒绝；registryRead-only 候选已在真实 Windows CI 达到 16/16，初始化 0、socket 权限拒绝 10013、私有注册表读写拒绝和清理通过。** [PR50](https://github.com/B1ackB/Packx/pull/50)正在将固定 128 KiB UTF-8 附件任务接入实际 Runtime／Artifact／审批，须新提交全部必要 CI 通过才可验收，不能以此前实验绿灯代替。PDF/Office、任意命令、完整 Windows 发行、真实员工试用及生产多用户验证仍缺证据。
 
 ## 执行与预算
 
@@ -18,7 +18,7 @@
 | --- | --- | --- | --- |
 | 1. 固定基线与路径边界 | 确认真实 repo／Node／提交；修复共享目录判断 | 原实现复现 Windows 路径穿越；修复后相关测试、类型与必要 CI 成功 | [PR #41](https://github.com/B1ackB/Packx/pull/41) 已合并，`6b77141bb45bddec4e1f9e83bf9aaba28f6e4a9c`；[证据](evidence/platform-boundary-2026-10-16.md) |
 | 2. Windows 本地数据切片 | 消除备份目标的 POSIX 拆分；增加 Windows 必需 CI | 真实 Windows 上路径、备份／SQLite WAL 恢复、目录 junction 拒绝、迁移与强制终止后的写锁恢复；缺失／跳过／失败均阻断 | [PR #42](https://github.com/B1ackB/Packx/pull/42)／[失败与修复记录](evidence/windows-local-data-2026-10-16.md)；结果以对应提交的 `windows-local-data` 为准 |
-| 3. Windows 受控工具隔离 | 在公开 Sandbox Port 下选择 OS Adapter、文档读取方案与威胁模型 | Windows 上验证未授权文件／网络拒绝、Secret 不继承、超时／取消／进程树清理、资源和输出限制；隔离不可用拒绝执行 | 待设计和真实平台证据；不得以关闭隔离兼容 |
+| 3. Windows 受控工具隔离 | 在公开 Sandbox Port 下选择 OS Adapter、文档读取方案与威胁模型 | Windows 上验证未授权文件／网络拒绝、Secret 不继承、超时／取消／进程树清理、资源和输出限制；隔离不可用拒绝执行 | registryRead-only 16/16；固定 UTF-8 Port 与产品闭环实现待必要 CI；见 ADR0033，不关闭隔离兼容 |
 | 4. 核心任务闭环 | 输入来源→候选事实→不可变需求单→确认／审批→导出 | 固定任务集中关键事实有来源；未确认值不升级；过期版本不得交付；失败保留草稿与可解释恢复入口 | [六类合成闭环](evidence/packaging-lifecycle-2026-10-16.md)已本地验收；[PR48](https://github.com/B1ackB/Packx/pull/48)以对应提交全部必要CI为合并门槛；真实模型质量与员工试用仍缺失 |
 | 5. 上下文与执行恢复 | 压缩／暂停／崩溃后恢复当前事实和执行证据 | 来源变更拒绝旧快照；重复投递不重复副作用；unknown 不自动重放；租户和审批边界覆盖 | 六类验收复现并修复历史文件/缓存撤权绕过，基线5/6→6/6；重启、取消、幂等、已知/未知副作用分流已覆盖；断电/任意进程崩溃与真实操作恢复仍待验收 |
 | 6. 可靠性与发布判定 | 关联事件、分类失败、预算指标、平台能力矩阵和支持声明 | 同任务／模型／预算的主源对标；失败注入与回归；真实 macOS／Windows 安装和平台测试；未通过项明确阻断支持声明 | 尚未完成；本地／CI 成功不等于生产就绪 |
@@ -46,3 +46,10 @@ Windows Sandbox Adapter、原生文档读取与完整安装链路尚不存在或
 阶段 3 分解见 [ADR-0032](adr/0032-windows-native-tool-boundary.md)：先补严格 Windows 工具路径合同，再验证 LPAC／Job Object 隔离及清理，最后逐格式接入文档解析。每段保留独立负向回归和真实 Windows CI，合同通过不等于沙箱通过。
 
 阶段 3A：[PR #43](https://github.com/B1ackB/Packx/pull/43) 已通过全部必要 CI，合并为 `1753956baf4164e89eb736a4ada99b5349f1c523`。阶段 3B 的固定原生探针仅创建并删除自己的一次性 AppContainer profile 和临时文件，在真实 Windows 中检查 LPAC token、零 capabilities、文件读写拒绝、默认网络拒绝、环境／句柄不继承、Job 内存与子进程清理。profile 是该测试自己的应用资源，不修改既有账户、全局 ACL、防火墙例外、执行策略或可选系统功能；不向生产 Runtime 注册探针，也不读取客户文档。它仍不证明任意工具、Host 崩溃、全部磁盘预算或文档解析安全，后续须单独验收。
+
+
+## 本轮可靠性与后续对标
+
+[PR49](https://github.com/B1ackB/Packx/pull/49)已合并为 `6764097b4f4eca2f8fcebc52f8c6f5a0a1549735`：原编译 30 秒超时后 scratch EPERM 的进程生命周期缺口，改为受控构建 Job、显式最小 OS 环境、90 秒合理构建预算、准确根进程身份与 Job 活跃数清零验证。12 轮成功/失败/超时/Owner 中止与无关进程存活回归通过；不是用无限重试隐藏失败。见[直接证据](evidence/windows-build-lifecycle-2026-10-16.md)。
+
+真实模型对标采用[冻结协议 v1](production-agent-benchmark-v1.md)，先固定任务、工具权限、A/B 提交、预算和业务/安全指标。本轮没有发真实模型请求；当前进程存在已配置 Provider，但可复用费用预算及价格 profile 未核实，Codex 周额度不能替代 API 预算。外部 Agent CLI 未实测，官方机制参照不算成绩。员工素材和试用反馈由用户提供，不自行联系或读取客户资料。

@@ -81,7 +81,7 @@ static void grant(const fs::path& path, PSID sid, DWORD rights) {
 	if (descriptor) LocalFree(descriptor);
 	if (changed != ERROR_SUCCESS) throw std::runtime_error("grant_private_stage_acl:" + std::to_string(changed));
 }
-static void lowLabel(const fs::path& path) {
+inline void lowLabel(const fs::path& path) {
 	PSECURITY_DESCRIPTOR descriptor = nullptr;
 	check(ConvertStringSecurityDescriptorToSecurityDescriptorW(L"S:(ML;OICI;NW;;;LW)", SDDL_REVISION_1, &descriptor, nullptr) != FALSE, "build_private_low_label");
 	PACL label = nullptr; BOOL present = FALSE, defaulted = FALSE;

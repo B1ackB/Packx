@@ -1,6 +1,7 @@
 // Host broker for one fixed bounded operation. Job lifetime never substitutes for LPAC isolation.
 #include "IsolationSupport.h"
 #include <fstream>
+#include <algorithm>
 
 static bool ownerClosed() {
 	DWORD available = 0;
