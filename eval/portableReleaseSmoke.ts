@@ -69,6 +69,7 @@ try {
  const originalInstance = health.localHost.instanceId;
  assert(run(appA, ["scripts/launch.mjs"]).includes("already running"));
  assert.equal((await request("/api/runtime/health")).localHost.instanceId, originalInstance);
+ run(appA, ["scripts/launch.mjs"], { BLACKX_DATA_ROOT: dataB }, 1);
  run(appB, ["scripts/launch.mjs", "stop"], {}, 1); assert.equal((await request("/api/runtime/health")).localHost.instanceId, originalInstance);
  assert.equal((await fetch(base + "/api/local-shutdown", { method: "POST", headers: { "content-type": "application/json" }, body: "{}" })).status, 403);
  assert.equal((await fetch(base + "/api/local-shutdown", { method: "POST", headers: { "content-type": "application/json", "x-blackx-session-token": token }, body: JSON.stringify({ instanceId: "stale" }) })).status, 409);
@@ -88,7 +89,10 @@ try {
  }
  const settings = await request("/api/model-settings", "PUT", { revision: 0, mode: "anthropic", baseUrl: "http://127.0.0.1:1", model: "offline-only", apiKey: "synthetic-portable-private-key" });
  assert.equal(settings.apiKey, undefined);
- await stop(appA); assert(run(appA, ["scripts/launch.mjs", "stop"]).includes("already stopped"));
+ await stop(appA);
+ const audit = JSON.parse(readFileSync(join(dataA, `.packx-host-stop-${originalInstance}.json`), "utf8"));
+ assert.equal(audit.source, "local_command"); assert.equal(audit.idempotencyKey, originalInstance); assert.equal(audit.tenantId, "local-user"); assert(!JSON.stringify(audit).includes(token));
+ assert(run(appA, ["scripts/launch.mjs", "stop"]).includes("already stopped"));
  // Upgrade and rollback use separate directories and pre-upgrade backup, never in-place migration.
  run(appA, ["--import", "tsx", "scripts/local-state.ts", "backup", backup]);
  assert(!JSON.stringify(JSON.parse(readFileSync(join(backup, "packx-backup.json"), "utf8"))).includes(".packx-settings"));

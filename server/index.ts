@@ -27,7 +27,7 @@ import { WindowsTextSandboxedToolExecutor } from "./runtime/windowsTextSandboxed
 import { LocalAccess } from "./localAccess";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { resolve } from "node:path";
-import { realpathSync } from "node:fs";
+import { realpathSync, writeFileSync } from "node:fs";
 import { createHash, randomUUID } from "node:crypto";
 
 import { ProposalRunEngine } from "../src/enterprise/proposalRunEngine";
@@ -84,8 +84,13 @@ ensureLocalDataVersion(localData.root);
 const port = Number(process.env.BLACKX_PORT ?? 5173);
 const localAccess = new LocalAccess(port);
 // Host lifecycle identity is separate from model/runtime health; it contains no credential or path.
-const localHost = { instanceId: randomUUID(), installationId: createHash("sha256").update(realpathSync(process.cwd())).digest("hex") };
-let stopping = false;
+const localHost = { instanceId: randomUUID(), installationId: createHash("sha256").update(realpathSync(process.cwd())).digest("hex"), dataRootId: createHash("sha256").update(localData.root).digest("hex") };
+let hostState: "running" | "stop_requested" | "stopping" = "running";
+function recordHostStop(source: "local_command" | "process_signal") {
+	if (hostState !== "running") return;
+	writeFileSync(resolve(localData.root, `.packx-host-stop-${localHost.instanceId}.json`), JSON.stringify({ type: "local_host_stop_requested", ...localHost, ...localAccess.identity, idempotencyKey: localHost.instanceId, source, at: new Date().toISOString() }), { flag: "wx", mode: 0o600 });
+	hostState = "stop_requested";
+}
 const eventStoreDriver = process.env.BLACKX_EVENT_STORE_DRIVER ?? "file";
 if (eventStoreDriver !== "file" && eventStoreDriver !== "sqlite") {
 	throw new Error("BLACKX_EVENT_STORE_DRIVER must be file or sqlite");
@@ -443,12 +448,13 @@ server.on("request", async (request, response) => {
 		try {
 			const command = await readJson(request) as { instanceId?: string };
 			if (command.instanceId !== localHost.instanceId) { json(response, 409, { code: "host_instance_changed" }); return; }
+			try { recordHostStop("local_command"); } catch { json(response, 503, { code: "host_stop_audit_unavailable" }); return; }
 			json(response, 202, { status: "stopping", instanceId: localHost.instanceId });
 			setImmediate(stopHost);
 		} catch { json(response, 400, { code: "invalid_shutdown_request" }); }
 		return;
 	}
-	if (stopping) { json(response, 503, { code: "host_stopping" }); return; }
+	if (hostState !== "running" && url.pathname !== "/api/runtime/health") { json(response, 503, { code: "host_stopping" }); return; }
 
 	const knowledgeMatch = url.pathname.match(/^\/api\/conversations\/([^/]+)\/knowledge(?:\/([a-z-]+))?$/);
 	const memoryMatch = url.pathname.match(/^\/api\/conversations\/([^/]+)\/memory$/);
@@ -1263,8 +1269,9 @@ server.on("close", () => {
 	sqliteStageJobQueue?.close();
 });
 function stopHost() {
-	if (stopping) return;
-	stopping = true;
+	if (hostState === "stopping") return;
+	try { recordHostStop("process_signal"); } catch { console.error("host_stop_audit_unavailable"); }
+	hostState = "stopping";
 	stopStageJobScheduler();
 	const finish = () => {
 		planStore.close(); taskNames.close(); personalMemoryStore.close(); taskCheckpoints.close();

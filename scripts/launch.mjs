@@ -14,6 +14,7 @@ try { process.loadEnvFile(".env"); } catch (error) { if (error.code !== "ENOENT"
 const port = Number(process.env.BLACKX_PORT ?? 5173);
 if (!Number.isInteger(port) || port < 1024 || port > 65535) throw new Error("Invalid BLACKX_PORT (1024..65535).");
 const base = `http://127.0.0.1:${port}`;
+const dataRootId = createHash("sha256").update(resolve(process.env.BLACKX_DATA_ROOT ?? ".blackx-data")).digest("hex");
 const installationId = createHash("sha256").update(realpathSync(process.cwd())).digest("hex");
 async function localHost() {
  let session;
@@ -23,7 +24,7 @@ async function localHost() {
  const { token } = await session.json();
  const response = await fetch(`${base}/api/runtime/health`, { headers: { "x-blackx-session-token": token }, signal: AbortSignal.timeout(1500) });
  const health = response.ok ? await response.json() : undefined;
- if (health?.localHost?.installationId !== installationId || typeof health.localHost.instanceId !== "string") throw new Error("Another installation owns this port. Use its Stop-Packx command or choose a different BLACKX_PORT.");
+ if (health?.localHost?.installationId !== installationId || health.localHost.dataRootId !== dataRootId || typeof health.localHost.instanceId !== "string") throw new Error("Another installation or data root owns this port. Use its Stop-Packx command or choose a different BLACKX_PORT.");
  return { token, instanceId: health.localHost.instanceId };
 }
 async function stop() {
