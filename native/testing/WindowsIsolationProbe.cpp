@@ -5,6 +5,7 @@
 #include <aclapi.h>
 #include <sddl.h>
 #include <userenv.h>
+#include <objbase.h>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -198,7 +199,14 @@ static int probe(const fs::path& root, const std::wstring& profileName) {
 	check(UpdateProcThreadAttribute(list, 0, PROC_THREAD_ATTRIBUTE_ALL_APPLICATION_PACKAGES_POLICY, &lpac, sizeof(lpac), nullptr, nullptr) != FALSE, "set_lpac");
 	std::wstring command = quote((stage / L"worker.exe").wstring()) + L" --child " + quote(stage.wstring()) + L" " + quote(denied.wstring()) + L" " + std::to_wstring(ntohs(address.sin_port)) + L" " + std::to_wstring(reinterpret_cast<ULONG_PTR>(privateFile.value)) + L" " + std::to_wstring(identity.dwVolumeSerialNumber) + L" " + std::to_wstring(fileId(identity));
 	wchar_t windows[MAX_PATH]{}; check(GetWindowsDirectoryW(windows, MAX_PATH) > 0, "windows_directory");
-	std::wstring environment = L"SystemRoot=" + std::wstring(windows); environment += L'\0'; environment += L"TEMP=" + output.wstring(); environment += L'\0'; environment += L"TMP=" + output.wstring(); environment += L'\0'; environment += L'\0';
+	LPWSTR sidText = nullptr, folder = nullptr;
+	check(ConvertSidToStringSidW(profile.sid, &sidText) != FALSE, "profile_sid_text");
+	const HRESULT folderResult = GetAppContainerFolderPath(sidText, &folder); LocalFree(sidText);
+	if (FAILED(folderResult)) throw std::runtime_error("private_profile_folder:" + std::to_string(static_cast<unsigned long>(folderResult)));
+	const std::wstring appData(folder); CoTaskMemFree(folder);
+	std::wstring environment;
+	for (const std::wstring& entry : { L"APPDATA=" + appData, L"LOCALAPPDATA=" + appData, L"SystemRoot=" + std::wstring(windows), L"TEMP=" + output.wstring(), L"TMP=" + output.wstring(), L"USERPROFILE=" + appData }) { environment += entry; environment += L'\0'; }
+	environment += L'\0';
 	SetEnvironmentVariableW(L"PACKX_PROBE_SECRET", L"synthetic-never-inherit");
 	STARTUPINFOEXW startup{}; startup.StartupInfo.cb = sizeof(startup); startup.lpAttributeList = list;
 	PROCESS_INFORMATION created{};

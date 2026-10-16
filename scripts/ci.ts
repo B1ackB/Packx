@@ -88,7 +88,7 @@ export function validateWorkflow(source: string) {
 }
 
 export function testEnvironment(input: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
-	const allowed = ["PATH", "HOME", "SystemRoot", "TMPDIR", "TMP", "TEMP", "LANG", "LC_ALL", "PLAYWRIGHT_BROWSERS_PATH"];
+	const allowed = ["PATH", "HOME", "SystemRoot", "SystemDrive", "USERPROFILE", "LOCALAPPDATA", "APPDATA", "TMPDIR", "TMP", "TEMP", "LANG", "LC_ALL", "PLAYWRIGHT_BROWSERS_PATH"];
 	return { ...Object.fromEntries(allowed.filter((key) => input[key] !== undefined).map((key) => [key, input[key]])), PATH: [dirname(process.execPath), input.PATH].filter(Boolean).join(delimiter), CI: "true", npm_config_audit: "false", npm_config_fund: "false", npm_config_update_notifier: "false" };
 }
 
