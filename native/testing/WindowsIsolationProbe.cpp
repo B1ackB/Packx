@@ -235,7 +235,8 @@ static int probe(const fs::path& root, const std::wstring& profileName) {
 	const auto controlProcess = launch(stage / L"worker.exe", quote((stage / L"worker.exe").wstring()) + L" --regular-control " + quote((root / L"all-packages.txt").wstring()), stage, environment, profile.sid, job.value, false);
 	Handle controlHandle(controlProcess.hProcess), controlThread(controlProcess.hThread);
 	check(WaitForSingleObject(controlHandle.value, 5000) == WAIT_OBJECT_0, "regular_appcontainer_control_timeout");
-	DWORD controlExit = 1; check(GetExitCodeProcess(controlHandle.value, &controlExit) != FALSE && controlExit == 0, "regular_appcontainer_control_read");
+	DWORD controlExit = 1; check(GetExitCodeProcess(controlHandle.value, &controlExit) != FALSE, "regular_appcontainer_control_status");
+	if (controlExit != 0) throw std::runtime_error("regular_appcontainer_control_exit:" + std::to_string(controlExit));
 	controlThread.close(); controlHandle.close();
 	const auto created = launch(stage / L"worker.exe", command, stage, environment, profile.sid, job.value, true);
 	Handle process(created.hProcess), thread(created.hThread);
@@ -269,7 +270,7 @@ int wmain(int argc, wchar_t** argv) {
 			DWORD actual = 0, size = 0; check(GetTokenInformation(token.value, TokenIsAppContainer, &actual, sizeof(actual), &size) != FALSE && actual == 1, "control_is_appcontainer");
 			check(canOpen(argv[2], GENERIC_READ), "control_reads_all_packages_file");
 			WSADATA sockets{}; const int started = WSAStartup(MAKEWORD(2, 2), &sockets);
-			if (started != 0) throw std::runtime_error("regular_appcontainer_winsock:" + std::to_string(started));
+			if (started != 0) return started;
 			WSACleanup(); return 0;
 		}
 		if (argc == 8 && std::wstring(argv[1]) == L"--child") {
