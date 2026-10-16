@@ -18,6 +18,7 @@ const nativeFiles = ["macOsSeatbeltSandboxedToolExecutor.test.ts", "assetInspect
 const windowsFiles = [
 	"server/localDataBoundary.test.ts", "server/localBackup.test.ts", "server/localDataMigration.test.ts", "server/fileWriteLock.test.ts", "server/syncDirectory.test.ts",
 	"server/enterprise/fileEventStoreRecovery.test.ts", "server/enterprise/fileStageJobQueue.test.ts", "server/enterprise/fileCronScheduleStore.test.ts",
+	"src/agent/sandboxPaths.test.ts",
 ];
 
 function ensure(condition: unknown, message: string): asserts condition {
