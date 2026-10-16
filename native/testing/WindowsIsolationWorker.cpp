@@ -44,6 +44,49 @@ static void writeReport(const fs::path& stage, const std::string& value) {
 	{ std::ofstream report(pending); report << value; check(report.good(), "write_probe_report"); }
 	fs::rename(pending, stage / L"output" / L"report.txt");
 }
+enum class NetworkOutcome { InitializationFailed, SocketFailed, Connected, AccessDenied, ConnectionFailed };
+struct NetworkProbe {
+	int startup = -1;
+	int error = -1;
+	LSTATUS catalogAccess = ERROR_INVALID_FUNCTION;
+	NetworkOutcome outcome = NetworkOutcome::InitializationFailed;
+};
+static const char* outcomeName(NetworkOutcome outcome) {
+	switch (outcome) {
+		case NetworkOutcome::InitializationFailed: return "initialization_failed";
+		case NetworkOutcome::SocketFailed: return "socket_failed";
+		case NetworkOutcome::Connected: return "connected";
+		case NetworkOutcome::AccessDenied: return "access_denied";
+		case NetworkOutcome::ConnectionFailed: return "connection_failed";
+	}
+	throw std::runtime_error("unknown_network_outcome");
+}
+// Exactly the same function runs in the trusted non-sandbox control and the LPAC worker.
+static NetworkProbe inspectNetwork(unsigned short port) {
+	NetworkProbe result;
+	HKEY catalog = nullptr;
+	result.catalogAccess = RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Services\\WinSock2\\Parameters", 0, KEY_READ, &catalog);
+	if (result.catalogAccess == ERROR_SUCCESS) RegCloseKey(catalog);
+	WSADATA sockets{}; result.startup = WSAStartup(MAKEWORD(2, 2), &sockets);
+	if (result.startup != 0) return result;
+	SOCKET connection = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	if (connection == INVALID_SOCKET) { result.error = WSAGetLastError(); result.outcome = NetworkOutcome::SocketFailed; WSACleanup(); return result; }
+	u_long nonblocking = 1; check(ioctlsocket(connection, FIONBIO, &nonblocking) == 0, "nonblocking_network_probe");
+	sockaddr_in address{}; address.sin_family = AF_INET; address.sin_port = htons(port); address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+	const int connected = connect(connection, reinterpret_cast<sockaddr*>(&address), sizeof(address));
+	result.error = connected == 0 ? 0 : WSAGetLastError();
+	if (connected == SOCKET_ERROR && result.error == WSAEWOULDBLOCK) {
+		fd_set writable; FD_ZERO(&writable); FD_SET(connection, &writable);
+		fd_set failed; FD_ZERO(&failed); FD_SET(connection, &failed); timeval timeout{1, 0};
+		const int ready = select(0, nullptr, &writable, &failed, &timeout);
+		int length = sizeof(result.error);
+		if (ready > 0) check(getsockopt(connection, SOL_SOCKET, SO_ERROR, reinterpret_cast<char*>(&result.error), &length) == 0, "network_probe_status");
+		else result.error = ready == 0 ? WSAETIMEDOUT : WSAGetLastError();
+	}
+	result.outcome = result.error == 0 ? NetworkOutcome::Connected : result.error == WSAEACCES ? NetworkOutcome::AccessDenied : NetworkOutcome::ConnectionFailed;
+	closesocket(connection); WSACleanup();
+	return result;
+}
 static int child(const fs::path& stage, const fs::path& denied, unsigned short port, DWORD hostPid) {
 	unsigned passed = 0;
 	auto expect = [&](bool ok, const char* name) { check(ok, name); ++passed; std::ofstream progress(stage / L"output" / L"progress.txt"); progress << passed << " " << name; };
@@ -67,33 +110,14 @@ static int child(const fs::path& stage, const fs::path& denied, unsigned short p
 	expect(GetEnvironmentVariableW(L"PACKX_PROBE_SECRET", secret, 64) == 0, "parent_environment_not_inherited");
 	Handle host(OpenProcess(PROCESS_CREATE_PROCESS | PROCESS_DUP_HANDLE, FALSE, hostPid));
 	expect(host.value == nullptr, "privileged_host_process_handle_denied");
-	WSADATA sockets{};
-	const int networkInitialization = WSAStartup(MAKEWORD(2, 2), &sockets);
-	int networkError = -1;
-	bool networkDenied = false;
-	if (networkInitialization == 0) {
-		SOCKET connection = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-		check(connection != INVALID_SOCKET, "child_socket");
-		u_long nonblocking = 1; check(ioctlsocket(connection, FIONBIO, &nonblocking) == 0, "nonblocking_network_probe");
-		sockaddr_in address{}; address.sin_family = AF_INET; address.sin_port = htons(port); address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-		const int connected = connect(connection, reinterpret_cast<sockaddr*>(&address), sizeof(address));
-		networkError = WSAGetLastError();
-		if (connected == SOCKET_ERROR && networkError == WSAEWOULDBLOCK) {
-			fd_set writable; FD_ZERO(&writable); FD_SET(connection, &writable);
-			fd_set failed; FD_ZERO(&failed); FD_SET(connection, &failed); timeval timeout{1, 0};
-			const int ready = select(0, nullptr, &writable, &failed, &timeout);
-			int length = sizeof(networkError);
-			if (ready > 0) check(getsockopt(connection, SOL_SOCKET, SO_ERROR, reinterpret_cast<char*>(&networkError), &length) == 0, "network_probe_status");
-			else networkError = WSAETIMEDOUT;
-		}
-		closesocket(connection); WSACleanup();
-		networkDenied = connected == SOCKET_ERROR && networkError == WSAEACCES;
-	}
+	const auto network = inspectNetwork(port);
+	const int networkInitialization = network.startup, networkError = network.error;
+	const bool networkDenied = network.outcome == NetworkOutcome::AccessDenied;
 	// Do not count initialization failure as a network-denial pass. Collect the other independent boundaries first.
 	if (networkDenied) expect(true, "loopback_network_denied");
 	PROCESS_MITIGATION_CHILD_PROCESS_POLICY childPolicy{};
 	check(GetProcessMitigationPolicy(GetCurrentProcess(), ProcessChildProcessPolicy, &childPolicy, sizeof(childPolicy)) != FALSE, "query_child_process_policy");
-	{ std::ofstream diagnostic(stage / L"output" / L"network-diagnostic.txt"); diagnostic << "startup=" << networkInitialization << "; connect=" << networkError << "; noChildProcessCreation=" << childPolicy.NoChildProcessCreation << "; workerReadableExecutable=" << canOpen(stage / L"worker.exe", GENERIC_READ | GENERIC_EXECUTE); }
+	{ std::ofstream diagnostic(stage / L"output" / L"network-diagnostic.txt"); diagnostic << "startup=" << networkInitialization << "; connect=" << networkError << "; catalogAccess=" << network.catalogAccess << "; observation=" << outcomeName(network.outcome) << "; noChildProcessCreation=" << childPolicy.NoChildProcessCreation << "; workerReadableExecutable=" << canOpen(stage / L"worker.exe", GENERIC_READ | GENERIC_EXECUTE); }
 	BOOL inJob = FALSE; check(IsProcessInJob(GetCurrentProcess(), nullptr, &inJob) != FALSE, "query_job");
 	expect(inJob != FALSE, "child_is_in_job");
 	void* excessive = VirtualAlloc(nullptr, 128ULL * 1024 * 1024, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
@@ -104,7 +128,7 @@ static int child(const fs::path& stage, const fs::path& denied, unsigned short p
 	const BOOL spawned = CreateProcessW((stage / L"worker.exe").c_str(), command.data(), nullptr, nullptr, FALSE, CREATE_NO_WINDOW, nullptr, stage.c_str(), &startup, &grandchild);
 	if (spawned) { TerminateProcess(grandchild.hProcess, 1); WaitForSingleObject(grandchild.hProcess, 5000); CloseHandle(grandchild.hThread); CloseHandle(grandchild.hProcess); }
 	expect(!spawned, "child_creation_denied");
-	writeReport(stage, std::to_string(passed) + " 0 " + std::to_string(networkInitialization) + " " + std::to_string(networkDenied));
+	writeReport(stage, std::to_string(passed) + " 0 " + std::to_string(networkInitialization) + " " + std::to_string(networkDenied) + " " + std::to_string(network.error) + " " + std::to_string(network.catalogAccess) + " " + outcomeName(network.outcome));
 	Sleep(INFINITE);
 	return 1;
 }
@@ -127,6 +151,13 @@ int wmain(int argc, wchar_t** argv) {
 			check(!brokeAway, "host_tree_breakaway_denied");
 			{ std::ofstream report(fs::path(argv[2]) / L"output" / (single ? L"job-single.txt" : L"job-tree.txt")); report << (single ? 1 : created.dwProcessId); check(report.good(), "host_tree_report"); }
 			Sleep(INFINITE); return 1;
+		}
+		if (argc == 4 && std::wstring(argv[1]) == L"--network-control") {
+			const auto result = inspectNetwork(static_cast<unsigned short>(std::stoul(argv[3])));
+			std::ofstream report(fs::path(argv[2]) / L"output" / L"host-network.txt");
+			report << result.startup << " " << result.error << " " << result.catalogAccess << " " << outcomeName(result.outcome);
+			check(report.good(), "host_network_report");
+			return result.outcome == NetworkOutcome::Connected ? 0 : 1;
 		}
 		if (argc == 3 && std::wstring(argv[1]) == L"--regular-control") {
 			HANDLE raw = nullptr; check(OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &raw) != FALSE, "control_token"); Handle token(raw);

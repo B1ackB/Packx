@@ -118,6 +118,15 @@ static PROCESS_INFORMATION launch(const fs::path& executable, std::wstring comma
 	return created;
 }
 
+static PROCESS_INFORMATION launchHostControl(const fs::path& executable, std::wstring command, const fs::path& directory, std::wstring& environment, HANDLE job) {
+	STARTUPINFOW startup{}; startup.cb = sizeof(startup); PROCESS_INFORMATION created{};
+	check(CreateProcessW(executable.c_str(), command.data(), nullptr, nullptr, FALSE, CREATE_SUSPENDED | CREATE_UNICODE_ENVIRONMENT | CREATE_NO_WINDOW, environment.data(), directory.c_str(), &startup, &created) != FALSE, "host_control_create_suspended");
+	if (!AssignProcessToJobObject(job, created.hProcess) || ResumeThread(created.hThread) == static_cast<DWORD>(-1)) {
+		const DWORD failure = GetLastError(); TerminateProcess(created.hProcess, 1); WaitForSingleObject(created.hProcess, 5000); CloseHandle(created.hThread); CloseHandle(created.hProcess);
+		throw std::runtime_error("host_control_assign_resume:" + std::to_string(failure));
+	}
+	return created;
+}
 // A separate trusted, fixed host program verifies Job lifecycle; it is not an LPAC escape or a production Tool.
 static void verifyHostJobControl(const fs::path& executable, const fs::path& stage, std::wstring& environment, bool single) {
 	Handle job(CreateJobObjectW(nullptr, nullptr)); check(job.value != nullptr, "host_control_job");
@@ -126,13 +135,8 @@ static void verifyHostJobControl(const fs::path& executable, const fs::path& sta
 	limits.BasicLimitInformation.ActiveProcessLimit = single ? 1 : 2;
 	check(SetInformationJobObject(job.value, JobObjectExtendedLimitInformation, &limits, sizeof(limits)) != FALSE, "host_control_limits");
 	std::wstring command = quote(executable.wstring()) + (single ? L" --job-single " : L" --job-tree ") + quote(stage.wstring());
-	STARTUPINFOW startup{}; startup.cb = sizeof(startup); PROCESS_INFORMATION created{};
-	check(CreateProcessW(executable.c_str(), command.data(), nullptr, nullptr, FALSE, CREATE_SUSPENDED | CREATE_UNICODE_ENVIRONMENT | CREATE_NO_WINDOW, environment.data(), stage.c_str(), &startup, &created) != FALSE, "host_control_create_suspended");
+	const auto created = launchHostControl(executable, command, stage, environment, job.value);
 	Handle root(created.hProcess), thread(created.hThread);
-	if (!AssignProcessToJobObject(job.value, root.value) || ResumeThread(thread.value) == static_cast<DWORD>(-1)) {
-		const DWORD failure = GetLastError(); TerminateProcess(root.value, 1); WaitForSingleObject(root.value, 5000);
-		throw std::runtime_error("host_control_assign_resume:" + std::to_string(failure));
-	}
 	const auto reportPath = stage / L"output" / (single ? L"job-single.txt" : L"job-tree.txt");
 	DWORD descendantPid = 0;
 	for (unsigned i = 0; i < 100 && !descendantPid; ++i) {
@@ -209,6 +213,15 @@ static int probe(const fs::path& root, const std::wstring& profileName, const fs
 	environment += L'\0';
 	verifyHostJobControl(stage / L"worker.exe", stage, environment, false);
 	verifyHostJobControl(stage / L"worker.exe", stage, environment, true);
+	const auto networkControl = launchHostControl(stage / L"worker.exe", quote((stage / L"worker.exe").wstring()) + L" --network-control " + quote(stage.wstring()) + L" " + std::to_wstring(ntohs(address.sin_port)), stage, environment, job.value);
+	Handle networkProcess(networkControl.hProcess), networkThread(networkControl.hThread);
+	check(WaitForSingleObject(networkProcess.value, 5000) == WAIT_OBJECT_0, "host_network_control_timeout");
+	DWORD networkControlExit = 1; check(GetExitCodeProcess(networkProcess.value, &networkControlExit) != FALSE, "host_network_control_status");
+	int hostStartup = -1, hostError = -1; LSTATUS hostCatalog = -1; std::string hostObservation;
+	{ std::ifstream report(output / L"host-network.txt"); check(static_cast<bool>(report >> hostStartup >> hostError >> hostCatalog >> hostObservation), "host_network_control_report"); }
+	check(networkControlExit == 0 && hostStartup == 0 && hostError == 0 && hostCatalog == ERROR_SUCCESS && hostObservation == "connected", "same_probe_unsandboxed_network_control");
+	networkThread.close(); networkProcess.close();
+	std::cerr << "same_probe_network_control:startup=0; connected=true; catalogAccess=0\n";
 	SetEnvironmentVariableW(L"PACKX_PROBE_SECRET", L"synthetic-never-inherit");
 	// A separate fixed AppContainer control must read the AAP-only synthetic file; LPAC must then fail to read it.
 	const auto controlProcess = launch(stage / L"worker.exe", quote((stage / L"worker.exe").wstring()) + L" --regular-control " + quote((root / L"all-packages.txt").wstring()), stage, environment, profile.sid, job.value, false);
@@ -234,8 +247,8 @@ static int probe(const fs::path& root, const std::wstring& profileName, const fs
 	for (unsigned i = 0; i < 100 && !fs::exists(reportPath); ++i) {
 		if (WaitForSingleObject(process.value, 50) == WAIT_OBJECT_0) break;
 	}
-	unsigned passed = 0; DWORD descendantPid = 0; int networkInitialization = -1; bool networkDenied = false;
-	{ std::ifstream report(reportPath); report >> passed >> descendantPid >> networkInitialization >> networkDenied; }
+	unsigned passed = 0; DWORD descendantPid = 0; int networkInitialization = -1, networkError = -1; LSTATUS catalogAccess = -1; bool networkDenied = false; std::string networkObservation;
+	{ std::ifstream report(reportPath); report >> passed >> descendantPid >> networkInitialization >> networkDenied >> networkError >> catalogAccess >> networkObservation; }
 	if (passed < 13) {
 		std::ifstream report(reportPath); std::string error; std::getline(report, error);
 		std::ifstream progress(output / L"progress.txt"); std::string step; std::getline(progress, step);
@@ -250,7 +263,7 @@ static int probe(const fs::path& root, const std::wstring& profileName, const fs
 	profile.remove();
 	std::ifstream diagnostic(output / L"network-diagnostic.txt"); std::string boundary; std::getline(diagnostic, boundary);
 	std::cerr << "lpac_boundary:" << boundary << '\n';
-	std::cout << "{\"probe\":\"windows-lpac-fixed-program\",\"childAssertions\":" << passed << ",\"privateHandleNotInherited\":true,\"regularNetworkInitializationError\":" << regularNetworkInitialization << ",\"networkInitializationError\":" << networkInitialization << ",\"networkAccessDenied\":" << (networkDenied ? "true" : "false") << ",\"singleProcessJobRestricted\":true,\"legalHostSingleProcessDenied\":true,\"legalHostJobTreeTerminated\":true,\"lpacProcessTerminated\":true,\"profileDeleted\":true}\n";
+	std::cout << "{\"probe\":\"windows-lpac-fixed-program\",\"childAssertions\":" << passed << ",\"privateHandleNotInherited\":true,\"regularNetworkInitializationError\":" << regularNetworkInitialization << ",\"networkInitializationError\":" << networkInitialization << ",\"networkConnectionError\":" << networkError << ",\"catalogAccessError\":" << catalogAccess << ",\"networkObservation\":\"" << networkObservation << "\",\"unsandboxedNetworkControl\":{\"initializationError\":0,\"connectionError\":0,\"catalogAccessError\":0,\"observation\":\"connected\"},\"networkAccessDenied\":" << (networkDenied ? "true" : "false") << ",\"singleProcessJobRestricted\":true,\"legalHostSingleProcessDenied\":true,\"legalHostJobTreeTerminated\":true,\"lpacProcessTerminated\":true,\"profileDeleted\":true}\n";
 	return passed == 14 && networkDenied ? 0 : 1;
 }
 
