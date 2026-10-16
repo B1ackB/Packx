@@ -247,13 +247,15 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 				return resolved;
 			};
 			const validateSources = async (messages: readonly AgentMessage[], visited = new Set<string>()): Promise<void> => {
-				// Older v2 records predate context_read source metadata. Complete protocol
-				// groups still retain the trusted tool name and original input.
-				const legacyReads = new Map<string, unknown>();
+				// Older v2 records may predate an adapter's source validator. Complete
+				// protocol groups retain the trusted tool name and original input.
+				const legacyReads = new Map<string, { name: string; input: unknown }>();
 				for (const message of messages) {
 					if (message.role !== "tool") {
 						legacyReads.clear();
-						if (message.role === "assistant") for (const call of message.toolCalls ?? []) if (call.name === "context_read") legacyReads.set(call.id, call.input);
+						if (message.role === "assistant") for (const call of message.toolCalls ?? []) {
+							if (call.name === "context_read" || this.options.tools?.some((tool) => tool.name === call.name && tool.validateContextResult)) legacyReads.set(call.id, { name: call.name, input: call.input });
+						}
 					}
 					combinedSignal.throwIfAborted();
 					for (const ref of message.readDependencies ?? []) {
@@ -266,9 +268,14 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 					}
 					let legacyRead: { name: string; input: unknown } | undefined;
 					if (!message.sourceTool && message.role === "tool" && message.toolCallId && legacyReads.has(message.toolCallId)) {
+						const call = legacyReads.get(message.toolCallId)!;
+						if (call.name !== "context_read") legacyRead = call;
 						try {
-							const output = JSON.parse(message.content) as { status?: string };
-							if (["historical_unverified", "body_externalized"].includes(output.status ?? "")) legacyRead = { name: "context_read", input: legacyReads.get(message.toolCallId) };
+							const output = JSON.parse(message.content) as { status?: string; ok?: boolean; error?: { code?: string; message?: string } };
+							// Exact Host failure envelopes contain no source bytes. Do not turn
+							// a prior failed read into an assertion of successful source access.
+							if (output.ok === false && Object.keys(output).sort().join() === "error,ok" && output.error?.code === "tool_execution_failed" && Object.keys(output.error).sort().join() === "code,message" && output.error.message === "Tool execution failed") legacyRead = undefined;
+							if (call.name === "context_read" && ["historical_unverified", "body_externalized"].includes(output.status ?? "")) legacyRead = call;
 						} catch { /* Failed reads and ordinary text do not assert a readable source. */ }
 					}
 					if (!message.sourceTool && !legacyRead && message.role === "tool") {
@@ -282,6 +289,9 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 						} catch { /* Unrelated text is not treated as a source reference. */ }
 					}
 					const sourceTool = message.sourceTool ?? legacyRead;
+					if (!sourceTool && messages.length === 1 && message.role === "tool") {
+						throw new RuntimeFailure("context_failure", "Legacy tool archive has no source provenance; rebuild task context", false);
+					}
 					if (!sourceTool) continue;
 					if (sourceTool.name === "context_read") {
 						const ref = (sourceTool.input as { sourceRef?: unknown })?.sourceRef;
