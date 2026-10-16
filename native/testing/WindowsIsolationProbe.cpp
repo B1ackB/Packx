@@ -248,10 +248,11 @@ static int probe(const fs::path& root, const std::wstring& profileName) {
 	{ std::ifstream status(output / L"network-control.txt"); check(static_cast<bool>(status >> regularNetworkInitialization), "read_regular_network_status"); }
 	controlThread.close(); controlHandle.close();
 	// Invalid-handle checks can deliberately terminate a strict process. Isolate this negative case from the remaining assertions.
-	const auto handleControl = launch(stage / L"worker.exe", quote((stage / L"worker.exe").wstring()) + L" --handle-control " + std::to_wstring(reinterpret_cast<ULONG_PTR>(privateFile.value)) + L" " + std::to_wstring(identity.dwVolumeSerialNumber) + L" " + std::to_wstring(fileId(identity)), stage, environment, profile.sid, job.value, true);
+	const auto handleControl = launch(stage / L"worker.exe", quote((stage / L"worker.exe").wstring()) + L" --handle-control " + std::to_wstring(reinterpret_cast<ULONG_PTR>(privateFile.value)) + L" " + std::to_wstring(identity.dwVolumeSerialNumber) + L" " + std::to_wstring(fileId(identity)) + L" " + quote(stage.wstring()), stage, environment, profile.sid, job.value, true);
 	Handle handleProcess(handleControl.hProcess), handleThread(handleControl.hThread);
 	check(WaitForSingleObject(handleProcess.value, 5000) == WAIT_OBJECT_0, "handle_control_timeout");
 	DWORD handleExit = 1; check(GetExitCodeProcess(handleProcess.value, &handleExit) != FALSE, "handle_control_status");
+	{ std::ifstream marker(output / L"handle-control.txt"); std::string entered; marker >> entered; check(entered == "entered", "handle_control_reached_query"); }
 	check(handleExit == 0 || handleExit == 0xC0000008UL, "private_handle_not_inherited");
 	handleThread.close(); handleProcess.close();
 	const auto created = launch(stage / L"worker.exe", command, stage, environment, profile.sid, job.value, true);
@@ -292,7 +293,8 @@ int wmain(int argc, wchar_t** argv) {
 			if (started == 0) WSACleanup();
 			return 0;
 		}
-		if (argc == 5 && std::wstring(argv[1]) == L"--handle-control") {
+		if (argc == 6 && std::wstring(argv[1]) == L"--handle-control") {
+			{ std::ofstream marker(fs::path(argv[5]) / L"output" / L"handle-control.txt"); marker << "entered"; check(marker.good(), "handle_query_marker"); }
 			BY_HANDLE_FILE_INFORMATION leaked{};
 			const bool visible = GetFileInformationByHandle(reinterpret_cast<HANDLE>(std::stoull(argv[2])), &leaked) && leaked.dwVolumeSerialNumber == std::stoul(argv[3]) && fileId(leaked) == std::stoull(argv[4]);
 			return visible ? 1 : 0;
