@@ -27,6 +27,24 @@ import {
 
 const runSeatbeltTests = process.platform === "darwin" && process.env.BLACKX_RUN_SEATBELT_TESTS === "1";
 
+function processRecord(pid: number) {
+	const observed = spawnSync("/bin/ps", ["-p", String(pid), "-o", "pid=,ppid=,pgid=,state=,lstart=,comm="], { encoding: "utf8" });
+	if (observed.status === 1 && !observed.stdout.trim()) return undefined;
+	expect(observed.error).toBeUndefined();
+	expect(observed.status, observed.stderr).toBe(0);
+	const fields = observed.stdout.trim().match(/^(\d+)\s+(\d+)\s+(\d+)\s+(\S+)\s+(.{24})\s+(.+)$/);
+	expect(fields, observed.stdout).not.toBeNull();
+	return { pid, parent: Number(fields![2]), state: fields![4], identity: `${fields![3]} ${fields![5]} ${fields![6]}`, raw: observed.stdout.trim() };
+}
+
+async function expectTerminated(original: NonNullable<ReturnType<typeof processRecord>>) {
+	const observed = processRecord(original.pid);
+	// kill(pid, 0) also succeeds for zombies. A reused PID is not the process started by this fixture.
+	const same = observed?.identity === original.identity;
+	expect(!same || observed!.state.startsWith("Z"), JSON.stringify({ original, observed })).toBe(true);
+	await expect.poll(() => processRecord(original.pid)?.identity !== original.identity, { timeout: 2_000 }).toBe(true);
+}
+
 function manifest(
 	workspaceRoot: string,
 	overrides: {
@@ -336,7 +354,46 @@ describe.skipIf(!runSeatbeltTests)("macOS Seatbelt executor attack regression", 
 		expect(slow.durationMs).toBeLessThan(2_000);
 		const childPid = Number(slow.stdout.text.trim());
 		expect(Number.isSafeInteger(childPid)).toBe(true);
-		expect(() => process.kill(childPid, 0)).toThrow();
+		expect(childPid).toBeGreaterThan(1);
+		const remaining = processRecord(childPid);
+		if (remaining) expect(remaining.state, remaining.raw).toMatch(/^Z/);
+		try {
+			process.kill(childPid, 0);
+			console.log(JSON.stringify({ cleanupObservation: "pid_still_visible", pid: childPid, process: processRecord(childPid) ?? "already_reaped" }));
+		} catch (error) { expect((error as NodeJS.ErrnoException).code).toBe("ESRCH"); }
+		// This short case has no pre-exit identity. Require eventual removal, and print OS state on failure.
+		await expect.poll(() => processRecord(childPid), { timeout: 2_000 }).toBeUndefined();
+	});
+
+	it.each(["succeeded", "timed_out", "cancelled", "failed"] as const)("cleans the identified tool and descendant on %s", async (status) => {
+		const ready = join(workspaceRoot, "ready"), release = join(workspaceRoot, "release");
+		const controller = new AbortController();
+		const job = manifest(workspaceRoot, {
+			executable: "/bin/sh",
+			argv: ["-c", '/bin/sleep 30 & child=$!; echo "$$ $child" > "$1"; while [ ! -f "$2" ]; do /bin/sleep .01; done; exit "$3"', "fixture", ready, release, status === "failed" ? "7" : "0"],
+			writable: [workspaceRoot], limits: { timeoutMs: status === "timed_out" ? 1_000 : 5_000 },
+		});
+		const pending = new MacOsSeatbeltSandboxedToolExecutor({ workspaceRoot }).execute(job, controller.signal);
+		try {
+			await expect.poll(() => existsSync(ready) && readFileSync(ready, "utf8").trim().split(" ").length === 2, { timeout: 3_000 }).toBe(true);
+			const identities = readFileSync(ready, "utf8").trim().split(" ").map(Number).map(processRecord);
+			expect(identities.every((record) => record && !record.state.startsWith("Z"))).toBe(true);
+			if (status === "cancelled") controller.abort(new Error("user_cancelled"));
+			else if (status !== "timed_out") writeFileSync(release, "release");
+			const result = await pending;
+			expect(result.status).toBe(status);
+			for (const identity of identities) await expectTerminated(identity!);
+			expect(existsSync(job.paths.temporaryDirectory)).toBe(false);
+		} finally { controller.abort(); await pending; }
+	}, 10_000);
+
+	it("removes staging and returns no output when the supervisor cannot spawn after preflight", async () => {
+		// An executable directory passes access(X_OK) but fails spawn; exercise the post-preflight error path.
+		const job = manifest(workspaceRoot);
+		const output = await new MacOsSeatbeltSandboxedToolExecutor({ workspaceRoot, supervisorExecutable: outsideRoot })
+			.execute(job, new AbortController().signal);
+		expect(output).toMatchObject({ status: "sandbox_unavailable", outputs: [], sandbox: { terminationReason: "sandbox_spawn_failed" } });
+		expect(existsSync(job.paths.temporaryDirectory)).toBe(false);
 	});
 
 	it("propagates user cancellation and terminates the sandbox process group", async () => {

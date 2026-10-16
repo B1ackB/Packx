@@ -29,6 +29,8 @@
 
 ## 尚缺证据
 
+阶段 3B 的 [PR #44](https://github.com/B1ackB/Packx/pull/44) 仍为 draft：零 capability LPAC 的 Winsock 初始化和后代创建尚未通过，不能以启动失败作为网络拒绝通过。真实错误、macOS 清理断言改进及此前交接已持久化于[探针证据](evidence/windows-isolation-probe-2026-10-16.md)。未完成隔离验收前不接入 Windows 文档解析。
+
 Windows Sandbox Adapter、原生文档读取与完整安装链路尚不存在或未验收；真实客户素材／员工试用、签名与干净设备发行、生产多用户边界、断电／故障磁盘语义仍待完成。遇到确需新增权限、付费、凭据扩张或破坏性迁移时，先保存已完成成果，再单独说明必要动作及风险，不把当前授权扩大为这些动作。
 
 阶段 3 分解见 [ADR-0032](adr/0032-windows-native-tool-boundary.md)：先补严格 Windows 工具路径合同，再验证 LPAC／Job Object 隔离及清理，最后逐格式接入文档解析。每段保留独立负向回归和真实 Windows CI，合同通过不等于沙箱通过。
