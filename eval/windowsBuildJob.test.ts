@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { expect, it } from "vitest";
-import { runWindowsBuildJob, type WindowsBuildReport } from "../scripts/windowsBuildJob";
+import { cleanupBuildResources, runWindowsBuildJob, type WindowsBuildReport } from "../scripts/windowsBuildJob";
 
 async function until(check: () => boolean, timeoutMs = 10_000) {
 	const started = performance.now();
@@ -19,15 +19,18 @@ it.runIf(process.platform === "win32")("reaps owned descendants on success, fail
 		const child = join(root, "child.mjs"), parent = join(root, "parent.mjs");
 		// A live descendant holds its Windows current-directory handle. Removal
 		// must fail before termination, then succeed after Job cleanup.
-		writeFileSync(child, 'import fs from "node:fs"; process.chdir(process.argv[2]); fs.writeFileSync(process.argv[3], JSON.stringify({pid:process.pid, startedAt:Date.now()})); setInterval(()=>{},1000);');
+		writeFileSync(child, 'import fs from "node:fs"; process.chdir(process.argv[2]); fs.writeFileSync(process.argv[3]+".pending", JSON.stringify({pid:process.pid, startedAt:Date.now()})); fs.renameSync(process.argv[3]+".pending",process.argv[3]); setInterval(()=>{},1000);');
 		writeFileSync(parent, 'import {spawn} from "node:child_process"; import fs from "node:fs"; const [child,owned,ready,release,mode]=process.argv.slice(2); spawn(process.execPath,[child,owned,ready],{stdio:"ignore"}); process.stdout.write("compiler-output\\n"); process.stderr.write("compiler-diagnostic\\n"); const timer=setInterval(()=>{if(fs.existsSync(ready)&&fs.existsSync(release)&&["success","failure"].includes(mode)){clearInterval(timer);process.exit(mode==="success"?0:37)}},20);');
 		const sentinel = spawn(process.execPath, ["-e", 'const fs=require("fs"); setInterval(()=>fs.writeFileSync(process.argv[1],String(Date.now())),20);', heartbeat], { stdio: "ignore" });
+		const sentinelClosed = new Promise<void>((accept) => sentinel.once("close", () => accept()));
 		const abort = new AbortController();
-		let result: Awaited<ReturnType<typeof runWindowsBuildJob>> | undefined, error: unknown;
+		let result: Awaited<ReturnType<typeof runWindowsBuildJob>> | undefined, error: unknown, primary: unknown, work: Promise<void> | undefined;
 		try {
 			await until(() => existsSync(heartbeat));
-			const work = runWindowsBuildJob(process.execPath, [parent, child, owned, ready, release, mode], root, process.env, mode === "timeout" ? 5000 : 15_000, abort.signal).then((value) => { result = value; }, (cause) => { error = cause; });
-			await until(() => existsSync(ready));
+			const deadline = mode === "timeout" ? 5000 : 15_000;
+			work = runWindowsBuildJob(process.execPath, [parent, child, owned, ready, release, mode], root, process.env, deadline, abort.signal).then((value) => { result = value; }, (cause) => { error = cause; });
+			// Include the existing 30s supervisor startup allowance; a separate 10s timer hid slow-start failures.
+			await until(() => { if (error) throw error; return existsSync(ready); }, deadline + 30_000);
 			const identity = JSON.parse(readFileSync(ready, "utf8")); expect(identity.pid).toBeGreaterThan(0);
 			expect(() => rmSync(owned, { recursive: true })).toThrow();
 			if (mode === "owner_abort") abort.abort(); else writeFileSync(release, "release own fixture");
@@ -35,7 +38,7 @@ it.runIf(process.platform === "win32")("reaps owned descendants on success, fail
 			if (mode === "owner_abort") expect(error).toMatchObject({ cause: { code: "ABORT_ERR" } });
 			else {
 				const report = result?.report ?? (error as { report?: WindowsBuildReport })?.report;
-				expect(report).toMatchObject({ outcome: mode === "success" ? "succeeded" : mode === "failure" ? "exit_failed" : "timed_out", exitCode: mode === "success" ? 0 : mode === "failure" ? 37 : null, activeProcesses: 0, cleanupVerified: true, cleanupFailure: null });
+				expect(report).toMatchObject({ outcome: mode === "success" ? "succeeded" : mode === "failure" ? "exit_failed" : "timed_out", exitCode: mode === "success" ? 0 : mode === "failure" ? 37 : null, createdInJob: true, activeProcesses: 0, cleanupVerified: true, cleanupFailure: null });
 				expect(report!.totalProcesses).toBeGreaterThanOrEqual(2);
 				expect(report!.rootProcessId).not.toBe(identity.pid);
 				expect(Number.isFinite(Date.parse(report!.rootCreationTime!))).toBe(true);
@@ -45,9 +48,23 @@ it.runIf(process.platform === "win32")("reaps owned descendants on success, fail
 			await until(() => { try { rmSync(owned, { recursive: true, force: true }); return true; } catch { return false; } }, 5000);
 			expect(sentinel.exitCode).toBeNull();
 			const old = readFileSync(heartbeat, "utf8"); await until(() => readFileSync(heartbeat, "utf8") !== old);
-		} finally { abort.abort(); sentinel.kill(); await until(() => sentinel.exitCode !== null || sentinel.signalCode !== null); rmSync(root, { recursive: true, force: true, maxRetries: 20, retryDelay: 100 }); }
+		} catch (cause) { primary = cause; console.error(JSON.stringify({ suite: "windows-build-lifecycle", round, mode, primary: (cause as Error).message })); throw cause; }
+		finally { abort.abort(); await work; sentinel.kill(); await sentinelClosed; cleanupBuildResources(() => rmSync(root, { recursive: true, force: true, maxRetries: 20, retryDelay: 100 }), primary); }
 	}
 }, 150_000);
+
+it.runIf(process.platform === "win32")("waits for supervisor close when aborted during startup, releasing cwd immediately (3 rounds)", async () => {
+	for (let round = 0; round < 3; ++round) {
+		const root = mkdtempSync(join(tmpdir(), "packx-build-startup-abort-")), controller = new AbortController();
+		try {
+			const work = runWindowsBuildJob(process.execPath, ["-e", "setInterval(()=>{},1000)"], root, process.env, 5000, controller.signal);
+			queueMicrotask(() => controller.abort());
+			await expect(work).rejects.toMatchObject({ cause: { code: "ABORT_ERR" } });
+			// No retry: the returned promise must mean the supervisor no longer owns its cwd.
+			rmSync(root, { recursive: true }); expect(existsSync(root)).toBe(false);
+		} finally { controller.abort(); cleanupBuildResources(() => rmSync(root, { recursive: true, force: true })); }
+	}
+}, 30000);
 
 it.runIf(process.platform === "win32")("reports a launch failure with its native cause and verified empty Job", async () => {
 	const root = mkdtempSync(join(tmpdir(), "packx-build-missing-"));

@@ -25,6 +25,7 @@ const windowsFiles = [
 	"eval/ciCommand.test.ts",
 	"eval/windowsProductionBoundary.test.ts",
 	"eval/windowsBuildJob.test.ts",
+	"eval/windowsBuildJobLifecycle.test.ts",
 ];
 
 function ensure(condition: unknown, message: string): asserts condition {

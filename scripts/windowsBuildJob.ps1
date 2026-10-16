@@ -18,14 +18,18 @@ public static class PackxBuildJob {
     [StructLayout(LayoutKind.Sequential)] struct Limits { public BasicLimits basic; public Io io; public UIntPtr processMemory, jobMemory, peakProcessMemory, peakJobMemory; }
     [StructLayout(LayoutKind.Sequential)] struct Accounting { public long a,b,c,d; public uint faults, total, active, terminated; }
     [StructLayout(LayoutKind.Sequential, CharSet=CharSet.Unicode)] struct Startup { public uint cb; public string reserved, desktop, title; public uint x,y,xSize,ySize,xChars,yChars,fill,flags; public ushort show, reservedSize; public IntPtr reservedBytes, input, output, error; }
+    [StructLayout(LayoutKind.Sequential)] struct StartupEx { public Startup basic; public IntPtr attributes; }
     [StructLayout(LayoutKind.Sequential)] struct ProcessInfo { public IntPtr process, thread; public uint pid, tid; }
     [DllImport("kernel32.dll", SetLastError=true)] static extern IntPtr CreateJobObjectW(IntPtr security, IntPtr name);
     [DllImport("kernel32.dll", SetLastError=true)] static extern bool SetInformationJobObject(IntPtr job, int kind, ref Limits limits, uint length);
     [DllImport("kernel32.dll", SetLastError=true)] static extern bool QueryInformationJobObject(IntPtr job, int kind, out Accounting data, uint length, IntPtr returned);
-    [DllImport("kernel32.dll", SetLastError=true)] static extern bool AssignProcessToJobObject(IntPtr job, IntPtr process);
+    [DllImport("kernel32.dll", SetLastError=true)] static extern bool IsProcessInJob(IntPtr process, IntPtr job, out bool inJob);
+    [DllImport("kernel32.dll", SetLastError=true)] static extern bool InitializeProcThreadAttributeList(IntPtr list, uint count, uint flags, ref UIntPtr size);
+    [DllImport("kernel32.dll", SetLastError=true)] static extern bool UpdateProcThreadAttribute(IntPtr list, uint flags, IntPtr attribute, IntPtr value, UIntPtr size, IntPtr previous, IntPtr returned);
+    [DllImport("kernel32.dll")] static extern void DeleteProcThreadAttributeList(IntPtr list);
     [DllImport("kernel32.dll", SetLastError=true)] static extern bool TerminateJobObject(IntPtr job, uint code);
     [DllImport("kernel32.dll", SetLastError=true)] static extern bool TerminateProcess(IntPtr process, uint code);
-    [DllImport("kernel32.dll", SetLastError=true, CharSet=CharSet.Unicode)] static extern bool CreateProcessW(string executable, StringBuilder command, IntPtr processSecurity, IntPtr threadSecurity, bool inherit, uint flags, IntPtr environment, string cwd, ref Startup startup, out ProcessInfo process);
+    [DllImport("kernel32.dll", SetLastError=true, CharSet=CharSet.Unicode)] static extern bool CreateProcessW(string executable, StringBuilder command, IntPtr processSecurity, IntPtr threadSecurity, bool inherit, uint flags, IntPtr environment, string cwd, ref StartupEx startup, out ProcessInfo process);
     [DllImport("kernel32.dll", SetLastError=true)] static extern uint ResumeThread(IntPtr thread);
     [DllImport("kernel32.dll", SetLastError=true)] static extern uint WaitForSingleObject(IntPtr handle, uint milliseconds);
     [DllImport("kernel32.dll", SetLastError=true)] static extern bool GetExitCodeProcess(IntPtr process, out uint code);
@@ -37,7 +41,7 @@ public static class PackxBuildJob {
         public uint rootProcessId, totalProcesses, activeProcesses;
         public uint? exitCode;
         public int? win32Error;
-        public bool cleanupVerified;
+        public bool cleanupVerified, createdInJob;
         public long elapsedMs;
     }
     static void Check(bool ok, string step) { if (!ok) throw new Win32Exception(Marshal.GetLastWin32Error(), step); }
@@ -52,23 +56,28 @@ public static class PackxBuildJob {
     static Accounting Count(IntPtr job) { Accounting data; Check(QueryInformationJobObject(job, 1, out data, (uint)Marshal.SizeOf<Accounting>(), IntPtr.Zero), "query_job"); return data; }
     public static Result Run(string executable, string[] args, string cwd, uint timeoutMs, IDictionary variables) {
         if (timeoutMs < 1 || timeoutMs > 120000 || !System.IO.Path.IsPathFullyQualified(executable) || !System.IO.Path.IsPathFullyQualified(cwd)) throw new ArgumentException("Invalid trusted build request");
-        var result = new Result(); var clock = Stopwatch.StartNew(); IntPtr job = IntPtr.Zero, environment = IntPtr.Zero; ProcessInfo child = new ProcessInfo(); bool joined = false;
+        var result = new Result(); var clock = Stopwatch.StartNew(); IntPtr job = IntPtr.Zero, environment = IntPtr.Zero, attributes = IntPtr.Zero, jobValue = IntPtr.Zero; ProcessInfo child = new ProcessInfo(); bool joined = false, attributesReady = false;
         try {
             job = CreateJobObjectW(IntPtr.Zero, IntPtr.Zero); Check(job != IntPtr.Zero, "create_job");
             // No breakaway, no inherited Job handle; limits cover every compiler/linker descendant.
             var limits = new Limits(); limits.basic.flags = 0x2000 | 0x8 | 0x200; limits.basic.active = 16; limits.jobMemory = new UIntPtr(2147483648UL);
             Check(SetInformationJobObject(job, 9, ref limits, (uint)Marshal.SizeOf<Limits>()), "set_job_limits");
             var command = new StringBuilder(Quote(executable)); foreach (string arg in args) command.Append(' ').Append(Quote(arg));
-            var startup = new Startup(); startup.cb = (uint)Marshal.SizeOf<Startup>(); startup.flags = 0x100;
-            startup.input = GetStdHandle(-10); startup.output = GetStdHandle(-11); startup.error = GetStdHandle(-12);
+            UIntPtr attributeSize = UIntPtr.Zero; InitializeProcThreadAttributeList(IntPtr.Zero, 1, 0, ref attributeSize);
+            attributes = Marshal.AllocHGlobal((IntPtr)attributeSize.ToUInt64()); Check(InitializeProcThreadAttributeList(attributes, 1, 0, ref attributeSize), "create_attributes"); attributesReady = true;
+            jobValue = Marshal.AllocHGlobal(IntPtr.Size); Marshal.WriteIntPtr(jobValue, job);
+            // PROC_THREAD_ATTRIBUTE_JOB_LIST: no live unassigned process if the supervisor dies during CreateProcess.
+            Check(UpdateProcThreadAttribute(attributes, 0, new IntPtr(0x0002000D), jobValue, new UIntPtr((uint)IntPtr.Size), IntPtr.Zero, IntPtr.Zero), "set_creation_job");
+            var startup = new StartupEx(); startup.basic.cb = (uint)Marshal.SizeOf<StartupEx>(); startup.basic.flags = 0x100; startup.attributes = attributes;
+            startup.basic.input = GetStdHandle(-10); startup.basic.output = GetStdHandle(-11); startup.basic.error = GetStdHandle(-12);
             var sorted = new SortedDictionary<string,string>(StringComparer.OrdinalIgnoreCase);
             foreach (DictionaryEntry entry in variables) { string key = (string)entry.Key, value = (string)entry.Value; if (key.Length == 0 || key.Contains('=') || key.Contains('\0') || value.Contains('\0')) throw new ArgumentException("Invalid build environment"); sorted[key] = value; }
             var block = new StringBuilder(); foreach (var entry in sorted) block.Append(entry.Key).Append('=').Append(entry.Value).Append('\0'); block.Append('\0');
             environment = Marshal.StringToHGlobalUni(block.ToString());
-            Check(CreateProcessW(executable, command, IntPtr.Zero, IntPtr.Zero, true, 0x4 | 0x400 | 0x08000000, environment, cwd, ref startup, out child), "create_suspended");
+            Check(CreateProcessW(executable, command, IntPtr.Zero, IntPtr.Zero, true, 0x4 | 0x400 | 0x80000 | 0x08000000, environment, cwd, ref startup, out child), "create_suspended_in_job"); joined = true;
             result.rootProcessId = child.pid;
             long creation, exit, kernel, user; Check(GetProcessTimes(child.process, out creation, out exit, out kernel, out user), "process_identity"); result.rootCreationTime = DateTime.FromFileTimeUtc(creation).ToString("O");
-            Check(AssignProcessToJobObject(job, child.process), "assign_job"); joined = true;
+            bool inJob; Check(IsProcessInJob(child.process, job, out inJob) && inJob, "verify_creation_job"); result.createdInJob = true;
             Check(ResumeThread(child.thread) != uint.MaxValue, "resume");
             uint waited = WaitForSingleObject(child.process, timeoutMs);
             if (waited == 258) result.outcome = "timed_out";
@@ -87,6 +96,7 @@ public static class PackxBuildJob {
             } catch (Exception error) { result.cleanupFailure = error.Message; }
             if (child.thread != IntPtr.Zero) CloseHandle(child.thread); if (child.process != IntPtr.Zero) CloseHandle(child.process); if (job != IntPtr.Zero) CloseHandle(job);
             if (environment != IntPtr.Zero) Marshal.FreeHGlobal(environment);
+            if (attributesReady) DeleteProcThreadAttributeList(attributes); if (attributes != IntPtr.Zero) Marshal.FreeHGlobal(attributes); if (jobValue != IntPtr.Zero) Marshal.FreeHGlobal(jobValue);
             result.elapsedMs = clock.ElapsedMilliseconds;
         }
         return result;

@@ -12,6 +12,7 @@
 #include <vector>
 #include <utility>
 namespace fs = std::filesystem;
+static_assert(PROC_THREAD_ATTRIBUTE_JOB_LIST == 0x0002000D, "Build supervisor Job attribute must match the pinned SDK");
 static void check(bool ok, const char* stage) {
 	if (!ok) throw std::runtime_error(std::string(stage) + ":" + std::to_string(GetLastError()));
 }
@@ -102,7 +103,8 @@ static std::wstring quote(const std::wstring& value) {
 	return result + L'\"';
 }
 static PROCESS_INFORMATION launch(const fs::path& executable, std::wstring command, const fs::path& directory, std::wstring& environment, PSID sid, HANDLE job, bool lpac, PSID registryCapability = nullptr, HANDLE output = nullptr, HANDLE input = nullptr) {
-	const DWORD count = (lpac ? 2u : 1u) + (output ? 1u : 0u);
+	check(sid || !lpac, "lpac_sid_required");
+	const DWORD count = 1u + (sid ? 1u : 0u) + (lpac ? 1u : 0u) + (output ? 1u : 0u);
 	SIZE_T size = 0; InitializeProcThreadAttributeList(nullptr, count, 0, &size);
 	std::vector<BYTE> attributes(size);
 	auto list = reinterpret_cast<LPPROC_THREAD_ATTRIBUTE_LIST>(attributes.data());
@@ -111,8 +113,9 @@ static PROCESS_INFORMATION launch(const fs::path& executable, std::wstring comma
 	SID_AND_ATTRIBUTES capability{registryCapability, SE_GROUP_ENABLED};
 	if (registryCapability) { security.Capabilities = &capability; security.CapabilityCount = 1; }
 	DWORD policy = PROCESS_CREATION_ALL_APPLICATION_PACKAGES_OPT_OUT;
-	check(UpdateProcThreadAttribute(list, 0, PROC_THREAD_ATTRIBUTE_SECURITY_CAPABILITIES, &security, sizeof(security), nullptr, nullptr) != FALSE, "set_appcontainer");
+	if (sid) check(UpdateProcThreadAttribute(list, 0, PROC_THREAD_ATTRIBUTE_SECURITY_CAPABILITIES, &security, sizeof(security), nullptr, nullptr) != FALSE, "set_appcontainer");
 	if (lpac) check(UpdateProcThreadAttribute(list, 0, PROC_THREAD_ATTRIBUTE_ALL_APPLICATION_PACKAGES_POLICY, &policy, sizeof(policy), nullptr, nullptr) != FALSE, "set_lpac");
+	check(UpdateProcThreadAttribute(list, 0, PROC_THREAD_ATTRIBUTE_JOB_LIST, &job, sizeof(job), nullptr, nullptr) != FALSE, "set_creation_job");
 	HANDLE inherited[] = {output, input};
 	if (output) check(UpdateProcThreadAttribute(list, 0, PROC_THREAD_ATTRIBUTE_HANDLE_LIST, inherited, sizeof(inherited), nullptr, nullptr) != FALSE, "set_explicit_handles");
 	STARTUPINFOEXW startup{}; startup.StartupInfo.cb = sizeof(startup); startup.lpAttributeList = list;
@@ -121,7 +124,8 @@ static PROCESS_INFORMATION launch(const fs::path& executable, std::wstring comma
 	const BOOL launched = CreateProcessW(executable.c_str(), command.data(), nullptr, nullptr, output ? TRUE : FALSE, CREATE_SUSPENDED | EXTENDED_STARTUPINFO_PRESENT | CREATE_UNICODE_ENVIRONMENT | CREATE_NO_WINDOW, environment.data(), directory.c_str(), &startup.StartupInfo, &created);
 	const DWORD error = GetLastError(); DeleteProcThreadAttributeList(list);
 	if (!launched) throw std::runtime_error("create_appcontainer_suspended:" + std::to_string(error));
-	if (!AssignProcessToJobObject(job, created.hProcess) || ResumeThread(created.hThread) == static_cast<DWORD>(-1)) {
+	BOOL joined = FALSE;
+	if (!IsProcessInJob(created.hProcess, job, &joined) || !joined || ResumeThread(created.hThread) == static_cast<DWORD>(-1)) {
 		const DWORD failure = GetLastError(); TerminateProcess(created.hProcess, 1); WaitForSingleObject(created.hProcess, 5000); CloseHandle(created.hThread); CloseHandle(created.hProcess);
 		throw std::runtime_error("assign_job_and_resume:" + std::to_string(failure));
 	}

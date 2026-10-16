@@ -54,13 +54,7 @@ static unsigned long long fileId(const BY_HANDLE_FILE_INFORMATION& info) {
 	return (static_cast<unsigned long long>(info.nFileIndexHigh) << 32) | info.nFileIndexLow;
 }
 static PROCESS_INFORMATION launchHostControl(const fs::path& executable, std::wstring command, const fs::path& directory, std::wstring& environment, HANDLE job) {
-	STARTUPINFOW startup{}; startup.cb = sizeof(startup); PROCESS_INFORMATION created{};
-	check(CreateProcessW(executable.c_str(), command.data(), nullptr, nullptr, FALSE, CREATE_SUSPENDED | CREATE_UNICODE_ENVIRONMENT | CREATE_NO_WINDOW, environment.data(), directory.c_str(), &startup, &created) != FALSE, "host_control_create_suspended");
-	if (!AssignProcessToJobObject(job, created.hProcess) || ResumeThread(created.hThread) == static_cast<DWORD>(-1)) {
-		const DWORD failure = GetLastError(); TerminateProcess(created.hProcess, 1); WaitForSingleObject(created.hProcess, 5000); CloseHandle(created.hThread); CloseHandle(created.hProcess);
-		throw std::runtime_error("host_control_assign_resume:" + std::to_string(failure));
-	}
-	return created;
+	return launch(executable, std::move(command), directory, environment, nullptr, job, false);
 }
 // A separate trusted, fixed host program verifies Job lifecycle; it is not an LPAC escape or a production Tool.
 static void verifyHostJobControl(const fs::path& executable, const fs::path& stage, std::wstring& environment, bool single) {
