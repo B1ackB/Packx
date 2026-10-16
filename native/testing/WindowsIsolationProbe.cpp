@@ -125,7 +125,7 @@ static PROCESS_INFORMATION launch(const fs::path& executable, std::wstring comma
 
 static int child(const fs::path& stage, const fs::path& denied, unsigned short port, HANDLE inherited, DWORD volume, unsigned long long identity) {
 	unsigned passed = 0;
-	auto expect = [&](bool ok, const char* name) { check(ok, name); ++passed; };
+	auto expect = [&](bool ok, const char* name) { check(ok, name); ++passed; std::ofstream progress(stage / L"output" / L"progress.txt"); progress << passed << " " << name; };
 	HANDLE rawToken = nullptr;
 	check(OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &rawToken) != FALSE, "query_probe_token");
 	Handle token(rawToken); DWORD actual = 0, size = 0;
@@ -150,9 +150,18 @@ static int child(const fs::path& stage, const fs::path& denied, unsigned short p
 	if (networkInitialization == 0) {
 		SOCKET connection = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 		check(connection != INVALID_SOCKET, "child_socket");
+		u_long nonblocking = 1; check(ioctlsocket(connection, FIONBIO, &nonblocking) == 0, "nonblocking_network_probe");
 		sockaddr_in address{}; address.sin_family = AF_INET; address.sin_port = htons(port); address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 		const int connected = connect(connection, reinterpret_cast<sockaddr*>(&address), sizeof(address));
-		const int networkError = WSAGetLastError();
+		int networkError = WSAGetLastError();
+		if (connected == SOCKET_ERROR && networkError == WSAEWOULDBLOCK) {
+			fd_set writable; FD_ZERO(&writable); FD_SET(connection, &writable);
+			fd_set failed; FD_ZERO(&failed); FD_SET(connection, &failed); timeval timeout{1, 0};
+			const int ready = select(0, nullptr, &writable, &failed, &timeout);
+			int length = sizeof(networkError);
+			if (ready > 0) check(getsockopt(connection, SOL_SOCKET, SO_ERROR, reinterpret_cast<char*>(&networkError), &length) == 0, "network_probe_status");
+			else networkError = WSAETIMEDOUT;
+		}
 		closesocket(connection); WSACleanup();
 		networkDenied = connected == SOCKET_ERROR && networkError == WSAEACCES;
 	}
@@ -250,7 +259,9 @@ static int probe(const fs::path& root, const std::wstring& profileName) {
 	{ std::ifstream report(reportPath); report >> passed >> descendantPid >> networkInitialization >> networkDenied; }
 	if (passed < 14 || !descendantPid) {
 		std::ifstream report(reportPath); std::string error; std::getline(report, error);
-		throw std::runtime_error("contained_probe_failed:" + error.substr(0, 512));
+		std::ifstream progress(output / L"progress.txt"); std::string step; std::getline(progress, step);
+		DWORD code = STILL_ACTIVE; GetExitCodeProcess(process.value, &code);
+		throw std::runtime_error("contained_probe_failed:" + error.substr(0, 512) + "; last_step=" + step.substr(0, 200) + "; child_exit=" + std::to_string(code));
 	}
 	Handle descendant(OpenProcess(SYNCHRONIZE | PROCESS_QUERY_LIMITED_INFORMATION, FALSE, descendantPid));
 	check(descendant.value != nullptr, "observe_descendant");
