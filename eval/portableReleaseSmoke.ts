@@ -47,10 +47,12 @@ async function request(path: string, method = "GET", body?: unknown) {
 }
 try {
  const tar = process.platform === "win32" ? join(process.env.SystemRoot!, "System32", "tar.exe") : "/usr/bin/tar";
+ if (process.platform === "win32") assert.equal(readFileSync(archive).subarray(0, 4).toString("hex"), "504b0304", "Expected a genuine ZIP archive");
  for (const app of [appA, appB]) {
+  console.log("portable_stage: extract and verify tracked release");
   mkdirSync(app);
   const extracted = process.platform === "win32"
-   ? spawnSync(join(process.env.SystemRoot!, "System32", "WindowsPowerShell", "v1.0", "powershell.exe"), ["-NoLogo", "-NoProfile", "-NonInteractive", "-Command", "$ErrorActionPreference='Stop'; Expand-Archive -LiteralPath $env:PACKX_TEST_ARCHIVE -DestinationPath $env:PACKX_TEST_DESTINATION"], { env: { ...testEnvironment(process.env), PACKX_TEST_ARCHIVE: archive, PACKX_TEST_DESTINATION: app }, encoding: "utf8", timeout: 30000 })
+   ? spawnSync(join(process.env.ProgramFiles ?? "C:\\Program Files", "PowerShell", "7", "pwsh.exe"), ["-NoLogo", "-NoProfile", "-NonInteractive", "-Command", "$ErrorActionPreference='Stop'; [System.IO.Compression.ZipFile]::ExtractToDirectory($env:PACKX_TEST_ARCHIVE, $env:PACKX_TEST_DESTINATION)"], { env: { ...testEnvironment(process.env), PACKX_TEST_ARCHIVE: archive, PACKX_TEST_DESTINATION: app }, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 30000 })
    : spawnSync(tar, ["-xf", archive, "-C", app], { encoding: "utf8", timeout: 30000 });
   assert.equal(extracted.status, 0, `System extraction failed: ${extracted.error?.message ?? ""} ${extracted.stderr}`);
   const manifest = JSON.parse(readFileSync(join(app, "packx-release.json"), "utf8"));
@@ -67,6 +69,7 @@ try {
  }
  assert.equal(createHash("sha256").update(readFileSync(archive)).digest("hex"), readFileSync(`${archive}.sha256`, "utf8").split(" ")[0]);
  // Real dependency installation in the relocated directory; no symlink or developer checkout reuse.
+ console.log("portable_stage: genuine first dependency installation and start");
  await start(appA);
  assert(existsSync(join(appA, ".packx-install.json")));
  const health = await request("/api/runtime/health"); assert.equal(health.adapter, "fake");
@@ -97,6 +100,7 @@ try {
  const audit = JSON.parse(readFileSync(join(dataA, `.packx-host-stop-${originalInstance}.json`), "utf8"));
  assert.equal(audit.source, "local_command"); assert.equal(audit.idempotencyKey, originalInstance); assert.equal(audit.tenantId, "local-user"); assert(!JSON.stringify(audit).includes(token));
  assert(run(appA, ["scripts/launch.mjs", "stop"]).includes("already stopped"));
+ console.log("portable_stage: stopped backup, separate-directory upgrade and rollback");
  // Upgrade and rollback use separate directories and pre-upgrade backup, never in-place migration.
  run(appA, ["--import", "tsx", "scripts/local-state.ts", "backup", backup]);
  assert(!JSON.stringify(JSON.parse(readFileSync(join(backup, "packx-backup.json"), "utf8"))).includes(".packx-settings"));
@@ -106,6 +110,7 @@ try {
  assert.equal((await request("/api/model-settings")).keyConfigured, false); await stop(appB, dataB);
  run(appA, ["--import", "tsx", "scripts/local-state.ts", "restore", backup, rollback]);
  await start(appA, rollback); assert.equal((await request(`/api/conversations/${id}`)).conversation.title, "发行中文恢复验收"); await stop(appA, rollback);
+ console.log("portable_stage: owned Host crash and explicit lock recovery");
  // Kill only a directly owned fixture Host; product stop never uses process-name or PID killing.
  const owned = await start(appB, dataB, true), closed = once(owned, "close"); owned.kill("SIGKILL"); await closed;
  assert(existsSync(join(dataB, ".packx-operation.lock")));
