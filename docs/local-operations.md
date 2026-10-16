@@ -73,3 +73,7 @@ npm run state -- recover-lock
 本地回归覆盖 File/SQLite/WAL 往返、完整性、目录覆盖拒绝、运行互斥、路径穿越和链接拒绝。没有真实企业数据、故障设备或跨版本生产迁移验证；相关记录保持待补。
 
 共享目录边界判断使用当前平台的路径分隔符，拒绝父目录和相邻目录越界。`server/localDataBoundary.test.ts` 在离线测试中分别使用 Node 的 POSIX／Windows 路径实现，覆盖父目录穿越、同前缀目录、跨盘符和 UNC 路径。此判断只处理词法路径；真实路径及链接仍由调用方校验。这不代表 Windows 文件系统、备份恢复、原生沙箱或完整产品已经实测受支持。
+
+备份与恢复通过标准库 `basename` 取得新目标目录名，并把它与真实父目录组合，避免 Windows 反斜杠路径丢弃父目录规范化结果。目标经目录链接（Windows 为 junction）指回源目录时必须在创建文件前拒绝。`windows-local-data` CI 在真实 Windows runner 上覆盖这条有限切片；只有对应提交的成功记录才构成平台证据。阶段验收与完整产品限制见 [生产化工作单](production-readiness-plan.md)。
+
+Windows 文件刷新要求写权限句柄；File Event Store、File Queue 与 Cron Store 在重命名前以 `r+` 打开自己的临时文件并刷新。目录刷新集中到 `server/syncDirectory.ts`：POSIX 保留目录 fsync 并传播失败；Windows 下 Node 不提供该目录刷新路径，因此只保留文件刷新和重命名。Windows 回归验证进程强制终止后的恢复，不保证断电后目录项持久性；若产品要求该保证，须补充并验证原生持久化方案，不能以本切片通过替代。参见 [Microsoft FlushFileBuffers 的写权限要求](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-flushfilebuffers)。

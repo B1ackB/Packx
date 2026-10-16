@@ -23,6 +23,7 @@
 | 如何运行、备份、排障、发布本地包 | [本地运维](local-operations.md)、[启动与发布](release-start.md)、[配置](api-configuration.md) | [本地交付工作单](local-product-completion.md) |
 | 如何搭建安全、可审计的 CI 与合并检查 | [CI 建设计划](ci-security-plan.md)、[CI 运行与验收](ci-operations.md) | [仓库约束](../AGENTS.md)、[依赖记录](dependencies.md)；远端运行与设置待用户确认 |
 | 下一步优先做什么 | [路线图](roadmap.md)、[用户验证模板](user-validation-template.md) | [项目决策](project-decisions.md) |
+| 如何持续核对生产化与 Windows 支持进展 | [生产化与跨平台工作单](production-readiness-plan.md) | 分阶段通过条件、实际 PR／CI 证据、预算停止线与未验收平台边界 |
 | 如何核对原文、记录人工试用与复现进程中断 | [试用协议与记录入口](user-validation-template.md) | [本轮产品验证](evidence/requirement-review-2026-09-26.md)、[进程终止原始记录](evidence/process-recovery-2026-09-26.json) |
 
 ## 阅读优先级与维护方式

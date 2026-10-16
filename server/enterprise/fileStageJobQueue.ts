@@ -90,7 +90,7 @@ class FileStageJobQueueStorage implements StageJobQueueStorage {
 				mode: 0o600,
 				flag: "wx",
 			});
-			const handle = openSync(temporaryPath, "r");
+			const handle = openSync(temporaryPath, "r+");
 			try {
 				fsyncSync(handle);
 			} finally {

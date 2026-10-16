@@ -1,4 +1,5 @@
 import { constants, closeSync, existsSync, fstatSync, fsyncSync, linkSync, lstatSync, openSync, readSync, readdirSync, realpathSync, renameSync, unlinkSync, writeFileSync } from "node:fs";
+import { syncDirectory } from "../syncDirectory";
 import { createHash, randomUUID } from "node:crypto";
 import { homedir } from "node:os";
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
@@ -130,7 +131,6 @@ export class LocalFileAccess {
 				else { linkSync(temporary, path); unlinkSync(temporary); } // Atomic no-clobber creation.
 			} finally { if (existsSync(temporary)) unlinkSync(temporary); }
 		}
-		const fd = openSync(dirname(path), constants.O_RDONLY);
-		try { fsyncSync(fd); } finally { closeSync(fd); }
+		syncDirectory(dirname(path));
 	}
 }

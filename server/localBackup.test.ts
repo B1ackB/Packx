@@ -1,5 +1,5 @@
 import { mkdtempSync, mkdirSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync, existsSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { DatabaseSync } from "node:sqlite";
 import { afterEach, describe, expect, it } from "vitest";
@@ -62,11 +62,23 @@ describe("local product backup and restore", () => {
 		writeFileSync(join(restored, ".packx-incomplete"), "interrupted");
 		expect(() => lockLocalData(restored)).toThrow(/restore_incomplete/);
 	});
+	it("rejects nested destinations through a directory symlink or Windows junction before creating files", () => {
+		const { data, backup } = setup();
+		const dataAlias = join(dirname(data), "data-alias"), backupAlias = join(dirname(data), "backup-alias");
+		const type = process.platform === "win32" ? "junction" : "dir";
+		symlinkSync(data, dataAlias, type);
+		expect(() => createBackup(data, join(dataAlias, "nested"))).toThrow("backup_requires_separate_destination");
+		expect(existsSync(join(data, "nested"))).toBe(false);
+		createBackup(data, backup);
+		symlinkSync(backup, backupAlias, type);
+		expect(() => restoreBackup(backup, join(backupAlias, "nested"))).toThrow("restore_requires_separate_destination");
+		expect(existsSync(join(backup, "nested"))).toBe(false);
+	});
 	it("relocates default stores while preserving explicit legacy overrides", () => {
 		const environment: NodeJS.ProcessEnv = { BLACKX_DATA_ROOT: "/private/tmp/restored", BLACKX_STAGE_JOB_QUEUE_DRIVER: "sqlite", BLACKX_FILE_STORE_PATH: "/private/tmp/legacy-files" };
 		const data = configureLocalData(environment);
-		expect(data.paths.BLACKX_AGENT_STATE_PATH).toBe("/private/tmp/restored/agent");
-		expect(data.paths.BLACKX_STAGE_JOB_QUEUE_PATH).toBe("/private/tmp/restored/stage-jobs.sqlite");
-		expect(data.paths.BLACKX_FILE_STORE_PATH).toBe("/private/tmp/legacy-files");
+		expect(data.paths.BLACKX_AGENT_STATE_PATH).toBe(resolve("/private/tmp/restored/agent"));
+		expect(data.paths.BLACKX_STAGE_JOB_QUEUE_PATH).toBe(resolve("/private/tmp/restored/stage-jobs.sqlite"));
+		expect(data.paths.BLACKX_FILE_STORE_PATH).toBe(resolve("/private/tmp/legacy-files"));
 	});
 });
