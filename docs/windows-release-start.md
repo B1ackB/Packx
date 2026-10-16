@@ -1,6 +1,6 @@
 # Windows 便携验证包
 
-这是 Windows **x64** 内部验收 ZIP，不是签名安装器，也不表示 Windows 11 员工桌面已经通过验收。包内包含已构建网页和固定 UTF-8 原生程序；不包含 Node.js、Visual Studio/SDK、模型、API Key 或业务数据。
+这是 Windows **x64** 内部验收 ZIP 的构建与使用说明。CI 已接入打包验收，但产物保留受远端 action 清单限制，当前没有可下载 Windows ZIP；在匹配的、已批准的 Windows 构建环境执行 `npm run release` 可生成本地包。它不是签名安装器，也不表示 Windows 11 员工桌面已经通过验收。包内包含已构建网页和固定 UTF-8 原生程序；不包含 Node.js、Visual Studio/SDK、模型、API Key 或业务数据。
 
 1. 安装 Node.js **24.14 或更高的 24.x**，将 ZIP 解压至当前用户拥有、可写的本机目录。目录可以含中文和空格。不要放在共享目录、网盘或系统目录。
 2. 双击 `Start-Packx.cmd`。首次按 package-lock.json 安装依赖，需要 npm Registry 网络；生命周期脚本禁用。失败不会留下成功安装凭据，可检查网络后重试。后续启动复用安装。无需编译器、管理员权限或执行策略调整。
