@@ -6,7 +6,7 @@
 
 A brief preserves candidate facts and their sources, missing information, conflicts, and proposed changes, alongside artifact versions, review results, and approvals. Business state is stored separately from chat, so a user can trace where a quantity came from and which version remains eligible for delivery after a change.
 
-This is a runnable engineering prototype with an unsigned macOS release. Real-user value, production multi-user deployment, and signed installers remain unvalidated or unfinished. The product focuses on packaging. Previously named Blackx, it retains `BLACKX_*` environment variables, `.blackx-data/` storage, and internal compatibility identifiers such as `print`.
+This is a runnable engineering prototype with unsigned macOS and Windows x64 validation bundles. Real-user value, production multi-user deployment, and signed installers remain unvalidated or unfinished. The product focuses on packaging. Previously named Blackx, it retains `BLACKX_*` environment variables, `.blackx-data/` storage, and internal compatibility identifiers such as `print`.
 
 [Business workflow](#from-inquiry-to-requirement-brief) · [Architecture](#architecture) · [Quick start](#install) · [Evidence](#validation-status)
 
@@ -194,7 +194,7 @@ npm run dev
 
 Open **http://127.0.0.1:5173**. This single command builds the native reader and runs the API host with the Vite UI. A separate frontend terminal is not needed.
 
-The Windows increment is limited to UTF-8 `.txt`, `.md`, `.csv` and `.json` uploads up to 128 KiB, running in LPAC with a single-process Job and no network capability. It requires the [pinned preinstalled toolchain](.github/windows-isolation-toolchain.json); missing binaries or isolation evidence fail closed. Windows desktop installation, PDF/Office, local absolute file paths and arbitrary commands remain unsupported/unvalidated. See the [acceptance plan](docs/production-readiness-plan.md).
+The Windows increment is limited to UTF-8 `.txt`, `.md`, `.csv` and `.json` uploads up to 128 KiB, running in LPAC with a single-process Job and no network capability. Building it requires the [pinned preinstalled toolchain](.github/windows-isolation-toolchain.json); the validation bundle does not require a compiler. missing binaries or isolation evidence fail closed. The [portable Windows validation path](docs/windows-release-start.md) covers clean dependency installation, instance-aware start/stop and separate-data backup/restore in CI. Real Windows 11 employee desktops, signed installation, PDF/Office, local absolute file paths and arbitrary commands remain unsupported/unvalidated. See the [acceptance plan](docs/production-readiness-plan.md).
 
 `npm run dev` automatically reads `.env`; existing shell environment variables take precedence. `.env` is ignored by Git. Keep keys server-side and never put them in messages, committed files, or `VITE_` variables. Environment loading differs between evaluation commands; check the corresponding `package.json` script and configuration guide before running one.
 
@@ -204,7 +204,7 @@ Real requests can incur provider charges. Selected document contents and model i
 
 ### Local release and settings
 
-Run `npm run release` to produce a macOS directory, archive and checksum under `releases/`. Open `Packx.command` inside the directory; Node 24.14+ (24.x) is required, and the first launch installs pinned dependencies. Use **Configure model** in the sidebar, save the connection, then restart. Task names and Plan objectives are searchable in the sidebar. See the [release guide](docs/release-start.md) and [local operations](docs/local-operations.md). This local release is unsigned; clean-device and enterprise deployment validation remain open.
+Run `npm run release` to produce a macOS directory, archive and checksum under `releases/`. Open `Packx.command` inside the directory; Node 24.14+ (24.x) is required, and the first launch installs pinned dependencies. Use **Configure model** in the sidebar, save the connection, then restart. Task names and Plan objectives are searchable in the sidebar. See the [release guide](docs/release-start.md) and [local operations](docs/local-operations.md). This local release is unsigned; clean-device and enterprise deployment validation remain open. Windows CI separately builds an unsigned x64 ZIP from tracked allowlisted source and verified native binaries, tests it in fresh Chinese/spaced directories without reusing checkout dependencies, and validates the resulting ZIP and checksum. Remote artifact retention is currently blocked by the repository action allowlist; no downloadable Windows ZIP is claimed. See the [Windows guide](docs/windows-release-start.md) and [license/distribution boundaries](docs/windows-release-notices.md). It is an internal validation artifact, not a signed customer installer.
 
 ## Verification commands
 

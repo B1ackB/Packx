@@ -93,7 +93,7 @@ jobs:
   windows-local-data:
     name: windows-local-data
     runs-on: windows-2025
-    timeout-minutes: 10
+    timeout-minutes: 15
     permissions:
       contents: read
     steps:
