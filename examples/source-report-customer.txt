@@ -1,0 +1,5 @@
+Synthetic customer source for the Packx source-report demo.
+The customer requests a nominal material thickness of 90 um.
+This is a request, not a verified production specification.
+Any supplier value, measurement method, test conditions or revision must be checked separately.
+Do not approve an order or replace a verified fact based on this file alone.

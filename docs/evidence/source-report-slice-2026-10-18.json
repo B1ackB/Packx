@@ -1,0 +1,104 @@
+{
+  "date": "2026-10-18",
+  "baseCommit": "937a74f",
+  "branch": "codex/workspace-task-graph",
+  "node": "24.14.0",
+  "focusedTests": 42,
+  "core": {
+    "success": true,
+    "total": 1283,
+    "passed": 1233,
+    "failed": 0,
+    "pending": 50
+  },
+  "native": {
+    "success": true,
+    "total": 48,
+    "passed": 48,
+    "failed": 0,
+    "pending": 0
+  },
+  "browser": {
+    "startTime": "2026-10-18T17:34:07.686Z",
+    "duration": 15043.265,
+    "expected": 39,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "offlineEvaluationsPassed": 11,
+  "productHttp": {
+    "status": "passed on final protocol",
+    "sources": "text attachment",
+    "checks": [
+      "authentication",
+      "idempotent command replay",
+      "raw hash provenance",
+      "saved original",
+      "download",
+      "non-permitted URL denied"
+    ],
+    "reportsModelCalls": 0,
+    "modelCounterUnchangedAsserted": true
+  },
+  "networkAttempt": {
+    "url": "https://example.com/",
+    "reader": "production RestrictedWebSource",
+    "outcome": "denied",
+    "reason": "web_private_address",
+    "publicConnectionAttempted": false,
+    "positivePublicFetchVerified": false,
+    "policyRelaxed": false
+  },
+  "fixedWebEval": {
+    "fixture": "packx-source-report-v1",
+    "sources": 2,
+    "webRequestsToFakeTransport": 1,
+    "externalRequests": 0,
+    "modelCalls": 0,
+    "verifiedFacts": 0,
+    "approvals": 0,
+    "conflictingClaimsPreserved": true,
+    "realSiteParsingQualityEstablished": false
+  },
+  "firstNativeFailure": {
+    "passed": 47,
+    "failed": 1,
+    "reason": "Positive fixture used documentation-only IPv4 203.0.113.7, now correctly blocked",
+    "resolution": "Simulate public 93.184.216.34 through the same fake connect; keep every positive and negative assertion"
+  },
+  "limits": {
+    "versions": 12,
+    "sources": 6,
+    "urls": 3,
+    "attemptsPerVersion": 3,
+    "bytesPerSource": 131072,
+    "storedTextChars": 32000,
+    "excerptChars": 2000,
+    "webTimeoutMs": 15000,
+    "redirects": 3
+  },
+  "boundaries": {
+    "newDependencies": 0,
+    "newCredentials": 0,
+    "paidModelCalls": 0,
+    "pushed": false,
+    "deployed": false,
+    "remoteCiRun": false,
+    "windowsRealHostVerified": false,
+    "systemSecuritySettingsChanged": false,
+    "readArbitraryLocalPaths": false,
+    "reportAutoInjectedIntoAgentContext": false
+  },
+  "quota": {
+    "at": "2026-10-18T17:38:25Z",
+    "usedPercent": 11,
+    "remainingPercent": 89,
+    "windowDurationMins": 10080,
+    "shortWindowAvailable": false,
+    "minimumRemainingPercent": 15
+  },
+  "build": "passed",
+  "workflowPolicy": "passed",
+  "secretScan": "passed (negative control, tracked directory and Git history)"
+}

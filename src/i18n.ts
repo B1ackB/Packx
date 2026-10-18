@@ -35,6 +35,23 @@ export function statusFor(language: Language, key: string, fallback: string): st
 }
 
 const errors: Record<string, [string, string]> = {
+	report_invalid_command: ["请选择不重复的资料，并填写报告名称；最多 6 项来源、3 个网页。", "Choose distinct sources and a title; at most 6 sources including 3 pages."],
+	report_running: ["当前报告仍在处理，请等待或取消后再新建。", "Wait for the current report or cancel it before starting another."],
+	report_revision_conflict: ["报告状态已更新，请核对最新状态后重试。", "The report state changed. Review the latest state and retry."],
+	report_source_changed: ["来源版本已变化或格式不支持，请重新选择文本资料。", "The source changed or is unsupported. Select the text source again."],
+	report_source_unavailable: ["来源暂不可用，请核对资料是否已撤回及访问权限。", "A source is unavailable. Check withdrawal and access permissions."],
+	report_artifact_corrupt: ["保存的报告或原文校验失败，已停止读取，请保留资料并排查。", "Saved report or source validation failed. Reading stopped; preserve the data for review."],
+	report_version_limit: ["本任务已达 12 个报告版本，请核对已有报告。", "This task reached 12 report versions. Review existing reports."],
+	report_not_retryable: ["此报告不能继续重试，请核对失败原因和已有资料。", "This report cannot be retried. Review the cause and saved sources."],
+	source_too_large: ["单份来源超过 128 KiB，请拆分资料。", "A source exceeds 128 KiB. Split it into smaller files."],
+	source_empty: ["来源没有可读取的文字，请检查原文。", "The source contains no readable text. Check the original."],
+	web_url_denied: ["仅允许配置域名内的 HTTPS 网页，不接受登录信息、查询参数或其他端口。", "Use HTTPS on a permitted domain, without credentials, query parameters or other ports."],
+	web_private_address: ["网页解析到私有或受限地址，已停止访问。", "The page resolved to a private or restricted address. Access stopped."],
+	web_redirect_limit: ["网页重定向过多或无效，请使用原始资料的直接链接。", "The redirects are excessive or invalid. Use a direct source link."],
+	web_content_unsupported: ["网页需为 UTF-8 纯文本或静态 HTML；不支持登录、脚本页面和压缩内容。", "Use UTF-8 plain text or static HTML; sign-in, scripts and compressed content are unsupported."],
+	web_http_error: ["网页服务返回错误，请检查链接，或稍后重试可恢复的任务。", "The website returned an error. Check the link or retry recoverable work later."],
+	web_timeout: ["网页读取超时，可重试剩余资料。", "Reading the page timed out. Retry the remaining sources."],
+	web_unavailable: ["网页暂时无法连接，可稍后重试剩余资料。", "The page is temporarily unreachable. Retry the remaining sources later."],
 	invalid_plan_dependencies: ["计划中的任务依赖无效，请重新生成并核对顺序。", "The task dependencies are invalid. Generate and review a new plan."],
 	plan_dependency_not_ready: ["所需的前置任务尚无完成依据，请核对已有结果并重新规划。", "A prerequisite has no completion evidence. Review results and replan."],
 	plan_dependency_context_too_large: ["前置任务的结果过长，请缩小任务范围后重新规划。", "The prerequisite reports are too large. Narrow the task and replan."],

@@ -16,6 +16,7 @@ This is a runnable engineering prototype with unsigned macOS and Windows x64 val
 - **Evidence review and revision:** validate rules before independently reviewing source material; revise eligible issues once while retaining the old draft, evidence, and unresolved issues.
 - **Documents and knowledge:** read PDF, DOCX, and XLSX text; retrieve and select versioned packaging evidence. Retrieval results do not automatically become order facts.
 - **Durable execution:** persist jobs, checkpoints, and execution records for pause, cancellation, and controlled recovery. Confirmed personal preferences can be reused across conversations in the same workspace.
+- **Source reports:** collect selected UTF-8 files and Host-permitted HTTPS pages into immutable, unverified source snapshots and report versions, without model calls. [Demo and limits](docs/source-reports.md).
 - **Workspace tools:** bilingual UI, streamed chat, file previews, per-operation approval for text writes, model/token records, and confirmed Plan execution.
 
 The **Usage tutorial** button opens a seven-step guide, even before you create a request. You can exit and reopen it at any time. The guide only explains and navigates; you still confirm facts and approve versions yourself.

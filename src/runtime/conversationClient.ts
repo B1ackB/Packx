@@ -89,6 +89,10 @@ async function attachmentRequest(path: string, init?: RequestInit): Promise<Resp
 }
 
 export class ConversationClient {
+	sourceReports(conversationId: string) { return request<import("../enterprise/sourceReport").SourceReportView>(`/api/conversations/${encodeURIComponent(conversationId)}/source-reports`); }
+	sourceReportSnapshot(conversationId: string, version: number, index: number) { return request<import("../enterprise/sourceReport").SourceSnapshot>(`/api/conversations/${encodeURIComponent(conversationId)}/source-reports/${version}/sources/${index}`); }
+	sourceReportCommand(conversationId: string, payload: unknown) { return request<import("../enterprise/sourceReport").SourceReportView>(`/api/conversations/${encodeURIComponent(conversationId)}/source-reports`, { method: "POST", body: JSON.stringify(payload) }); }
+	sourceReport(conversationId: string, version: number) { return request<import("../enterprise/sourceReport").SourceReportArtifact>(`/api/conversations/${encodeURIComponent(conversationId)}/source-reports/${version}`); }
 	taskCheckpoint(conversationId: string) { return request<import("../enterprise/taskCheckpoint").TaskCheckpointView>(`/api/conversations/${encodeURIComponent(conversationId)}/task-checkpoint`); }
 	taskCheckpointCommand(conversationId: string, payload: unknown) { return request<import("../enterprise/taskCheckpoint").TaskCheckpointView>(`/api/conversations/${encodeURIComponent(conversationId)}/task-checkpoint`, { method: "POST", body: JSON.stringify(payload) }); }
 	personalMemory(conversationId: string) { return request<import("../enterprise/personalMemory").MemoryView>(`/api/conversations/${encodeURIComponent(conversationId)}/memory`); }

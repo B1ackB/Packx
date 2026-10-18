@@ -16,7 +16,7 @@ import { resolve, join } from "node:path";
 import { once } from "node:events";
 import { documentFixture } from "../server/testing/documentFixture";
 import { createRequirementBrief, requiredRequirementFacts, type RequirementBriefEvaluation } from "../src/manufacturing/requirementBrief";
-import type { ConversationView, RequirementBriefWorkspaceView, RuntimeActivity } from "../src/runtime/conversationContracts";
+import type { ConversationAttachment, ConversationView, RequirementBriefWorkspaceView, RuntimeActivity } from "../src/runtime/conversationContracts";
 import type { RequirementDelivery } from "../src/manufacturing/requirementDelivery";
 import type { ConversationFilesView, LocalDirectoryListing, LocalFileLocations } from "../src/runtime/conversationFiles";
 import type { AnthropicMessageRequest } from "../server/anthropic/types";
@@ -35,11 +35,13 @@ const localDocument = join(documents, "客户包装需求.md");
 const serve = process.argv.includes("--serve");
 const settingsPath = resolve(`.packx-settings.json-${crypto.randomUUID()}.fixture`);
 const graphObjectives: string[] = [];
+let modelGenerations = 0;
 const provider = createServer(async (request, response) => {
 	const chunks: Buffer[] = []; for await (const chunk of request) chunks.push(Buffer.from(chunk));
 	const body = JSON.parse(Buffer.concat(chunks).toString()) as AnthropicMessageRequest;
 	response.setHeader("content-type", "application/json");
 	if (request.url?.endsWith("count_tokens")) { response.end(JSON.stringify({ input_tokens: 100 })); return; }
+	modelGenerations++;
 	const blocks = body.messages.flatMap((message) => message.content);
 	const last = body.messages.at(-1)?.content ?? [];
 	const requirement = body.tools?.some((tool) => tool.name === "project_source_read");
@@ -339,6 +341,33 @@ try {
 		await planCommand({ action: "mode", mode: "execute" });
 	}
 	console.log("PASS: Plan mode, explicit version confirmation, isolated subagents and persisted results through local HTTP fixture.");
+	if (!serve) {
+		const reportPath = `/api/conversations/${planId}/source-reports`;
+		const beforeReportCalls = modelGenerations;
+		const upload = await fetch(`${baseUrl}/api/conversations/${planId}/attachments?name=report-source.txt&requestId=report-file`, { method: "POST", headers: { ...headers, "content-type": "text/plain" }, body: "Customer asks for 90 um; supplier claim needs independent verification." });
+		assert(upload.ok, await upload.clone().text());
+		const { attachment } = await upload.json() as { attachment: ConversationAttachment };
+		const view = await api<import("../src/enterprise/sourceReport").SourceReportView>(reportPath);
+		const body = { requestId: "report-once", revision: view.revision, action: "start", title: "Source report HTTP", inputs: [{ kind: "attachment", attachmentId: attachment.attachmentId, sha256: attachment.sha256 }] };
+		await api(reportPath, body); await api(reportPath, body);
+		for (let i = 0; i < 150; i++) {
+			const state = await api<import("../src/enterprise/sourceReport").SourceReportView>(reportPath);
+			assert.notEqual(state.versions[0].status, "failed", JSON.stringify(state));
+			if (state.versions[0].status === "completed") break;
+			assert(i < 149, "Source report did not complete"); await new Promise(resolve => setTimeout(resolve, 100));
+		}
+		const report = await api<import("../src/enterprise/sourceReport").SourceReportArtifact>(`${reportPath}/1`);
+		assert.equal(report.status, "unverified"); assert.equal(report.sources[0].sha256, attachment.sha256); assert(report.sources[0].excerpt.includes("90 um"));
+		assert((await api<import("../src/enterprise/sourceReport").SourceSnapshot>(`${reportPath}/1/sources/0`)).text.includes("independent verification"));
+		const download = await fetch(`${baseUrl}${reportPath}/1?download=1`, { headers }); assert(download.ok); assert(download.headers.get("content-disposition")?.includes("source-report-v1.json"));
+		assert.equal((await fetch(`${baseUrl}${reportPath}/1`)).status, 403);
+		const current = await api<import("../src/enterprise/sourceReport").SourceReportView>(reportPath);
+		const denied = await fetch(`${baseUrl}${reportPath}`, { method: "POST", headers: { ...headers, "content-type": "application/json" }, body: JSON.stringify({ ...body, requestId: "web-denied", revision: current.revision, inputs: [{ kind: "web", url: "https://127.0.0.1/private" }] }) });
+		assert.equal(denied.status, 422);
+		assert.equal(modelGenerations, beforeReportCalls, "Source report collection must not invoke the model");
+		console.log("PASS: source report HTTP authentication, command replay, immutable file snapshot provenance, saved original, download and denied non-permitted web URL; no model calls for reports.");
+	}
+
 	if (!serve) {
 		const graphId = (await api("/api/conversations", {})).conversation.conversationId;
 		const graphPath = `/api/conversations/${graphId}/plan`;

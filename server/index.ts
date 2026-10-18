@@ -1,4 +1,7 @@
 import { RequirementTemplateLibrary } from "./manufacturing/requirementTemplateLibrary";
+import { SourceReportWorkflow } from "./enterprise/sourceReportWorkflow";
+import { RestrictedWebSource } from "./runtime/restrictedWebSource";
+import { SourceReportError } from "../src/enterprise/sourceReport";
 import { workspaceRunId } from "./enterprise/proposalWorkspaceApi";
 import { buildTaskContext } from "./enterprise/taskContext";
 import { TaskCheckpointStore } from "./enterprise/taskCheckpointStore";
@@ -232,6 +235,13 @@ const artifactStore = new FileArtifactContentStore(
 			".blackx-data/artifacts",
 	),
 );
+const sourceReports = new SourceReportWorkflow(resolve(localData.root, "source-reports.sqlite"), stageJobQueue, artifactStore, conversationAttachments,
+	new RestrictedWebSource({ allowedDomains: (process.env.PACKX_SOURCE_WEB_DOMAINS ?? "").split(",") }), {
+		assertAvailable: (scope) => {
+			if (scope.tenantId !== localAccess.identity.tenantId || scope.workspaceId !== localAccess.identity.workspaceId || scope.actorId !== localAccess.identity.actorId || !agentState.getSession({ ...scope, sessionId: scope.runId })) throw new SourceReportError("report_scope_unavailable", 404);
+		},
+		cancelJob: (id, scope) => { stageJobScheduler.cancel(id, scope); },
+	});
 const proposalWorker = new ProposalWorker(
 	proposalEngine,
 	runtime,
@@ -258,6 +268,7 @@ const stageJobScheduler: StageJobScheduler = new StageJobScheduler(
 			proposal: (lease, signal, assertActive) => proposalWorker.executeLease(lease, signal, assertActive),
 			"requirement-brief": (lease, signal, assertActive) => requirementBriefWorker.executeLease(lease, signal, assertActive),
 			"plan-subagents": (lease, signal, assertActive) => planWorkflow.execute(lease, signal, assertActive),
+			"source-report": (lease, signal, assertActive) => sourceReports.execute(lease, signal, assertActive),
 			"conversation-background": (lease, signal, assertActive) => backgroundConversationWorker.execute(lease, signal, assertActive),
 		},
 		assertRunnable: (lease) => {
@@ -272,6 +283,7 @@ const stageJobScheduler: StageJobScheduler = new StageJobScheduler(
 		dispatchOutbox: () => reconcileIndependently({
 			knowledge: () => { if (knowledge.reconcile(localAccess.identity).length) knowledgeApi.refreshAffected(localAccess.identity); },
 			plans: () => planWorkflow.reconcile(),
+			sourceReports: () => sourceReports.reconcile(),
 			deletions: () => conversationDeletion.reconcile(localAccess.identity),
 			proposal: () => stageJobOutbox.dispatchOne(),
 			requirements: () => requirementBriefOutbox.dispatchOne(),
@@ -458,6 +470,24 @@ server.on("request", async (request, response) => {
 		return;
 	}
 	if (hostState !== "running" && url.pathname !== "/api/runtime/health") { json(response, 503, { code: "host_stopping" }); return; }
+	const reportMatch = /^\/api\/conversations\/([^/]+)\/source-reports(?:\/([1-9][0-9]*)(?:\/sources\/([0-5]))?)?$/.exec(url.pathname);
+	if (reportMatch) {
+		try {
+			const scope = { ...localAccess.identity, runId: decodeURIComponent(reportMatch[1]) };
+			if (request.method === "GET") {
+				if (reportMatch[2]) {
+					const report = sourceReports.report(scope, Number(reportMatch[2]));
+					if (reportMatch[3] !== undefined) { json(response, 200, sourceReports.source(scope, report.version, Number(reportMatch[3]))); return; }
+					if (url.searchParams.get("download") === "1") response.setHeader("content-disposition", `attachment; filename="source-report-v${report.version}.json"`);
+					json(response, 200, report);
+				} else json(response, 200, sourceReports.view(scope));
+			} else if (request.method === "POST" && !reportMatch[2]) json(response, 200, sourceReports.command(scope, await readJson(request)));
+			else json(response, 405, { code: "method_not_allowed" });
+		} catch (error) {
+			json(response, error instanceof SourceReportError ? error.status : 503, { code: error instanceof SourceReportError ? error.code : "report_source_unavailable" });
+		}
+		return;
+	}
 
 	const knowledgeMatch = url.pathname.match(/^\/api\/conversations\/([^/]+)\/knowledge(?:\/([a-z-]+))?$/);
 	const memoryMatch = url.pathname.match(/^\/api\/conversations\/([^/]+)\/memory$/);
@@ -1277,7 +1307,7 @@ function stopHost() {
 	hostState = "stopping";
 	stopStageJobScheduler();
 	const finish = () => {
-		planStore.close(); taskNames.close(); personalMemoryStore.close(); templateLibrary.close(); taskCheckpoints.close();
+		sourceReports.close(); planStore.close(); taskNames.close(); personalMemoryStore.close(); templateLibrary.close(); taskCheckpoints.close();
 		process.exit(0);
 	};
 	server.close(finish);
