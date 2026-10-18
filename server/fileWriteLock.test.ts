@@ -3,6 +3,7 @@ import { once } from "node:events";
 import { mkdtempSync, mkdirSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 import { expect, it } from "vitest";
 import { withFileWriteLock } from "./fileWriteLock";
 import { FileArtifactContentStore } from "./artifacts/fileArtifactStore";
@@ -14,9 +15,9 @@ const scope = { tenantId: "tenant", workspaceId: "workspace", runId: "run", sess
 const key = { ...scope, artifactId: "draft", artifactVersion: 1 };
 const command = { ...scope, actorId: "employee", commandId: "create", correlationId: "crash-test", expectedVersion: 0 };
 const now = "2026-09-30T00:00:00.000Z";
-const modulePath = (path: string) => JSON.stringify(resolve(path));
+const modulePath = (path: string) => JSON.stringify(pathToFileURL(resolve(path)).href);
 
-it.each(["artifact", "session", "event"] as const)("releases the %s writer lock on SIGKILL before and after atomic commit", kind => {
+it.each(["artifact", "session", "event"] as const)("releases the %s writer lock on forced termination before and after atomic commit", kind => {
 	for (const phase of ["before", "after"]) {
 		const root = mkdtempSync(join(tmpdir(), "packx-store-crash-"));
 		try {
@@ -24,10 +25,11 @@ it.each(["artifact", "session", "event"] as const)("releases the %s writer lock 
 				import fs from 'node:fs';
 				import { syncBuiltinESMExports } from 'node:module';
 				const rename = fs.renameSync;
+				const crash = () => { fs.writeSync(2, 'packx_test_crash_injected'); process.kill(process.pid, 'SIGKILL'); };
 				fs.renameSync = (...args) => {
-					if (${JSON.stringify(phase)} === 'before') process.kill(process.pid, 'SIGKILL');
+					if (${JSON.stringify(phase)} === 'before') crash();
 					rename(...args);
-					process.kill(process.pid, 'SIGKILL');
+					crash();
 				};
 				syncBuiltinESMExports();
 				const { FileArtifactContentStore } = await import(${modulePath("server/artifacts/fileArtifactStore.ts")});
@@ -39,7 +41,8 @@ it.each(["artifact", "session", "event"] as const)("releases the %s writer lock 
 				if (${JSON.stringify(kind)} === 'session') new FileAgentStateStore(root).createSession(${JSON.stringify(scope)}, ${JSON.stringify(now)});
 				if (${JSON.stringify(kind)} === 'event') new ProposalRunEngine(new FileEnterpriseEventStore(root + '/events.json')).create(${JSON.stringify(command)});
 			`], { encoding: "utf8", timeout: 10_000 });
-			expect(child.signal, child.stderr).toBe("SIGKILL");
+			expect(child.stderr).toContain("packx_test_crash_injected");
+			expect(child.status !== 0 || child.signal !== null).toBe(true);
 			if (kind === "artifact") {
 				const store = new FileArtifactContentStore(root);
 				if (phase === "after") expect(store.readJson(key)).toEqual({ value: 5000 });

@@ -1,0 +1,68 @@
+# 原生隔离探针与清理回归：2026-10-16
+
+PR：[44](https://github.com/B1ackB/Packx/pull/44)，收窄为默认未启用的实验合同，只有当前提交全部必要 CI 成功后才可合并。此文件记录失败与边界，不作为 Windows 产品支持声明。临时交接 `/tmp/packx-production-handoff-2026-10-16.md` 的关键事实归档于此；原有 review-v27 未提交材料未纳入。
+
+## 当前验收范围
+
+诊断模式执行全部检查，已分类的初始化不可用仍显示 13/14、网络门禁 blocked、生产 Adapter 禁用；严格模式必须继续返回 1。CI 分别用新建私有资源实际运行诊断和严格模式，并验证这个拒绝；没有跳过连接探针或把初始化失败称为网络通过。协议版本区分实验报告与 Tool Execution Result，篡改生产启用标记、正向控制失败、缺失清理、意外连接成功或伪造网络通过均由离线回归拒绝。真实网络拒绝即使通过，也不等于 Host 崩溃／磁盘配额／完整工具执行器已通过。
+
+## 已合并基线
+
+PR41（平台路径边界）合并为 `6b77141bb45bddec4e1f9e83bf9aaba28f6e4a9c`；PR42（Windows 本地数据与必需 CI）合并为 `aa69c7099cb5e3aebf36e6796d8bd4b32cef70da`；PR43（严格工具路径合同）合并为 `1753956baf4164e89eb736a4ada99b5349f1c523`。各自必要 CI 通过后才合并，没有绕过保护。路径合同、本地数据回归不代表 Windows OS 隔离已经通过。
+
+## 实际 Windows 失败
+
+固定合成探针仅使用预装且锁定的工具链，不执行客户文档或模型指定命令，不注册生产 Executor。profile／ACL 变更仅针对本次创建的应用资源和合成临时文件，不修改现有账户、全局 ACL、防火墙或执行策略。
+
+- [`f814e3a` 的运行](https://github.com/B1ackB/Packx/actions/runs/38944808329)：九个文件 83 项 Windows 测试通过，探针失败于 `spawn_contained_child:5`，最后已计数检查为 `job_memory_limit`。没有证明全部网络、后代与正常清理成功。
+- [`c527956` 的诊断运行](https://github.com/B1ackB/Packx/actions/runs/38946139523)：`startup=10107; connect=0; noChildProcessCreation=0; regular_startup=0`。普通 AppContainer 可以初始化 Winsock；同 profile 的零 capability LPAC 不能。`connect=0` 是未执行连接时的诊断初值，不能解读为连接成功或访问拒绝。未增加 capability 绕过。
+- 子进程创建错误 5 是实际 OS 拒绝，但其 `NoChildProcessCreation` 为 0，不能冒充显式配置的禁止派生策略，亦不能证明所有派生路径被禁止。须进一步明确能力合同与独立 Job 清理证据。
+- 微软的 [LPAC 说明](https://learn.microsoft.com/en-us/windows/win32/secauthz/implementing-an-appcontainer) 指出其注册表、COM 等能力比普通 AppContainer 更受限；目前尚未证明具体哪次系统访问造成上述两项失败，不能仅凭 10107 将其称为网络策略拒绝。
+
+## Windows 后续合同与控制
+
+后续探针将子进程能力收窄为显式禁止派生，读取 OS mitigation 并尝试派生验证；另以未隔离的固定合成宿主验证 Job 父子生命周期。两者分别报告，不将宿主成功算成 LPAC 后代通过。增加 staged executable 读／执行访问检查，以进一步区分启动合同错误。网络门禁仍要求 LPAC Winsock 初始化成功并实际收到访问拒绝，10107 不放行。
+
+[`bf78f75` 的运行](https://github.com/B1ackB/Packx/actions/runs/38947188759) 中，合法宿主的后代继承、禁止 breakaway、关闭 Job 后根与后代终止已实际通过；LPAC 在进入主程序前退出为 `0xC0000142`，没有输出计数或完整网络证据。该次同时新增了注册表诊断导入与派生限制，不能直接归因；先移除新增导入单独核验，不添加 capability。该失败继续阻断。
+
+[`dfdc214` 的运行](https://github.com/B1ackB/Packx/actions/runs/38947602625) 中九文件 83 项仍通过，但约 30 秒后 scratch 清理的 `EPERM` 掩盖了原始错误，因此不能将此轮归因到 LPAC 或编译器。后续增加编译完成标记、仅对子进程继承的进程级错误弹窗抑制，以及暂存删除的有界重试；清理失败单独报告，保留原始编译／探针失败，不修改全局错误策略或将失败转成功。
+
+[`1fb1370` 的运行](https://github.com/B1ackB/Packx/actions/runs/38948038732)，Windows job `117132048863`：九文件 83/83、pending0；`fixed_probe:compile_completed`；合法宿主 Job 三项控制再次通过；随后 `contained_probe_failed:; last_step=; child_exit=3221225794; ; regular_startup=0`。原始失败已保留，未再被清理错误覆盖。`3221225794 = 0xC0000142`，表示尚未进入固定 LPAC 主程序；移除新增注册表导入不足以消除失败。这个启动组合下无法验证显式派生限制及网络边界，不能声称它们通过。失败路径已尝试清理，但没有完整 `profileDeleted` 或 LPAC 根进程清理成功报告；合法宿主 Job 清理成功仅限其独立控制。
+
+当前阻塞是零 capability LPAC 与显式启动限制下的初始化兼容性，以及此前的 Winsock 10107。没有工具审批拒绝或待批权限；也尚未证明必须扩张权限才能解决。下一步可在同权限下将最小 worker 与 broker 导入分开做启动定位；未经验证不能先增加 registryRead、网络能力或放宽隔离。Windows 文档 Adapter 保持未接入。
+
+后续独立 worker 已从自有固定探针中提取，保留相同负向检查和禁止派生，使用同一锁定工具链与静态 CRT，但不链接 broker 的 userenv／COM／ACL 管理入口。只有 broker 创建 profile 和授权合成路径，受限 worker 不加载这些管理依赖；是否解决初始化仍以对应 Windows CI 为准，不提前声明成功。
+
+[`3677906` 的运行](https://github.com/B1ackB/Packx/actions/runs/38948665627) 中两个可执行文件均已编译，83 项数据测试和合法宿主 Job 控制通过，但 LPAC 仍在进入主程序前退出 `0xC0000142`，故排除仅靠移除 broker 管理依赖即可解决的假设。下一次将安全与网络系统 DLL 的加载延后到固定 worker 进入主程序之后，以报告具体模块加载失败；只从 System32 加载，未修改 capability、mitigation 或门禁。模块不可用仍是失败，不作为网络拒绝通过。
+
+[`5aa49c0` 的运行](https://github.com/B1ackB/Packx/actions/runs/38949604892)：83 项通过，两个程序编译及合法宿主 Job 控制通过，仍为 `child_exit=3221225794; worker_entry=0; regular_startup=0`。延后加载也未能让创建时禁止派生的 LPAC 组合进入主程序，没有证明具体单个 DLL 是根因。
+
+后续候选按 ADR0032 改用显式内核 Job 单进程合同：`ActiveProcessLimit=1`、无 breakaway、暂停入 Job 后才执行、Job 关闭强制终止；Host 查询实际限制，合法宿主单独验证拒绝派生与 breakaway，LPAC 继续验证自己的派生拒绝，并新增对宿主创建进程／复制句柄权限的拒绝与 Host 正向控制。原两进程宿主的树清理控制保留。没有将 Job 当作文件／网络沙箱，LPAC、零 capability、文件边界和真实网络拒绝条件保持不变；尚未通过前不启用生产 Adapter。新候选不再宣称创建时 NoChildProcess mitigation 可用。
+
+[`2e76a46` 的运行](https://github.com/B1ackB/Packx/actions/runs/38950301532)，Windows job `117139707188`：83 项通过；双进程树控制、单进程派生与 breakaway 拒绝均通过。LPAC 完成 13 项独立检查（含宿主高权限句柄拒绝），报告 `singleProcessJobRestricted=true, legalHostSingleProcessDenied=true, legalHostJobTreeTerminated=true, lpacProcessTerminated=true, profileDeleted=true`。主程序启动与完整清理证据已取得，不再将先前 NoChild 创建属性当成可用防线。
+
+此轮唯一未计数项仍是网络：`networkInitializationError=10107, networkAccessDenied=false`，普通 AppContainer 初始化为 0；`connect=-1` 表示没有执行连接，不能当作拒绝连接通过。探针以退出码 1 阻断 CI，PR44 不合并。后续删除诊断期间的动态系统 API 表，恢复普通 Windows 导入，保留 worker／broker 分离、单进程合同及全部检查，避免把失败实验的复杂度长期保留；对应提交仍须真实 CI。
+
+## 同一函数网络对照
+
+[`6d2531a` 的运行](https://github.com/B1ackB/Packx/actions/runs/38951508155)，Windows job `117143762662`：同一个 `inspectNetwork` 函数在相同 worker、环境及单进程 Job 的合法非沙箱控制中初始化 0、连接成功、目录访问 0；LPAC 为 `startup=10107, connect=-1, catalogAccess=5, observation=initialization_failed`。这证明当前未到连接阶段，并存在不可读的协议目录依赖；没有跟踪 Winsock 内部调用，不能将具体失败调用断言为该注册表访问，更不能称为网络策略拒绝。
+
+主源：[微软 LPAC 文档](https://learn.microsoft.com/en-us/windows/win32/secauthz/implementing-an-appcontainer) 说明零 capability LPAC 的注册表访问限制；[Winsock 错误码](https://learn.microsoft.com/en-us/windows/win32/winsock/windows-sockets-error-codes-2) 将 10107 定义为通用系统调用失败，包含协议目录注册表失败等场景。没有添加 registryRead／网络 capability 或修改系统配置以使测试通过。
+
+## macOS 清理回归（已独立合并）
+
+上述 f814e3a 运行同时在 `macOsSeatbeltSandboxedToolExecutor.test.ts` 的超时清理断言失败：`kill(pid, 0)` 未抛错。该调用无法区分活进程、僵尸或 PID 重用，历史日志未保存足够状态，不能断言当时属于其中哪一种。
+
+本机固定合成超时案例共 184 次采样，观察时原 PID 均已消失，未复现历史失败。更新测试读取 OS 的 PID／PPID／进程组／状态／启动时间／命令；若返回后仍存在原身份活进程立即失败，僵尸允许 OS 回收但须在两秒内消失。握手保证成功、超时、取消与执行失败四条路径都先观察到真实运行的工具及后代，再验证相同启动身份已终止、暂存目录移除。另验证 supervisor 在 preflight 后 spawn 失败时不返回输出并清理暂存。没有修改超时预算、隔离策略或删除旧用例。
+
+本机完整原生回归：47/47 通过（沙箱 30、资产检查 9、文档读取 8）。远端新提交结果须单独核对，不能使用此前成功运行替代。
+
+独立 [PR45](https://github.com/B1ackB/Packx/pull/45) 的 `d43974b` 已通过[全部必要 CI](https://github.com/B1ackB/Packx/actions/runs/38946925616)，真实 macOS 原生 47/47、pending0，固定离线 eval／浏览器／Windows 本地数据及汇总门禁全部成功。作者自审明确不冒充独立审批；保持严格分支保护，于 2026-10-16 18:26:15 UTC 合并为 `a71c30b7c95ec8c1cd69dda34d8bee0dfc811ac6`。没有合并 PR44。
+
+## 额度与下一步
+
+官方只读工具在 2026-10-16 18:14:29 UTC 返回周窗口剩余 70%，secondary=null；不可见窗口不推算，未购买或重置额度。每阶段及长操作前继续读取，遵循工作单的 20%／10% 守卫。
+
+2026-10-16 18:29:43 UTC 阶段内复读仍为周窗口剩余 70%、secondary=null。
+
+先取得完整 Windows 网络及合法测试宿主的 Job 清理证据，再决定生产 Windows Adapter。探针缺失证据继续阻断，不修改门禁以通过；macOS 的清理回归可独立交付。没有部署、真实模型调用、业务数据迁移或新增依赖。

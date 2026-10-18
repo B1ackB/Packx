@@ -2,19 +2,34 @@ import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { chmodSync, copyFileSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { basename, dirname, join, resolve } from "node:path";
+import { basename, delimiter, dirname, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { isDeepStrictEqual } from "node:util";
 import { parseDocument } from "yaml";
+import { runWindowsIsolationProbe } from "./windowsIsolationProbe";
 
 const checkout = "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1";
 const setupNode = "actions/setup-node@820762786026740c76f36085b0efc47a31fe5020";
-const jobs = ["core-offline", "browser", "native-product"];
+const jobs = ["core-offline", "browser", "native-product", "windows-local-data"];
 const install = "npm ci --ignore-scripts --no-audit --no-fund";
 const command = (name: string) => `node --import tsx scripts/ci.ts ${name}`;
-const gate = 'test "$CORE_RESULT" = success\ntest "$BROWSER_RESULT" = success\ntest "$NATIVE_RESULT" = success';
+const gate = 'test "$CORE_RESULT" = success\ntest "$BROWSER_RESULT" = success\ntest "$NATIVE_RESULT" = success\ntest "$WINDOWS_RESULT" = success';
 const toolsDirectory = resolve("temp/ci-tools");
 const nativeFiles = ["macOsSeatbeltSandboxedToolExecutor.test.ts", "assetInspection.test.ts", "documentRead.test.ts"];
+const windowsFiles = [
+	"server/privateFileAccess.test.ts", "server/windowsModelSettings.test.ts",
+	"server/localDataBoundary.test.ts", "server/localBackup.test.ts", "server/localDataMigration.test.ts", "server/fileWriteLock.test.ts", "server/syncDirectory.test.ts",
+	"server/enterprise/fileEventStoreRecovery.test.ts", "server/enterprise/fileStageJobQueue.test.ts", "server/enterprise/fileCronScheduleStore.test.ts",
+	"src/agent/sandboxPaths.test.ts",
+	"eval/windowsIsolationProbe.test.ts",
+	"server/runtime/textDocumentInspection.test.ts",
+	"server/runtime/documentCapabilities.test.ts",
+	"eval/ciCommand.test.ts",
+	"eval/windowsProductionBoundary.test.ts",
+	"eval/windowsBuildJob.test.ts",
+	"eval/windowsBuildJobLifecycle.test.ts",
+	"eval/releasePackaging.test.ts",
+];
 
 function ensure(condition: unknown, message: string): asserts condition {
 	if (!condition) throw new Error(message);
@@ -44,13 +59,14 @@ export function validateWorkflow(source: string) {
 		"core-offline": [install, ...["metadata", "tools", "policy", "secrets", "audit", "core"].map(command)],
 		browser: [install, command("browser-install"), command("browser")],
 		"native-product": [install, command("native")],
+		"windows-local-data": [install, command("metadata"), command("windows-local-data")],
 	};
 	for (const name of jobs) {
 		const job = record(configured[name]);
 		keys(job, ["name", "runs-on", "timeout-minutes", "permissions", "steps"]);
 		same(job.name, name, "Check names must remain stable");
-		same(job["runs-on"], name === "native-product" ? "macos-15" : "ubuntu-24.04", "Unexpected runner");
-		same(job["timeout-minutes"], { "core-offline": 20, browser: 15, "native-product": 25 }[name], "Unexpected job timeout");
+		same(job["runs-on"], name === "native-product" ? "macos-15" : name === "windows-local-data" ? "windows-2025" : "ubuntu-24.04", "Unexpected runner");
+		same(job["timeout-minutes"], { "core-offline": 20, browser: 15, "native-product": 25, "windows-local-data": 15 }[name], "Unexpected job timeout");
 		same(job.permissions, { contents: "read" }, "Execution jobs must be read-only");
 		ensure(Array.isArray(job.steps), "Missing execution steps");
 		const steps = job.steps.map(record);
@@ -60,10 +76,11 @@ export function validateWorkflow(source: string) {
 		same(steps[0].with, { "persist-credentials": false, ...(name === "core-offline" ? { "fetch-depth": 0 } : {}) }, "Checkout credentials/history policy changed");
 		same(steps[1].uses, setupNode, "setup-node must use the audited commit");
 		same(steps[1].with, { "node-version-file": ".nvmrc", "package-manager-cache": false }, "Node pinning/cache policy changed");
-		for (const [index, step] of steps.slice(2).entries()) {
+		for (const [index, step] of steps.slice(2, 2 + commands[name].length).entries()) {
 			keys(step, ["name", "run"]);
 			same(step.run, commands[name][index], "Required command changed or unsafe step added");
 		}
+
 	}
 	const required = record(configured["ci-required"]);
 	keys(required, ["name", "runs-on", "timeout-minutes", "permissions", "needs", "if", "steps"]);
@@ -76,22 +93,25 @@ export function validateWorkflow(source: string) {
 	ensure(Array.isArray(required.steps) && required.steps.length === 1, "Gate must contain one fixed check");
 	const step = record(required.steps[0]);
 	keys(step, ["name", "env", "run"]);
-	same(step.env, { CORE_RESULT: "${{ needs.core-offline.result }}", BROWSER_RESULT: "${{ needs.browser.result }}", NATIVE_RESULT: "${{ needs.native-product.result }}" }, "Gate inputs must be dependency results only");
+	same(step.env, { CORE_RESULT: "${{ needs.core-offline.result }}", BROWSER_RESULT: "${{ needs.browser.result }}", NATIVE_RESULT: "${{ needs.native-product.result }}", WINDOWS_RESULT: "${{ needs.windows-local-data.result }}" }, "Gate inputs must be dependency results only");
 	same(String(step.run).trim(), gate, "Gate must reject every non-success result");
 }
 
 export function testEnvironment(input: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
-	const allowed = ["PATH", "HOME", "TMPDIR", "TMP", "TEMP", "LANG", "LC_ALL", "PLAYWRIGHT_BROWSERS_PATH"];
-	return { ...Object.fromEntries(allowed.filter((key) => input[key] !== undefined).map((key) => [key, input[key]])), PATH: `${dirname(process.execPath)}:${input.PATH ?? "/usr/bin:/bin"}`, CI: "true", npm_config_audit: "false", npm_config_fund: "false", npm_config_update_notifier: "false" };
+	const allowed = ["PATH", "HOME", "SystemRoot", "SystemDrive", "USERPROFILE", "LOCALAPPDATA", "APPDATA", "TMPDIR", "TMP", "TEMP", "LANG", "LC_ALL", "PLAYWRIGHT_BROWSERS_PATH"];
+	return { ...Object.fromEntries(allowed.filter((key) => input[key] !== undefined).map((key) => [key, input[key]])), PATH: [dirname(process.execPath), input.PATH].filter(Boolean).join(delimiter), CI: "true", npm_config_audit: "false", npm_config_fund: "false", npm_config_update_notifier: "false" };
 }
 
-function execute(file: string, args: string[], extraEnv: NodeJS.ProcessEnv = {}, timeout = 10 * 60_000) {
+export function execute(file: string, args: string[], extraEnv: NodeJS.ProcessEnv = {}, timeout = 10 * 60_000) {
 	const result = spawnSync(file, args, { env: { ...testEnvironment(process.env), ...extraEnv }, encoding: "utf8", timeout, maxBuffer: 64 * 1024 * 1024 });
-	ensure(!result.error && result.status === 0, `Command failed: ${basename(file)} ${args.slice(0, 3).join(" ")} (status ${result.status ?? "unavailable"})\n${(result.stdout + result.stderr).slice(-12_000)}`);
+	const errorCode = (result.error as NodeJS.ErrnoException | undefined)?.code;
+	if (result.error || result.status !== 0) throw new Error(`Command failed: ${basename(file)} ${args.slice(0, 3).join(" ")} (status ${result.status ?? "unavailable"}${errorCode ? `, error ${errorCode}` : ""})\n${`${result.stdout ?? ""}${result.stderr ?? ""}`.slice(-12_000)}`, { cause: result.error });
 	return result.stdout;
 }
 function npm(args: string[], env: NodeJS.ProcessEnv = {}) {
-	return execute("npm", args, env);
+	return process.platform === "win32"
+		? execute(process.execPath, [join(dirname(process.execPath), "node_modules/npm/bin/npm-cli.js"), ...args], env)
+		: execute("npm", args, env);
 }
 function digest(data: string | Buffer) {
 	return createHash("sha256").update(data).digest("hex");
@@ -111,11 +131,11 @@ type TestSuite = { name: string; assertionResults: Array<{ status: string }> };
 export function validateTestReport(report: { success: boolean; testResults: TestSuite[] }, requiredFiles: string[], noSkips = false) {
 	ensure(report.success === true && Array.isArray(report.testResults), "Test execution failed or report missing");
 	for (const file of requiredFiles) {
-		const suites = report.testResults.filter((suite) => suite.name.endsWith(`/${file}`));
+		const suites = report.testResults.filter((suite) => suite.name.replaceAll("\\", "/").endsWith(`/${file}`));
 		ensure(suites.length > 0, `Required suite missing: ${file}`);
 		const assertions = suites.flatMap((suite) => suite.assertionResults);
 		ensure(assertions.some((item) => item.status === "passed"), `Required suite did not execute: ${file}`);
-		if (noSkips) ensure(assertions.every((item) => item.status === "passed"), `Native suite failed or skipped: ${file}`);
+		if (noSkips) ensure(assertions.every((item) => item.status === "passed"), `Required suite failed or skipped: ${file}`);
 	}
 }
 
@@ -221,7 +241,7 @@ function testSuite(native: boolean) {
 	const report = resolve(`temp/ci-${native ? "native" : "core"}.json`);
 	mkdirSync(dirname(report), { recursive: true }); rmSync(report, { force: true });
 	const output = npm(["run", native ? "test:native" : "test", "--", "--reporter=default", "--reporter=json", `--outputFile=${report}`]);
-	const required = native ? nativeFiles : ["runtime/runtime.contract.test.ts", "runtime/executionRecovery.test.ts", "enterprise/enterpriseEventStore.contract.test.ts", "enterprise/personalMemory.test.ts"];
+	const required = native ? nativeFiles : ["runtime/runtime.contract.test.ts", "runtime/executionRecovery.test.ts", "runtime/fileContextPermissions.test.ts", "eval/packagingLifecycle.test.ts", "enterprise/enterpriseEventStore.contract.test.ts", "enterprise/personalMemory.test.ts"];
 	const parsed = JSON.parse(readFileSync(report, "utf8"));
 	validateTestReport(parsed, required, native);
 	console.log(output.slice(-3000));
@@ -237,12 +257,38 @@ async function main(task: string) {
 		case "audit": audit(); break;
 		case "core":
 			testSuite(false); console.log(npm(["run", "build"]));
-			for (const name of ["offline", "context", "recovery", "loop-safety", "memory", "m1", "m2", "plan"]) { npm(["run", `eval:${name}`]); console.log(`Offline evaluation ${name}: passed`); }
+			for (const name of ["offline", "context", "recovery", "loop-safety", "memory", "m1", "m2", "plan", "packaging-lifecycle"]) { npm(["run", `eval:${name}`]); console.log(`Offline evaluation ${name}: passed`); }
 			break;
 		case "native":
 			ensure(process.platform === "darwin", "Native verification requires macOS; refusing to skip");
 			console.log(execute("xcrun", ["--version"])); console.log(npm(["run", "build"])); console.log(npm(["run", "build:native"]));
 			testSuite(true); console.log(npm(["run", "eval:product"])); break;
+		case "windows-local-data": {
+			ensure(process.platform === "win32", "Windows local-data verification requires Windows; refusing to simulate");
+			const report = resolve("temp/ci-windows-local-data.json"); mkdirSync(dirname(report), { recursive: true }); rmSync(report, { force: true });
+			console.log(execute(process.execPath, ["node_modules/vitest/vitest.mjs", "run", ...windowsFiles, "--reporter=default", "--reporter=json", `--outputFile=${report}`]));
+			const parsed = JSON.parse(readFileSync(report, "utf8"));
+			validateTestReport(parsed, windowsFiles, true);
+			console.log(JSON.stringify({ suite: "windows-local-data", total: parsed.numTotalTests, passed: parsed.numPassedTests, pending: parsed.numPendingTests }));
+			console.log(await runWindowsIsolationProbe(testEnvironment(process.env), async (build) => {
+				const file = "server/runtime/windowsTextSandboxedToolExecutor.test.ts", report = resolve("temp/ci-windows-text.json"); rmSync(report, { force: true });
+				try { console.log(execute(process.execPath, ["node_modules/vitest/vitest.mjs", "run", file, "--reporter=json", `--outputFile=${report}`], { PACKX_WINDOWS_NATIVE_TOOLS: build })); }
+				catch (error) {
+					if (existsSync(report)) {
+						const failed = JSON.parse(readFileSync(report, "utf8"));
+						console.error(JSON.stringify({ suite: "windows-protected-text", failed: failed.testResults.flatMap((suite: { assertionResults: Array<{ status: string; fullName: string; failureMessages: string[] }> }) => suite.assertionResults.filter((test) => test.status === "failed").map((test) => ({ name: test.fullName, failure: test.failureMessages.join("\n").slice(-12000) }))) }));
+					}
+					throw error;
+				}
+				const parsed = JSON.parse(readFileSync(report, "utf8")); validateTestReport(parsed, [file], true);
+				console.log(JSON.stringify({ suite: "windows-protected-text", total: parsed.numTotalTests, passed: parsed.numPassedTests, pending: parsed.numPendingTests }));
+				console.log(npm(["run", "build"]));
+				const output = resolve("temp/windows-release-artifacts/Packx-0.1.0-windows-x64");
+				console.log(execute(process.execPath, ["scripts/build-release.mjs", output, build]));
+				console.log(execute(process.execPath, ["--import", "tsx", "eval/portableReleaseSmoke.ts", `${output}.zip`], {}, 6 * 60_000));
+			}));
+			break;
+		}
 		case "browser-install": console.log(execute(process.execPath, ["node_modules/@playwright/test/cli.js", "install", "chromium", "--only-shell", "--with-deps"])); break;
 		case "browser": {
 			const report = resolve("temp/ci-browser.json"); mkdirSync(dirname(report), { recursive: true }); rmSync(report, { force: true });
@@ -255,7 +301,7 @@ async function main(task: string) {
 			const event = process.env.GITHUB_EVENT_PATH ? JSON.parse(readFileSync(process.env.GITHUB_EVENT_PATH, "utf8")) : {};
 			console.log(JSON.stringify({ node: process.version, npm: npm(["--version"]).trim(), platform: process.platform, arch: process.arch, image: process.env.ImageOS, imageVersion: process.env.ImageVersion, checkout: execute("git", ["rev-parse", "HEAD"]).trim(), head: event.pull_request?.head?.sha, base: event.pull_request?.base?.sha, workflowSha256: digest(readFileSync(".github/workflows/pr-checks.yml")), lockSha256: digest(readFileSync("package-lock.json")) })); break;
 		}
-		default: throw new Error("Expected tools, policy, secrets, audit, core, native, browser-install, browser or metadata");
+		default: throw new Error("Expected tools, policy, secrets, audit, core, native, windows-local-data, browser-install, browser or metadata");
 	}
 }
 

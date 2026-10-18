@@ -1,4 +1,5 @@
 import { createHash, randomUUID } from "node:crypto";
+import { syncDirectory } from "../syncDirectory";
 import { constants, closeSync, existsSync, fsyncSync, lstatSync, mkdirSync, openSync, readFileSync, realpathSync, renameSync, unlinkSync, writeFileSync } from "node:fs";
 import { isAbsolute, join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
@@ -78,8 +79,7 @@ export class ConversationFileService implements AgentToolApprovalPort {
 			if (Buffer.byteLength(serialized) > 20 * 1024 * 1024) fail("file_quota_exceeded", "当前会话文件区记录已达到配额", 413);
 			this.writeNew(temporary, serialized);
 			renameSync(temporary, join(directory, "index.json"));
-			const fd = openSync(directory, constants.O_RDONLY);
-			try { fsyncSync(fd); } finally { closeSync(fd); }
+			syncDirectory(directory);
 		} finally { if (existsSync(temporary)) unlinkSync(temporary); }
 	}
 
@@ -166,6 +166,8 @@ export class ConversationFileService implements AgentToolApprovalPort {
 		if ((this.current(state, input.path)?.version ?? null) !== input.expectedVersion) fail("file_version_conflict", "文件版本已变化，请重新读取并发起审批");
 	}
 	private content(scope: Scope, version: TaskFileVersion): string {
+		// Backups inherit today's source permissions, including after a Host restart.
+		if (isAbsolute(version.path)) this.local.check(version.path);
 		if (!/^file-[a-f0-9]{64}$/.test(version.artifactId) || !Number.isSafeInteger(version.version) || version.version < 1) fail("file_path_denied", "文件版本无效", 403);
 		const content = this.readSafe(join(this.directory(scope), `${version.artifactId}-v${version.version}.txt`));
 		if (hash(content) !== version.sha256) fail("file_integrity_failure", "文件内容校验失败");
@@ -175,7 +177,12 @@ export class ConversationFileService implements AgentToolApprovalPort {
 	list(scope: Scope): ConversationFilesView {
 		const state = this.load(scope);
 		let changed = false;
-		for (const approval of state.approvals) if (["pending", "approved"].includes(approval.status) && (this.now() >= Date.parse(approval.expiresAt) || (isAbsolute(approval.path) && !approval.parentIdentity))) { approval.status = "cancelled"; changed = true; }
+		for (const approval of state.approvals) {
+			if (!["pending", "approved"].includes(approval.status)) continue;
+			let permitted = true;
+			try { this.checkParent(approval); } catch { permitted = false; }
+			if (this.now() >= Date.parse(approval.expiresAt) || !permitted) { approval.status = "cancelled"; changed = true; }
+		}
 		if (changed) this.save(scope, state);
 		return { files: state.versions.map((v) => ({ ...v, storagePath: v.status === "deleted" ? undefined : join(this.directory(scope), `${v.artifactId}-v${v.version}.txt`) })), approvals: state.approvals.filter((a) => a.status === "pending").map((a) => ({ id: a.id, operation: a.operation, path: a.path, expectedVersion: a.expectedVersion, expectedSha256: a.expectedSha256, content: a.content, sourceVersion: a.sourceVersion, before: a.before, status: a.status, createdAt: a.createdAt, expiresAt: a.expiresAt })) };
 	}
@@ -280,6 +287,28 @@ export class ConversationFileService implements AgentToolApprovalPort {
 		return conversationFileToolNames.map((name): AgentHostTool => {
 			const write = name === "file_write"; const remove = name === "file_delete"; const list = name === "file_list";
 			return { name, execution: "host", risk: write || remove ? "write" : "read", idempotent: true, timeoutMs: 5_000, maxResultChars: 150_000,
+				...(name === "file_read" ? { validateContextResult: (input: unknown, output: string, context: AgentToolExecutionContext) => {
+					const value = input as { path: string; version?: number };
+					const prior = JSON.parse(output);
+					// Task-file output already identifies an immutable version. A later
+					// approved edit must not relabel that earlier read as the new version.
+					const version = value.version ?? prior.file?.version;
+					const local = isAbsolute(value.path) && value.version === undefined;
+					const snapshot = local ? this.load(context).versions.find((file) => file.path === value.path && file.sha256 === prior.sha256 && file.status !== "deleted") : undefined;
+					// An approved mutation retains its preimage by hash. That historical
+					// read remains valid, but content() still enforces today's path policy.
+					const current = snapshot ? { absolutePath: value.path, content: this.content(context, snapshot), sha256: snapshot.sha256, size: snapshot.size }
+						: local ? this.readLocal(context, value.path) : this.read(context, value.path, version);
+					if (JSON.stringify(prior) !== JSON.stringify(current)) fail("file_version_conflict", "文件来源已变化，请重新读取");
+				} } : {}),
+				...(list ? { validateContextResult: (input: unknown, output: string, context: AgentToolExecutionContext) => {
+					this.load(context);
+					const path = (input as { path?: string }).path;
+					if (path) this.local.check(path, true);
+					// Pending previews may contain bytes from a now-revoked local file.
+					const prior = JSON.parse(output) as ConversationFilesView;
+					for (const approval of prior.approvals ?? []) if (isAbsolute(approval.path)) this.local.check(approval.path);
+				} } : {}),
 				description: list ? "不传 path 返回本机真实 homeDirectory、workingDirectory 等位置和会话历史。指定绝对目录 path 列出磁盘目录，无需预授权。" : name === "file_read" ? "读取本机真实 UTF-8 文件，返回 absolutePath 与 sha256。相对路径读取旧会话文件；指定 version 读取历史备份。" : write ? "在真实绝对路径新建或修改文本文件，调用即发起显示路径和内容的单次审批，批准后执行，无需用户提前授权目录。先读取 sha256 作为 expectedSha256，新建使用 null。相对路径仅用于会话存储，使用 expectedVersion。恢复历史版本时传 sourceVersion 代替 content，由 Host 读取同一路径的不可变备份并展示新的写入审批；旧版本和审批不被覆盖。最多128 KiB。" : "审批后删除真实绝对路径文件；先读取 sha256 作为 expectedSha256。保留内容备份，不支持删除目录。相对路径使用旧会话 expectedVersion。",
 				inputSchema: { type: "object", properties: list ? { path: { type: "string" } } : { path: { type: "string" }, ...(write || remove ? { expectedVersion: { type: ["integer", "null"], minimum: 1 }, expectedSha256: { type: ["string", "null"] } } : { version: { type: "integer", minimum: 1 } }), ...(write ? { content: { type: "string" }, sourceVersion: { type: "integer", minimum: 1 } } : {}) }, required: list ? [] : ["path"], ...(write ? { oneOf: [{ required: ["content"] }, { required: ["sourceVersion"] }] } : {}), additionalProperties: false },
 				validate: (input) => write || remove ? validMutation(input, write ? "write" : "delete") : record(input) && (list ? Object.keys(input).every((key) => key === "path") && (input.path === undefined || validLocalPath(input.path)) : (validPath(input.path) || validLocalPath(input.path)) && Object.keys(input).every((key) => ["path", "version"].includes(key)) && (input.version === undefined || (Number.isSafeInteger(input.version) && Number(input.version) > 0))),

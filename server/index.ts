@@ -21,11 +21,15 @@ import { AgentPlanStore } from "./enterprise/agentPlanStore";
 import { AgentPlanWorkflow } from "./enterprise/agentPlanWorkflow";
 import { PlanError } from "../src/enterprise/agentPlan";
 import { deliveryHtml, deliveryMarkdown, type RequirementDelivery } from "../src/manufacturing/requirementDelivery";
+import { documentCapabilities, assertDocumentUpload, UnsupportedDocumentError } from "./runtime/documentCapabilities";
 import { AssetInspectionService } from "./runtime/assetInspection";
 import { MacOsSeatbeltSandboxedToolExecutor } from "./runtime/macOsSeatbeltSandboxedToolExecutor";
+import { WindowsTextSandboxedToolExecutor } from "./runtime/windowsTextSandboxedToolExecutor";
 import { LocalAccess } from "./localAccess";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { resolve } from "node:path";
+import { realpathSync, writeFileSync } from "node:fs";
+import { createHash, randomUUID } from "node:crypto";
 
 import { ProposalRunEngine } from "../src/enterprise/proposalRunEngine";
 import type { RuntimeTurnRequest } from "../src/runtime/contracts";
@@ -80,6 +84,14 @@ process.once("exit", releaseLocalData);
 ensureLocalDataVersion(localData.root);
 const port = Number(process.env.BLACKX_PORT ?? 5173);
 const localAccess = new LocalAccess(port);
+// Host lifecycle identity is separate from model/runtime health; it contains no credential or path.
+const localHost = { instanceId: randomUUID(), installationId: createHash("sha256").update(realpathSync(process.cwd())).digest("hex"), dataRootId: createHash("sha256").update(localData.root).digest("hex") };
+let hostState: "running" | "stop_requested" | "stopping" = "running";
+function recordHostStop(source: "local_command" | "process_signal") {
+	if (hostState !== "running") return;
+	writeFileSync(resolve(localData.root, `.packx-host-stop-${localHost.instanceId}.json`), JSON.stringify({ type: "local_host_stop_requested", ...localHost, ...localAccess.identity, idempotencyKey: localHost.instanceId, source, at: new Date().toISOString() }), { flag: "wx", mode: 0o600 });
+	hostState = "stop_requested";
+}
 const eventStoreDriver = process.env.BLACKX_EVENT_STORE_DRIVER ?? "file";
 if (eventStoreDriver !== "file" && eventStoreDriver !== "sqlite") {
 	throw new Error("BLACKX_EVENT_STORE_DRIVER must be file or sqlite");
@@ -117,7 +129,8 @@ const conversationFiles = new ConversationFileService(resolve(process.env.BLACKX
 	if (scope.tenantId !== localAccess.identity.tenantId || scope.workspaceId !== localAccess.identity.workspaceId || scope.actorId !== localAccess.identity.actorId) throw new TaskFileError("file_scope_denied", "本机文件仅供当前 Host 用户访问", 403);
 	if (!agentState.getSession({ ...scope, sessionId: scope.runId })) throw new TaskFileError("conversation_not_found", "会话已删除或不存在", 404);
 }, undefined, [modelSettings.path, localData.root, resolve(".blackx-data"), ...[process.env.BLACKX_AGENT_STATE_PATH, process.env.BLACKX_EVENT_STORE_PATH, process.env.BLACKX_ARTIFACT_STORE_PATH, process.env.BLACKX_ATTACHMENT_STORE_PATH, process.env.BLACKX_STAGE_JOB_QUEUE_PATH, process.env.BLACKX_CRON_SCHEDULE_PATH, process.env.BLACKX_INSPECTION_CACHE_PATH].filter((path): path is string => !!path).map((path) => resolve(path))], workspaceRoot);
-const assetInspection = new AssetInspectionService(requirementBriefEngine, conversationAttachments, new MacOsSeatbeltSandboxedToolExecutor({ workspaceRoot, protectedPaths: [localData.root, modelSettings.path] }), workspaceRoot, undefined, process.env.BLACKX_INSPECTION_CACHE_PATH);
+const windowsTextExecutor = process.platform === "win32" ? new WindowsTextSandboxedToolExecutor(workspaceRoot) : undefined;
+const assetInspection = new AssetInspectionService(requirementBriefEngine, conversationAttachments, windowsTextExecutor ?? new MacOsSeatbeltSandboxedToolExecutor({ workspaceRoot, protectedPaths: [localData.root, modelSettings.path] }), workspaceRoot, windowsTextExecutor?.executable, process.env.BLACKX_INSPECTION_CACHE_PATH, windowsTextExecutor ? "windows-utf8.v1" : "1.3.0");
 const knowledgeReranker = process.env.PACKX_KNOWLEDGE_RERANKER === "local-mmarco"
 	? await (await import("./knowledge/onnxReranker")).OnnxReranker.create() : undefined;
 const knowledgeStore = new KnowledgeStore(resolve(localData.root, "knowledge"), process.env.PACKX_KNOWLEDGE_MODEL === "local-e5"
@@ -434,6 +447,17 @@ server.on("request", async (request, response) => {
 		request.headers["x-blackx-workspace-id"] = localAccess.identity.workspaceId;
 		request.headers["x-blackx-actor-id"] = localAccess.identity.actorId;
 	}
+	if (url.pathname === "/api/local-shutdown" && request.method === "POST") {
+		try {
+			const command = await readJson(request) as { instanceId?: string };
+			if (command.instanceId !== localHost.instanceId) { json(response, 409, { code: "host_instance_changed" }); return; }
+			try { recordHostStop("local_command"); } catch { json(response, 503, { code: "host_stop_audit_unavailable" }); return; }
+			json(response, 202, { status: "stopping", instanceId: localHost.instanceId });
+			setImmediate(stopHost);
+		} catch { json(response, 400, { code: "invalid_shutdown_request" }); }
+		return;
+	}
+	if (hostState !== "running" && url.pathname !== "/api/runtime/health") { json(response, 503, { code: "host_stopping" }); return; }
 
 	const knowledgeMatch = url.pathname.match(/^\/api\/conversations\/([^/]+)\/knowledge(?:\/([a-z-]+))?$/);
 	const memoryMatch = url.pathname.match(/^\/api\/conversations\/([^/]+)\/memory$/);
@@ -472,7 +496,7 @@ server.on("request", async (request, response) => {
 		return;
 	}
   if (request.method === "GET" && url.pathname === "/api/runtime/health") {
-    json(response, 200, await runtime.health());
+    json(response, 200, { ...await runtime.health(), documents: documentCapabilities(), localHost });
     return;
   }
 
@@ -593,11 +617,8 @@ server.on("request", async (request, response) => {
 		const controller = new AbortController(); response.on("close", () => controller.abort());
 		try {
 			const stored = conversationAttachments.read({ ...scope, conversationId }, attachmentId);
-			const document = await assetInspection.preview(scope, `/attachment-preview/${stored.attachment.name}`, () => {
-				if (conversationApi.get(context, conversationId).status !== 200) throw new Error("Conversation unavailable");
-				const current = conversationAttachments.read({ ...scope, conversationId }, attachmentId);
-				return { content: current.content, sha256: current.attachment.sha256 };
-			}, controller.signal, url.searchParams.get("ocrCursor") ?? undefined);
+			const document = await assetInspection.previewAttachment(scope, attachmentId, controller.signal, url.searchParams.get("ocrCursor") ?? undefined);
+			const currentAccess = conversationApi.get(context, conversationId); if (currentAccess.status !== 200) { json(response, currentAccess.status, currentAccess.body); return; }
 			json(response, 200, { document: { ...document, attachmentId, sourceRef: stored.attachment.sourceRef } });
 		} catch (error) { json(response, 422, { code: "document_import_failed", message: error instanceof Error ? error.message : "文档导入失败，请检查是否加密、损坏或超限" }); }
 		return;
@@ -673,7 +694,10 @@ server.on("request", async (request, response) => {
 				json(response, 200, { attachments: conversationAttachments.list(attachmentScope) });
 				return;
 			}
-			const content = await readBody(request, 10 * 1024 * 1024);
+			const capability = documentCapabilities(), name = url.searchParams.get("name") ?? "";
+			assertDocumentUpload(capability, name, 1);
+			const content = await readBody(request, capability.scope === "windows-utf8" ? capability.maxBytes : 10 * 1024 * 1024);
+			assertDocumentUpload(capability, name, content.length);
 			const currentAccess = conversationApi.get(context, conversationId);
 			if (currentAccess.status !== 200) { json(response, currentAccess.status, currentAccess.body); return; }
 			const result = conversationAttachments.put(attachmentScope, {
@@ -684,8 +708,9 @@ server.on("request", async (request, response) => {
 			});
 			json(response, result.duplicate ? 200 : 201, result);
 		} catch (error) {
+			if (error instanceof UnsupportedDocumentError) { request.resume(); json(response, error.code === "document_size_limit" ? 413 : 415, { code: error.code, message: error.message }); return; }
 			if (error instanceof Error && error.message === "request_too_large") {
-				json(response, 413, { code: "request_too_large", message: "附件不能超过 10 MB" });
+				json(response, 413, { code: "request_too_large", message: process.platform === "win32" ? "Windows 文本附件不能超过 128 KiB" : "附件不能超过 10 MB" });
 				return;
 			}
 			const known = error instanceof ConversationAttachmentError ? error : undefined;
@@ -1246,12 +1271,17 @@ server.on("close", () => {
 	stopStageJobScheduler();
 	sqliteStageJobQueue?.close();
 });
-for (const signal of ["SIGINT", "SIGTERM"] as const) process.once(signal, () => {
+function stopHost() {
+	if (hostState === "stopping") return;
+	try { recordHostStop("process_signal"); } catch { console.error("host_stop_audit_unavailable"); }
+	hostState = "stopping";
 	stopStageJobScheduler();
-	planStore.close();
-	taskNames.close();
-	personalMemoryStore.close();
-	templateLibrary.close();
-	taskCheckpoints.close();
-	process.exit(0);
-});
+	const finish = () => {
+		planStore.close(); taskNames.close(); personalMemoryStore.close(); templateLibrary.close(); taskCheckpoints.close();
+		process.exit(0);
+	};
+	server.close(finish);
+	// Running work is cancelled; unfinished leases/side effects keep their recovery evidence.
+	setTimeout(() => { server.closeAllConnections(); finish(); }, 5000).unref();
+}
+for (const signal of ["SIGINT", "SIGTERM"] as const) process.once(signal, stopHost);

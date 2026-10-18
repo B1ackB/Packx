@@ -133,18 +133,26 @@ function unique(values: readonly string[]): boolean {
 }
 
 function safeAbsolutePath(value: string): boolean {
+	if (/^[A-Za-z]:\\/.test(value)) {
+		return value.length < 260 && value.slice(3).split("\\").every(safeWindowsSegment);
+	}
 	const segments = value.split("/").slice(1);
 	return value.startsWith("/") && !value.includes("\0") &&
 		segments.length > 0 && segments.every((segment) => segment.length > 0 && segment !== "." && segment !== "..");
 }
 
-function safeOutputPath(value: string): boolean {
+function safeWindowsSegment(value: string): boolean {
+	return value.length > 0 && value.length <= 255 && !/[<>:"/\\|?*\x00-\x1f]/.test(value) && !/[. ]$/.test(value) &&
+		!/^(con|prn|aux|nul|conin\$|conout\$|clock\$|com[1-9¹²³]|lpt[1-9¹²³]) *(?:\.|$)/i.test(value);
+}
+
+function safeOutputPath(value: string, windows: boolean): boolean {
 	const segments = value.split(/[\\/]/);
 	return value.length > 0 &&
 		!value.startsWith("/") &&
 		!value.startsWith("\\") &&
 		!value.includes("\0") &&
-		segments.every((segment) => segment.length > 0 && segment !== "." && segment !== "..");
+		segments.every((segment) => segment.length > 0 && segment !== "." && segment !== ".." && (!windows || safeWindowsSegment(segment)));
 }
 
 function positiveInteger(value: number): boolean {
@@ -172,7 +180,7 @@ export function validToolExecutionManifest(manifest: ToolExecutionManifest): boo
 		manifest.toolCallId.trim().length > 0 &&
 		manifest.tool.name.trim().length > 0 &&
 		manifest.tool.version.trim().length > 0 &&
-		paths.every(safeAbsolutePath) &&
+		paths.every((path) => safeAbsolutePath(path) && /^[A-Za-z]:\\/.test(path) === /^[A-Za-z]:\\/.test(manifest.command.executable)) &&
 		unique(manifest.paths.readOnly) &&
 		unique(manifest.paths.writable) &&
 		manifest.command.argv.every((value) => typeof value === "string" && !value.includes("\0")) &&
@@ -210,6 +218,7 @@ export function validToolExecutionResult(
 	const environmentKeys = Object.keys(manifest.environment).sort();
 	const reportedEnvironmentKeys = [...result.sandbox.permissions.environmentKeys].sort();
 	const outputPaths = result.outputs.map((output) => output.path);
+	const windows = /^[A-Za-z]:\\/.test(manifest.command.executable);
 	const outputBytes = result.outputs.reduce((total, output) => total + output.size, 0);
 	const startedAt = Date.parse(result.startedAt);
 	const completedAt = Date.parse(result.completedAt);
@@ -228,10 +237,10 @@ export function validToolExecutionResult(
 		new TextEncoder().encode(result.stdout.text).length <= manifest.limits.maxStdoutBytes &&
 		new TextEncoder().encode(result.stderr.text).length <= manifest.limits.maxStderrBytes &&
 		result.outputs.length <= manifest.limits.maxOutputFiles &&
-		unique(outputPaths) &&
+		unique(outputPaths.map((path) => windows ? path.replaceAll("\\", "/").toLowerCase() : path)) &&
 		Number.isSafeInteger(outputBytes) && outputBytes <= manifest.limits.maxOutputBytes &&
 		result.outputs.every((output) =>
-			safeOutputPath(output.path) &&
+			safeOutputPath(output.path, windows) &&
 			nonNegativeInteger(output.size) &&
 			output.mimeType.trim().length > 0 &&
 			/^[a-f0-9]{64}$/.test(output.sha256)

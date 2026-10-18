@@ -2,6 +2,10 @@ import { mkdirSync, statSync, existsSync, copyFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 
+if (process.platform === "win32") {
+	const built = spawnSync(process.execPath, ["--import", "tsx", "scripts/build-windows-native.ts"], { stdio: "inherit", shell: false });
+	process.exit(built.error || built.status !== 0 ? 1 : 0);
+}
 if (process.platform !== "darwin") {
 	console.log("Native document inspection requires macOS; other platforms fail closed.");
 	process.exit(0);

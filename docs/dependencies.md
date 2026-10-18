@@ -1,5 +1,11 @@
 # 本次切片依赖记录
 
+## 2026-10-16：Windows 固定隔离探针的 CI 工具链
+
+独立编写的测试探针只使用微软 Win32 AppContainer／LPAC、ACL、Job Object 和 Winsock API，没有引入外部 Harness 源码、npm 依赖或生产运行时组件。固定已安装 Visual Studio Enterprise 2026 `18.10.12224.181`、Windows SDK `10.0.26100.0` 与 vswhere `3.1.7`，来源为 [GitHub 官方 runner image 20261007.264.1 清单](https://github.com/actions/runner-images/blob/win25-vs2026/20261007.264/images/windows/Windows2025-VS2026-Readme.md)，配置见 `.github/windows-isolation-toolchain.json`。固定版本不存在则失败，不下载替代工具或修改系统设置。
+
+vswhere 为 [MIT](https://github.com/microsoft/vswhere/blob/3.1.7/LICENSE.txt)。Visual Studio／Windows SDK 属微软专有许可，仅使用 GitHub 托管运行器已提供的 CI 工具链；不下载、复制或分发 SDK、编译器及其许可证所约束的运行时组件。静态链接的探针仅在本次临时目录中执行并删除，不加入发行物、不上传二进制；正式产品分发需要另行审核 SDK／CRT 再分发许可，不能以此实验替代。编译和测试不访问真实模型或客户资料，网络探针仅连接同一运行器的合成回环 listener。
+
 日期：2026-09-05。该记录只覆盖本次新增依赖，不代表历史供应链完整审计已经完成。
 
 | 依赖 | 固定版本与来源 | 许可证 / 商用边界 | 数据边界 |

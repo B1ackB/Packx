@@ -132,7 +132,9 @@ it("reassembles oversized Unicode text exactly and rechecks permission for every
 
 it("exposes live remaining execution limits through the real Runtime", async () => {
 	const { state } = store();
-	archive(state, "original", [{ role: "tool", content: "needle: 100 µm" }]);
+	// This budget fixture uses customer input. Legacy Tool bytes without source
+	// provenance now require rebuilding context (covered by file permissions).
+	archive(state, "original", [{ role: "user", content: "needle: 100 µm" }]);
 	archive(state, "latest", [{ role: "user", content: "notes", readDependencies: ["original"] }]);
 	let mainCalls = 0;
 	const provider: AgentModelProvider = { generate: async (request) => {

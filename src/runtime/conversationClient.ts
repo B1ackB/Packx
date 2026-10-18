@@ -5,7 +5,7 @@ import type { ModelSettingsInput, ModelSettingsView } from "./modelSettings";
 import type { PlanWorkspace } from "../enterprise/agentPlan";
 import { readEvents } from "./eventStream";
 import type { ModelTelemetryView } from "./modelTelemetry";
-import type { RuntimeHealth } from "./contracts";
+import type { HostRuntimeHealth as RuntimeHealth } from "./hostCapabilities";
 import type { ConversationFilesView, TaskFileVersion, LocalDirectoryListing, LocalFileLocations } from "./conversationFiles";
 import type { RequirementDelivery } from "../manufacturing/requirementDelivery";
 import type { RuntimeActivity } from "./conversationContracts";

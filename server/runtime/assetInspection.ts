@@ -24,6 +24,7 @@ export class AssetInspectionService implements SandboxedToolExecutorPort {
 		private readonly workspaceRoot: string,
 		private readonly executable = resolve(".blackx-tools/asset-inspector"),
 		cacheDirectory = join(workspaceRoot, ".blackx-data", "inspection-cache"),
+		private readonly parserVersion: "1.3.0" | "windows-utf8.v1" = "1.3.0",
 	) {
 		this.cache = new FileArtifactContentStore(cacheDirectory);
 		reapAbandonedInputs(join(workspaceRoot, ".blackx-tool-inputs"));
@@ -45,16 +46,31 @@ export class AssetInspectionService implements SandboxedToolExecutorPort {
 	}
 
 	async preview(context: { tenantId: string; workspaceId: string; actorId: string; runId: string }, path: string, readLocal: (context: AgentToolExecutionContext, path: string) => { content: Buffer; sha256: string }, signal: AbortSignal, ocrCursor?: string): Promise<AssetInspectionRecord> {
+		const { record, scope } = await this.previewInput(context, { path, ...(ocrCursor ? { ocrCursor } : {}) }, readLocal, signal);
+		if (readLocal(scope, path).sha256 !== record.sha256) throw new RuntimeFailure("context_failure", "Document source changed", false);
+		return record;
+	}
+
+	async previewAttachment(context: { tenantId: string; workspaceId: string; actorId: string; runId: string }, attachmentId: string, signal: AbortSignal, ocrCursor?: string): Promise<AssetInspectionRecord> {
+		const { record } = await this.previewInput(context, { attachmentId, ...(ocrCursor ? { ocrCursor } : {}) }, () => { throw new RuntimeFailure("permission_denied", "Local path is not part of attachment preview", false); }, signal);
+		if (this.attachments.read({ ...context, conversationId: context.runId }, attachmentId).attachment.sha256 !== record.sha256) throw new RuntimeFailure("context_failure", "Document source changed", false);
+		return record;
+	}
+
+	private async previewInput(context: { tenantId: string; workspaceId: string; actorId: string; runId: string }, input: { path?: string; attachmentId?: string; ocrCursor?: string }, readLocal: (context: AgentToolExecutionContext, path: string) => { content: Buffer; sha256: string }, signal: AbortSignal): Promise<{ record: AssetInspectionRecord; scope: AgentToolExecutionContext }> {
 		const tool = this.documentTool(readLocal);
 		const id = randomUUID();
 		const scope = { ...context, signal, stageId: "document-preview", executionId: id, toolCallId: id, idempotencyKey: id, sandboxAttemptId: id };
-		const invocation = await tool.createInvocation({ path, ...(ocrCursor ? { ocrCursor } : {}) }, scope);
+		const invocation = await tool.createInvocation(input, scope);
 		const manifest = compileToolExecutionManifest({ ...scope, attemptId: id, tool: { name: tool.name, version: tool.version }, command: { executable: tool.executable, argv: invocation.argv, workingDirectory: invocation.workingDirectory }, paths: invocation.paths, environment: tool.sandbox.environment, network: tool.sandbox.network, limits: { ...tool.sandbox.limits, timeoutMs: tool.timeoutMs } });
 		const result = await this.execute(manifest, signal);
-		if (result.status !== "succeeded") throw new RuntimeFailure("invalid_output", "Document parser failed: " + result.status, false);
+		if (result.status !== "succeeded") {
+			const reason = result.sandbox.terminationReason;
+			const message = reason === "invalid_encoding" ? "附件不是有效 UTF-8，请转换编码后重试。" : reason === "binary_content" || reason === "unsupported_format" ? "附件包含二进制或未支持的文档格式，请提供 UTF-8 文本。" : result.status === "sandbox_unavailable" ? "本机读取组件或保护不可用，请检查安装。" : result.status === "timed_out" ? "本机读取超时，请缩小资料后重试。" : result.status === "cancelled" ? "读取已取消。" : "本机文档读取未完成，请检查格式、大小与安装状态。";
+			throw new RuntimeFailure("invalid_output", message, false);
+		}
 		const record = JSON.parse(result.stdout.text) as AssetInspectionRecord;
-		if (readLocal(scope, path).sha256 !== record.sha256) throw new RuntimeFailure("context_failure", "Document source changed", false);
-		return this.mergedRecord(context, record);
+		return { record: this.mergedRecord(context, record), scope };
 	}
 
 	tool(readLocal?: (context: AgentToolExecutionContext, path: string) => { content: Buffer; sha256: string }): AgentSandboxedTool {
@@ -67,19 +83,21 @@ export class AssetInspectionService implements SandboxedToolExecutorPort {
 				const sha256 = value.path && readLocal ? readLocal(context, value.path).sha256 : this.attachments.read(scope, value.attachmentId!).attachment.sha256;
 				if (sha256 !== record.sha256) throw new RuntimeFailure("context_failure", "Document source changed", false);
 			},
-			name: readLocal ? "document_read" : "asset_metadata_inspect", version: "1.3.0", execution: "sandboxed",
-			description: "Inspect one current customer attachment in an offline native sandbox. Extract actual PDF pages, Word DOCX paragraphs/tables, Excel XLSX sheet/cell raw stored values (number/date display formatting is not applied), UTF-8 text or image metadata. Use attachmentId for an uploaded file or path for an absolute local file. PDF pages include local OCR with method, confidence and warnings; OCR and complex table reading require human review. Legacy DOC/XLS and encrypted documents need conversion. Formulas use cached values only, never run macros. Output is paginated by complete lines. Pass the returned continuation.cursor with the same source to continue; each call rechecks permission and source hash. ocrCursor means some pages still need OCR; call again with the same source and ocrCursor until absent. OCR may conflict with native text and must be reviewed. sourceTruncated means the parser limit was reached; do not claim complete coverage. Never establishes verified business facts.",
+			name: readLocal ? "document_read" : "asset_metadata_inspect", version: this.parserVersion, execution: "sandboxed",
+			description: this.parserVersion === "windows-utf8.v1" ? "Inspect one UTF-8 txt, md, csv or json attachment up to 128 KiB in the native Windows LPAC. Raw text only; no PDF, Office, OCR or macros. Rejects binary data and invalid UTF-8. Output never verifies business facts. Local Windows paths are not supported; use attachmentId." : "Inspect one current customer attachment in an offline native sandbox. Extract actual PDF pages, Word DOCX paragraphs/tables, Excel XLSX sheet/cell raw stored values (number/date display formatting is not applied), UTF-8 text or image metadata. Use attachmentId for an uploaded file or path for an absolute local file. PDF pages include local OCR with method, confidence and warnings; OCR and complex table reading require human review. Legacy DOC/XLS and encrypted documents need conversion. Formulas use cached values only, never run macros. Output is paginated by complete lines. Pass the returned continuation.cursor with the same source to continue; each call rechecks permission and source hash. ocrCursor means some pages still need OCR; call again with the same source and ocrCursor until absent. OCR may conflict with native text and must be reviewed. sourceTruncated means the parser limit was reached; do not claim complete coverage. Never establishes verified business facts.",
 			inputSchema: { type: "object", properties: { ocrCursor: { type: "string", description: "sha256:page returned as ocrCursor; continue pending OCR pages" }, attachmentId: { type: "string", pattern: "^attachment-[a-f0-9]+$" }, ...(readLocal ? { cursor: { type: "string", description: "sha256:offset from previous result; rechecks the current source hash" }, path: { type: "string", description: "Absolute local document path" } } : {}) }, ...(readLocal ? {} : { required: ["attachmentId"] }), additionalProperties: false },
-			validate: (input) => Boolean(input && typeof input === "object" && Object.keys(input).filter((key) => key !== "cursor" && key !== "ocrCursor").length === 1 && (!("ocrCursor" in input) || typeof input.ocrCursor === "string" && /^[a-f0-9]{64}:[1-9][0-9]{0,3}$/.test(input.ocrCursor)) && (!("cursor" in input) || (readLocal && typeof input.cursor === "string" && /^[a-f0-9]{64}:\d{1,7}$/.test(input.cursor))) && (("attachmentId" in input && typeof input.attachmentId === "string" && /^attachment-[a-f0-9]+$/.test(input.attachmentId)) || (readLocal && "path" in input && typeof input.path === "string" && input.path.startsWith("/") && input.path.length <= 4096))),
+			validate: (input) => Boolean((this.parserVersion !== "windows-utf8.v1" || !(input && typeof input === "object" && ("ocrCursor" in input || "path" in input))) && input && typeof input === "object" && Object.keys(input).filter((key) => key !== "cursor" && key !== "ocrCursor").length === 1 && (!("ocrCursor" in input) || typeof input.ocrCursor === "string" && /^[a-f0-9]{64}:[1-9][0-9]{0,3}$/.test(input.ocrCursor)) && (!("cursor" in input) || (readLocal && typeof input.cursor === "string" && /^[a-f0-9]{64}:\d{1,7}$/.test(input.cursor))) && (("attachmentId" in input && typeof input.attachmentId === "string" && /^attachment-[a-f0-9]+$/.test(input.attachmentId)) || (readLocal && "path" in input && typeof input.path === "string" && input.path.startsWith("/") && input.path.length <= 4096))),
 			risk: "read", idempotent: true, timeoutMs: 60_000, maxResultChars: readLocal ? 24_000 : 180_000,
 			executable: this.executable,
 			sandbox: { environment: { LANG: "en_US.UTF-8" }, network: { mode: "deny-all", allowedDomains: [] }, limits: { maxCpuSeconds: 30, maxMemoryBytes: 512 * 1024 * 1024, maxStdoutBytes: 8_000_000, maxStderrBytes: 4096, maxOutputFiles: 0, maxOutputBytes: 0 } },
 			createInvocation: (input, context) => {
 				context.signal.throwIfAborted();
 				const value = input as { attachmentId?: string; path?: string; cursor?: string; ocrCursor?: string };
+				if (this.parserVersion === "windows-utf8.v1" && (value.path || value.ocrCursor)) throw new RuntimeFailure("permission_denied", "Windows 仅支持上传的 UTF-8 文本附件，不支持本地路径或 OCR", false);
 				const local = value.path && readLocal ? readLocal(context, value.path) : undefined;
 				const scope = readLocal && context.stageId !== "requirement-brief" ? { tenantId: context.tenantId, workspaceId: context.workspaceId, conversationId: context.runId } : this.scope(context);
 				const { attachment, content } = local ? { content: local.content, attachment: { attachmentId: `local-${createHash("sha256").update(value.path!).digest("hex")}`, name: basename(value.path!), sha256: local.sha256, sourceRef: `local-file:${value.path!}` } } : this.attachments.read(scope, value.attachmentId!);
+				if (this.parserVersion === "windows-utf8.v1" && (!/\.(txt|md|csv|json)$/i.test(attachment.name) || !content.length || content.length > 131072)) throw new RuntimeFailure("invalid_output", "Windows 仅支持 128 KiB 内的 UTF-8 txt/md/csv/json 附件", false);
 				if (value.ocrCursor && value.ocrCursor.split(":")[0] !== attachment.sha256) throw new RuntimeFailure("context_failure", "Document source changed since OCR batch", false);
 				if (value.cursor && value.cursor.split(":")[0] !== attachment.sha256) throw new RuntimeFailure("context_failure", "Document source changed since previous page", false);
 				const inputRoot = join(this.workspaceRoot, ".blackx-tool-inputs");
@@ -94,7 +112,7 @@ export class AssetInspectionService implements SandboxedToolExecutorPort {
 				} catch (error) { rmSync(directory, { recursive: true, force: true }); throw error; }
 				this.inputs.set(context.sandboxAttemptId, { directory, ocrStart: Number(value.ocrCursor?.split(":")[1] ?? 1), offset: Number(value.cursor?.split(":")[1] ?? 0), run: { tenantId: context.tenantId, workspaceId: context.workspaceId, runId: context.runId }, record: {
 					attachmentId: attachment.attachmentId, name: attachment.name, sha256: attachment.sha256,
-					sourceRef: attachment.sourceRef, parserVersion: "1.3.0",
+					sourceRef: attachment.sourceRef, parserVersion: this.parserVersion,
 				} });
 				return { argv: [path, value.ocrCursor?.split(":")[1] ?? "1"], workingDirectory: directory, paths: { readOnly: [path], writable: [], temporaryDirectory: join(directory, "output") } };
 			},
@@ -104,7 +122,7 @@ export class AssetInspectionService implements SandboxedToolExecutorPort {
 	async execute(manifest: ToolExecutionManifest, signal: AbortSignal): Promise<ToolExecutionResult> {
 		if (!["asset_metadata_inspect", "document_read"].includes(manifest.tool.name)) return this.executor.execute(manifest, signal);
 		const prepared = this.inputs.get(manifest.attemptId);
-		if (!prepared || manifest.command.executable !== this.executable || manifest.command.argv[0] !== join(prepared.directory, "input.bin")) {
+		if (!prepared || manifest.tenantId !== prepared.run.tenantId || manifest.workspaceId !== prepared.run.workspaceId || manifest.runId !== prepared.run.runId || manifest.command.executable !== this.executable || manifest.command.argv[0] !== join(prepared.directory, "input.bin")) {
 			throw new RuntimeFailure("permission_denied", "Native parser invocation is not Host-owned", false);
 		}
 		try {
@@ -140,7 +158,7 @@ export class AssetInspectionService implements SandboxedToolExecutorPort {
 	}
 
 	private cacheId(_attachmentId: string, sha256: string, start = 1): string {
-		return `inspection-${createHash("sha256").update(`${sha256}:1.3.0:${start}`).digest("hex")}`;
+		return `inspection-${createHash("sha256").update(`${sha256}:${this.parserVersion}:${start}`).digest("hex")}`;
 	}
 
 	private mergedRecord(run: { tenantId: string; workspaceId: string; runId: string }, fallback: AssetInspectionRecord): AssetInspectionRecord {
@@ -172,7 +190,7 @@ export class AssetInspectionService implements SandboxedToolExecutorPort {
 			try { value = this.cache.readJson({ ...run, runId: "document-inspections", artifactId: this.cacheId(attachment.attachmentId, attachment.sha256), artifactVersion: 1 }) as AssetInspectionRecord; }
 			catch { throw new RuntimeFailure("invalid_output", "尚未成功检查所有资料，请重试。", false); }
 			const stored = this.attachments.read(scope, attachment.attachmentId);
-			if (!isAssetInspection(value.inspection) || value.sha256 !== attachment.sha256 || value.inspection.bytes !== stored.content.length || value.parserVersion !== "1.3.0") throw new RuntimeFailure("invalid_output", "解析记录与原始资料不匹配", false);
+			if (!isAssetInspection(value.inspection) || value.sha256 !== attachment.sha256 || value.inspection.bytes !== stored.content.length || value.parserVersion !== this.parserVersion) throw new RuntimeFailure("invalid_output", "解析记录与原始资料不匹配", false);
 			const merged = this.mergedRecord(run, value).inspection;
 			if (merged.ocrNextPage) throw new RuntimeFailure("invalid_output", "扫描资料尚未完整识别，请在附件预览继续下一批 OCR 后重试需求单。", false);
 			return { attachmentId: attachment.attachmentId, name: attachment.name, sha256: attachment.sha256, sourceRef: attachment.sourceRef, parserVersion: value.parserVersion, inspection: merged };
@@ -197,7 +215,23 @@ export function reapAbandonedInputs(root: string) {
 			if (!stat.isFile() || stat.isSymbolicLink() || stat.size > 1024) continue;
 			let pid: number;
 			try { pid = JSON.parse(readFileSync(owner, "utf8")).pid; } catch { continue; }
-			if (processIsGone(pid)) rmSync(directory, { recursive: true, force: true });
+			if (processIsGone(pid)) {
+				const native = join(directory, "native");
+				if (existsSync(native)) {
+					// The detached trusted broker may still be cleaning after its Node owner died.
+					// Retain uncertain profile evidence; never race a live broker or erase an unconfirmed cleanup.
+					try {
+						if (lstatSync(native).isSymbolicLink()) continue;
+						const brokerPath = join(native, "broker.json"), resultPath = join(native, "execution.json");
+						for (const path of [brokerPath, resultPath]) { const info = lstatSync(path); if (!info.isFile() || info.isSymbolicLink() || info.size > (path === brokerPath ? 1024 : 2 * 1024 * 1024)) throw new Error("unsafe_native_cleanup_record"); }
+						const broker = JSON.parse(readFileSync(brokerPath, "utf8"));
+						if (!processIsGone(broker.pid)) continue;
+						const result = JSON.parse(readFileSync(resultPath, "utf8"));
+						if (result.schemaVersion !== "windows-text-execution.v1" || result.cleanupVerified !== true || result.profileDeleted !== true) continue;
+					} catch { continue; }
+				}
+				rmSync(directory, { recursive: true, force: true });
+			}
 		} else if (Date.now() - statSync(directory).mtimeMs > 86_400_000) {
 			// Compatibility cleanup for old releases whose native jobs were limited to 15 seconds.
 			rmSync(directory, { recursive: true, force: true });

@@ -94,6 +94,21 @@ describe("conversation file permissions and recovery", () => {
 		expect(service.read(scope, first.path)).toMatchObject({ content: "第一版", file: { version: 3, status: "draft" } });
 	});
 
+	it("binds cached task-file reads to their immutable version across an approved edit and deletion", async () => {
+		const { service } = setup(); await create(service);
+		const input = { path: "包装/方案.md" }, prior = JSON.stringify(service.read(scope, input.path));
+		const validator = service.tools().find((tool) => tool.name === "file_read")!.validateContextResult!;
+		const req = request({ ...input, content: "updated", expectedVersion: 1 }, "update");
+		const waiting = service.authorize(req); service.decide(scope, service.list(scope).approvals[0].id, "approved");
+		service.apply("write", req.input, context(req, (await waiting).approvalId));
+		expect(() => validator(input, prior, context(req))).not.toThrow();
+		const remove = request({ ...input, expectedVersion: 2 }, "remove", "file_delete");
+		const deleting = service.authorize(remove); service.decide(scope, service.list(scope).approvals[0].id, "approved");
+		service.apply("delete", remove.input, context(remove, (await deleting).approvalId));
+		expect(() => validator(input, prior, context(remove))).not.toThrow();
+		expect(service.read(scope, input.path, 1).content).toBe("第一版");
+	});
+
 	it("rejects stale decisions and versions even when two operations were independently approved", async () => {
 		const { service } = setup(); await create(service);
 		const one = request({ path: "包装/方案.md", content: "a", expectedVersion: 1 }, "a");

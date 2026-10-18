@@ -1,5 +1,5 @@
 import { closeSync, constants, existsSync, lstatSync, mkdirSync, openSync, readFileSync, realpathSync, renameSync, rmdirSync, unlinkSync, writeFileSync } from "node:fs";
-import { isAbsolute, relative, resolve } from "node:path";
+import { isAbsolute, relative, resolve, sep } from "node:path";
 import { randomUUID } from "node:crypto";
 
 export function configureLocalData(environment: NodeJS.ProcessEnv) {
@@ -20,7 +20,7 @@ export function configureLocalData(environment: NodeJS.ProcessEnv) {
 
 export function within(root: string, path: string) {
 	const part = relative(root, path);
-	return part === "" || (!isAbsolute(part) && part !== ".." && !part.startsWith("../"));
+	return part === "" || (!isAbsolute(part) && part !== ".." && !part.startsWith(`..${sep}`));
 }
 
 export function processIsGone(pid: number): boolean {
