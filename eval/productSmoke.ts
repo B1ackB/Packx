@@ -34,6 +34,7 @@ const planDocument = join(documents, "plan-output.md");
 const localDocument = join(documents, "客户包装需求.md");
 const serve = process.argv.includes("--serve");
 const settingsPath = resolve(`.packx-settings.json-${crypto.randomUUID()}.fixture`);
+const graphObjectives: string[] = [];
 const provider = createServer(async (request, response) => {
 	const chunks: Buffer[] = []; for await (const chunk of request) chunks.push(Buffer.from(chunk));
 	const body = JSON.parse(Buffer.concat(chunks).toString()) as AnthropicMessageRequest;
@@ -46,10 +47,26 @@ const provider = createServer(async (request, response) => {
 	const instructions = JSON.stringify(body.system);
 	if (instructions.includes("Independently review the candidate")) {
 		content = [{ type: "text", text: JSON.stringify({ issues: [] }) }];
+	} else if (instructions.includes("Plan only. Do not execute") && JSON.stringify(blocks).includes("plan-graph-fixture")) {
+		content = [{ type: "text", text: JSON.stringify({ summary: "Read a source before composing its report", tasks: [
+			{ title: "Compose", objective: "plan-graph-fixture-compose", tools: [], dependsOn: [1] },
+			{ title: "Read", objective: "plan-graph-fixture-read", tools: [] },
+		] }) }];
 	} else if (instructions.includes("Plan only. Do not execute") && JSON.stringify(blocks).includes("plan-write-fixture")) {
 		content = [{ type: "text", text: JSON.stringify({ summary: "Create an explicitly approved draft file", tasks: [{ title: "Write draft", objective: "plan-write-fixture", tools: ["file_write"] }] }) }];
 	} else if (instructions.includes("Plan only. Do not execute")) {
 		content = [{ type: "text", text: JSON.stringify({ summary: "整理包装需求资料，分别核对来源与缺失信息（固定演示计划）。", tasks: [{ title: "来源核对", objective: "汇总包装资料来源并保留未验证状态。", tools: ["file_list"] }, { title: "缺失信息", objective: "列出需要用户确认的包装需求字段。", tools: [] }] }) }];
+	} else if (instructions.includes("Execute ONLY this approved subtask") && JSON.stringify(blocks).includes("plan-graph-fixture")) {
+		const raw = last.find((block) => block.type === "text" && block.text.startsWith('{"objective":'));
+		assert(raw?.type === "text");
+		const input = JSON.parse(raw.text) as { objective: string; dependencies?: Array<{ taskIndex: number; status: string; result: { summary: string } }> };
+		graphObjectives.push(input.objective);
+		if (input.objective.endsWith("compose")) {
+			assert.equal(input.dependencies?.length, 1);
+			assert.equal(input.dependencies[0].taskIndex, 1); assert.equal(input.dependencies[0].status, "unverified");
+			assert.equal(input.dependencies[0].result.summary, "HTTP_SOURCE_REPORT");
+		} else assert.equal(input.dependencies, undefined);
+		content = [{ type: "text", text: JSON.stringify({ summary: input.dependencies ? "HTTP_COMPOSED_REPORT" : "HTTP_SOURCE_REPORT", evidence: ["synthetic-http-source"], limitations: ["Not real-model validation"], assessment: { decision: "continue", reason: "Synthetic HTTP checkpoint completed" } }) }];
 	} else if (instructions.includes("Execute ONLY this approved subtask") && !last.some((block) => block.type === "tool_result") && JSON.stringify(blocks).includes("plan-write-fixture")) {
 		content = [{ type: "tool_use", id: "plan-write", name: "file_write", input: { path: planDocument, expectedSha256: null, content: "Draft from approved plan; facts remain unverified." } }];
 	} else if (instructions.includes("Execute ONLY this approved subtask") && body.tools?.some((tool) => tool.name === "file_list") && !last.some((block) => block.type === "tool_result")) {
@@ -318,6 +335,33 @@ try {
 		await planCommand({ action: "mode", mode: "execute" });
 	}
 	console.log("PASS: Plan mode, explicit version confirmation, isolated subagents and persisted results through local HTTP fixture.");
+	if (!serve) {
+		const graphId = (await api("/api/conversations", {})).conversation.conversationId;
+		const graphPath = `/api/conversations/${graphId}/plan`;
+		const graphCommand = async (command: Record<string, unknown>) => {
+			const { plan } = await api<{ plan: PlanWorkspace }>(graphPath);
+			return api<{ plan: PlanWorkspace }>(graphPath, { ...command, revision: plan.revision, requestId: crypto.randomUUID() });
+		};
+		const awaitGraph = async (status: string) => {
+			for (let i = 0; i < 150; i++) {
+				const { plan } = await api<{ plan: PlanWorkspace }>(graphPath);
+				if (plan.versions[0]?.status === status) return plan.versions[0];
+				assert.notEqual(plan.versions[0]?.status, "failed", JSON.stringify(plan));
+				await new Promise((resolve) => setTimeout(resolve, 100));
+			}
+			throw new Error(`Graph did not reach ${status}`);
+		};
+		await graphCommand({ action: "mode", mode: "plan" });
+		await graphCommand({ action: "generate", objective: "plan-graph-fixture: compose a sourced report" });
+		const proposed = await awaitGraph("awaiting_confirmation");
+		assert.deepEqual(proposed.spec!.tasks[0].dependsOn, [1]); assert.equal(graphObjectives.length, 0);
+		await graphCommand({ action: "confirm", version: 1, confirmed: true });
+		const completed = await awaitGraph("completed");
+		assert.deepEqual(completed.children.map((c) => c.taskIndex), [1, 0]);
+		assert.equal(completed.children[1].result.summary, "HTTP_COMPOSED_REPORT");
+		assert.deepEqual(graphObjectives, ["plan-graph-fixture-read", "plan-graph-fixture-compose"]);
+		console.log("PASS: confirmed forward dependency DAG through real Host HTTP, queue, Runtime, provider adapter and persisted unverified reports; synthetic provider only.");
+	}
 	const id = (await api("/api/conversations", {})).conversation.conversationId as string;
 	const path = `/api/conversations/${id}`;
 	// Observe real HTTP text before the message POST has completed, with authenticated SSE.

@@ -6,7 +6,7 @@ import { AgentPlanStore } from "./agentPlanStore";
 import { AgentPlanWorkflow } from "./agentPlanWorkflow";
 import { InMemoryStageJobQueue } from "../../src/enterprise/stageJobQueue";
 import { StageJobScheduler } from "../workers/stageJobScheduler";
-import { PLAN_LIMITS, PlanError } from "../../src/enterprise/agentPlan";
+import { PLAN_LIMITS, PlanError, type PlanSpec } from "../../src/enterprise/agentPlan";
 import { RuntimeFailure, type AgentRuntimePort, type RuntimeTurnRequest } from "../../src/runtime/contracts";
 import { BlackxAgentRuntime } from "../runtime/agentRuntime";
 import { SkillRegistry } from "../../src/agent/skills";
@@ -18,7 +18,7 @@ const spec = { summary: "Review packaging request", tasks: [{ title: "Sources", 
 const result = { summary: "Draft findings", evidence: ["source: brief.txt"], limitations: ["Requires user verification"], assessment: { decision: "continue", reason: "The requested source review is complete; business facts still need verification." } };
 const cleanup: Array<() => void> = [];
 afterEach(() => { for (const fn of cleanup.splice(0).reverse()) fn(); });
-function harness(custom?: AgentRuntimePort) {
+function harness(custom?: AgentRuntimePort, proposed: PlanSpec = spec) {
 	const dir = mkdtempSync(join(tmpdir(), "packx-plan-"));
 	cleanup.push(() => rmSync(dir, { recursive: true, force: true }));
 	const path = join(dir, "plans.sqlite");
@@ -33,7 +33,7 @@ function harness(custom?: AgentRuntimePort) {
 	const assertAvailable = (target: typeof scope) => { if (deleted || target.tenantId !== scope.tenantId || target.workspaceId !== scope.workspaceId || target.runId !== scope.runId) throw new PlanError("conversation_not_found", 404); };
 	const runtime: AgentRuntimePort = custom ?? { async health() { return { adapter: "blackx-agent", online: true }; }, async executeTurn(request) {
 		requests.push(request);
-		return { adapter: "blackx-agent", status: "completed", executionId: `execution-${requests.length}`, finalResponse: JSON.stringify(request.stageId === "plan" ? spec : result), events: [], usage: { inputTokens: 10, outputTokens: 20, cachedInputTokens: 0, reasoningOutputTokens: 0 } };
+		return { adapter: "blackx-agent", status: "completed", executionId: `execution-${requests.length}`, finalResponse: JSON.stringify(request.stageId === "plan" ? proposed : result), events: [], usage: { inputTokens: 10, outputTokens: 20, cachedInputTokens: 0, reasoningOutputTokens: 0 } };
 	} };
 	const workflow = new AgentPlanWorkflow(store, queue, runtime, {
 		assertAvailable,
@@ -369,4 +369,112 @@ it("continues other plan scopes and healthy jobs while preserving reconciliation
 	h.command({ action: "replan", version: 1 });
 	expect((await h.scheduler.runNext()).status).toBe("completed");
 	expect(h.store.read(scope).versions.at(-1)!.status).toBe("awaiting_confirmation");
+});
+
+const dependencyPlan: PlanSpec = { summary: "Read two sources then synthesize declared evidence", tasks: [
+	{ title: "Synthesis", objective: "Use only source A", tools: [], dependsOn: [2] },
+	{ title: "Source B", objective: "SOURCE_B_ONLY", tools: [] },
+	{ title: "Source A", objective: "SOURCE_A_ONLY", tools: ["file_read"] },
+] };
+
+it("runs a confirmed DAG in dependency order, shares only direct reports and recovers after restart", async () => {
+	const h = harness(undefined, dependencyPlan); h.generate(); await h.scheduler.runNext();
+	expect(h.store.read(scope).versions[0].status).toBe("awaiting_confirmation");
+	await h.scheduler.runNext(); expect(h.requests).toHaveLength(1);
+	h.command({ action: "confirm", version: 1, confirmed: true });
+	await h.scheduler.runNext(); // Independent B is the first ready task.
+	expect(h.requests.at(-1)!.stageId).toBe("subagent-1");
+	expect(JSON.parse(h.requests.at(-1)!.input)).not.toHaveProperty("dependencies");
+	h.command({ action: "pause", version: 1 });
+	h.command({ action: "resume", version: 1 });
+	// Recreate the workflow and queue from the durable plan intent.
+	const reopened = new AgentPlanStore(h.path); cleanup.push(() => reopened.close());
+	const queue = new InMemoryStageJobQueue();
+	const requests: RuntimeTurnRequest[] = [];
+	const runtime: AgentRuntimePort = { async health() { return { adapter: "fake", online: false }; }, async executeTurn(request) {
+		requests.push(request);
+		return { adapter: "fake", status: "completed", executionId: `restart-${request.stageId}`, finalResponse: JSON.stringify({ ...result, summary: "A_REPORT_ONLY" }), events: [] };
+	} };
+	const workflow = new AgentPlanWorkflow(reopened, queue, runtime, { readInput: () => ({ revision: 1, context: "source: brief.txt" }), readTools: ["file_read"], executionTools: ["file_read", "file_write"], instructions: [] });
+	const scheduler = new StageJobScheduler(queue, { workerId: "restarted", handlers: { "plan-subagents": (lease, signal, check) => workflow.execute(lease, signal, check) }, dispatchOutbox: () => workflow.reconcile() });
+	workflow.reconcile(); workflow.reconcile(); expect(queue.list()).toHaveLength(1);
+	await scheduler.runNext(); await scheduler.runNext(); await scheduler.runNext();
+	expect(requests.map((request) => request.stageId)).toEqual(["subagent-2", "subagent-0"]);
+	const input = JSON.parse(requests[1].input);
+	expect(input.dependencies).toEqual([{ planVersion: 1, taskIndex: 2, sessionId: requests[0].sessionId, executionId: "restart-subagent-2", status: "unverified", result: { ...result, summary: "A_REPORT_ONLY" } }]);
+	expect(requests[1].input).not.toContain("Draft findings"); // B's report is not declared.
+	expect(requests[1].allowedTools).toEqual([]);
+	expect(requests[1].policy).toMatchObject({ approvalPolicy: "required", sandboxMode: "workspace-write" });
+	expect(new Set([...h.requests, ...requests].map((request) => request.sessionId)).size).toBe(4);
+	expect(reopened.read(scope).versions[0]).toMatchObject({ status: "completed", children: [{ taskIndex: 1 }, { taskIndex: 2 }, { taskIndex: 0 }] });
+});
+
+it("stops a dependent graph at an upstream replan checkpoint without dispatching descendants", async () => {
+	const requests: RuntimeTurnRequest[] = [];
+	const h = harness({ async health() { return { adapter: "fake", online: false }; }, async executeTurn(request) {
+		requests.push(request);
+		return { adapter: "fake", status: "completed", executionId: `e${requests.length}`, events: [], finalResponse: JSON.stringify(request.stageId === "plan" ? dependencyPlan : { ...result, assessment: { decision: "replan", reason: "Missing source" } }) };
+	} });
+	h.generate(); await h.scheduler.runNext(); h.command({ action: "confirm", version: 1, confirmed: true });
+	await h.scheduler.runNext(); await h.scheduler.runNext();
+	expect(requests.map((r) => r.stageId)).toEqual(["plan", "subagent-1"]);
+	expect(h.store.read(scope).versions[0]).toMatchObject({ status: "failed", failure: { code: "plan_replan_required", retryable: false } });
+});
+
+it("rejects oversized dependency data before reserving or dispatching a model call", async () => {
+	const graph = { summary: "Join sources", tasks: [{ title: "Join", objective: "Combine evidence", tools: [], dependsOn: [1, 2] }, ...spec.tasks] };
+	let calls = 0;
+	const big = { ...result, summary: "s".repeat(8000), evidence: Array.from({ length: 20 }, () => "e".repeat(1000)) };
+	const h = harness({ async health() { return { adapter: "fake", online: false }; }, async executeTurn(request) {
+		calls++;
+		return { adapter: "fake", status: "completed", executionId: `e${calls}`, events: [], finalResponse: JSON.stringify(request.stageId === "plan" ? graph : big) };
+	} });
+	h.generate(); await h.scheduler.runNext(); h.command({ action: "confirm", version: 1, confirmed: true });
+	for (let i = 0; i < 4; i++) await h.scheduler.runNext();
+	expect(calls).toBe(3);
+	expect(h.store.read(scope).versions[0]).toMatchObject({ status: "failed", calls: 3, children: [{ taskIndex: 1 }, { taskIndex: 2 }], failure: { code: "plan_dependency_context_too_large", retryable: false } });
+});
+
+it("resumes a paused dependent task with identical dependency input and binding", async () => {
+	const requests: RuntimeTurnRequest[] = [];
+	let pause = true;
+	const h = harness({ async health() { return { adapter: "fake", online: false }; }, async executeTurn(request) {
+		requests.push(request);
+		if (request.stageId === "subagent-0" && pause) { pause = false; return { adapter: "fake", status: "paused", sessionId: request.sessionId, executionId: "paused", finalResponse: "", events: [] }; }
+		return { adapter: "fake", status: "completed", executionId: `e${requests.length}`, finalResponse: JSON.stringify(request.stageId === "plan" ? dependencyPlan : result), events: [] };
+	} });
+	h.generate(); await h.scheduler.runNext(); h.command({ action: "confirm", version: 1, confirmed: true });
+	for (let i = 0; i < 4; i++) await h.scheduler.runNext();
+	expect(h.store.read(scope).versions[0].status).toBe("completed");
+	const dependent = requests.filter((r) => r.stageId === "subagent-0");
+	expect(dependent).toHaveLength(2);
+	expect(dependent[1]).toEqual(dependent[0]);
+});
+
+it.each(["completed_trace", "missing_trace"])("reconciles a forward-dependent completion window: %s", async (evidence) => {
+	const h = harness(undefined, dependencyPlan); h.generate(); await h.scheduler.runNext();
+	h.command({ action: "confirm", version: 1, confirmed: true });
+	await h.scheduler.runNext(); await h.scheduler.runNext();
+	// Simulate a crash after reserving the dependent call and persisting its
+	// Runtime output, before committing its receipt to the plan event store.
+	h.store.change(scope, "crash-window", "reserved", "host", "subagent.started", h.store.read(scope).revision, (state) => {
+		state.versions[0].calls++; state.versions[0].activeTask = 0;
+	});
+	const queue = new InMemoryStageJobQueue();
+	let recovered = 0, calls = 0;
+	const workflow = new AgentPlanWorkflow(h.store, queue, { async health() { return { adapter: "fake", online: false }; }, async executeTurn() { calls++; throw new Error("Never repeat an uncertain completed turn"); } }, {
+		readInput: () => ({ revision: 1, context: "source: brief.txt" }), readTools: ["file_read"], executionTools: ["file_read", "file_write"], instructions: [],
+		recoverResult: (target, sessionId, key) => {
+			recovered++; expect(target).toEqual(scope); expect(key).toBe("plan-v1-task-0");
+			if (evidence === "missing_trace") throw new PlanError("plan_completion_evidence_missing");
+			return { adapter: "fake", status: "completed", sessionId, executionId: "recovered-completion", finalResponse: JSON.stringify(result), events: [] };
+		},
+	});
+	const scheduler = new StageJobScheduler(queue, { workerId: "recovery", handlers: { "plan-subagents": (lease, signal, check) => workflow.execute(lease, signal, check) }, dispatchOutbox: () => workflow.reconcile() });
+	await scheduler.runNext(); await scheduler.runNext();
+	expect(recovered).toBe(1); expect(calls).toBe(0);
+	const plan = h.store.read(scope).versions[0];
+	expect(plan.calls).toBe(4);
+	if (evidence === "completed_trace") expect(plan).toMatchObject({ status: "completed", children: [{ taskIndex: 1 }, { taskIndex: 2 }, { taskIndex: 0, executionId: "recovered-completion" }] });
+	else expect(plan).toMatchObject({ status: "failed", failure: { code: "plan_completion_evidence_missing", retryable: false }, children: [{ taskIndex: 1 }, { taskIndex: 2 }] });
 });

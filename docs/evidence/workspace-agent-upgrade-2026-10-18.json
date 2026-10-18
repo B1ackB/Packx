@@ -1,0 +1,96 @@
+{
+  "date": "2026-10-18",
+  "baselineCommit": "1326092260672164e52fbae685aa271f2ca4870a",
+  "branch": "codex/workspace-task-graph",
+  "node": "24.14.0",
+  "baselineRestricted": {
+    "success": false,
+    "total": 1216,
+    "passed": 1160,
+    "failed": 6,
+    "pending": 50
+  },
+  "baselineFailureReason": "Six egress proxy tests cannot listen on loopback inside the restricted environment; no test skips or timeout relaxation added.",
+  "preIntegration": {
+    "core": {
+      "success": true,
+      "total": 1236,
+      "passed": 1186,
+      "failed": 0,
+      "pending": 50
+    },
+    "native": {
+      "success": true,
+      "total": 48,
+      "passed": 48,
+      "failed": 0,
+      "pending": 0
+    },
+    "browser": {
+      "startTime": "2026-10-18T16:57:30.621Z",
+      "duration": 17990.191,
+      "expected": 33,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "focusedGraphTests": 46,
+    "offlineEvaluations": [
+      "offline",
+      "context",
+      "recovery",
+      "loop-safety",
+      "memory",
+      "m1",
+      "m2",
+      "plan",
+      "plan-graph",
+      "packaging-lifecycle"
+    ],
+    "build": "passed",
+    "graphHttpProduct": "passed",
+    "workflowPolicy": "passed",
+    "secretScan": "passed"
+  },
+  "scope": {
+    "maxNodes": 4,
+    "maxConcurrency": 1,
+    "modelApiCalls": 0,
+    "newDependencies": 0,
+    "upgradePushed": false,
+    "deployed": false,
+    "realUserValidation": false
+  },
+  "fixedComparison": {
+    "provider": "same deterministic fake",
+    "baselineModelCalls": 1,
+    "graphModelCalls": 4,
+    "output": "11",
+    "taskOrder": [
+      1,
+      2,
+      0
+    ],
+    "qualityOrSpeedBenefitEstablished": false
+  },
+  "existingPr": {
+    "number": 40,
+    "url": "https://github.com/B1ackB/Packx/pull/40",
+    "sourceBefore": "13371c7798d358fad0bead2e93c6187be85d72c4",
+    "mergedMain": "1326092260672164e52fbae685aa271f2ca4870a",
+    "sourceAfter": "b1c92d7bf2142c0958904ea7db389f8915f1969c",
+    "pushed": true,
+    "forcePushed": false,
+    "merged": false,
+    "remoteRun": "https://github.com/B1ackB/Packx/actions/runs/39147916304"
+  },
+  "quotaSample": {
+    "at": "2026-10-18T17:08:05Z",
+    "source": "official get_usage_limits",
+    "windowDurationMins": 10080,
+    "usedPercent": 10,
+    "remainingPercent": 90,
+    "shortWindowAvailable": false,
+    "minimumRemainingPercent": 15
+  }
+}

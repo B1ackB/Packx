@@ -35,6 +35,9 @@ export function statusFor(language: Language, key: string, fallback: string): st
 }
 
 const errors: Record<string, [string, string]> = {
+	invalid_plan_dependencies: ["计划中的任务依赖无效，请重新生成并核对顺序。", "The task dependencies are invalid. Generate and review a new plan."],
+	plan_dependency_not_ready: ["所需的前置任务尚无完成依据，请核对已有结果并重新规划。", "A prerequisite has no completion evidence. Review results and replan."],
+	plan_dependency_context_too_large: ["前置任务的结果过长，请缩小任务范围后重新规划。", "The prerequisite reports are too large. Narrow the task and replan."],
 	plan_source_not_ready: ["请选择已完成的最新计划版本，再导入需求单。", "Select the latest completed plan before creating a requirement draft."],
 	plan_source_stale: ["会话或附件已变化，请重新规划后导入需求单。", "The conversation or attachments changed. Create a new plan before importing."],
 	plan_source_too_large: ["计划资料超过需求单输入上限，请拆分为较小任务。", "The plan source is too large. Split it into smaller tasks."],

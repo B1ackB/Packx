@@ -241,7 +241,7 @@ function testSuite(native: boolean) {
 	const report = resolve(`temp/ci-${native ? "native" : "core"}.json`);
 	mkdirSync(dirname(report), { recursive: true }); rmSync(report, { force: true });
 	const output = npm(["run", native ? "test:native" : "test", "--", "--reporter=default", "--reporter=json", `--outputFile=${report}`]);
-	const required = native ? nativeFiles : ["runtime/runtime.contract.test.ts", "runtime/executionRecovery.test.ts", "runtime/fileContextPermissions.test.ts", "eval/packagingLifecycle.test.ts", "enterprise/enterpriseEventStore.contract.test.ts", "enterprise/personalMemory.test.ts"];
+	const required = native ? nativeFiles : ["runtime/runtime.contract.test.ts", "runtime/executionRecovery.test.ts", "runtime/fileContextPermissions.test.ts", "eval/packagingLifecycle.test.ts", "enterprise/enterpriseEventStore.contract.test.ts", "enterprise/personalMemory.test.ts", "src/enterprise/agentPlan.test.ts", "server/enterprise/agentPlanWorkflow.test.ts"];
 	const parsed = JSON.parse(readFileSync(report, "utf8"));
 	validateTestReport(parsed, required, native);
 	console.log(output.slice(-3000));
@@ -257,7 +257,7 @@ async function main(task: string) {
 		case "audit": audit(); break;
 		case "core":
 			testSuite(false); console.log(npm(["run", "build"]));
-			for (const name of ["offline", "context", "recovery", "loop-safety", "memory", "m1", "m2", "plan", "packaging-lifecycle"]) { npm(["run", `eval:${name}`]); console.log(`Offline evaluation ${name}: passed`); }
+			for (const name of ["offline", "context", "recovery", "loop-safety", "memory", "m1", "m2", "plan", "plan-graph", "packaging-lifecycle"]) { npm(["run", `eval:${name}`]); console.log(`Offline evaluation ${name}: passed`); }
 			break;
 		case "native":
 			ensure(process.platform === "darwin", "Native verification requires macOS; refusing to skip");

@@ -42,6 +42,7 @@ export function PlanPanel({ state, language, busy, onCommand, part, onCreateBrie
 					const needsReplan = child && (child.result.assessment?.decision === "replan" || !child.result.evidence.length);
 					return <li key={index}><strong>{task.title}</strong> · {needsReplan ? en ? "Needs replanning" : "需要重新规划" : child ? en ? "Completed" : "已完成" : plan.activeTask === index && running ? en ? "Running" : "执行中" : en ? "Pending" : "待执行"}
 						<p>{task.objective}</p><small>{en ? "Planned actions: " : "计划操作："}{task.tools.map((tool) => actionLabels[tool]?.[en ? 1 : 0] ?? (en ? "Other processing" : "其他处理")).join(en ? ", " : "、") || (en ? "No file or source operations" : "无需操作文件或资料")}</small>
+						{!!task.dependsOn?.length && <p>{en ? "Uses results from: " : "使用以下任务的结果："}{task.dependsOn.map((dep) => `${dep + 1}. ${plan.spec!.tasks[dep].title}`).join(en ? ", " : "、")} · {en ? "Reports require verification" : "结果仍需核对"}</p>}
 						{child && <div><Markdown text={child.result.summary} language={language} />
 							<p>{en ? "Reported evidence · review required" : "执行依据 · 待核对"}</p><ul>{child.result.evidence.map((item, i) => <li key={i}>{item}</li>)}</ul>
 							<p>{en ? "Limitations" : "限制与待确认事项"}</p><ul>{child.result.limitations.map((item, i) => <li key={i}>{item}</li>)}</ul>
