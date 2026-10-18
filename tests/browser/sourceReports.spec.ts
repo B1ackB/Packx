@@ -16,6 +16,7 @@ test("creates, reads and downloads a source report, then cancels new work withou
 				expect(body.inputs).toEqual([{ kind: "web", url: "https://docs.example.test/spec" }]);
 				const version = view.versions.length + 1;
 				view = { ...view, revision: view.revision + 1, versions: [...view.versions, { version, title: body.title, actorId: "fixture", createdAt: source.capturedAt, inputs: body.inputs, status: version === 1 ? "completed" : "running", generation: 1, attempts: 1, captured: version === 1 ? [{ index: 0, digest: "a".repeat(64) }] : [], available: true }] };
+			} else if (body.action === "select") { view = { ...view, revision: view.revision + 1, selectedVersion: body.version ?? undefined, selectionRevision: view.revision + 1 };
 			} else { expect(body.action).toBe("cancel"); view = { ...view, revision: view.revision + 1, versions: view.versions.map(v => v.version === body.version ? { ...v, status: "cancelled" } : v) }; }
 		}
 		return route.fulfill({ json: view });
@@ -27,6 +28,8 @@ test("creates, reads and downloads a source report, then cancels new work withou
 	await panel.getByLabel(en ? "Report title" : "报告名称", { exact: true }).fill("Source comparison");
 	await panel.getByLabel(en ? "Web pages, one HTTPS URL per line" : "网页地址，每行一个 HTTPS 链接", { exact: true }).fill("https://docs.example.test/spec");
 	await panel.getByRole("button", { name: en ? "Create source report" : "生成资料报告", exact: true }).click();
+	await panel.getByRole("button", { name: en ? "Use v1 in tasks" : "将 v1 用于任务", exact: true }).click();
+	await expect(panel).toContainText(en ? "Selected for tasks: v1" : "任务所选资料：v1");
 	await panel.getByRole("button", { name: en ? "Read report" : "查看报告", exact: true }).click();
 	await expect(panel.locator(".source-report-preview")).toContainText(/100 um/);
 	await panel.getByRole("button", { name: en ? "Read saved source" : "查看保存的原文" }).click();
@@ -36,7 +39,9 @@ test("creates, reads and downloads a source report, then cancels new work withou
 	await panel.getByRole("button", { name: en ? "Create source report" : "生成资料报告", exact: true }).click();
 	await panel.getByRole("button", { name: en ? "Cancel collection" : "取消读取", exact: true }).click();
 	await expect(panel).toContainText(en ? "Cancelled" : "已取消");
-	expect(view.versions[0].status).toBe("completed");
+	expect(view.versions[0].status).toBe("completed"); expect(view.selectedVersion).toBe(1);
+	await panel.getByRole("button", { name: en ? "Clear report selection" : "取消报告选择", exact: true }).click();
+	expect(view.selectedVersion).toBeUndefined();
 	expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
 	await page.screenshot({ path: testInfo.outputPath("source-report-workspace.png"), fullPage: true });
 });

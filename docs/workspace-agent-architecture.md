@@ -1,7 +1,7 @@
 # Packx 工作空间 Agent：架构与分阶段交付
 
 日期：2026-10-18。工程基线：`1326092260672164e52fbae685aa271f2ca4870a`；最终本地分支同时保留已修复的模板库 PR #40（`b1c92d7`）。
-状态：架构方案 + 第一批串行依赖图已实现；其余按下表标为后续。
+状态：架构方案、有界串行依赖图、来源报告与显式版本到 worker 的只读闭环已实现；其余按阶段表标为后续。
 决策：[ADR-0034](adr/0034-workspace-agent-task-graph.md)。验收：[本轮证据](evidence/workspace-agent-upgrade-2026-10-18.md)。
 
 ## 1. 从现状出发
@@ -47,7 +47,7 @@ flowchart TD
   Projection --> UI
 ```
 
-当前已在串行 DAG 外贯通独立的[资料报告切片](source-reports.md)：文本附件/受限网页到不可变来源快照和报告 Artifact。代码、通用 Agent 网页工具、报告读回及 UI 增量事件投影仍为后续阶段。
+当前已在串行 DAG 外贯通独立的[资料报告切片](source-reports.md)：文本附件/受限网页到不可变来源快照和报告 Artifact。已进一步接入[明确选择报告版本到 DAG worker 的只读闭环](workspace-agent-delivery.md)。代码、通用 Agent 网页工具、跨业务依赖失效及 UI 增量事件投影仍为后续阶段。
 
 ## 3. 协调器与任务图
 
@@ -117,7 +117,7 @@ Tool 继续沿用 Core 的输入 Schema/validate、风险、幂等、timeout、m
 | 能力 | 最小产品形态 | 权限和 sandbox | 开放门槛 |
 | --- | --- | --- | --- |
 | 文件（已有基础） | 授权目录/附件索引、原文引用、候选交付物 | 继承父 scope，工具/路径只能收紧；写入另批；保护 Host data/Secret | 文件版本冲突、撤权、路径攻击、恢复测试 |
-| 网页资料（后续） | 受限 fetch → 带 URL/时间/hash 的来源 Artifact；浏览器交互再后置 | Host egress allowlist，限制 scheme/端口/重定向/DNS、响应大小和时限；无 cookie/凭证继承 | SSRF、DNS rebinding、私网/元数据地址、重定向越界、恶意 Prompt 测试 |
+| 网页资料（报告链路已实现） | 受限 fetch → 带 URL/时间/hash 的来源 Artifact；浏览器交互再后置 | Host egress allowlist，限制 scheme/端口/重定向/DNS、响应大小和时限；无 cookie/凭证继承 | SSRF、DNS rebinding、私网/元数据地址、重定向越界、恶意 Prompt 测试 |
 | 代码执行（后续，默认关闭） | 一次短时、无网络、有限输入的 CodeJob，输出文件清单和 stdout 摘要 | 可信 Host 编译 manifest；独立进程/容器边界；CPU/内存/PID/磁盘/时间/输出限额；只读输入与私有输出；不挂载 Home/Host 状态/凭证 | 真机攻击集、杀进程树、超额/逃逸/符号链接/输出审计、崩溃回收；平台不支持即拒绝 |
 
 不能用 Node `vm`、Prompt “不要访问”或 `sandboxMode` 字符串充当任意代码隔离。当前 macOS 文档执行器与 Windows 文本工具只证明其窄能力；云端、多租户和任意代码需新的运行边界验收。OS 选择、网络扩权、长期凭证和费用是安全决策点，不在本轮自行启用。
@@ -153,12 +153,12 @@ Tool 继续沿用 Core 的输入 Schema/validate、风险、幂等、timeout、m
 | --- | --- | --- | --- |
 | P0 现状/安全隔离 | 原仓库状态、独立分支、CI 基线、ADR/设计 | 不触碰原未提交成果，不调用付费模型；能定位当前差距 | 已做 |
 | P1 有界依赖任务图 | 现有 Plan API → DAG 校验/确认 → Runtime → SQLite receipts → UI；固定 Eval 入 CI | 旧计划兼容、环/坏边拒绝、隔离、重启、不重复、预算、确认、类型/浏览器/离线 Eval | 本轮实现 |
-| P2 工作空间与来源报告 | Workspace task/resource/artifact 视图；保留需求单工具；受限网页 fetch；大上游结果改引用 | 文件+网页比较报告贯通；可追溯来源、撤权/stale、审批、一次进程终止恢复；原需求单回归全过 | 来源报告子切片已实现；语义比较、报告读回与公网正向验收待补 |
+| P2 工作空间与来源报告 | Workspace task/resource/artifact 视图；保留需求单工具；受限网页 fetch；大上游结果改引用 | 文件+网页比较报告贯通；可追溯来源、撤权/stale、审批、一次进程终止恢复；原需求单回归全过 | 来源报告与选定版本到 worker 闭环已实现；模型质量、完整业务依赖失效与公网正向验收待补 |
 | P3 受控只读并发 | 每节点 lease/fence、共享预算 reservation、公平调度、UI cursor 流 | 同预算对照；取消/超时/重投/迟到结果零错误提交；可测延迟收益超过成本 | 设计，未实现 |
 | P4 代码与写入协作 | CodeJob 私有输出、资源预算、patch/Artifact 原子提交、冲突 UI | 真平台攻击集、进程树回收、不明副作用对账、冲突留存；能力默认关闭至验收 | 设计，未实现 |
 | P5 更大动态图/远程执行 | 有证据后才扩节点数、远程 Adapter、持久事件行级投影 | P2–P4 真实任务价值成立；容量/故障数据驱动选型 | 暂缓 |
 
-下一次实现建议从 P2 的“文件+受限网页→来源报告 Artifact”纵向切片开始。先冻结任务与安全验收，再考虑并发/代码；不先建设插件市场、Swarm、微服务或新通用框架。
+P2 已完成有边界的来源报告与选定版本到 worker 闭环。下一次先补正常公网解析环境的正向读取与真实用户走查，再选择完整业务依赖失效或模型语义评测；并发与代码仍需独立证据 Gate。见[最终交付与架构覆盖](workspace-agent-delivery.md)。
 
 ## 12. 迁移、回退与明确未完成项
 

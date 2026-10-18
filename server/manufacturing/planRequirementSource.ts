@@ -11,6 +11,7 @@ export function planRequirementSource(state: PlanWorkspace, version: unknown, co
 	if (conversation.revision !== plan.conversationRevision || JSON.stringify(JSON.parse(plan.context).attachments) !== JSON.stringify(attachments)) {
 		throw new ProposalWorkspaceValidationError("会话或附件已变化，请重新规划后导入需求单。", "plan_source_stale");
 	}
+	if (JSON.parse(plan.context).sourceReport?.status === "selected") throw new ProposalWorkspaceValidationError("报告来源的任务结果目前仅供核对，尚不能直接导入需求单。", "plan_report_import_unsupported");
 	const sourceRef = `plan:${conversation.conversationId}:version:${plan.version}`;
 	const brief = JSON.stringify({
 		schemaVersion: "plan-requirement-source.v1", sourceRef,

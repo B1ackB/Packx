@@ -35,6 +35,8 @@ export function statusFor(language: Language, key: string, fallback: string): st
 }
 
 const errors: Record<string, [string, string]> = {
+	report_selection_changed: ["任务所选报告或来源已变化，请核对所选版本并重新规划。", "The selected report or its sources changed. Review the selection and replan."],
+	plan_report_import_unsupported: ["资料报告来源的任务结果仅供核对，暂不能直接导入需求单。", "Report-backed task results are for review; direct requirement import is not enabled."],
 	report_invalid_command: ["请选择不重复的资料，并填写报告名称；最多 6 项来源、3 个网页。", "Choose distinct sources and a title; at most 6 sources including 3 pages."],
 	report_running: ["当前报告仍在处理，请等待或取消后再新建。", "Wait for the current report or cancel it before starting another."],
 	report_revision_conflict: ["报告状态已更新，请核对最新状态后重试。", "The report state changed. Review the latest state and retry."],

@@ -34,7 +34,7 @@ export interface PlanWorkflowOptions {
 export class AgentPlanWorkflow {
 	constructor(readonly store: AgentPlanStore, private readonly queue: StageJobQueue, private readonly runtime: AgentRuntimePort, private readonly options: PlanWorkflowOptions) {}
 	private now() { return this.options.now?.() ?? new Date().toISOString(); }
-	private jobId(scope: PlanScope, plan: PlanVersion) { return `plan-${hash([scope, plan.version, plan.generation]).slice(0, 40)}`; }
+	private jobId(scope: PlanScope, plan: PlanVersion) { return `plan-${hash([{ tenantId: scope.tenantId, workspaceId: scope.workspaceId, runId: scope.runId }, plan.version, plan.generation]).slice(0, 40)}`; }
 	private assertAvailable(scope: PlanScope) { if (this.options.assertAvailable) this.options.assertAvailable(scope); else this.options.readInput(scope); }
 	read(scope: PlanScope) { this.assertAvailable(scope); return this.store.read(scope); }
 	assertChatAllowed(scope: PlanScope) {
@@ -125,8 +125,13 @@ export class AgentPlanWorkflow {
 			}
 			return;
 		}
-		if (!active(plan)) { this.cancel(scope, plan); return; }
 		const jobId = this.jobId(scope, plan);
+		// ponytail: scan the local queue; use a scoped queue index if measured size requires it.
+		// Retire old actor-bearing/property-order job IDs, including leased deliveries.
+		for (const job of this.queue.list()) if (job.tenantId === scope.tenantId && job.workspaceId === scope.workspaceId && job.runId === scope.runId && job.stageId === "plan-subagents" && ["queued", "leased"].includes(job.status) && (!active(plan) || job.jobId !== jobId)) {
+			if (this.options.cancelJob) this.options.cancelJob(job.jobId, scope); else this.queue.cancel(job.jobId, scope);
+		}
+		if (!active(plan)) { this.cancel(scope, plan); return; }
 		const existing = this.queue.get(jobId);
 		if (existing?.status === "dead_letter" || existing?.status === "cancelled") {
 			this.store.change(scope, `job-terminal:${jobId}`, jobId, "host", "plan.failed", state.revision, (s) => { failPlan(s, "plan_job_failed", true); });

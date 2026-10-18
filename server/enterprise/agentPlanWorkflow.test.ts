@@ -478,3 +478,24 @@ it.each(["completed_trace", "missing_trace"])("reconciles a forward-dependent co
 	if (evidence === "completed_trace") expect(plan).toMatchObject({ status: "completed", children: [{ taskIndex: 1 }, { taskIndex: 2 }, { taskIndex: 0, executionId: "recovered-completion" }] });
 	else expect(plan).toMatchObject({ status: "failed", failure: { code: "plan_completion_evidence_missing", retryable: false }, children: [{ taskIndex: 1 }, { taskIndex: 2 }] });
 });
+
+it("canonicalizes Plan job identity across actor-bearing and reordered scope objects", async () => {
+	const h = harness(), extended = { actorId: "user", runId: scope.runId, workspaceId: scope.workspaceId, tenantId: scope.tenantId };
+	let n = 0;
+	const command = (body: Record<string, unknown>) => h.workflow.command(extended, "user", { requestId: `scope-${++n}`, revision: h.store.read(scope).revision, ...body });
+	command({ action: "mode", mode: "plan" }); command({ action: "generate", objective: "Review scope identity" });
+	h.workflow.reconcile(); h.workflow.reconcile(); expect(h.queue.list().filter(j => j.status === "queued")).toHaveLength(1);
+	await h.scheduler.runNext(); command({ action: "confirm", version: 1, confirmed: true }); h.workflow.reconcile();
+	expect(h.queue.list().filter(j => j.status === "queued")).toHaveLength(1);
+	await h.scheduler.runNext(); await h.scheduler.runNext();
+	expect(h.store.read(scope).versions[0].status).toBe("completed"); expect(h.requests).toHaveLength(3);
+});
+it("retires obsolete queued or leased Plan IDs while preserving the canonical dispatch intent", () => {
+	const h = harness(); h.generate();
+	h.queue.enqueue({ ...scope, jobId: "legacy-plan-job", stageId: "plan-subagents", commandId: "legacy", correlationId: "legacy", expectedVersion: 1, sessionId: "legacy-session", priority: 100, payload: { version: 1, generation: 1 } });
+	const lease = h.queue.claim("old-worker", 60_000)!; expect(lease.jobId).toBe("legacy-plan-job");
+	h.workflow.reconcile();
+	expect(h.queue.get("legacy-plan-job")?.status).toBe("cancelled");
+	expect(h.queue.list().filter(j => j.status === "queued")).toHaveLength(1);
+	expect(h.store.read(scope).versions[0].status).toBe("planning");
+});

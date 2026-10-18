@@ -40,7 +40,7 @@ PACKX_SOURCE_WEB_DOMAINS=example.com npm run dev:fixture
 
 可查看已保存的原文及下载 JSON。页面以转义后的纯文本展示来源，不渲染来源中的 HTML、Markdown 图片或脚本。读取报告、下载和读取快照都重新检查任务所有权、附件当前版本/撤回状态、原始及重定向最终域名政策和 Artifact 摘要。来源撤回或政策收紧后历史仍保留用于审计，但内容入口不可用。网页不会为了“刷新可用性”自动重新联网；读取时间不是持续有效性的保证。
 
-报告是 Enterprise 交付记录，不是 Requirement Brief，也不是已批准生产文件。当前不自动注入 Agent 上下文；可下载后作为新附件显式使用。下一切片再建立选定报告版本到 `AgentRuntimePort` 的受控读回和失效依赖，不把全部报告塞进全局历史。
+报告是 Enterprise 交付记录，不是 Requirement Brief，也不是已批准生产文件。现在可点击“将 vN 用于任务”明确选择一个版本。ContextEngine 只加入 Artifact/摘要/选择修订号与来源索引，worker 用只读 source_report_read 按需读取；不把全部正文塞进全局历史。新报告不替换选择，清除再选回同版本也使旧计划失效。归档/暂停恢复时重新校验来源、版本及选择修订号。报告绑定的任务结果仍保持未验证，暂不支持直接导入需求单；服务端与 UI 都执行该边界。见[完整演示与架构覆盖](workspace-agent-delivery.md)。
 
 ## 状态、恢复与权限
 
@@ -71,4 +71,4 @@ PACKX_SOURCE_WEB_DOMAINS=example.com npm run dev:fixture
 
 [阶段证据](evidence/source-report-slice-2026-10-18.md) 区分定向测试、完整回归、浏览器拦截、真实 Host 文件报告、离线网页 Fake、以及受限网络下未通过的公网尝试。
 
-本轮不新增 npm 依赖、付费 API、模型调用、系统安全配置、远程发布或 PR 更新。延期：Office/PDF 到此报告链路、登录/交互网页、任意代码、并行写入、模型语义比较、报告到 Agent 的自动读回与完整 RBAC。现有 Office/PDF 与需求单功能继续保留。先把这些来源记录与明确的节点输入/Artifact 依赖连接，再扩宽执行能力。
+本报告切片不新增 npm 依赖、付费 API、系统安全配置或远程发布。报告生成不调用模型；选定报告后的 Agent 闭环仅使用本机固定 Provider 验收，没有付费模型调用。延期：Office/PDF 到此报告链路、登录/交互网页、任意代码、并行写入、模型语义比较、跨业务 Artifact/Fact 的完整依赖失效与 RBAC。现有 Office/PDF 与需求单功能继续保留。明确选择版本与 worker 输入已连接；下一步先补正常公网环境与真实用户走查，再评估完整业务 Artifact 依赖失效。最终增量证据见[报告到 worker 闭环验收](evidence/report-plan-bridge-2026-10-18.md)。

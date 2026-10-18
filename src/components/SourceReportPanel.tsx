@@ -23,7 +23,7 @@ export function SourceReportPanel({ conversationId, attachments, language }: { c
 	}, [conversationId]);
 	const files = attachments.filter(a => a.kind === "text" && a.size <= REPORT_LIMITS.bytes);
 	const running = view?.versions.some(v => v.status === "queued" || v.status === "running");
-	async function command(action: string, version?: number) {
+	async function command(action: string, version?: number | null) {
 		if (!view) return;
 		setBusy(true); setError(undefined); setReport(undefined);
 		try { setView(await client.sourceReportCommand(conversationId, { action, requestId: crypto.randomUUID(), revision: view.revision,
@@ -50,6 +50,8 @@ export function SourceReportPanel({ conversationId, attachments, language }: { c
 		catch (error) { setSourceText(undefined); setReport(undefined); setError(error); }
 	}
 	return <section className="source-reports">
+		<p>{en ? "Explicitly select one immutable version for chat and Plan tasks. New reports do not replace it. Changing or clearing the selection invalidates plans that used the previous selection." : "可明确选定一个不可变版本供对话与计划任务使用；新报告不会自动替换所选版本。更改或取消选择会使依赖旧选择的计划失效。"}</p>
+		{view?.selectedVersion && <p role="status">{en ? `Selected for tasks: v${view.selectedVersion}` : `任务所选资料：v${view.selectedVersion}`} <button disabled={busy} onClick={() => void command("select", null)}>{en ? "Clear report selection" : "取消报告选择"}</button></p>}
 		<p>{en ? "Collect selected text files and permitted web pages into a versioned source report. No model connection is needed. Excerpts remain unverified." : "将所选文本文件和允许访问的网页整理为版本化资料报告，无需模型连接。摘录仍需核对。"}</p>
 		<p>{en ? "Text files up to 128 KiB; up to 6 sources, including 3 web pages. Upload files using Add files in the conversation." : "支持不超过 128 KiB 的文本文件；最多 6 项来源，其中网页最多 3 项。可从对话区“添加资料”上传文件。"}</p>
 		{error != null && <p role="alert">{errorText(error, language)}</p>}
@@ -67,6 +69,7 @@ export function SourceReportPanel({ conversationId, attachments, language }: { c
 			{(v.status === "queued" || v.status === "running") && <button disabled={busy} onClick={() => void command("cancel", v.version)}>{en ? "Cancel collection" : "取消读取"}</button>}
 			{v.status === "failed" && v.failure?.retryable && v.attempts < REPORT_LIMITS.attempts && v.available && <button disabled={busy || running} onClick={() => void command("retry", v.version)}>{en ? "Retry remaining sources" : "重试剩余资料"}</button>}
 			{v.status === "completed" && v.available && <><button disabled={busy} onClick={() => void open(v.version)}>{en ? "Read report" : "查看报告"}</button> <button disabled={busy} onClick={() => void open(v.version, true)}>{en ? "Download report" : "下载报告"}</button></>}
+			{v.status === "completed" && v.available && <button disabled={busy || view.selectedVersion === v.version} onClick={() => void command("select", v.version)}>{en ? `Use v${v.version} in tasks` : `将 v${v.version} 用于任务`}</button>}
 		</article>)}
 		{report && view?.versions.some(v => v.version === report.version && v.available) && <article className="source-report-preview"><h3>{report.title} · v{report.version}</h3><p>{en ? "Source excerpts · Unverified. Review original sources; this report does not resolve conflicting claims." : "资料摘录 · 未验证。请核对原始来源；本报告不裁决互相冲突的说法。"}</p>{report.sources.map((s, i) => <section key={i}><h4>{i + 1}. {s.name}</h4><p>{s.sourceRef}</p><p>{en ? "Captured: " : "读取时间："}{s.capturedAt}</p><details><summary>{en ? "Source fingerprint" : "来源指纹"}</summary><code>{s.sha256}</code></details><pre>{s.excerpt}</pre>{s.excerptTruncated && <p>{en ? "Excerpt is incomplete; check the original." : "摘录不完整，请核对原文。"}</p>}<button onClick={() => void readSource(i)}>{en ? "Read saved source" : "查看保存的原文"}</button>{sourceText?.index === i && <><pre>{sourceText.text}</pre>{sourceText.truncated && <p>{en ? "Saved text is incomplete; check the original source." : "保存的文字不完整，请核对原始来源。"}</p>}</>}</section>)}</article>}
 	</section>;

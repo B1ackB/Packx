@@ -402,7 +402,7 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 				partialText = (partialText + event.text).slice(0, 128_000);
 				progress("model", { iteration: event.iteration, partialText });
 			});
-			hooks.on("tool.before", (event) => { assertWithinDeadline(); attemptedTools++; pendingBatchTools--; progress("tool", { tool: event.call.name, iteration: event.iteration }); });
+			hooks.on("tool.before", (event) => { validateContext(); attemptedTools++; pendingBatchTools--; progress("tool", { tool: event.call.name, iteration: event.iteration }); });
 			hooks.on("model.before", (event) => {
 				combinedSignal.throwIfAborted();
 				currentIteration = event.iteration;

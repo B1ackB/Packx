@@ -5,6 +5,7 @@ import type { AggregateScope, EnterpriseEvent, ProposalRunState } from "../../sr
 import { RuntimeFailure } from "../../src/runtime/contracts";
 import type { TaskCheckpointVersion } from "../../src/enterprise/taskCheckpoint";
 import { checkpointTail } from "./taskCheckpointStore";
+import type { SourceReportBinding } from "../../src/enterprise/sourceReport";
 
 export interface TaskContextInput {
 	scope: AggregateScope;
@@ -15,6 +16,7 @@ export interface TaskContextInput {
 	events?: readonly EnterpriseEvent[];
 	references?: unknown[];
 	knowledge?: unknown;
+	sourceReport?: SourceReportBinding;
 	unavailable?: string[];
 	checkpoint?: TaskCheckpointVersion;
 	/** Domain-selected business fields; source bookkeeping remains visible but is not a user confirmation task. */
@@ -50,6 +52,7 @@ export function buildTaskContext(input: TaskContextInput) {
 		}),
 		artifacts: [...new Map((state?.proposalVersions ?? []).map((artifact) => [artifact.artifactId, artifact])).values()], approval: state?.approval ?? null,
 		attachments: input.references ?? [], knowledge: input.knowledge ?? null,
+		...(input.sourceReport ? { sourceReport: input.sourceReport } : {}),
 		workingNotes: input.checkpoint ? [] : (input.transcript ?? []).filter((message) => visibleDialogue(message) && message.role === "assistant").slice(-2).map((message) => ({ ref: message.messageId, status: "unverified", ...(message.content.length <= 2000 ? { content: message.content } : { bodyOmitted: true, readSource: "transcript" }) })),
 	};
 	const content = JSON.stringify(value);

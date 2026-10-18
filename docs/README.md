@@ -16,6 +16,7 @@
 | 哪些节点可以回滚、哪里仍有缺口 | [40 节点故障审计](failure-handling-audit.md) | [Harness 故障测试记录](harness-error-handling-tests.md) |
 | Plan、子任务、重规划怎样受控 | [Plan 模式](plan-mode.md) | [ADR-0015](adr/0015-confirmed-plans-and-bounded-subagents.md)、[停止与预算 ADR-0023](adr/0023-loop-guards-and-task-plan-budgets.md) |
 | 如何从需求单演进为工作空间 Agent，哪些多 Agent 能力已实现 | [工作空间 Agent 架构与阶段计划](workspace-agent-architecture.md) | [串行任务图 ADR-0034](adr/0034-workspace-agent-task-graph.md)、[本轮验证](evidence/workspace-agent-upgrade-2026-10-18.md) |
+| 本轮最终交付了哪些能力、如何演示、哪些只是设计 | [最终交付与架构覆盖](workspace-agent-delivery.md) | [报告上下文 ADR-0036](adr/0036-selected-report-context-and-plan-dispatch-identity.md)、[最终验收](evidence/report-plan-bridge-2026-10-18.md) |
 | 如何将文件与受限网页整理为版本化资料报告 | [资料报告与演示](source-reports.md) | [ADR-0035](adr/0035-source-report-workspace-slice.md)、[阶段验证](evidence/source-report-slice-2026-10-18.md) |
 | Reviewer 能改什么、何时转人工、复核失败怎样恢复 | [需求单证据复核](requirement-evidence-review.md) | [受限纠错 ADR-0029](adr/0029-controlled-requirement-corrections.md)、[当前策略离线验证](evidence/requirement-controlled-corrections-2026-09-29.md) |
 | 输出截断或回答使用旧事实时如何阻断 | [预算与输出合同 ADR-0028](adr/0028-bounded-review-and-current-output-contract.md) | [可靠性修复回放](evidence/requirement-reliability-2026-09-29.md)、[历史 v2.2 预算对照](evidence/review-output-budget-2026-09-29.md) |

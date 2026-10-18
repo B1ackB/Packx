@@ -17,9 +17,13 @@ export interface ReportVersion {
 	generation: number; attempts: number; captured: Array<{ index: number; digest: string }>;
 	reportDigest?: string; failure?: { code: string; retryable: boolean };
 }
-export interface SourceReportState { schemaVersion: 1; revision: number; versions: ReportVersion[] }
+export type SourceReportBinding = { schemaVersion: "source-report-binding.v1"; selectionRevision: number } & (
+	{ status: "cleared" } | { status: "selected"; version: number; reportDigest: string; artifactRef: string; available: boolean;
+		sources?: Array<{ sourceRef: string; sha256: string; textSha256: string; snapshotRef: string }> });
+export interface SourceReportState { schemaVersion: 1; revision: number; versions: ReportVersion[]; selectedVersion?: number; selectionRevision?: number }
 export interface SourceReportView {
 	revision: number; allowedWebDomains: string[];
+	selectedVersion?: number; selectionRevision?: number;
 	versions: Array<ReportVersion & { available: boolean }>;
 }
 export const REPORT_LIMITS = { versions: 12, sources: 6, urls: 3, attempts: 3, bytes: 128 * 1024, textChars: 32_000, excerptChars: 2000, timeoutMs: 15_000 } as const;
