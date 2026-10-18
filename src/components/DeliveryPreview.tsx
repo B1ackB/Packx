@@ -64,9 +64,9 @@ export function DeliveryPreview({ conversationId, versions, currentVersion, revi
 				{source.inspection.width && <p>{source.inspection.width} × {source.inspection.height} {en ? "pixels · not a printing dimension or production-ready proof" : "像素 · 不代表印刷尺寸或生产就绪"}</p>}
 				{source.inspection.pages.map((page) => <div className="source-page" key={page.page}><strong>{en ? "Page" : "第"} {page.page}{en ? "" : " 页"}</strong>{page.warnings?.map((warning) => <p key={warning}>{documentWarningText(warning, language)}</p>)}<pre>{page.text || (en ? "No text could be extracted from this page" : "本页无可提取文字")}</pre></div>)}
 			</details>)}</div>
-			<RequirementTemplate key={`${conversationId}:${version}:${revision}`} conversationId={conversationId} delivery={delivery} language={language} />
 			<div className="export-actions" data-tour="export"><button disabled={busy} onClick={() => void download("md")}>{en ? "Export text" : "导出文本"}</button><button disabled={busy} onClick={() => void download("html")}>{en ? "Print version" : "打印版"}</button><details className="export-more"><summary>{en ? "More" : "更多"}</summary><button disabled={busy} onClick={() => void download("json")}>{en ? "Download data copy" : "下载数据副本"}</button></details></div>
 			<small>{en ? "Version and status are included. The print version can be saved as PDF." : "导出保留版本与状态，打印版可另存为 PDF。"}</small>
 		</>}
+		<RequirementTemplate key={`${conversationId}:${version}:${revision}`} conversationId={conversationId} delivery={delivery} language={language} />
 	</section>;
 }

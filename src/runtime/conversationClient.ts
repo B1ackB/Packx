@@ -1,5 +1,5 @@
 import type { AssetInspectionRecord } from "./assetInspection";
-import type { RequirementTemplateView, RequirementTemplatePreview } from "../manufacturing/requirementTemplate";
+import type { TemplateCatalog, TemplateLibraryRef, TemplateLibraryEntry, RequirementTemplateView, RequirementTemplatePreview } from "../manufacturing/requirementTemplate";
 import type { RequirementTrialInput, RequirementTrialObservation } from "../manufacturing/requirementTrial";
 import type { ModelSettingsInput, ModelSettingsView } from "./modelSettings";
 import type { PlanWorkspace } from "../enterprise/agentPlan";
@@ -151,6 +151,16 @@ export class ConversationClient {
 		return (await request<{ activity?: RuntimeActivity }>(`/api/conversations/${encodeURIComponent(conversationId)}/activity${requirement ? "?run=requirement" : ""}`)).activity;
 	}
 
+	templateCatalog(conversationId: string): Promise<TemplateCatalog> {
+		return request(`/api/conversations/${encodeURIComponent(conversationId)}/requirement-brief/templates`);
+	}
+	async selectLibraryTemplate(conversationId: string, library: TemplateLibraryRef): Promise<{ template: RequirementTemplateView; mapping: Record<string, string>; library: TemplateLibraryRef }> {
+		return request(`/api/conversations/${encodeURIComponent(conversationId)}/requirement-brief/templates/${library.libraryId}?action=select-library`, { method: "POST", body: JSON.stringify({ version: library.version }) });
+	}
+	async saveTemplateConfiguration(conversationId: string, templateId: string, input: { name: string; description: string; mapping: Record<string, string>; requestId: string; library?: TemplateLibraryRef; libraryId?: string; expectedVersion?: number }): Promise<TemplateLibraryEntry> {
+		return (await request<{ entry: TemplateLibraryEntry }>(`/api/conversations/${encodeURIComponent(conversationId)}/requirement-brief/templates/${templateId}?action=save-config`, { method: "POST", body: JSON.stringify(input) })).entry;
+	}
+
 	async uploadTemplate(conversationId: string, file: File): Promise<RequirementTemplateView> {
 		const response = await attachmentRequest(`/api/conversations/${encodeURIComponent(conversationId)}/requirement-brief/templates?name=${encodeURIComponent(file.name)}`, { method: "POST", headers: { "content-type": "application/octet-stream" }, body: file });
 		return ((await response.json()) as { template: RequirementTemplateView }).template;
@@ -158,11 +168,11 @@ export class ConversationClient {
 	async template(conversationId: string, templateId: string): Promise<RequirementTemplateView> {
 		return (await request<{ template: RequirementTemplateView }>(`/api/conversations/${encodeURIComponent(conversationId)}/requirement-brief/templates/${templateId}`)).template;
 	}
-	async previewTemplate(conversationId: string, templateId: string, version: number, mapping: Record<string, string>): Promise<RequirementTemplatePreview> {
-		return (await request<{ preview: RequirementTemplatePreview }>(`/api/conversations/${encodeURIComponent(conversationId)}/requirement-brief/templates/${templateId}?action=preview`, { method: "POST", body: JSON.stringify({ version, mapping }) })).preview;
+	async previewTemplate(conversationId: string, templateId: string, version: number, mapping: Record<string, string>, library?: TemplateLibraryRef): Promise<RequirementTemplatePreview> {
+		return (await request<{ preview: RequirementTemplatePreview }>(`/api/conversations/${encodeURIComponent(conversationId)}/requirement-brief/templates/${templateId}?action=preview`, { method: "POST", body: JSON.stringify({ version, mapping, library }) })).preview;
 	}
 	async generateTemplate(conversationId: string, preview: RequirementTemplatePreview): Promise<{ exportId: string; filename: string }> {
-		return request(`/api/conversations/${encodeURIComponent(conversationId)}/requirement-brief/templates/${preview.template.templateId}?action=generate`, { method: "POST", body: JSON.stringify({ version: preview.version, mapping: preview.mapping, reviewHash: preview.reviewHash, confirmed: true }) });
+		return request(`/api/conversations/${encodeURIComponent(conversationId)}/requirement-brief/templates/${preview.template.templateId}?action=generate`, { method: "POST", body: JSON.stringify({ version: preview.version, mapping: preview.mapping, reviewHash: preview.reviewHash, library: preview.library, confirmed: true }) });
 	}
 	async downloadTemplate(conversationId: string, exportId: string, version: number): Promise<Blob> {
 		return (await attachmentRequest(`/api/conversations/${encodeURIComponent(conversationId)}/requirement-brief/templates/${exportId}?action=download`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ version }) })).blob();

@@ -1,3 +1,4 @@
+import { RequirementTemplateLibrary } from "./manufacturing/requirementTemplateLibrary";
 import { workspaceRunId } from "./enterprise/proposalWorkspaceApi";
 import { buildTaskContext } from "./enterprise/taskContext";
 import { TaskCheckpointStore } from "./enterprise/taskCheckpointStore";
@@ -296,6 +297,7 @@ const proposalWorkspaceApi = new ProposalWorkspaceApiController(
 	stageJobOutbox,
 	stageJobScheduler,
 );
+const templateLibrary = new RequirementTemplateLibrary(resolve(localData.root, "template-library.sqlite"));
 const requirementBriefWorkspaceApi = new RequirementBriefWorkspaceApiController(
 	conversationApi,
 	requirementBriefEngine,
@@ -306,6 +308,7 @@ const requirementBriefWorkspaceApi = new RequirementBriefWorkspaceApiController(
 	undefined,
 	(scope) => planStore.read(scope),
 	knowledge,
+	templateLibrary,
 );
 const knowledgeApi = new KnowledgeApi(knowledge, conversationApi, requirementBriefEngine, async (scope, attachmentId) => {
 	const stored = conversationAttachments.read({ ...scope, conversationId: scope.runId }, attachmentId);
@@ -887,7 +890,7 @@ server.on("request", async (request, response) => {
 		catch { json(response, 400, { code: "invalid_conversation_id" }); return; }
 		const access = conversationApi.get(context, conversationId);
 		if (access.status !== 200) { json(response, access.status, access.body); return; }
-		const action = request.method === "GET" ? "view" : templateMatch[2] ? url.searchParams.get("action") ?? "preview" : "upload";
+		const action = request.method === "GET" ? templateMatch[2] ? "view" : "catalog" : templateMatch[2] ? url.searchParams.get("action") ?? "preview" : "upload";
 		let payload: unknown;
 		try {
 			payload = action === "upload" ? { name: url.searchParams.get("name") ?? "", data: await readBody(request, 5 * 1024 * 1024) } : request.method === "POST" ? await readJson(request) : {};
@@ -1274,7 +1277,7 @@ function stopHost() {
 	hostState = "stopping";
 	stopStageJobScheduler();
 	const finish = () => {
-		planStore.close(); taskNames.close(); personalMemoryStore.close(); taskCheckpoints.close();
+		planStore.close(); taskNames.close(); personalMemoryStore.close(); templateLibrary.close(); taskCheckpoints.close();
 		process.exit(0);
 	};
 	server.close(finish);

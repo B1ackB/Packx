@@ -8,6 +8,7 @@ export interface RequirementTemplateView {
 	slots: Array<{ key: string; location: string; context: string }>;
 }
 export interface RequirementTemplatePreview {
+	library?: TemplateLibraryRef;
 	template: RequirementTemplateView;
 	mapping: Record<string, string>;
 	values: Record<string, string>;
@@ -31,4 +32,34 @@ export function templateFieldValues(delivery: RequirementDelivery): Record<strin
 			return [key, fact ? `${fact.value}${fact.unit ? ` ${fact.unit}` : ""}${fact.status === "verified" ? "" : ` [${factStatusLabels[fact.status]} / UNVERIFIED]`}` : "[缺失 / MISSING]"];
 		})),
 	};
+}
+
+export interface TemplateLibraryRef { libraryId: string; version: number }
+export interface TemplateLibraryEntry extends TemplateLibraryRef {
+	name: string;
+	description: string;
+	template: RequirementTemplateView;
+	mapping: Record<string, string>;
+	createdAt: string;
+	available: boolean;
+	reason?: string;
+}
+export interface TemplateHistoryEntry {
+	exportId: string;
+	filename: string;
+	format: "docx" | "xlsx";
+	createdAt: string;
+	requirementVersion: number;
+	templateName: string;
+	templateVersion: number;
+	libraryId?: string;
+	status: "draft" | "approved" | "stale";
+	reason?: string;
+}
+
+export interface TemplateCatalog {
+	library: TemplateLibraryEntry[];
+	templates: RequirementTemplateView[];
+	history: TemplateHistoryEntry[];
+	selected?: TemplateLibraryRef;
 }

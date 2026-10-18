@@ -1,5 +1,5 @@
 import { readOfficeZip } from "../server/runtime/officeTemplate";
-import type { RequirementTemplateView, RequirementTemplatePreview } from "../src/manufacturing/requirementTemplate";
+import type { TemplateCatalog, TemplateLibraryEntry, RequirementTemplateView, RequirementTemplatePreview } from "../src/manufacturing/requirementTemplate";
 import type { MemoryView } from "../src/enterprise/personalMemory";
 import type { TaskCheckpointView } from "../src/enterprise/taskCheckpoint";
 import type { PlanWorkspace } from "../src/enterprise/agentPlan";
@@ -84,7 +84,7 @@ const provider = createServer(async (request, response) => {
 	} else if (requirement) {
 		const raw = JSON.stringify(blocks);
 		const sourceRef = raw.match(/attachment:\/\/[^\s"\\]+/g)?.[0]?.replace(/#page=\d+$/, "");
-		const values: Record<string, string | number> = { product_type: "咖啡豆自立袋", quantity: 5000, dimensions: "160 × 230 + 80 mm", target_market: "香港", target_delivery: "2026-11-30", delivery_location: "香港九龙", artwork_status: "品牌稿待提供" };
+		const values: Record<string, string | number> = { product_type: "咖啡豆自立袋", quantity: raw.includes("template-order-9900") ? 9900 : 5000, dimensions: "160 × 230 + 80 mm", target_market: "香港", target_delivery: "2026-11-30", delivery_location: "香港九龙", artwork_status: "品牌稿待提供" };
 		content = [{ type: "text", text: JSON.stringify(createRequirementBrief({ industry: "print", title: "咖啡包装需求单", customerGoal: "整理客户资料，确认数量、尺寸与交付要求。", facts: requiredRequirementFacts.print.map((key) => ({ key, version: 1, value: values[key]!, status: "unverified", sourceType: "model_output", sourceRef: sourceRef ? `${sourceRef}#page=1` : "customer-brief" })) })) }];
 	} else if (JSON.stringify(last).includes("Attached source references") && !last.some((block) => block.type === "tool_result")) {
 		const id = JSON.stringify(last).match(/attachment-[a-f0-9]+/)?.[0];
@@ -136,11 +136,15 @@ const reservation = createServer(); reservation.listen(0, "127.0.0.1"); await on
 const port = serve ? 5178 : (reservation.address() as { port: number }).port;
 await new Promise<void>((resolve) => reservation.close(() => resolve()));
 const baseUrl = `http://127.0.0.1:${port}`;
-const host = spawn(process.execPath, ["--import", "tsx", "server/index.ts"], { env: {
+const startHost = () => {
+	const child = spawn(process.execPath, ["--import", "tsx", "server/index.ts"], { env: {
 	...process.env, PACKX_SETTINGS_PATH: settingsPath, BLACKX_DATA_ROOT: dataDirectory, BLACKX_PORT: String(port), BLACKX_RUNTIME_MODE: "anthropic", ANTHROPIC_API_KEY: "offline-fixture-only", ANTHROPIC_BASE_URL: `http://127.0.0.1:${providerPort}`, ANTHROPIC_MODEL: "local-fixture",
 	BLACKX_FILE_STORE_PATH: join(dataDirectory, "files"), BLACKX_AGENT_STATE_PATH: join(dataDirectory, "sessions"), BLACKX_EVENT_STORE_PATH: join(dataDirectory, "events.json"), BLACKX_STAGE_JOB_QUEUE_DRIVER: "file", BLACKX_STAGE_JOB_QUEUE_PATH: join(dataDirectory, "queue.json"), BLACKX_CRON_SCHEDULE_PATH: join(dataDirectory, "cron.json"), BLACKX_ATTACHMENT_STORE_PATH: join(dataDirectory, "attachments"), BLACKX_ARTIFACT_STORE_PATH: join(dataDirectory, "artifacts"), BLACKX_INSPECTION_CACHE_PATH: join(dataDirectory, "inspections"), BLACKX_WORKSPACE_ROOT: directory, BLACKX_ENABLE_RUNTIME_EVAL: "0", BLACKX_COMMAND_API_TOKEN: "", BLACKX_WORKER_API_TOKEN: "", BLACKX_OPERATOR_API_TOKEN: "",
 }, stdio: ["ignore", "pipe", "pipe"] });
-let output = ""; host.stdout.on("data", (chunk) => { output += String(chunk); }); host.stderr.on("data", (chunk) => { output += String(chunk); });
+	child.stdout.on("data", (chunk) => { output += String(chunk); }); child.stderr.on("data", (chunk) => { output += String(chunk); });
+	return child;
+};
+let output = "", host = startHost();
 const close = async () => {
 	host.kill("SIGTERM");
 	if (host.exitCode === null && host.signalCode === null) await once(host, "exit");
@@ -471,6 +475,7 @@ try {
 	const v1 = await api(`${path}/requirement-brief/versions/1`); assert.equal(v1.delivery.sources[0].inspection.status, "parsed"); assert.equal(v1.delivery.status, "draft");
 	assert.equal((await api<LocalFileLocations>(`${path}/files/directories`)).locations.workingDirectory, realpathSync(directory));
 	const generatedTemplates: string[] = [];
+	const libraryEntries: TemplateLibraryEntry[] = [];
 	for (const format of ["docx", "xlsx"]) {
 		const templatePath = `${path}/requirement-brief/templates`;
 		const upload = await fetch(`${baseUrl}${templatePath}?name=customer-notice.${format}`, { method: "POST", headers: { ...headers, "content-type": "application/octet-stream" }, body: readFileSync(`public/templates/packaging-notice.${format}`) });
@@ -489,7 +494,61 @@ try {
 		const binary = Buffer.from(await download.arrayBuffer());
 		assert([...readOfficeZip(binary).values()].some((part) => part.toString().includes("5000")));
 		generatedTemplates.push(generated.exportId);
+		const saved = await api<{ entry: TemplateLibraryEntry }>(`${templatePath}/${template.templateId}?action=save-config`, { name: `Customer A ${format}`, description: "Reusable packaging notice", mapping, requestId: `save-${format}` });
+		libraryEntries.push(saved.entry);
 	}
+	const reusedId = (await api("/api/conversations", {})).conversation.conversationId;
+	const reusedPath = `/api/conversations/${reusedId}`, reusedTemplates = `${reusedPath}/requirement-brief/templates`;
+	const catalogue = await api<TemplateCatalog>(reusedTemplates);
+	assert.equal(catalogue.library.length, 2); assert.equal(catalogue.templates.length, 0);
+	assert.equal((await fetch(`${baseUrl}${reusedTemplates}`, { headers: { ...headers, "x-blackx-workspace-id": "foreign" } })).status, 403);
+	const config = libraryEntries[0], libraryRef = { libraryId: config.libraryId, version: config.version };
+	const selected = await api<{ template: RequirementTemplateView; mapping: Record<string, string> }>(`${reusedTemplates}/${config.libraryId}?action=select-library`, { version: config.version });
+	assert.equal(selected.mapping.notice_title, "title");
+	assert.deepEqual((await api<TemplateCatalog>(reusedTemplates)).selected, libraryRef);
+	assert.equal((await api<TemplateCatalog>(reusedTemplates)).templates.length, 0); // No scope-bypass copy.
+	await api(`${reusedPath}/messages`, { messageId: "second-order", content: "另一笔订单需要 9900 个包装袋。template-order-9900" });
+	await api(`${reusedPath}/requirement-brief`, { requestId: "second-order-brief", industry: "print" });
+	let secondReady = false;
+	for (let attempt = 0; attempt < 150; attempt++) {
+		const state = (await api(`${reusedPath}/requirement-brief`)).requirementBrief;
+		assert.notEqual(state.job?.status, "dead_letter");
+		if (!["queued", "leased"].includes(state.job?.status ?? "")) { secondReady = true; break; }
+		await new Promise((resolve) => setTimeout(resolve, 100));
+	}
+	assert(secondReady);
+	const reusedPreview = (await api<{ preview: RequirementTemplatePreview }>(`${reusedTemplates}/${selected.template.templateId}?action=preview`, { version: 1, mapping: selected.mapping, library: libraryRef })).preview;
+	assert(reusedPreview.values.quantity.includes("9900")); assert(reusedPreview.values.quantity.includes("UNVERIFIED"));
+	const reusedOutput = await api<{ exportId: string; filename: string }>(`${reusedTemplates}/${selected.template.templateId}?action=generate`, { ...reusedPreview, confirmed: true });
+	if (!serve) {
+		host.kill("SIGTERM"); await once(host, "exit"); host = startHost();
+		let resumed = false;
+		for (let attempt = 0; attempt < 100; attempt++) {
+			if (host.exitCode !== null) throw new Error(`Restart failed: ${output}`);
+			try { resumed = (await fetch(baseUrl)).ok; } catch { /* New process starting. */ }
+			if (resumed) break;
+			await new Promise((resolve) => setTimeout(resolve, 100));
+		}
+		assert(resumed);
+		const renewed = await fetch(`${baseUrl}/api/local-session`, { headers: { "sec-fetch-site": "same-origin", "sec-fetch-mode": "cors" } }).then((response) => response.json()) as { token: string };
+		headers["x-blackx-session-token"] = renewed.token;
+		const restored = await api<TemplateCatalog>(reusedTemplates);
+		assert.deepEqual(restored.selected, libraryRef);
+		assert.equal(restored.library.find((item) => item.libraryId === config.libraryId)?.mapping.notice_title, "title");
+	}
+	const history = await api<TemplateCatalog>(reusedTemplates);
+	assert.equal(history.history.length, 1); assert.equal(history.history[0].status, "draft"); assert.equal(history.history[0].templateVersion, 1);
+	assert.equal((await api<TemplateCatalog>(`${path}/requirement-brief/templates`)).history.length, 2);
+	assert.equal((await fetch(`${baseUrl}${reusedTemplates}/${reusedOutput.exportId}?action=download`, { method: "POST", headers: { ...headers, "content-type": "application/json" }, body: JSON.stringify({ version: 1 }) })).status, 200);
+	const updateInput = { name: "Reusable notice v2", description: "Retry after persisted response", mapping: selected.mapping, library: libraryRef, libraryId: config.libraryId, expectedVersion: 1, requestId: "retry-library-update" };
+	const updated = await api<{ entry: TemplateLibraryEntry }>(`${reusedTemplates}/${selected.template.templateId}?action=save-config`, updateInput);
+	assert.equal(updated.entry.version, 2);
+	assert.deepEqual((await api<{ entry: TemplateLibraryEntry }>(`${reusedTemplates}/${selected.template.templateId}?action=save-config`, updateInput)).entry, updated.entry);
+	assert.equal((await api<TemplateCatalog>(reusedTemplates)).library.find((item) => item.libraryId === config.libraryId)?.version, 2);
+	assert.equal((await fetch(`${baseUrl}${reusedTemplates}/${selected.template.templateId}?action=save-config`, { method: "POST", headers: { ...headers, "content-type": "application/json" }, body: JSON.stringify({ ...updateInput, requestId: "new-stale-library-update" }) })).status, 409);
+	assert.equal((await api<TemplateCatalog>(reusedTemplates)).history[0].status, "draft");
+	console.log("PASS: a persisted cross-order template update replays once with the same request ID and rejects a fresh stale writer.");
+	console.log("PASS: workspace template config persists through HTTP, cross-order reuse uses new unverified values, server selection and legacy/new delivery history are readable without localStorage.");
 	const metrics = await api<ModelTelemetryView>(`${path}/model-calls`);
 	assert(metrics.calls.some((call) => call.kind === "count_tokens"));
 	assert(metrics.calls.some((call) => call.kind === "generate" && call.status === "succeeded" && call.response?.model === "local-fixture"));
@@ -525,6 +584,7 @@ try {
 		}
 		await api(`${path}/requirement-brief`, { requestId: "smoke-revise", industry: "print" });
 		const reviewed = (await settled()).state;
+		assert((await api<TemplateCatalog>(`${path}/requirement-brief/templates`)).history.every((file) => file.status === "stale"));
 		for (const exportId of generatedTemplates) assert.equal((await fetch(`${baseUrl}${path}/requirement-brief/templates/${exportId}?action=download`, { method: "POST", headers: { ...headers, "content-type": "application/json" }, body: JSON.stringify({ version: 1 }) })).status, 400);
 
 		assert.equal(reviewed.stageStatus, "waiting_approval");
@@ -555,6 +615,11 @@ try {
 		const task = (await background.json() as { task: { taskId: string } }).task;
 		assert.equal((await fetch(`${baseUrl}${path}`, { method: "DELETE" })).status, 403);
 		const deletion = await fetch(`${baseUrl}${path}`, { method: "DELETE", headers });
+		const unavailableLibrary = await api<TemplateCatalog>(reusedTemplates);
+		assert(unavailableLibrary.library.every((entry) => !entry.available));
+		assert.equal(unavailableLibrary.history[0].status, "stale");
+		assert.equal((await fetch(`${baseUrl}${reusedTemplates}/${reusedOutput.exportId}?action=download`, { method: "POST", headers: { ...headers, "content-type": "application/json" }, body: JSON.stringify({ version: 1 }) })).status, 403);
+		assert.equal((await fetch(`${baseUrl}${reusedTemplates}/${config.libraryId}?action=select-library`, { method: "POST", headers: { ...headers, "content-type": "application/json" }, body: JSON.stringify({ version: 1 }) })).status, 403);
 		assert.equal(deletion.status, 200); const deletionBody = await deletion.json();
 		assert.deepEqual(await fetch(`${baseUrl}${path}`, { method: "DELETE", headers }).then((response) => response.json()), deletionBody);
 		assert(await deletingTurn instanceof Error);

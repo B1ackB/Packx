@@ -8,6 +8,7 @@ export interface ArtifactContentKey extends AggregateScope {
 export interface ArtifactContentStore {
 	putJson(key: ArtifactContentKey, content: unknown): string;
 	readJson(key: ArtifactContentKey): unknown;
+	list(scope: AggregateScope): ArtifactContentKey[];
 }
 
 export class ArtifactStoreError extends Error {
