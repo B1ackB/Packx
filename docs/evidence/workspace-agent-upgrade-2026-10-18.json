@@ -55,11 +55,11 @@
   "scope": {
     "maxNodes": 4,
     "maxConcurrency": 1,
-    "modelApiCalls": 0,
     "newDependencies": 0,
     "upgradePushed": false,
     "deployed": false,
-    "realUserValidation": false
+    "realUserValidation": false,
+    "paidOrExternalModelApiCalls": 0
   },
   "fixedComparison": {
     "provider": "same deterministic fake",
@@ -82,15 +82,123 @@
     "pushed": true,
     "forcePushed": false,
     "merged": false,
-    "remoteRun": "https://github.com/B1ackB/Packx/actions/runs/39147916304"
+    "remoteRun": "https://github.com/B1ackB/Packx/actions/runs/39147916304",
+    "remoteChecks": [
+      {
+        "name": "browser",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/B1ackB/Packx/actions/runs/39147916304/job/117735436799"
+      },
+      {
+        "name": "core-offline",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/B1ackB/Packx/actions/runs/39147916304/job/117735436972"
+      },
+      {
+        "name": "native-product",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/B1ackB/Packx/actions/runs/39147916304/job/117735437096"
+      },
+      {
+        "name": "windows-local-data",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/B1ackB/Packx/actions/runs/39147916304/job/117735437132"
+      },
+      {
+        "name": "ci-required",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/B1ackB/Packx/actions/runs/39147916304/job/117736374371"
+      }
+    ],
+    "remoteChecksRecordedAt": "2026-10-18T17:10:12Z",
+    "finalRemote": {
+      "head": "b1c92d7bf2142c0958904ea7db389f8915f1969c",
+      "mergeable": true,
+      "mergeableState": "clean",
+      "state": "open",
+      "merged": false,
+      "runStatus": "completed",
+      "runConclusion": "success"
+    }
   },
   "quotaSample": {
-    "at": "2026-10-18T17:08:05Z",
+    "at": "2026-10-18T17:13:15Z",
     "source": "official get_usage_limits",
     "windowDurationMins": 10080,
     "usedPercent": 10,
     "remainingPercent": 90,
     "shortWindowAvailable": false,
     "minimumRemainingPercent": 15
+  },
+  "integration": {
+    "mergeCommit": "a2ea995ce2697f84c1d71845da29e34bfdf5b47f",
+    "featureCommit": "18f4a05",
+    "includesRepairedPr40": true,
+    "core": {
+      "success": true,
+      "total": 1241,
+      "passed": 1191,
+      "failed": 0,
+      "pending": 50,
+      "skippedSuites": [
+        {
+          "file": "eval/windowsBuildJob.test.ts",
+          "count": 4
+        },
+        {
+          "file": "server/windowsModelSettings.test.ts",
+          "count": 1
+        },
+        {
+          "file": "server/runtime/assetInspection.test.ts",
+          "count": 4
+        },
+        {
+          "file": "server/runtime/documentRead.test.ts",
+          "count": 7
+        },
+        {
+          "file": "server/runtime/macOsSeatbeltSandboxedToolExecutor.test.ts",
+          "count": 27
+        },
+        {
+          "file": "server/runtime/windowsTextSandboxedToolExecutor.test.ts",
+          "count": 7
+        }
+      ]
+    },
+    "browser": {
+      "startTime": "2026-10-18T17:11:18.491Z",
+      "duration": 15236.525,
+      "expected": 36,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "offlineEvaluationsPassed": 10,
+    "build": "passed",
+    "native": {
+      "success": true,
+      "total": 48,
+      "passed": 48,
+      "failed": 0,
+      "pending": 0
+    },
+    "productHttp": {
+      "passed": true,
+      "provider": "local deterministic fixture",
+      "graphDependencyRouting": true,
+      "templateLibraryAndDeliveryHistory": true,
+      "paidOrExternalModelApiCalls": 0
+    },
+    "workflowPolicy": "passed",
+    "secretScan": "passed",
+    "remoteCiRun": false,
+    "windowsRealHostVerified": false
   }
 }

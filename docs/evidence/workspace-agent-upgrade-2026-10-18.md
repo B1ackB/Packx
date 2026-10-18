@@ -45,3 +45,13 @@ Core 的 50 项跳过是原有平台/原生条件，不是完整 Windows 验证�
 本轮没有部署或迁移用户状态；不包含通用工作空间 UI、网页 fetch、任意代码执行、并发写入、精确美元硬预算、完整 RBAC 或分布式调度。升级前排空正在规划的旧任务；新图不能由旧二进制混跑。下一阶段为“文件+受限网页来源→版本化报告 Artifact”纵向切片；并发/代码执行按架构 Gate 后置。
 
 官方额度采样：2026-10-18 17:08:05 UTC，工具暴露的周窗口已用 10%、剩余 90%；短窗口未提供读数。保留至少 15% 的要求有效，未新增模型账单。
+
+## PR 远端验收与本地集成
+
+GitHub 最终读回：PR #40 仍为 `open`，`merged=false`，head 为 `b1c92d7bf2142c0958904ea7db389f8915f1969c`，`mergeable=true`、`mergeable_state=clean`。该 commit 的 [Actions 39147916304](https://github.com/B1ackB/Packx/actions/runs/39147916304) 已完成且 success；`core-offline`、`browser`、`native-product`、`windows-local-data`、`ci-required` 五项均 success。只推送了既有 PR 的冲突修复，没有把 Agent 升级送到远端。
+
+本地升级分支以 merge `a2ea995ce2697f84c1d71845da29e34bfdf5b47f` 合入已修复的 PR #40，保留模板库/交付历史能力；原任务图增量为 `18f4a05`。这次本地集成不等于 GitHub 合并 PR。组合状态已顺序复核：core 1191 通过、0 失败、50 既有条件跳过，10 组 Eval、类型/构建全过；browser 36/36（包含模板库与依赖图，中英文三种视口），无跳过或 flaky。最终 native 结果追加如下。
+
+最终组合 `node --import tsx scripts/ci.ts native` 已完整通过：48/48 原生检查，0 跳过；构建及 HTTP 产品 fixture 同时验证了模板库持久化、跨订单复用、交付历史、计划批准与前向依赖图、文件独立审批、取消和恢复。组合状态的 policy 和 secrets（目录与 Git 历史）再次通过。没有执行升级分支的远端 CI；Windows 远端通过证据属于独立 PR #40，不能冒称新任务图已在 Windows 真机验收。
+
+结束前官方额度采样：**2026-10-18 17:13:15 UTC**，周窗口已用 10%、剩余 **90%**，高于 15% 下限；短窗口未提供读数。停止扩展本轮范围，下一阶段按 P2 的来源报告切片执行。
