@@ -46,6 +46,8 @@ const parallelHolds = new Map<string, { wait: Promise<void>; release: () => void
 let enterReportReview!: () => void, releaseReportReview!: () => void;
 const reportReviewEntered = new Promise<void>(resolve => { enterReportReview = resolve; });
 const reportReviewHeld = new Promise<void>(resolve => { releaseReportReview = resolve; });
+let releaseStreamedReply!: () => void;
+const streamedTextObserved = new Promise<void>(resolve => { releaseStreamedReply = resolve; });
 
 const provider = createServer(async (request, response) => {
 	const chunks: Buffer[] = []; for await (const chunk of request) chunks.push(Buffer.from(chunk));
@@ -191,7 +193,10 @@ const provider = createServer(async (request, response) => {
 		}
 		emit({ type: "content_block_stop", index });
 	}
-	await new Promise((resolve) => setTimeout(resolve, 150));
+	// Hold the final response until the real HTTP client observes partial text.
+	// A buffering regression must time out instead of passing because the runner is fast.
+	if (!serve && JSON.stringify(last).includes("流式输出测试")) await streamedTextObserved;
+	else await new Promise((resolve) => setTimeout(resolve, 150));
 	emit({ type: "message_delta", delta: { stop_reason: result.stop_reason }, usage: { output_tokens: 80 } });
 	emit({ type: "message_stop" }); response.end();
 });
@@ -640,10 +645,24 @@ try {
 	assert(eventResponse.headers.get("content-type")?.includes("text/event-stream"));
 	let firstText!: () => void; const streamed = new Promise<void>((resolve) => { firstText = resolve; });
 	const consuming = (async () => { try { for await (const event of readEvents(eventResponse.body!, streamController.signal)) { if (JSON.parse(event.data).activity?.partialText) firstText(); } } catch (error) { if (!streamController.signal.aborted) throw error; } })();
+	const streamEnded = consuming.then(() => { throw new Error("Activity stream ended before cancellation"); });
 	let completedReply = false;
 	const streamedReply = api(`${path}/messages`, { messageId: "stream-1", content: "流式输出测试" }).then(() => { completedReply = true; });
-	await Promise.race([streamed, new Promise((_, reject) => setTimeout(() => reject(new Error("No streamed text")), 10_000).unref())]);
-	assert.equal(completedReply, false); await streamedReply; streamController.abort(); await consuming;
+	const earlyReply = streamedReply.then(() => { throw new Error("Message completed before streamed text was observed"); });
+	let textTimeout: ReturnType<typeof setTimeout> | undefined;
+	try {
+		await Promise.race([streamed, streamEnded, earlyReply, new Promise((_, reject) => { textTimeout = setTimeout(() => reject(new Error("No streamed text")), 10_000).unref(); })]);
+		assert.equal(completedReply, false);
+		releaseStreamedReply();
+		await Promise.race([streamedReply, streamEnded]);
+	} finally {
+		clearTimeout(textTimeout);
+		releaseStreamedReply();
+		streamController.abort();
+		// Observe both pending operations before shutting down the Host; cleanup must not hide the assertion.
+		await Promise.allSettled([consuming, streamedReply]);
+	}
+
 	async function pendingFor(conversationPath: string) {
 		for (let i = 0; i < 100; i++) { const view = await fetch(`${baseUrl}${conversationPath}/files`, { headers }).then((response) => response.json()) as ConversationFilesView; if (view.approvals[0]) return view.approvals[0]; await new Promise((resolve) => setTimeout(resolve, 50)); }
 		throw new Error("File approval not requested");

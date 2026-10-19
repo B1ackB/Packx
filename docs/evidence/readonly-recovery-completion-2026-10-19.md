@@ -51,7 +51,7 @@ npm run dev:fixture
 
 第一轮完整检查的既有初始化超时与原生 fixture 波动保留在[原记录](readonly-source-invalidation-2026-10-19.md)。本次新增文件监控测试最初误用了已审批保存的历史备份，等待取消而超时；改用普通当前文件并保留历史备份可读回归后通过。报告链回归也实际发现 `report_source` 被投影为业务字段而挡住审批，已将其与其他来源容器一起排除，确认门槛仍覆盖真实业务字段。首次完整 core 发现已有复核输入测试仍固定 v2.7，当前策略已加入报告来源元数据边界并升为 v2.8；同步其精确版本断言后重新运行完整门槛。完成收据的首次定向检查误以为 Trace 保存最终文本；现有 Trace 按设计脱敏，修正为任务键、规范消息 ID 和原有对话记录的一致性核对，未向日志新增正文。收尾审查另发现报告读取的原 catch-all 会把存储异常投影为 unavailable；已收紧为有明确证据的撤回/变更/完整性或政策失败，其余错误上报且保留绑定，增加真实 SourceReportWorkflow 的三项回归。测试编写期间的越界变量与 HTTP 202 断言已修正；生产限制、CI 门槛及超时专用回归时限未放宽；非超时 fixture 的执行时限调整已如实列出。
 
-本阶段没有实际远端 CI、真实 Windows runner、付费模型调用、正向公网网页验收或真实包装用户收益证据。节点独立租约、跨图并发、公平性、并发写入、任意代码和任意业务依赖图继续延期。网页默认关闭；执行片/调用次数不等于精确费用上限。未新增依赖、凭证或系统安全设置。
+本地提交时尚无实际远端 CI、真实 Windows runner、付费模型调用、正向公网网页验收或真实包装用户收益证据。节点独立租约、跨图并发、公平性、并发写入、任意代码和任意业务依赖图继续延期。网页默认关闭；执行片/调用次数不等于精确费用上限。未新增依赖、凭证或系统安全设置。
 
 
 ## 本地原始证据
@@ -59,6 +59,16 @@ npm run dev:fixture
 正式入口日志保留在本机：`/private/tmp/packx-completion-core-verified.log`、`/private/tmp/packx-completion-browser-verified.log`、`/private/tmp/packx-completion-native.log`；安全检查见 `packx-completion-{policy-final,secrets,audit}.log`，最终构建见 `packx-completion-build-final.log`。首次 core 失败为 `/private/tmp/packx-completion-core.log` 与 `packx-completion-core-failed.json`。定向诊断另在 `packx-{source-file-watch,report-chain,reconcile-evidence,receipt-watch,source-store-error,native-stability,completion-product}.log`。不把带完整本机路径的运行日志或真实用户数据加入仓库。
 
 core 的 50 项条件跳过为 38 项 macOS 原生条件项与 12 项 Windows 条件项；macOS 正式 native 入口另外完整执行了 48 项，未跳过。离线 Eval 为 offline、context、recovery、loop-safety、memory、m1、m2、plan、plan-graph、plan-parallel、source-report、packaging-lifecycle。此前 PR #54 的远端绿色不替代本次本地检查，也不代表本次已触发远端 CI。
+
+## PR #55 发布后的流式验收修正
+
+用户随后明确授权推送 `1b2a872`、创建 PR 并等待远端检查，不合并或部署。推送前重新获取并核对 main，仍为 `8663797`，已包含在提交历史中；原提交未重写。发布入口为 [PR #55](https://github.com/B1ackB/Packx/pull/55)。
+
+[第一次远端检查](https://github.com/B1ackB/Packx/actions/runs/39269350655)的 core-offline、browser、windows-local-data 通过；native-product 的 48 项原生回归通过，但应用级流程在只读并行场景后以未处理的 SSE `terminated` 失败，聚合门槛因此失败。本地相同完整应用流程通过，不能用该结果覆盖远端失败记录。
+
+流式验收存在两个可直接核验的缺口：用 Provider 的 150ms 延迟假设客户端一定先看到文本；断言提前失败时，后台读流未在关闭 Host 前清理，可能掩盖原始原因。远端原日志没有保留清理前的首个错误，不能仅从 `terminated` 断言具体业务故障。本次仅修正测试服务与验收脚本：固定服务发出部分文本后等待真实 HTTP 客户端确认，再结束响应；同时观察读流、消息请求和超时的失败，并在 finally 中中断、等待两条后台操作。10 秒超时、首段文本先于消息完成的断言及所有生产权限和 CI 门槛保持原样。若生产路径只在完成后一次返回，确认不会发生，验收仍应失败。
+
+本地复核使用 Node 24.14.0：类型/构建、完整应用流程通过；临时故障注入在收到部分文本后强制断言失败，应以原始 AssertionError 退出、清理所有后台操作，不能再被 `terminated` 覆盖。完整正式 native 门槛重跑通过：48/48 原生安全回归及全部真实 Host HTTP 流程均成功。日志保留为本机 `packx-pr55-stream-{build,product,failure-probe}.log` 和 `packx-pr55-native-fixed.log`。最终远端结论以 PR 当前 head 对应的实际 Checks 为准；旧提交的绿色和本地结果不替代当前 head 的远端验收。
 
 ## 变更清单与原目录保护
 
