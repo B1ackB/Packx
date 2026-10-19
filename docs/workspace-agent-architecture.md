@@ -2,6 +2,8 @@
 
 日期：2026-10-18。工程基线：`1326092260672164e52fbae685aa271f2ca4870a`；最终本地分支同时保留已修复的模板库 PR #40（`b1c92d7`）。
 状态：架构方案、有界串行依赖图、来源报告与显式版本到 worker 的只读闭环已实现；其余按阶段表标为后续。
+2026-10-19：本批获发布与条件合并授权，已合入 main `243b691`；发布前检查和未验证边界见[发布验收](evidence/workspace-agent-publication-2026-10-19.md)。
+
 决策：[ADR-0034](adr/0034-workspace-agent-task-graph.md)。验收：[本轮证据](evidence/workspace-agent-upgrade-2026-10-18.md)。
 
 ## 1. 从现状出发
