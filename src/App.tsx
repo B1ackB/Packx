@@ -1,3 +1,4 @@
+import { SourceReportPanel } from "./components/SourceReportPanel";
 import { DocumentImportPreview } from "./components/DocumentImportPreview";
 import { KnowledgePanel } from "./components/KnowledgePanel";
 import { MemoryPanel } from "./components/MemoryPanel";
@@ -133,7 +134,7 @@ const stageLabelsEn: Record<keyof typeof stageLabels, string> = {
 
 function App() {
 	const [language, setLanguage] = useState<Language>(() => localStorage.getItem("blackx-language") === "en" ? "en" : "zh");
-	const [panelTab, setPanelTab] = useState<"requirement" | "models" | "files" | "knowledge" | "memory">("requirement");
+	const [panelTab, setPanelTab] = useState<"requirement" | "models" | "files" | "knowledge" | "memory" | "reports">("requirement");
 	const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 760);
 	const [reviewOpen, setReviewOpen] = useState(() => window.innerWidth >= 1180);
 	const [tutorial, setTutorial] = useState<{ step: number; panelTab: typeof panelTab; sidebarOpen: boolean; reviewOpen: boolean }>();
@@ -929,7 +930,7 @@ function App() {
 						}}><input aria-label={en ? "Task name" : "任务名称"} autoFocus required maxLength={100} value={taskName} onChange={(e) => setTaskName(e.target.value)} /><button disabled={nameBusy || !taskName.trim()}>{en ? "Save name" : "保存名称"}</button><button type="button" disabled={nameBusy} onClick={() => setRenaming(false)}>{en ? "Cancel" : "取消"}</button></form> : null)}
 					</div>
 					<button ref={tutorialButtonRef} type="button" className="panel-toggle tutorial-trigger" onClick={() => setTutorial({ step: 0, panelTab, sidebarOpen, reviewOpen })}>{en ? "Usage tutorial" : "使用教程"}</button>
-					<button className="panel-toggle review-toggle" aria-expanded={reviewOpen} onClick={() => setReviewOpen(!reviewOpen)}><span className="workspace-toggle-label">{en ? "Workspace" : "工作区"} · </span>{{ requirement: en ? "Requirements" : "需求单", models: en ? "Models" : "模型", knowledge: en ? "Evidence" : "证据", memory: en ? "Memory" : "记忆", files: en ? "Files" : "文件" }[panelTab]}</button>
+					<button className="panel-toggle review-toggle" aria-expanded={reviewOpen} onClick={() => setReviewOpen(!reviewOpen)}><span className="workspace-toggle-label">{en ? "Workspace" : "工作区"} · </span>{{ reports: en ? "Reports" : "资料报告", requirement: en ? "Requirements" : "需求单", models: en ? "Models" : "模型", knowledge: en ? "Evidence" : "证据", memory: en ? "Memory" : "记忆", files: en ? "Files" : "文件" }[panelTab]}</button>
 				</header>
 
 				<section
@@ -999,7 +1000,7 @@ function App() {
 				<div className="composer-wrap">
 					{active && <ConversationFiles key={active.conversationId} conversationId={active.conversationId} language={language} />}
 					{!realProvider && !loading && (
-						<div className="provider-warning">{en ? "Connect a model in settings to get started." : "请先在模型设置中完成连接。"}</div>
+						<div className="provider-warning">{en ? "Chat needs a model connection; source reports work without one." : "对话需要连接模型；资料报告无需模型即可使用。"}</div>
 					)}
 					{error && <div className="error-banner" role="alert">{errorText(error, language)}<button aria-label={en ? "Dismiss error" : "关闭错误提示"} onClick={() => setError(undefined)}>×</button></div>}
 					{planState?.mode !== "plan" && !planRunning && !replyRunning && !hasActiveBackgroundTask && active?.messages.at(-1)?.role === "user" && <button className="retry-action" disabled={!realProvider} onClick={() => void retryReply()}>{en ? "Continue the unfinished reply" : "继续上次未完成的回复"}</button>}
@@ -1078,7 +1079,7 @@ function App() {
 					<button className="panel-toggle" aria-label={en ? "Close workspace" : "关闭工作区"} onClick={() => setReviewOpen(false)}>×</button>
 					<div>
 						<span className="eyebrow">WORKSPACE</span>
-						<h2>{{ requirement: en ? "Requirement brief" : "需求单", models: en ? "Model connection" : "模型连接", knowledge: en ? "Reference sources" : "资料与证据", memory: en ? "Personal memory" : "个人记忆", files: en ? "Local files" : "本机文件" }[panelTab]}</h2>
+						<h2>{{ reports: en ? "Reports" : "资料报告", requirement: en ? "Requirement brief" : "需求单", models: en ? "Model connection" : "模型连接", knowledge: en ? "Reference sources" : "资料与证据", memory: en ? "Personal memory" : "个人记忆", files: en ? "Local files" : "本机文件" }[panelTab]}</h2>
 					</div>
 					<button type="button" className="panel-toggle tutorial-trigger tutorial-panel-trigger" onClick={() => setTutorial({ step: 0, panelTab, sidebarOpen, reviewOpen })}>{en ? "Usage tutorial" : "使用教程"}</button>
 					{panelTab === "requirement" && requirement && (
@@ -1089,7 +1090,7 @@ function App() {
 				</header>
 
 				<div className="workspace-tabs" role="tablist" aria-label={en ? "Workspace tools" : "工作区功能"}>
-					{(["requirement", "knowledge", "memory", "models", "files"] as const).map((tab, index, tabs) => <button key={tab} role="tab" data-tour={tab === "requirement" ? "brief-tab" : undefined} id={`tab-${tab}`} aria-controls={`panel-${tab}`} aria-selected={panelTab === tab} tabIndex={panelTab === tab ? 0 : -1} onClick={() => setPanelTab(tab)} onKeyDown={(event) => { if (["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) { event.preventDefault(); const next = event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : (index + (event.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length; setPanelTab(tabs[next]); (event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>("[role=tab]")[next])?.focus(); } }}>{ { requirement: en ? "Brief" : "需求单", models: en ? "Models" : "模型", knowledge: en ? "Evidence" : "证据", memory: en ? "Memory" : "记忆", files: en ? "Files" : "文件" }[tab]}</button>)}
+					{(["requirement", "knowledge", "reports", "memory", "models", "files"] as const).map((tab, index, tabs) => <button key={tab} role="tab" data-tour={tab === "requirement" ? "brief-tab" : undefined} id={`tab-${tab}`} aria-controls={`panel-${tab}`} aria-selected={panelTab === tab} tabIndex={panelTab === tab ? 0 : -1} onClick={() => setPanelTab(tab)} onKeyDown={(event) => { if (["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) { event.preventDefault(); const next = event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : (index + (event.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length; setPanelTab(tabs[next]); (event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>("[role=tab]")[next])?.focus(); } }}>{ { reports: en ? "Reports" : "资料报告", requirement: en ? "Brief" : "需求单", models: en ? "Models" : "模型", knowledge: en ? "Evidence" : "证据", memory: en ? "Memory" : "记忆", files: en ? "Files" : "文件" }[tab]}</button>)}
 				</div>
 				<div className="proposal-body" role="tabpanel" id="panel-requirement" aria-labelledby="tab-requirement" hidden={panelTab !== "requirement"}>
 					{requirementMetrics && requirementMetrics.totals.runs > 0 && (
@@ -1283,6 +1284,7 @@ function App() {
 					)}
 				</div>
 				<div className="proposal-body" role="tabpanel" id="panel-knowledge" aria-labelledby="tab-knowledge" hidden={panelTab !== "knowledge"}>{active && (reviewOpen && panelTab === "knowledge" || tutorial?.reviewOpen && tutorial.panelTab === "knowledge") ? <KnowledgePanel key={active.conversationId} conversationId={active.conversationId} attachments={attachments} language={language} /> : <p>{en ? "Select a task to inspect packaging evidence." : "选择任务后查看包装证据。"}</p>}</div>
+				<div className="proposal-body" role="tabpanel" id="panel-reports" aria-labelledby="tab-reports" hidden={panelTab !== "reports"}>{active && reviewOpen && panelTab === "reports" ? <SourceReportPanel key={active.conversationId} conversationId={active.conversationId} attachments={attachments} language={language} /> : <p>{en ? "Select a task to collect sources into a report." : "选择任务后整理资料报告。"}</p>}</div>
 				<div className="proposal-body" role="tabpanel" id="panel-memory" aria-labelledby="tab-memory" hidden={panelTab !== "memory"}>{active && (reviewOpen && panelTab === "memory" || tutorial?.reviewOpen && tutorial.panelTab === "memory") ? <MemoryPanel key={active.conversationId} conversationId={active.conversationId} language={language} /> : <p>{en ? "Select a task to manage personal memory." : "选择任务后管理个人记忆。"}</p>}</div>
 				<div className="proposal-body" role="tabpanel" id="panel-models" aria-labelledby="tab-models" hidden={panelTab !== "models"}>{(reviewOpen && panelTab === "models" || tutorial?.reviewOpen && tutorial.panelTab === "models") && <ModelSettings language={language} />}{active && (reviewOpen && panelTab === "models" || tutorial?.reviewOpen && tutorial.panelTab === "models") ? <details className="proposal-section diagnostics"><summary>{en ? "Processing history" : "处理记录"}</summary><ModelMonitor key={active.conversationId} conversationId={active.conversationId} language={language} /></details> : !active && <p>{en ? "Create or select a task to view processing history." : "新建或选择任务后查看处理记录。"}</p>}</div>
 				<div className="proposal-body" role="tabpanel" id="panel-files" aria-labelledby="tab-files" hidden={panelTab !== "files"}>{active ? <FileExplorer key={active.conversationId} conversationId={active.conversationId} language={language} onUseFile={(path) => { setDraft(en ? `Please read and help me work with this file: ${path}\nRequest:` : `请读取并协助处理这个文件：${path}\n处理要求：`); if (window.innerWidth < 1180) setReviewOpen(false); }} /> : <p>{en ? "Create or select a conversation to browse local files." : "新建或选择会话后浏览本机文件。"}</p>}</div>

@@ -32,6 +32,8 @@
 		"eval:knowledge": "node --import tsx eval/knowledge.ts",
 		"demo:knowledge": "node --import tsx eval/knowledgeDemo.ts",
 		"eval:plan": "node --import tsx eval/planSubagents.ts",
+		"eval:plan-graph": "node --import tsx eval/planGraph.ts",
+		"eval:source-report": "node --import tsx eval/sourceReport.ts",
 		"eval:loop-safety": "node --import tsx eval/loopSafety.ts",
 		"eval:m2": "node --import tsx eval/m2RequirementBrief.ts",
 		"eval:packaging-lifecycle": "node --import tsx eval/packagingLifecycle.ts",

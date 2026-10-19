@@ -1,0 +1,137 @@
+{
+  "date": "2026-10-18",
+  "baseCommit": "acf40b9cca5b9b30d62267c29148b09d532eaad8",
+  "integratedBase": "b1c92d7bf2142c0958904ea7db389f8915f1969c",
+  "branch": "codex/workspace-task-graph",
+  "node": "24.14.0",
+  "focusedTests": {
+    "files": 4,
+    "passed": 106,
+    "failed": 0
+  },
+  "core": {
+    "success": true,
+    "total": 1292,
+    "passed": 1242,
+    "failed": 0,
+    "pending": 50
+  },
+  "coreConditionalSkips": [
+    {
+      "file": "eval/windowsBuildJob.test.ts",
+      "skipped": 4
+    },
+    {
+      "file": "server/windowsModelSettings.test.ts",
+      "skipped": 1
+    },
+    {
+      "file": "server/runtime/assetInspection.test.ts",
+      "skipped": 4
+    },
+    {
+      "file": "server/runtime/documentRead.test.ts",
+      "skipped": 7
+    },
+    {
+      "file": "server/runtime/macOsSeatbeltSandboxedToolExecutor.test.ts",
+      "skipped": 27
+    },
+    {
+      "file": "server/runtime/windowsTextSandboxedToolExecutor.test.ts",
+      "skipped": 7
+    }
+  ],
+  "native": {
+    "success": true,
+    "total": 48,
+    "passed": 48,
+    "failed": 0,
+    "pending": 0
+  },
+  "browser": {
+    "startTime": "2026-10-18T17:56:54.678Z",
+    "duration": 15247.902,
+    "expected": 39,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "offlineEvaluationsPassed": 11,
+  "build": "passed",
+  "productHttp": {
+    "status": "passed",
+    "productionComponents": [
+      "Host",
+      "HTTP authentication",
+      "Queue",
+      "SQLite",
+      "Runtime",
+      "Provider adapter",
+      "Artifact storage",
+      "read-only source_report_read"
+    ],
+    "provider": "deterministic local HTTP fixture; no vendor requests",
+    "checks": [
+      "explicit immutable report selection",
+      "two isolated worker sessions with declared dependency",
+      "unverified result and artifact/source references",
+      "pause after read worker, stop and restart Host, refresh token and resume dependent worker",
+      "completed read worker ran once; interrupted compose attempted twice",
+      "same-version clear/reselect invalidates old confirmation",
+      "out-of-whitelist injected write denied without file or approval",
+      "report-backed requirement import denied",
+      "report generation does not increment model counter"
+    ],
+    "qualityClaim": false
+  },
+  "networkAttempt": {
+    "url": "https://example.com/",
+    "reader": "production RestrictedWebSource",
+    "outcome": "denied",
+    "reason": "web_private_address",
+    "publicConnectionAttempted": false,
+    "positivePublicFetchVerified": false,
+    "policyRelaxed": false,
+    "retriedAfterDenial": false
+  },
+  "boundaries": {
+    "maxConcurrentPlanWorkers": 1,
+    "newDependencies": 0,
+    "newCredentials": 0,
+    "paidModelCalls": 0,
+    "upgradePushed": false,
+    "upgradeRemoteCiRun": false,
+    "upgradeWindowsRealHostVerified": false,
+    "deployed": false,
+    "systemSecuritySettingsChanged": false,
+    "arbitraryCodeExecutionImplemented": false,
+    "businessFactApprovalStalePropagationImplemented": false
+  },
+  "quota": {
+    "at": "2026-10-18T18:02:57Z",
+    "usedPercent": 12,
+    "remainingPercent": 88,
+    "windowDurationMins": 10080,
+    "shortWindowAvailable": false,
+    "minimumRemainingPercent": 15
+  },
+  "reportSha256": {
+    "temp/ci-core.json": "25847a8608d7fd8fabd0e88cf1d230e1e097642eade90c99a5d2191cfa0dd689",
+    "temp/ci-native.json": "76f9e49f7b691d5a7cb13f1243a0aca500f86b60c49b240c100dd6149cd25374",
+    "temp/ci-browser.json": "66b5bb251801ba00b104a8248a1d15f5ed78e69b0d4e4efd3f651675b6b392de"
+  },
+  "sourceSha256": {
+    "server/enterprise/agentPlanWorkflow.ts": "ecef73cbd37f151de5d2403355a3ffc76a4f2ae1d15ce1f5d75c4eebcaffaa49",
+    "server/enterprise/sourceReportWorkflow.ts": "8c4089ce7467e5869b5737d9d45f9c6349384e2de83179e41b0270439f5cd195",
+    "server/enterprise/taskContext.ts": "6928713a1c3dba72ba4263bde4970f997ddfa8102715586d1acfefd2ec345005",
+    "server/runtime/agentRuntime.ts": "5c452d2be40001a062ddd14c2fe02f159eaff2e8a627a8e1c96bc877f59ae837",
+    "server/index.ts": "79575b459c42629f5715ad0ee8fa65ee0b4f9a9a8855012714fa0d54afe24fbb",
+    "server/manufacturing/planRequirementSource.ts": "ae5580771045adf28b48975a16c2ae7de0226242444633bc111245fd7a7055b8",
+    "src/enterprise/sourceReport.ts": "c4c09621295d3eab74a343b4db33699b7b87cfcf09a3197fee0cd37bff5add57",
+    "eval/productSmoke.ts": "32c3c5b9690f2d4f0593ed71503b4733bf5abca55ba05be5dfa3046006a6d479",
+    "tests/browser/sourceReports.spec.ts": "57ce9fcfc61f2ef764a2a536bf1909b794899d7d2a50026226d63c078bcad30f"
+  },
+  "workflowPolicy": "passed",
+  "secretScan": "passed: negative control, tracked directory, full Git history"
+}

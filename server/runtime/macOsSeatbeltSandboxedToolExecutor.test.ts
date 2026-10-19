@@ -480,7 +480,7 @@ describe.skipIf(!runSeatbeltTests)("macOS Seatbelt executor attack regression", 
 		const dialed: string[] = [];
 		const decisions: string[] = [];
 		const executor = new MacOsSeatbeltSandboxedToolExecutor({ workspaceRoot, egress: {
-			resolve: async (host) => host === "private.test" ? ["10.0.0.9"] : ["203.0.113.7"],
+			resolve: async (host) => host === "private.test" ? ["10.0.0.9"] : ["93.184.216.34"],
 			connect: (address) => { dialed.push(address); return netConnect(upstreamPort, "127.0.0.1"); },
 			onDecision: (decision) => decisions.push(`${decision.domain}:${decision.reason}`),
 		} });
@@ -500,7 +500,7 @@ describe.skipIf(!runSeatbeltTests)("macOS Seatbelt executor attack regression", 
 			expect(allowed.stdout.text).toContain("upstream-reached");
 			expect(blocked.stdout.text).toContain("403 Forbidden");
 			expect(privateAddress.stdout.text).toContain("403 Forbidden");
-			expect(dialed).toEqual(["203.0.113.7"]);
+			expect(dialed).toEqual(["93.184.216.34"]);
 			expect(decisions).toEqual(expect.arrayContaining(["allowed.test:allowed", "blocked.test:domain_not_allowed", "private.test:private_address"]));
 		} finally {
 			await new Promise<void>((resolveClose) => upstream.close(() => resolveClose()));
