@@ -572,15 +572,27 @@ describe.skipIf(!runSeatbeltTests)("macOS Seatbelt executor attack regression", 
 
 	it("never imports output when the supervisor dies after the Tool wrote it", async () => {
 		const killed = join(outsideRoot, "supervisor-killed.sh");
-		writeFileSync(killed, '#!/bin/sh\necho partial > "$6/out.txt"\nkill -9 $$\n', { mode: 0o755 });
+		const ready = join(outsideRoot, "supervisor-ready");
+		writeFileSync(killed, `#!/bin/sh\necho partial > "$6/out.txt"\necho $$ > "${ready}"\nkill -STOP $$\n`, { mode: 0o755 });
 		const crashed = join(outsideRoot, "supervisor-exit70.sh");
 		writeFileSync(crashed, "#!/bin/sh\nexit 70\n", { mode: 0o755 });
-		const job = manifest(workspaceRoot, { executable: "/bin/sh", argv: ["-c", "true"] });
-
-		const signalled = await new MacOsSeatbeltSandboxedToolExecutor({ workspaceRoot, supervisorExecutable: killed })
-			.execute(job, new AbortController().signal);
+		// This is an exit/partial-output fixture, not a one-second launch benchmark.
+		// The test's existing 5s deadline stays in force; deadline tests retain 50ms/1s limits.
+		const job = manifest(workspaceRoot, { executable: "/bin/sh", argv: ["-c", "true"], limits: { timeoutMs: 5000 } });
+		const cancellation = new AbortController();
+		const pending = new MacOsSeatbeltSandboxedToolExecutor({ workspaceRoot, supervisorExecutable: killed })
+			.execute(job, cancellation.signal);
+		let signalled: Awaited<typeof pending>;
+		try {
+			await expect.poll(() => existsSync(ready), { timeout: 2000 }).toBe(true);
+			const pid = Number(readFileSync(ready, "utf8").trim());
+			expect(Number.isSafeInteger(pid) && pid > 0).toBe(true);
+			expect(readFileSync(join(job.paths.temporaryDirectory, "out.txt"), "utf8")).toBe("partial\n");
+			process.kill(-pid, "SIGKILL");
+			signalled = await pending;
+		} finally { cancellation.abort(); await pending; }
 		const exited = await new MacOsSeatbeltSandboxedToolExecutor({ workspaceRoot, supervisorExecutable: crashed })
-			.execute(manifest(workspaceRoot, { executable: "/bin/sh", argv: ["-c", "true"] }), new AbortController().signal);
+			.execute(manifest(workspaceRoot, { executable: "/bin/sh", argv: ["-c", "true"], limits: { timeoutMs: 5000 } }), new AbortController().signal);
 
 		expect(signalled.status).toBe("failed");
 		expect(signalled.outputs ?? []).toHaveLength(0);

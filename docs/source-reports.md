@@ -40,7 +40,7 @@ PACKX_SOURCE_WEB_DOMAINS=example.com npm run dev:fixture
 
 可查看已保存的原文及下载 JSON。页面以转义后的纯文本展示来源，不渲染来源中的 HTML、Markdown 图片或脚本。读取报告、下载和读取快照都重新检查任务所有权、附件当前版本/撤回状态、原始及重定向最终域名政策和 Artifact 摘要。来源撤回或政策收紧后历史仍保留用于审计，但内容入口不可用。网页不会为了“刷新可用性”自动重新联网；读取时间不是持续有效性的保证。
 
-报告是 Enterprise 交付记录，不是 Requirement Brief，也不是已批准生产文件。现在可点击“将 vN 用于任务”明确选择一个版本。ContextEngine 只加入 Artifact/摘要/选择修订号与来源索引，worker 用只读 source_report_read 按需读取；不把全部正文塞进全局历史。新报告不替换选择，清除再选回同版本也使旧计划失效。归档/暂停恢复时重新校验来源、版本及选择修订号。报告绑定的任务结果仍保持未验证，暂不支持直接导入需求单；服务端与 UI 都执行该边界。见[完整演示与架构覆盖](workspace-agent-delivery.md)。
+报告是 Enterprise 交付记录，不是 Requirement Brief，也不是已批准生产文件。现在可点击“将 vN 用于任务”明确选择一个版本。ContextEngine 只加入 Artifact/摘要/选择修订号与来源索引，worker 用只读 source_report_read 按需读取；不把全部正文塞进全局历史。新报告不替换选择，清除再选回同版本也使旧计划失效。归档/暂停恢复时重新校验来源、版本及选择修订号。报告绑定的已完成最新计划可显式导入未验证需求单草稿；Host 再次核对冻结报告与当前来源，并保存受保护 `report_source` 依赖。模型不能确认字段或审批。报告撤回、重选、来源失效会让已有交付物过期、审批作废；旧浏览器操作及目标历史版本导出都重新验证其原依赖。若导入不使用报告的新计划，当前依赖显式清除，旧版本依赖仍保留。见[完整演示与架构覆盖](workspace-agent-delivery.md)。
 
 ## 状态、恢复与权限
 
@@ -71,4 +71,6 @@ PACKX_SOURCE_WEB_DOMAINS=example.com npm run dev:fixture
 
 [阶段证据](evidence/source-report-slice-2026-10-18.md) 区分定向测试、完整回归、浏览器拦截、真实 Host 文件报告、离线网页 Fake、以及受限网络下未通过的公网尝试。
 
-本批升级不新增 npm 依赖、付费 API 或系统安全配置；已获独立授权通过 PR 发布，不包含部署。报告生成不调用模型；选定报告后的 Agent 闭环仅使用本机固定 Provider 验收，没有付费模型调用。延期：Office/PDF 到此报告链路、登录/交互网页、任意代码、并行写入、模型语义比较、跨业务 Artifact/Fact 的完整依赖失效与 RBAC。现有 Office/PDF 与需求单功能继续保留。明确选择版本与 worker 输入已连接；下一步先补正常公网环境与真实用户走查，再评估完整业务 Artifact 依赖失效。最终增量证据见[报告到 worker 闭环验收](evidence/report-plan-bridge-2026-10-18.md)。
+本批升级不新增 npm 依赖、付费 API 或系统安全配置；已获独立授权通过 PR 发布，不包含部署。报告生成不调用模型；选定报告后的 Agent 闭环仅使用本机固定 Provider 验收，没有付费模型调用。延期：Office/PDF 到此报告链路、登录/交互网页、任意代码、并行写入、模型语义比较、任意业务类型的完整依赖图与 RBAC。现有 Office/PDF 与需求单功能继续保留。明确选择版本与 worker 输入已连接；下一步先补正常公网环境与真实用户走查，报告→需求单→审批/导出的有限依赖链已补齐，任意业务对象仍需独立合同。最终增量证据见[报告到 worker 闭环验收](evidence/report-plan-bridge-2026-10-18.md)。
+
+来源持续复核、报告业务依赖和结果恢复的当前决策与验收见 [ADR-0039](adr/0039-readonly-source-recovery-and-report-dependencies.md) 与[本地记录](evidence/readonly-recovery-completion-2026-10-19.md)。只读 Adapter 监控不保证远端服务已取消计费，仍未验证真实公网读取或模型质量。

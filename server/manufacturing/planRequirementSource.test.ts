@@ -27,3 +27,17 @@ describe("Plan requirement source", () => {
 		expect(() => planRequirementSource(large, 1, conversation, [])).toThrow();
 	});
 });
+
+
+it("imports a report-backed plan only with the exact current Host binding and keeps both report and facts unverified", () => {
+	const state = workspace();
+	const binding = { schemaVersion: "source-report-binding.v1" as const, selectionRevision: 2, status: "selected" as const, version: 1, reportDigest: "a".repeat(64), artifactRef: "artifact://source-report/v1", available: true };
+	const report = { schemaVersion: "source-report.v1" as const, version: 1, title: "Source excerpts", status: "unverified" as const, createdAt: "2026-10-19T00:00:00Z", sources: [], limitations: ["Review required"] };
+	state.versions[0].context = JSON.stringify({ attachments: [], sourceReport: binding });
+	expect(() => planRequirementSource(state, 1, conversation, [])).toThrow();
+	expect(() => planRequirementSource(state, 1, conversation, [], { binding: { ...binding, selectionRevision: 3 }, report })).toThrow();
+	expect(() => planRequirementSource(state, 1, conversation, [], { binding: { ...binding, available: false }, report })).toThrow();
+	const imported = planRequirementSource(state, 1, conversation, [], { binding, report });
+	expect(imported.reportSource).toMatchObject({ key: "report_source", status: "unverified", sourceRef: binding.artifactRef, value: JSON.stringify(binding) });
+	expect(JSON.parse(imported.brief)).toMatchObject({ status: "unverified", sourceReport: { status: "unverified" } });
+});

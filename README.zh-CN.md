@@ -52,7 +52,7 @@ flowchart TB
 	RECOVER -.->|"处理失败后显式新执行"| EXTRACT
 ```
 
-当前策略（`packaging-requirement-evidence.v2.6`）每次执行最多**修订一次、复核两次**。模型补丁只允许修改 `title`、`customerGoal`、`assumptions` 中获准的部分。独立的数量纠错规则要求完整原文中的整数件数明确、单位一致，纠正后仍待确认。已确认事实与人工录入值不能被静默覆盖；修好一处文字错误也不会解除其他未解决问题的阻断。
+当前策略（`packaging-requirement-evidence.v2.8`）每次执行最多**修订一次、复核两次**。模型补丁只允许修改 `title`、`customerGoal`、`assumptions` 中获准的部分。独立的数量纠错规则要求完整原文中的整数件数明确、单位一致，纠正后仍待确认。已确认事实与人工录入值不能被静默覆盖；修好一处文字错误也不会解除其他未解决问题的阻断。
 
 例如，原文明确“禁止 PVC”，草稿却写成“允许 PVC”，可以修正文案后再次复核；两份原始资料对 PVC 要求相反，则需要澄清。超时或输出截断归入系统复核恢复。完整边界见[需求单证据复核](docs/requirement-evidence-review.md)与 [ADR-0029](docs/adr/0029-controlled-requirement-corrections.md)。
 
@@ -103,7 +103,7 @@ flowchart TB
 
 Host 决定阶段转换、工具范围、预算、审批和完成条件；Core 在这些边界内执行，包装规则留在领域层。复核与修订复用 Runtime，但禁用工具。模型结束回复不代表工作流完成，也不能把候选 Fact 变成已确认事实。
 
-普通对话与确认后的 Plan 任务也复用该 Runtime，图中省略这两条支线以突出包装主流程。Plan 支持最多四项顺序执行的独立会话任务；确认计划不同时批准文件写入或业务交付。详见 [Plan 模式](docs/plan-mode.md)、[上下文管理](docs/context-management.md)、[个人记忆](docs/memory-system.md)与[可靠性恢复](docs/reliability-recovery.md)。
+普通对话与确认后的 Plan 任务也复用该 Runtime，图中省略这两条支线以突出包装主流程。Plan 支持最多四节点 DAG；新的只读图每批最多两个就绪节点并行，依赖节点等待，含写入与旧图仍串行。报告绑定的已完成计划可显式导入未验证需求单，来源撤回使依赖交付和审批失效；停止的只读图可在预算耗尽时零模型调用核对已保存结果。确认计划不同时批准文件写入或业务交付。见[当前本地验收](docs/evidence/readonly-recovery-completion-2026-10-19.md)。详见 [Plan 模式](docs/plan-mode.md)、[上下文管理](docs/context-management.md)、[个人记忆](docs/memory-system.md)与[可靠性恢复](docs/reliability-recovery.md)。
 
 | 位置 | 职责 |
 | --- | --- |

@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from "node:crypto";
-import { PLAN_LIMITS, PlanError, nextPlanTask, readyPlanTasks, planBudgetBlock, parsePlan, parseSubagentResult, planSchema, subagentResultSchema, type PlanScope, type PlanWorkspace, type PlanVersion, type PlanTaskRun } from "../../src/enterprise/agentPlan";
+import { PLAN_LIMITS, PlanError, canReconcilePlan, nextPlanTask, readyPlanTasks, planBudgetBlock, parsePlan, parseSubagentResult, planSchema, subagentResultSchema, type PlanScope, type PlanWorkspace, type PlanVersion, type PlanTaskRun } from "../../src/enterprise/agentPlan";
 import { abortable } from "../../src/agent/loop";
 import type { StageJobLease, StageJobQueue } from "../../src/enterprise/stageJobQueue";
 import { RuntimeFailure, type AgentRuntimePort, type RuntimeTurnResult } from "../../src/runtime/contracts";
@@ -55,7 +55,7 @@ export class AgentPlanWorkflow {
 		this.assertAvailable(scope);
 		if (!body || typeof body !== "object" || Array.isArray(body)) throw new PlanError("invalid_plan_command", 400);
 		const p = body as Record<string, unknown>;
-		if (typeof p.requestId !== "string" || !/^[A-Za-z0-9._:-]{1,128}$/.test(p.requestId) || !Number.isInteger(p.revision) || !["mode", "generate", "replan", "confirm", "pause", "resume", "cancel"].includes(String(p.action))) throw new PlanError("invalid_plan_command", 400);
+		if (typeof p.requestId !== "string" || !/^[A-Za-z0-9._:-]{1,128}$/.test(p.requestId) || !Number.isInteger(p.revision) || !["mode", "generate", "replan", "confirm", "pause", "resume", "cancel", "reconcile"].includes(String(p.action))) throw new PlanError("invalid_plan_command", 400);
 		const stopping = p.action === "pause" || p.action === "cancel" || p.action === "mode" && p.mode === "execute";
 		const input = stopping ? undefined : this.options.readInput(scope);
 		if (input && input.context.length > 32_000) throw new PlanError("plan_context_too_large", 400);
@@ -79,7 +79,13 @@ export class AgentPlanWorkflow {
 				state.versions.push({ version: state.versions.length + 1, objective: objective.trim(), context: input!.context, conversationRevision: input!.revision, status: "planning", createdAt: this.now(), actorId, generation: 1, calls: 0, children: [], ...(replanFromVersion === undefined ? {} : { replanFromVersion }) });
 			} else {
 				if (!current || current.version !== p.version) throw new PlanError("plan_version_conflict");
-				if (p.action === "confirm") {
+				if (p.action === "reconcile") {
+					if (state.mode !== "plan" || !canReconcilePlan(current)) throw new PlanError("plan_not_reconcilable");
+					if (current.conversationRevision !== input!.revision || current.context !== input!.context) throw new PlanError("plan_sources_changed");
+					parsePlan(current.spec, this.options.executionTools);
+					if (current.spec!.tasks.some(task => task.tools.some(tool => !this.options.readTools.includes(tool)))) throw new PlanError("plan_readonly_required");
+					this.reconcileResults(scope, state, current);
+				} else if (p.action === "confirm") {
 					const blocked = planBudgetBlock(state);
 					if (blocked) throw new PlanError(blocked);
 					if (state.mode !== "plan" || current.status !== "awaiting_confirmation" || !current.spec || p.confirmed !== true) throw new PlanError("plan_confirmation_required");
@@ -112,6 +118,41 @@ export class AgentPlanWorkflow {
 		this.dispatch(scope);
 		return result;
 	}
+	private reconcileResults(scope: PlanScope, state: PlanWorkspace, plan: PlanVersion) {
+		const checked = new Set<number>(); let recovered = 0; let invalid: PlanError | undefined;
+		for (let pass = 0; pass < plan.spec!.tasks.length; pass++) {
+			let progress = false;
+			for (const index of readyPlanTasks(plan)) {
+				if (checked.has(index)) continue;
+				checked.add(index);
+				const run = plan.taskRuns?.find(run => run.taskIndex === index);
+				if (!run) continue;
+				try {
+					const response = this.options.recoverResult?.(scope, run.sessionId, run.idempotencyKey);
+					if (!response) continue;
+					if (response.status !== "completed" || response.sessionId && response.sessionId !== run.sessionId) throw new PlanError("plan_completion_evidence_missing");
+					if (response.events.some(event => event.type === "tool.completed" && event.status !== "succeeded")) throw new PlanError("plan_tool_failed");
+					const result = parseSubagentResult(json(response.finalResponse), true);
+					plan.children.push({ taskIndex: index, sessionId: run.sessionId, executionId: response.executionId, result, usage: response.usage });
+					run.status = "completed"; delete run.failure;
+					recovered++; progress = true;
+					if (result.assessment?.decision === "replan" || !result.evidence.length) {
+						failPlan(state, "plan_replan_required", false, result.assessment?.reason); return;
+					}
+				} catch (error) {
+					if (!(error instanceof PlanError)) throw error;
+					run.status = "failed"; run.failure = { code: error.code, retryable: false }; invalid ??= error;
+				}
+			}
+			if (!progress) break;
+		}
+		if (invalid) failPlan(state, invalid.code, false);
+		else if (!recovered) throw new PlanError("plan_no_completed_results");
+		else {
+			state.consecutiveFailures = 0;
+			if (plan.children.length === plan.spec!.tasks.length) { plan.status = "completed"; delete plan.failure; delete plan.activeTask; }
+		}
+	}
 	private cancel(scope: PlanScope, plan: PlanVersion) {
 		const id = this.jobId(scope, plan);
 		const job = this.queue.get(id);
@@ -124,9 +165,10 @@ export class AgentPlanWorkflow {
 	// a crash between confirmation and queue insertion without re-approving.
 	dispatch(scope: PlanScope) {
 		const state = this.store.read(scope);
-		const plan = latest(state);
+		let plan = latest(state);
 		if (!plan) return;
-		try { if (active(plan)) this.options.readInput(scope); else this.assertAvailable(scope); }
+		let input: PlanInputSnapshot | undefined;
+		try { if (active(plan)) input = this.options.readInput(scope); else this.assertAvailable(scope); }
 		catch (error) {
 			// An unavailable context store is not evidence that the user deleted the task.
 			if (!(error instanceof PlanError) || error.code !== "conversation_not_found" || error.status !== 404) throw error;
@@ -135,6 +177,10 @@ export class AgentPlanWorkflow {
 				this.cancel(scope, plan);
 			}
 			return;
+		}
+		if (plan.readConcurrency === 2 && input && (plan.conversationRevision !== input.revision || plan.context !== input.context)) {
+			// Durable invalidation precedes cancellation; reconcile repairs a crash between them.
+			plan = latest(this.store.change(scope, `sources-changed:${plan.version}:${plan.generation}`, "plan_sources_changed", "host", "plan.sources_changed", state.revision, (s) => { failPlan(s, "plan_sources_changed", false); }))!;
 		}
 		const jobId = this.jobId(scope, plan);
 		// ponytail: scan the local queue; use a scoped queue index if measured size requires it.
@@ -167,12 +213,16 @@ export class AgentPlanWorkflow {
 		const indices = readyPlanTasks(plan).slice(0, Math.max(1, Math.min(2, remaining)));
 		const controller = new AbortController();
 		const combined = AbortSignal.any([signal, controller.signal]);
-		const outcomes = await Promise.allSettled(indices.map(async (index) => {
+		const sourceWatch = setInterval(() => {
+			try { this.dispatch(lease); } catch (error) { controller.abort(error); }
+		}, 1000);
+		let outcomes: PromiseSettledResult<StageJobHandlerResult>[];
+		try { outcomes = await Promise.allSettled(indices.map(async (index) => {
 			try { return await this.executeSlice(lease, combined, assertActive, index); }
 			finally {
 				if (!active(latest(this.store.read(lease)))) controller.abort("plan_wave_stopped");
 			}
-		}));
+		})); } finally { clearInterval(sourceWatch); }
 		if (signal.aborted) signal.throwIfAborted();
 		assertActive();
 		const rejected = outcomes.find((outcome) => outcome.status === "rejected");
@@ -294,7 +344,7 @@ export class AgentPlanWorkflow {
 					p.children.push({ taskIndex: index, sessionId, executionId: response!.executionId, result: result!, usage: response!.usage });
 					if (parallel) {
 						const run = p.taskRuns?.find((r) => r.taskIndex === index);
-						if (run) run.status = "completed";
+						if (run) { run.status = "completed"; delete run.failure; }
 					}
 					delete p.activeTask;
 					p.status = replanReason ? "failed" : p.children.length === p.spec!.tasks.length ? "completed" : "running";

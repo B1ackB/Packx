@@ -36,7 +36,6 @@ export function statusFor(language: Language, key: string, fallback: string): st
 
 const errors: Record<string, [string, string]> = {
 	report_selection_changed: ["任务所选报告或来源已变化，请核对所选版本并重新规划。", "The selected report or its sources changed. Review the selection and replan."],
-	plan_report_import_unsupported: ["资料报告来源的任务结果仅供核对，暂不能直接导入需求单。", "Report-backed task results are for review; direct requirement import is not enabled."],
 	report_invalid_command: ["请选择不重复的资料，并填写报告名称；最多 6 项来源、3 个网页。", "Choose distinct sources and a title; at most 6 sources including 3 pages."],
 	report_running: ["当前报告仍在处理，请等待或取消后再新建。", "Wait for the current report or cancel it before starting another."],
 	report_revision_conflict: ["报告状态已更新，请核对最新状态后重试。", "The report state changed. Review the latest state and retry."],
@@ -63,7 +62,7 @@ const errors: Record<string, [string, string]> = {
 	plan_source_required: ["此需求单来自计划，请使用计划导入入口更新来源。", "Use the plan import action to update this requirement source."],
 	plan_mode_requires_plan_action: ["当前选择了先规划，请生成并确认计划，或切换为直接执行。", "Generate and confirm a plan, or switch to Direct execution."],
 	plan_revision_conflict: ["计划状态已更新，请查看最新状态后重试。", "The plan changed. Review its latest state and retry."],
-	plan_sources_changed: ["会话或附件已变化，请重新生成计划并确认。", "The conversation or attachments changed. Generate and confirm a new plan."],
+	plan_sources_changed: ["任务资料或所选报告已变化。保留结果仅供核对，请重新生成计划并确认。", "The task sources or selected report changed. Review retained results, then generate and confirm a new plan."],
 	plan_readonly_required: ["当前任务包含不允许同时执行的操作，请重新规划并确认。", "This plan contains an action that cannot run concurrently. Replan and confirm."],
 	plan_job_failed: ["处理已中断。恢复计划时会先核对已保存结果，再继续未完成任务。", "Processing was interrupted. Resume the plan to reconcile saved results and continue remaining tasks."],
 	plan_completion_evidence_missing: ["已保存的回复缺少完成记录，请核对结果并重新规划。", "A saved response is missing completion evidence. Review it and replan."],
@@ -79,6 +78,9 @@ const errors: Record<string, [string, string]> = {
 	pause_plan_before_switching: ["请先暂停当前计划，再切换模式。", "Pause the running plan before switching modes."],
 	plan_not_ready: ["当前计划尚在执行，请暂停或等待完成。", "The current plan is running. Pause it or wait for completion."],
 	plan_budget_exceeded: ["本计划已达到执行预算，请核对已有结果并重新规划。", "This plan reached its execution budget. Review results and create a new plan."],
+	report_source_stale: ["报告来源已变化或不可用，请重新规划并核对来源和需求单。", "The source report changed or is unavailable. Replan and review the sources and requirement draft."],
+	plan_not_reconcilable: ["当前计划没有可核对的只读执行记录。", "This plan has no read-only execution records to reconcile."],
+	plan_no_completed_results: ["尚无完整的已保存结果；本次没有发起模型请求或消耗额度。", "No complete saved results are available. No model requests or processing slots were used."],
 	plan_requires_revision: ["此次失败需要修改计划后重新确认。", "Revise and confirm a new plan to resolve this failure."],
 	plan_unavailable: ["计划服务暂时不可用，请稍后重试。", "The plan service is unavailable. Please retry later."],
 	runtime_unavailable: ["暂时无法连接 Packx，请重新打开后重试。", "Cannot connect to Packx. Reopen it and try again."],

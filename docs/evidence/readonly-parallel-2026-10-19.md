@@ -2,6 +2,8 @@
 
 本页记录提交前的本地实现与验收快照。2026-10-19 发布阶段，产品负责人明确授权本批 24 个文件提交、推送、创建 PR，并要求等待实际远端 CI 全部通过；不授权合并或部署。本地结果不替代对应 PR 的远端检查。无付费模型调用、无新凭证、无新依赖或系统安全设置修改。
 
+后续发布记录：上述 24 个文件已随 [PR #54](https://github.com/B1ackB/Packx/pull/54) 合入 main `8663797`。提交 `cf0b18c` 的[实际远端 CI](https://github.com/B1ackB/Packx/actions/runs/39228487023) 五项全部通过；合并后本地同步完成，179 个原有未跟踪文件保持不变，未部署。本页其余内容保留提交前快照。新的来源失效工作单独记录在[后续本地验收](readonly-source-invalidation-2026-10-19.md)，不扩展当时的测试结论。
+
 ## 基线和保护
 
 - 通过实际 Git fetch 和最终 ls-remote 核验 `B1ackB/Packx` main，均为 PR #53 合并提交 `972266e4bdcef83f7d054afdcbd98ae18a4c21b0`，不是沿用旧 origin/main。

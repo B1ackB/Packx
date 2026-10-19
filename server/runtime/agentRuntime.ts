@@ -466,23 +466,36 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 				const summarySource = modelRequest.callContext?.purpose === "summary" ? modelRequest.callContext.sourceRef : undefined;
 				await validateSources(summarySource ? this.snapshots.read(scope, summarySource).messages : modelRequest.messages);
 			};
+			const monitorReadSources = async <T>(modelRequest: Parameters<AgentModelProvider["generate"]>[0], modelSignal: AbortSignal | undefined, operation: (signal?: AbortSignal) => Promise<T>): Promise<T> => {
+				if (request.policy.sandboxMode !== "read-only") return operation(modelSignal);
+				const controller = new AbortController();
+				const watched = AbortSignal.any([combinedSignal, controller.signal, ...(modelSignal ? [modelSignal] : [])]);
+				let checking = false;
+				const sourceWatch = setInterval(() => {
+					if (checking || watched.aborted) return;
+					checking = true;
+					void validateRequestSources(modelRequest).catch(error => controller.abort(error)).finally(() => { checking = false; });
+				}, 1000);
+				try { return await abortable(operation(watched), watched); }
+				finally { clearInterval(sourceWatch); controller.abort(); }
+			};
 			const measuredProvider = this.options.telemetry?.wrap(this.options.provider, scope, executionId) ?? this.options.provider;
 			const provider = { ...measuredProvider,
 				...(measuredProvider.countTokens ? { countTokens: async (modelRequest: Parameters<typeof measuredProvider.generate>[0], modelSignal?: AbortSignal) => {
 					await validateRequestSources(modelRequest);
 					if (modelRequest.callContext?.purpose === "summary") archive(modelRequest.callContext.callId, modelRequest.messages, "summary");
-					return measuredProvider.countTokens!(modelRequest, modelSignal);
+					return monitorReadSources(modelRequest, modelSignal, signal => measuredProvider.countTokens!(modelRequest, signal));
 				} } : {}),
 				generate: async (modelRequest: Parameters<typeof measuredProvider.generate>[0], modelSignal?: AbortSignal) => {
 					await validateRequestSources(modelRequest);
 					const call = modelRequest.callContext;
-					if (call?.purpose !== "summary") return measuredProvider.generate({ ...modelRequest, callContext: { purpose: "turn", callId: finalContextSnapshotId ?? executionId } }, modelSignal);
+					if (call?.purpose !== "summary") return monitorReadSources(modelRequest, modelSignal, signal => measuredProvider.generate({ ...modelRequest, callContext: { purpose: "turn", callId: finalContextSnapshotId ?? executionId } }, signal));
 					archive(call.callId, modelRequest.messages, "summary");
 					const started = this.clockMs();
 					const event = { type: "context.summary" as const, callId: call.callId, sourceRef: call.sourceRef, sourceRange: call.sourceRange };
 					observe({ ...event, status: "started" });
 					try {
-						const response = await measuredProvider.generate(modelRequest, modelSignal);
+						const response = await monitorReadSources(modelRequest, modelSignal, signal => measuredProvider.generate(modelRequest, signal));
 						observe({ ...event, status: "completed", durationMs: Math.max(0, this.clockMs() - started), usage: response.usage });
 						return response;
 					} catch (error) {

@@ -1,3 +1,4 @@
+import { ArtifactStoreError } from "../../src/enterprise/artifactStore";
 import { planRequirementSource } from "../manufacturing/planRequirementSource";
 import { AgentPlanStore } from "./agentPlanStore";
 import { AgentPlanWorkflow } from "./agentPlanWorkflow";
@@ -15,7 +16,7 @@ import { afterEach, expect, it } from "vitest";
 import { SourceReportWorkflow } from "./sourceReportWorkflow";
 import { RestrictedWebSource } from "../runtime/restrictedWebSource";
 import { FileArtifactContentStore } from "../artifacts/fileArtifactStore";
-import { FileConversationAttachmentStore } from "../runtime/conversationAttachments";
+import { ConversationAttachmentError, FileConversationAttachmentStore } from "../runtime/conversationAttachments";
 import { InMemoryStageJobQueue } from "../../src/enterprise/stageJobQueue";
 import { SourceReportError } from "../../src/enterprise/sourceReport";
 import { StageJobScheduler } from "../workers/stageJobScheduler";
@@ -278,4 +279,21 @@ it.each(["confirmation", "resume"])("rejects a changed report selection before %
 	h.command({ action: "select", version: null }); h.command({ action: "select", version: 1 });
 	expect(() => p.command(boundary === "confirmation" ? { action: "confirm", version: 1, confirmed: true } : { action: "resume", version: 1 })).toThrow("plan_sources_changed");
 	expect(calls).toBe(boundary === "confirmation" ? 1 : 2);
+});
+
+
+it.each([
+	new Error("Unknown report reader fault"),
+	new ArtifactStoreError("artifact_store_unavailable", "Report store temporarily unavailable"),
+	new ConversationAttachmentError("attachment_store_unavailable", "Attachment store temporarily unavailable"),
+])("does not relabel a report-store failure as source withdrawal: %s", async error => {
+	const h = harness(), binding = await selectReport(h), before = h.workflow.view(scope);
+	const read = h.workflow.report.bind(h.workflow);
+	try {
+		h.workflow.report = () => { throw error; };
+		expect(() => h.workflow.binding(scope)).toThrow(error);
+		expect(() => h.workflow.view(scope)).toThrow(error);
+	} finally { h.workflow.report = read; }
+	expect(h.workflow.binding(scope)).toEqual(binding);
+	expect(h.workflow.view(scope)).toEqual(before);
 });
