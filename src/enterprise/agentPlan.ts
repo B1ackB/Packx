@@ -67,6 +67,12 @@ export function planBudgetBlock(state: PlanWorkspace, generating = false): strin
 	if (generating && state.versions.length >= PLAN_LIMITS.versions) return "plan_revision_limit";
 	return undefined;
 }
+/** Result reconciliation reads existing receipts only, including when model budgets are exhausted. */
+export function canReconcilePlan(plan?: PlanVersion): boolean {
+	return !!plan?.approval && plan.readConcurrency === 2 && ["paused", "failed"].includes(plan.status)
+		&& (!plan.failure || plan.failure.retryable || ["plan_job_failed", "plan_budget_exceeded", "plan_total_budget_exceeded", "plan_failure_limit"].includes(plan.failure.code))
+		&& !!plan.taskRuns?.some(run => run.status !== "completed");
+}
 export class PlanError extends Error {
 	constructor(readonly code: string, readonly status = 409) { super(code); this.name = "PlanError"; }
 }

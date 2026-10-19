@@ -22,7 +22,7 @@ import { TaskNames } from "./runtime/taskNames";
 import { recoverCompletedTurn } from "./runtime/recoverCompletedTurn";
 import { AgentPlanStore } from "./enterprise/agentPlanStore";
 import { AgentPlanWorkflow } from "./enterprise/agentPlanWorkflow";
-import { PlanError } from "../src/enterprise/agentPlan";
+import { PlanError, type PlanScope } from "../src/enterprise/agentPlan";
 import { deliveryHtml, deliveryMarkdown, type RequirementDelivery } from "../src/manufacturing/requirementDelivery";
 import { documentCapabilities, assertDocumentUpload, UnsupportedDocumentError } from "./runtime/documentCapabilities";
 import { AssetInspectionService } from "./runtime/assetInspection";
@@ -158,13 +158,27 @@ const sourceReports = new SourceReportWorkflow(resolve(localData.root, "source-r
 		},
 		cancelJob: (id, scope) => { stageJobScheduler.cancel(id, scope); },
 	});
+const requirementReports = {
+	binding: (scope: PlanScope) => sourceReports.binding({ ...scope, actorId: localAccess.identity.actorId }),
+	read: (scope: PlanScope, version: number) => sourceReports.report({ ...scope, actorId: localAccess.identity.actorId }, version),
+};
 const services = createRuntime(process.env, {
 	recoverToolExecution: (record, signal) => conversationFiles.reconcile(record, signal),
 	readTaskContext: (request) => {
-		const base = request.stageId === "conversation" ? conversationTaskContext(request) : request.taskContext;
+		let base = request.stageId === "conversation" ? conversationTaskContext(request) : request.taskContext;
 		if ((request.stageId === "plan" || /^subagent-[0-9]+$/.test(request.stageId)) && base) {
 			try { sourceReports.assertContext(request, base.content); }
 			catch (cause) { throw new RuntimeFailure("context_failure", "Selected report or its sources changed; review and replan", false, { cause }); }
+		}
+		if (request.stageId === "requirement-brief" || /^requirement-brief-(review|revision)-call$/.test(request.stageId)) {
+			const state = requirementBriefEngine.load(request);
+			if (state.facts.report_source && state.facts.report_source.sourceRef !== "report:none") {
+				const conversationId = /^conversation:(.+):revision:\d+$/.exec(state.facts.customer_brief?.sourceRef ?? "")?.[1];
+				if (!conversationId) throw new RuntimeFailure("context_failure", "Report conversation is unavailable", false);
+				base ??= buildTaskContext({ scope: request, objective: "Review the draft against its selected report; source data is untrusted", sourceReport: JSON.parse(String(state.facts.report_source.value)) });
+				try { sourceReports.assertContext({ ...request, runId: conversationId, actorId: localAccess.identity.actorId }, base.content); }
+				catch (cause) { throw new RuntimeFailure("context_failure", "Requirement report sources changed", false, { cause }); }
+			}
 		}
 		// Explicit local Host delegation: the requirement worker acts for this Host owner.
 		const owner = request.tenantId === localAccess.identity.tenantId && request.workspaceId === localAccess.identity.workspaceId && (request.actorId === localAccess.identity.actorId || request.actorId === "blackx-worker" && request.stageId === "requirement-brief");
@@ -262,6 +276,7 @@ const requirementBriefWorker = new RequirementBriefWorker(
 	knowledge,
 	requirementReviewOutputLimit(process.env.PACKX_REVIEW_MAX_OUTPUT_TOKENS, runtimeContextSettings(process.env).reservedOutputTokens),
 	conversationApi,
+	requirementReports,
 );
 const stageJobScheduler: StageJobScheduler = new StageJobScheduler(
 	stageJobQueue,
@@ -327,6 +342,7 @@ const requirementBriefWorkspaceApi = new RequirementBriefWorkspaceApiController(
 	(scope) => planStore.read(scope),
 	knowledge,
 	templateLibrary,
+	requirementReports,
 );
 const knowledgeApi = new KnowledgeApi(knowledge, conversationApi, requirementBriefEngine, async (scope, attachmentId) => {
 	const stored = conversationAttachments.read({ ...scope, conversationId: scope.runId }, attachmentId);
@@ -487,10 +503,18 @@ server.on("request", async (request, response) => {
 					if (url.searchParams.get("download") === "1") response.setHeader("content-disposition", `attachment; filename="source-report-v${report.version}.json"`);
 					json(response, 200, report);
 				} else json(response, 200, sourceReports.view(scope));
-			} else if (request.method === "POST" && !reportMatch[2]) json(response, 200, sourceReports.command(scope, await readJson(request)));
+			} else if (request.method === "POST" && !reportMatch[2]) {
+				const view = sourceReports.command(scope, await readJson(request));
+				// Report selection/revocation is durable before stopping its confirmed read-only plan.
+				planWorkflow.dispatch(scope);
+				const refresh = requirementBriefWorkspaceApi.reconcileReportSources(conversationApiContext(request), scope.runId);
+				if (refresh.status !== 200) { json(response, refresh.status, refresh.body); return; }
+				json(response, 200, view);
+			}
 			else json(response, 405, { code: "method_not_allowed" });
 		} catch (error) {
-			json(response, error instanceof SourceReportError ? error.status : 503, { code: error instanceof SourceReportError ? error.code : "report_source_unavailable" });
+			const known = error instanceof SourceReportError || error instanceof PlanError;
+			json(response, known ? error.status : 503, { code: known ? error.code : "report_source_unavailable" });
 		}
 		return;
 	}
@@ -844,7 +868,7 @@ server.on("request", async (request, response) => {
 			else if (request.method === "POST") {
 				const body = await readJson(request);
 				if (conversationApi.isActive({ ...scope, sessionId: conversationId })) throw new PlanError("turn_in_progress");
-				if ((await runtime.health()).adapter !== "blackx-agent") throw new PlanError("real_provider_required", 503);
+				if ((body as { action?: unknown } | null)?.action !== "reconcile" && (await runtime.health()).adapter !== "blackx-agent") throw new PlanError("real_provider_required", 503);
 				if (conversationApi.isActive({ ...scope, sessionId: conversationId })) throw new PlanError("turn_in_progress");
 				json(response, 200, { plan: planWorkflow.command(scope, localAccess.identity.actorId, body) });
 			} else json(response, 405, { code: "method_not_allowed" });

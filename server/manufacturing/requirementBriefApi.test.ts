@@ -24,6 +24,10 @@ import { RequirementBriefWorker } from "./requirementBriefWorker";
 import { requirementMessagesChanged } from "./requirementSourceLifecycle";
 import { candidateConfirmationKey } from "./requirementCandidateConflicts";
 
+import type { PlanScope, PlanWorkspace } from "../../src/enterprise/agentPlan";
+import type { SourceReportArtifact, SourceReportBinding } from "../../src/enterprise/sourceReport";
+import type { RequirementReportSources } from "./requirementReportSource";
+
 const directories: string[] = [];
 const context = {
 	tenantId: "tenant-requirement",
@@ -35,7 +39,7 @@ function requirement(response: { body: unknown }): RequirementBriefWorkspaceView
 	return (response.body as { requirementBrief: RequirementBriefWorkspaceView }).requirementBrief;
 }
 
-function harness() {
+function harness(options: { readPlan?: (scope: PlanScope) => PlanWorkspace; reports?: RequirementReportSources } = {}) {
 	const directory = mkdtempSync(join(tmpdir(), "blackx-requirement-workspace-"));
 	directories.push(directory);
 	const sessions = new FileAgentStateStore(join(directory, "agent"));
@@ -77,22 +81,19 @@ function harness() {
 	const artifacts = new FileArtifactContentStore(join(directory, "artifacts"));
 	const queue = new InMemoryStageJobQueue();
 	const outbox = new StageJobOutbox(engine, eventStore, queue);
-	const worker = new RequirementBriefWorker(engine, runtime, artifacts, attachments, undefined, undefined, undefined, conversations);
+	const worker = new RequirementBriefWorker(engine, runtime, artifacts, attachments, undefined, undefined, undefined, conversations, options.reports);
 	const scheduler = new StageJobScheduler(queue, {
 		workerId: "requirement-workspace-test",
 		handlers: { "requirement-brief": (lease, signal, guard) => worker.executeLease(lease, signal, guard) },
 	});
+	const controller = (currentEngine = engine) => new RequirementBriefWorkspaceApiController(
+		conversations, currentEngine, artifacts, outbox, scheduler, attachments, undefined, options.readPlan, undefined, undefined, options.reports,
+	);
 	return {
 		conversationId: created.conversationId,
 		conversations,
-		controller: new RequirementBriefWorkspaceApiController(
-			conversations,
-			engine,
-			artifacts,
-			outbox,
-			scheduler,
-			attachments,
-		),
+		controller: controller(),
+		reopen: () => controller(new ProposalRunEngine(new FileEnterpriseEventStore(eventPath), "requirement-brief")),
 		attachments,
 		engine, artifacts, runtime, queue,
 		outbox,
@@ -106,17 +107,16 @@ function approvalReview(view: RequirementBriefWorkspaceView) {
 	return { approvalId: view.state.approval!.approvalId, artifactVersion: view.state.approval!.artifactVersion, expectedAggregateVersion: view.state.aggregateVersion };
 }
 
-async function readyForApproval(initialAttachment = false) {
-	const h = harness();
+async function readyForApproval(initialAttachment = false, h = harness(), planVersion?: number) {
 	if (initialAttachment) h.attachments.put({ ...context, conversationId: h.conversationId }, { requestId: "initial-source", name: "initial.txt", mediaType: "text/plain", content: Buffer.from("数量 5000 个") });
-	expect(h.controller.start(context, h.conversationId, { requestId: "start-ready", industry: "print" }).status).toBe(202);
+	expect(h.controller.start(context, h.conversationId, { requestId: "start-ready", industry: "print", ...(planVersion ? { planVersion } : {}) }).status).toBe(202);
 	await h.scheduler.runNext();
 	for (const key of requiredRequirementFacts.print) {
 		h.controller.recordFact(context, h.conversationId, { requestId: `record-${key}`, key, value: key === "quantity" ? 5000 : `confirmed-${key}` });
 		const state = requirement(h.controller.get(context, h.conversationId)).state;
 		expect(h.controller.resolveFact(context, h.conversationId, key, { requestId: `verify-${key}`, decision: "verified", expectedFactVersion: state.facts[key].version, expectedAggregateVersion: state.aggregateVersion }).status).toBe(200);
 	}
-	h.controller.start(context, h.conversationId, { requestId: "generate-ready", industry: "print" });
+	h.controller.start(context, h.conversationId, { requestId: "generate-ready", industry: "print", ...(planVersion ? { planVersion } : {}) });
 	expect((await h.scheduler.runNext()).status).toBe("completed");
 	expect(requirement(h.controller.get(context, h.conversationId)).state.stageStatus).toBe("waiting_approval");
 	return h;
@@ -917,4 +917,84 @@ describe("RequirementBriefWorkspaceApiController", () => {
 		]);
 		expect(storedAttachments.every((attachment) => attachment.data === undefined)).toBe(true);
 	});
+});
+
+function reportHarness() {
+	let binding: SourceReportBinding = { schemaVersion: "source-report-binding.v1", selectionRevision: 1, status: "selected", version: 1, reportDigest: "a".repeat(64), artifactRef: "artifact://source-report/v1", available: true };
+	const report: SourceReportArtifact = { schemaVersion: "source-report.v1", version: 1, title: "Untrusted source", status: "unverified", createdAt: "2026-10-19T00:00:00Z", sources: [], limitations: ["Source claims require confirmation"] };
+	let plan!: PlanWorkspace, unavailable = false;
+	const h = harness({ readPlan: () => plan, reports: {
+		binding: scope => { expect(scope.runId).toBe(h.conversationId); if (unavailable) throw new Error("store unavailable"); return structuredClone(binding); },
+		read: () => structuredClone(report),
+	} });
+	const conversation = (h.conversations.get(context, h.conversationId).body as { conversation: ConversationView }).conversation;
+	const replan = (reportBound = true) => {
+		const version = (plan?.versions.at(-1)?.version ?? 0) + 1;
+		plan = { revision: version, mode: "plan", versions: [{ version, objective: "核对未验证的来源", context: JSON.stringify({ attachments: [], ...(reportBound ? { sourceReport: binding } : {}) }), conversationRevision: conversation.revision, status: "completed", createdAt: report.createdAt, actorId: context.actorId, generation: 2, calls: 2,
+			spec: { summary: "资料待核对", tasks: [{ title: "核对", objective: "读取资料", tools: [] }] }, approval: { actorId: context.actorId, version, at: report.createdAt },
+			children: [{ taskIndex: 0, sessionId: "report-session", executionId: "report-execution", result: { summary: "数量可能为 5000", evidence: ["artifact://source-report/v1"], limitations: ["待人工确认"] } }],
+		}] };
+		return version;
+	};
+	replan();
+	return { ...h, replan, setUnavailable: () => { unavailable = true; }, change: (change: "clear" | "reselect" | "withdraw") => {
+		if (change === "clear") binding = { schemaVersion: "source-report-binding.v1", selectionRevision: binding.selectionRevision + 1, status: "cleared" };
+		else if (binding.status === "selected") binding = { ...binding, ...(change === "reselect" ? { selectionRevision: binding.selectionRevision + 1 } : { available: false }) };
+	} };
+}
+
+it.each(["clear", "reselect", "withdraw"] as const)("invalidates report-dependent artifacts and approvals after %s, including stale browsers, restart and historical export", async change => {
+	const h = reportHarness();
+	await readyForApproval(false, h, 1);
+	const before = requirement(h.controller.get(context, h.conversationId)), version = before.state.currentProposal!.version;
+	expect(before.state.facts.report_source).toMatchObject({ status: "unverified", sourceType: "source_document", sourceRef: "artifact://source-report/v1" });
+	expect(h.controller.recordFact(context, h.conversationId, { requestId: "forge-report", key: "report_source", value: "forged" }).status).toBe(400);
+	const approved = h.controller.resolveApproval(context, h.conversationId, { requestId: "approve-report", decision: "approved", ...approvalReview(before) });
+	expect(approved.status).toBe(202); await h.scheduler.runNext();
+	expect(h.controller.delivery(context, h.conversationId, version).status).toBe(200);
+	const saved = h.artifacts.readJson({ ...before.state, artifactId: "requirement-brief", artifactVersion: version });
+	h.change(change);
+	expect(h.controller.resolveApproval(context, h.conversationId, { requestId: "stale-browser", decision: "approved", ...approvalReview(before) })).toMatchObject({ status: 409, body: { code: "report_source_stale" } });
+	const stale = requirement(h.controller.get(context, h.conversationId));
+	expect(stale.state).toMatchObject({ stageStatus: "revision_required", currentProposal: { freshness: "stale" }, approval: { status: "superseded" } });
+	expect(stale.state.facts).toEqual(before.state.facts);
+	expect(requirement(h.controller.get(context, h.conversationId)).state.aggregateVersion).toBe(stale.state.aggregateVersion);
+	expect(h.reopen().delivery(context, h.conversationId, version)).toMatchObject({ status: 409, body: { code: "report_source_stale" } });
+	expect(h.artifacts.readJson({ ...before.state, artifactId: "requirement-brief", artifactVersion: version })).toEqual(saved);
+	expect(h.controller.get({ ...context, tenantId: "other" }, h.conversationId).status).toBe(404);
+	// A replacement with no report records the cleared dependency, while old versions keep theirs.
+	const newVersion = h.replan(false);
+	expect(h.controller.start(context, h.conversationId, { requestId: "new-plan-source", industry: "print", planVersion: newVersion }).status).toBe(202);
+	expect((await h.scheduler.runNext()).status).toBe("completed");
+	expect(requirement(h.controller.get(context, h.conversationId)).state.facts.report_source.sourceRef).toBe("report:none");
+	expect(h.controller.delivery(context, h.conversationId, version).status).toBe(409);
+});
+
+it("preserves approvals when the report store is unavailable and refuses stale report imports", async () => {
+	const h = reportHarness(); await readyForApproval(false, h, 1);
+	const before = requirement(h.controller.get(context, h.conversationId));
+	h.setUnavailable();
+	expect(h.controller.get(context, h.conversationId).status).toBe(500);
+	expect(h.engine.load(before.state)).toEqual(before.state);
+	const stale = reportHarness(); stale.change("reselect");
+	expect(stale.controller.start(context, stale.conversationId, { requestId: "stale-import", industry: "print", planVersion: 1 })).toMatchObject({ status: 400, body: { code: "report_source_stale" } });
+});
+
+it("fences a late requirement worker result after its selected report becomes unavailable", async () => {
+	const h = reportHarness(), execute = h.runtime.executeTurn.bind(h.runtime);
+	let enter!: () => void, release!: () => void;
+	const entered = new Promise<void>(resolve => { enter = resolve; }), held = new Promise<void>(resolve => { release = resolve; });
+	h.runtime.executeTurn = async (...args) => { const result = await execute(...args); enter(); await held; return result; };
+	expect(h.controller.start(context, h.conversationId, { requestId: "held-report", industry: "print", planVersion: 1 }).status).toBe(202);
+	const pending = h.scheduler.runNext();
+	try {
+		await Promise.race([entered, pending.then(() => { throw new Error("Worker ended before the injected hold"); })]);
+		h.change("withdraw");
+		h.controller.reconcileReportSources(context, h.conversationId);
+	} finally { release(); }
+	expect((await pending).status).toBe("dead_letter");
+	const after = requirement(h.controller.get(context, h.conversationId));
+	expect(after.state.currentProposal).toBeUndefined();
+	expect(after.state.approval).toBeUndefined();
+	expect(after.state.facts.report_source.status).toBe("unverified");
 });

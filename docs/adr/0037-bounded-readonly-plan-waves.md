@@ -1,6 +1,6 @@
 # ADR-0037：单图租约下的有界只读并行
 
-日期：2026-10-19。状态：Accepted，已完成本地实现与验证。发布阶段已获本批文件的提交、推送和 PR 授权；合并与部署未授权。实际远端 CI 以对应 PR 检查为准。
+日期：2026-10-19。状态：Accepted。只读并行已随 [PR #54](https://github.com/B1ackB/Packx/pull/54) 合入 main `866379759e2113fd7948cf671e7c17a48f995660`，提交 `cf0b18c` 的五项实际远端检查通过；未部署。后续来源失效切片见 [ADR-0038](0038-readonly-source-invalidation.md)，其后恢复与报告业务依赖补齐见 [ADR-0039](0039-readonly-source-recovery-and-report-dependencies.md)，本地验收不代表新的远端 CI。
 
 ## 背景
 

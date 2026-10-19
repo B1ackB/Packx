@@ -119,6 +119,95 @@ it("withdraws the source during a wave, aborts its sibling and prohibits retryin
 	expect(h.requests).toHaveLength(3);
 });
 
+it("reconciles changed sources while both adapters are blocked, cancels their lease and fences late replies", async () => {
+	const slow = gate();
+	const h = harness(async (request) => { await slow.wait; return response(request); });
+	await h.start(); const pending = h.scheduler.runNext();
+	await vi.waitFor(() => expect(h.requests).toHaveLength(3));
+	h.queue.enqueue({ ...scope, jobId: "legacy-plan-copy", stageId: "plan-subagents", commandId: "legacy-copy", correlationId: "legacy-copy", sessionId: "legacy-session", expectedVersion: 1, payload: { version: 1, generation: h.plan().generation } });
+	try {
+		h.revoke(); h.workflow.reconcile();
+		expect(h.plan()).toMatchObject({ status: "failed", calls: 3, children: [], failure: { code: "plan_sources_changed", retryable: false } });
+		expect(h.signals.slice(1).every((signal) => signal.aborted)).toBe(true);
+		expect(h.queue.list().filter(job => job.payload?.generation === h.plan().generation).map(job => job.status)).toEqual(["cancelled", "cancelled"]);
+		await pending;
+		const before = h.store.read(scope);
+		h.workflow.reconcile(); h.workflow.reconcile();
+		expect(h.store.read(scope)).toEqual(before);
+		expect(() => h.command({ action: "resume" })).toThrow("plan_requires_revision");
+		slow.release(); await Promise.resolve();
+		expect(h.store.read(scope)).toEqual(before);
+	} finally {
+		if (["queued", "running"].includes(h.plan().status)) h.command({ action: "cancel" });
+		slow.release(); await pending;
+	}
+});
+
+it("keeps a successful sibling as history when a changed source stops its blocked sibling", async () => {
+	const slow = gate();
+	const h = harness(async (request) => { if (request.stageId === "subagent-2") await slow.wait; return response(request); });
+	await h.start(); const pending = h.scheduler.runNext();
+	await vi.waitFor(() => expect(h.plan().children.map(child => child.taskIndex)).toEqual([1]));
+	h.revoke(); h.workflow.dispatch(scope); await pending;
+	expect(h.plan()).toMatchObject({ status: "failed", calls: 3, failure: { code: "plan_sources_changed", retryable: false } });
+	expect(h.plan().children.map(child => child.taskIndex)).toEqual([1]);
+	expect(h.plan().taskRuns?.map(run => run.status)).toEqual(["completed", "interrupted"]);
+	h.command({ action: "replan" }); await h.scheduler.runNext();
+	const revised = h.store.read(scope).versions.at(-1)!;
+	expect(revised).toMatchObject({ version: 2, status: "awaiting_confirmation", replanFromVersion: 1, context: "selected-source-version:withdrawn", children: [] });
+	expect(revised.approval).toBeUndefined();
+	const before = h.store.read(scope); slow.release(); await Promise.resolve();
+	expect(h.store.read(scope)).toEqual(before);
+});
+
+it("repairs a persisted source invalidation whose queue cancellation failed before restart", async () => {
+	const h = harness(async request => response(request)); await h.start();
+	const cancel = h.options.cancelJob!;
+	h.revoke(); h.options.cancelJob = () => { throw new PlanError("queue_unavailable", 503); };
+	expect(() => h.workflow.dispatch(scope)).toThrow("queue_unavailable");
+	expect(h.plan()).toMatchObject({ status: "failed", calls: 1, failure: { code: "plan_sources_changed", retryable: false } });
+	const before = h.store.read(scope);
+	const reopened = new AgentPlanStore(h.path); cleanup.push(() => reopened.close());
+	const queue = new FileStageJobQueue(h.queuePath);
+	const workflow = new AgentPlanWorkflow(reopened, queue, h.runtime, { ...h.options, cancelJob: cancel });
+	workflow.reconcile(); workflow.reconcile();
+	expect(reopened.read(scope)).toEqual(before);
+	expect(queue.list().filter(job => job.payload?.generation === h.plan().generation).map(job => job.status)).toEqual(["cancelled"]);
+	expect(h.requests).toHaveLength(1);
+});
+
+it("does not classify an unavailable context store as revoked sources or cancel its workers", async () => {
+	const slow = gate(), h = harness(async request => { await slow.wait; return response(request); });
+	await h.start(); const pending = h.scheduler.runNext();
+	await vi.waitFor(() => expect(h.requests).toHaveLength(3));
+	const read = h.options.readInput, before = h.store.read(scope);
+	try {
+		h.options.readInput = () => { throw new PlanError("context_store_unavailable", 503); };
+		expect(() => h.workflow.reconcile()).toThrow(AggregateError);
+		expect(h.store.read(scope)).toEqual(before);
+		expect(h.signals.slice(1).some(signal => signal.aborted)).toBe(false);
+	} finally {
+		h.options.readInput = read; h.command({ action: "cancel" }); slow.release(); await pending;
+	}
+});
+
+it("invalidates only the requested scope and leaves another confirmed graph untouched", async () => {
+	const slow = gate(), other = { ...scope, runId: "other-conversation" };
+	const contexts = new Map([[scope.runId, "source:original"], [other.runId, "source:other"]]);
+	const h = harness(async request => { await slow.wait; return response(request); }, graph, { readInput: target => ({ revision: 1, context: contexts.get(target.runId)! }) });
+	await h.start();
+	const copy = structuredClone(h.plan()); copy.context = "source:other";
+	h.store.change(other, "fixture", "fixture", "host", "fixture", 0, state => { state.mode = "plan"; state.versions = [copy]; });
+	h.advance(); h.workflow.dispatch(other);
+	const otherState = h.store.read(other), otherJob = h.queue.list().find(job => job.runId === other.runId);
+	const pending = h.scheduler.runNext(); await vi.waitFor(() => expect(h.requests).toHaveLength(3));
+	contexts.set(scope.runId, "source:changed"); h.workflow.dispatch(scope); await pending;
+	expect(h.plan().failure?.code).toBe("plan_sources_changed");
+	expect(h.store.read(other)).toEqual(otherState);
+	expect(h.queue.get(otherJob!.jobId)).toEqual(otherJob);
+	slow.release();
+});
+
 it("rechecks sources before dispatch and rechecks the read-only whitelist without consuming worker budget", async () => {
 	const h = harness(async (request) => response(request)); await h.start(); h.revoke(); await h.scheduler.runNext();
 	expect(h.requests).toHaveLength(1); expect(h.plan()).toMatchObject({ calls: 1, status: "failed", failure: { code: "plan_sources_changed" } });
@@ -204,4 +293,72 @@ it.each(["completed", "missing", "uncertain"])("reopens durable state and reconc
 	}
 	// An old process cannot submit through its expired graph lease.
 	await expect(h.workflow.execute(lease, new AbortController().signal, () => { h.queue.renew(lease, 1000); })).resolves.toEqual({ status: "completed" });
+});
+
+
+it.each(["version", "total"])("reconciles completed receipts at the %s budget limit without invoking Runtime or changing counters", async limit => {
+	const spec = { ...graph, tasks: graph.tasks.slice(1) };
+	const h = harness(async request => response(request), spec); await h.start();
+	h.store.change(scope, "crashed-at-cap", "fixture", "host", "fixture", h.store.read(scope).revision, state => {
+		const plan = state.versions[0]; plan.calls = PLAN_LIMITS.calls; plan.status = "failed"; plan.failure = { code: "plan_job_failed", retryable: true };
+		plan.taskRuns = [0, 1].map(taskIndex => ({ taskIndex, attempt: 1, generation: plan.generation, jobId: "crashed", leaseId: "expired", sessionId: `saved-${taskIndex}`, idempotencyKey: `saved-${taskIndex}`, status: "interrupted", startedAt: "2026-10-19T00:00:00Z", failure: { code: "plan_job_failed", retryable: true } }));
+		if (limit === "total") {
+			const old = structuredClone(plan); old.status = "superseded";
+			plan.version = 2; plan.approval!.version = 2; state.versions = [old, plan];
+		}
+	});
+	h.options.recoverResult = (_scope, sessionId, key) => ({ adapter: "fake", status: "completed", sessionId, executionId: key, finalResponse: JSON.stringify(result), events: [] });
+	const before = h.store.read(scope), version = before.versions.at(-1)!.version;
+	const body = { action: "reconcile", requestId: "reconcile-once", revision: before.revision, version };
+	h.workflow.command(scope, "user", body);
+	const after = h.store.read(scope); h.workflow.command(scope, "user", body);
+	expect(h.store.read(scope)).toEqual(after); expect(h.requests).toHaveLength(1);
+	expect(after.versions.at(-1)).toMatchObject({ status: "completed", calls: PLAN_LIMITS.calls, children: [{ taskIndex: 0 }, { taskIndex: 1 }] });
+	expect(after.versions.at(-1)!.taskRuns?.every(run => run.status === "completed" && !run.failure)).toBe(true);
+	expect(after.versions.map(plan => plan.calls)).toEqual(before.versions.map(plan => plan.calls));
+});
+
+it("saved-result reconciliation keeps partial success, never fills missing evidence and cannot reuse changed sources", async () => {
+	const h = harness(async request => response(request)); await h.start();
+	h.store.change(scope, "partial-reconcile", "fixture", "host", "fixture", h.store.read(scope).revision, state => {
+		const plan = state.versions[0]; plan.calls = PLAN_LIMITS.calls; plan.status = "failed"; plan.failure = { code: "plan_budget_exceeded", retryable: false };
+		plan.taskRuns = [1, 2].map(taskIndex => ({ taskIndex, attempt: 1, generation: plan.generation, jobId: "crashed", leaseId: "expired", sessionId: `saved-${taskIndex}`, idempotencyKey: `saved-${taskIndex}`, status: "interrupted", startedAt: "2026-10-19T00:00:00Z" }));
+	});
+	h.options.recoverResult = (_scope, sessionId, key) => sessionId === "saved-2" ? { adapter: "fake", status: "completed", sessionId, executionId: key, finalResponse: JSON.stringify(result), events: [] } : undefined;
+	h.command({ action: "reconcile" }); expect(h.plan().children.map(child => child.taskIndex)).toEqual([2]); expect(h.plan().status).toBe("failed");
+	expect(() => h.command({ action: "reconcile" })).toThrow("plan_no_completed_results");
+	h.revoke(); expect(() => h.command({ action: "reconcile" })).toThrow("plan_sources_changed");
+	expect(h.requests).toHaveLength(1); expect(h.plan().calls).toBe(PLAN_LIMITS.calls);
+});
+
+it("observes source changes without an API notification while both workers stay blocked", async () => {
+	const slow = gate(), h = harness(async request => { await slow.wait; return response(request); });
+	await h.start(); vi.useFakeTimers(); const pending = h.scheduler.runNext();
+	await vi.advanceTimersByTimeAsync(1); expect(h.requests).toHaveLength(3);
+	h.revoke(); await vi.advanceTimersByTimeAsync(1000); await pending;
+	expect(h.plan()).toMatchObject({ status: "failed", children: [], failure: { code: "plan_sources_changed" } });
+	expect(h.signals.slice(1).every(signal => signal.aborted)).toBe(true); slow.release();
+});
+
+
+it.each([
+	["missing-trace", "plan_completion_evidence_missing"], ["tool", "plan_tool_failed"], ["session", "plan_completion_evidence_missing"],
+	["json", "invalid_plan_output"], ["evidence", "plan_replan_required"], ["assessment", "plan_replan_required"],
+])("saved-result reconciliation rejects %s evidence without another Runtime call", async (fault, expected) => {
+	const spec = { ...graph, tasks: graph.tasks.slice(1) }, h = harness(async request => response(request), spec); await h.start();
+	h.store.change(scope, "receipt-fault", "fixture", "host", "fixture", h.store.read(scope).revision, state => {
+		const plan = state.versions[0]; plan.status = "paused"; plan.calls = PLAN_LIMITS.calls;
+		plan.taskRuns = [0, 1].map(taskIndex => ({ taskIndex, attempt: 1, generation: plan.generation, jobId: "crashed", leaseId: "expired", sessionId: `saved-${taskIndex}`, idempotencyKey: `saved-${taskIndex}`, status: "interrupted", startedAt: "2026-10-19T00:00:00Z" }));
+	});
+	h.options.recoverResult = (_scope, sessionId, key) => {
+		if (sessionId === "saved-1") return undefined;
+		if (fault === "missing-trace") throw new PlanError("plan_completion_evidence_missing");
+		return { adapter: "fake", status: "completed", sessionId: fault === "session" ? "another-session" : sessionId, executionId: key,
+			finalResponse: fault === "json" ? "{}invalid" : JSON.stringify({ ...result, ...(fault === "evidence" ? { evidence: [] } : {}), ...(fault === "assessment" ? { assessment: { decision: "replan", reason: "Source cannot support the objective" } } : {}) }),
+			events: fault === "tool" ? [{ type: "tool.completed", tool: "file_read", toolCallId: "read", risk: "read", status: "failed", durationMs: 1, resultTruncated: false, replayed: false }] : [],
+		};
+	};
+	h.command({ action: "reconcile" });
+	expect(h.plan()).toMatchObject({ status: "failed", calls: PLAN_LIMITS.calls, failure: { code: expected, retryable: false } });
+	expect(h.requests).toHaveLength(1);
 });

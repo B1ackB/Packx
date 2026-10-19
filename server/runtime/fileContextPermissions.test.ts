@@ -87,3 +87,27 @@ it("can continue a failed file read that returned only the Host failure envelope
 	await expect(runtime.executeTurn(turn)).resolves.toMatchObject({ finalResponse: "ask for a permitted source" });
 	expect(generate).toHaveBeenCalledOnce();
 });
+
+
+it.each(["changed", "removed"] as const)("stops a blocked read-only model call when already-read file bytes are %s", async mode => {
+	const h = await fixture(), path = join(h.root, "read-only-source.md");
+	writeFileSync(path, "UNMANAGED_SOURCE");
+	let release!: () => void, enter!: () => void;
+	const held = new Promise<void>(resolve => { release = resolve; }), entered = new Promise<void>(resolve => { enter = resolve; });
+	let calls = 0;
+	const runtime = new BlackxAgentRuntime({ sessions: h.state, snapshots: h.state, traces: h.state, tools: h.files.tools(), skills: new SkillRegistry(), provider: { async generate() {
+		calls++;
+		if (calls === 1) return { text: "", toolCalls: [{ id: "read-source", name: "file_read", input: { path } }], usage: { inputTokens: 0, outputTokens: 0, cachedInputTokens: 0, reasoningOutputTokens: 0 } };
+		enter(); await held;
+		return { text: "must-not-publish", toolCalls: [], usage: { inputTokens: 0, outputTokens: 0, cachedInputTokens: 0, reasoningOutputTokens: 0 } };
+	} } });
+	const pending = runtime.executeTurn({ ...turn, idempotencyKey: `watch-${mode}`, policy: { ...turn.policy, timeoutMs: 5000 } });
+	const stopped = expect(pending).rejects.toMatchObject({ code: "context_failure", retryable: false });
+	try {
+		await Promise.race([entered, pending.then(() => { throw new Error("Turn ended before reading the source"); })]);
+		if (mode === "changed") writeFileSync(path, "REPLACED_SOURCE"); else rmSync(path);
+		await stopped;
+		expect(calls).toBe(2);
+		expect(h.state.listTraces(scope).at(-1)).toMatchObject({ status: "failed", failure: { code: "context_failure" } });
+	} finally { release(); }
+});

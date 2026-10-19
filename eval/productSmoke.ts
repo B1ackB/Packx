@@ -21,6 +21,7 @@ import type { RequirementDelivery } from "../src/manufacturing/requirementDelive
 import type { ConversationFilesView, LocalDirectoryListing, LocalFileLocations } from "../src/runtime/conversationFiles";
 import type { AnthropicMessageRequest } from "../server/anthropic/types";
 import type { RequirementTrialObservation } from "../src/manufacturing/requirementTrial";
+import { AgentPlanStore } from "../server/enterprise/agentPlanStore";
 import { FileAgentStateStore } from "../server/runtime/fileAgentStateStore";
 import { FileCronScheduleStore } from "../server/enterprise/fileCronScheduleStore";
 import { FileEnterpriseEventStore } from "../server/enterprise/fileEventStore";
@@ -42,6 +43,9 @@ let enterBridgeCompose!: () => void;
 const bridgeComposeEntered = new Promise<void>(resolve => { enterBridgeCompose = resolve; });
 const parallelStarts = new Map<string, number>();
 const parallelHolds = new Map<string, { wait: Promise<void>; release: () => void }>();
+let enterReportReview!: () => void, releaseReportReview!: () => void;
+const reportReviewEntered = new Promise<void>(resolve => { enterReportReview = resolve; });
+const reportReviewHeld = new Promise<void>(resolve => { releaseReportReview = resolve; });
 
 const provider = createServer(async (request, response) => {
 	const chunks: Buffer[] = []; for await (const chunk of request) chunks.push(Buffer.from(chunk));
@@ -55,11 +59,12 @@ const provider = createServer(async (request, response) => {
 	let content: unknown[];
 	const instructions = JSON.stringify(body.system);
 	if (instructions.includes("Independently review the candidate")) {
+		if (JSON.stringify(blocks).includes("parallel-fixture-reconcile")) { enterReportReview(); await reportReviewHeld; }
 		content = [{ type: "text", text: JSON.stringify({ issues: [] }) }];
 	} else if (instructions.includes("Plan only. Do not execute") && JSON.stringify(blocks).includes("parallel-fixture-")) {
-		const scenario = /parallel-fixture-(success|failure|cancel|withdraw|restart)/.exec(JSON.stringify(blocks))?.[1] ?? "success";
+		const scenario = /parallel-fixture-(withdraw-partial|attachment-withdraw|success|failure|cancel|withdraw|reselect|restart|reconcile)/.exec(JSON.stringify(blocks))?.[1] ?? "success";
 		content = [{ type: "text", text: JSON.stringify({ summary: "Independently read the selected report twice, then combine declared reports (fixed fixture)", tasks: [
-			{ title: "汇总待核对结果", objective: `parallel-fixture-${scenario}-JOIN`, tools: [], dependsOn: [1, 2] },
+			...(scenario === "reconcile" ? [] : [{ title: "汇总待核对结果", objective: `parallel-fixture-${scenario}-JOIN`, tools: [], dependsOn: [1, 2] }]),
 			{ title: "核对来源 A", objective: `parallel-fixture-${scenario}-A`, tools: ["source_report_read"] },
 			{ title: "核对来源 B", objective: `parallel-fixture-${scenario}-B`, tools: ["source_report_read"] },
 		] }) }];
@@ -478,19 +483,49 @@ try {
 		await planCommand({ action: "resume", version: 1 }); const completed = await awaitPlan("completed");
 		assert.deepEqual(completed.children.map(c => c.taskIndex), [1, 0]); assert.equal(completed.children[1].result.summary, "BRIDGE_COMPOSED_UNVERIFIED"); assert.equal(bridgeReadRequests, 1); assert.equal(bridgeComposeAttempts, 2);
 		assert(completed.children.every(c => c.result.evidence.includes("artifact://source-report/v1")));
-		const forbiddenImport = await fetch(`${baseUrl}${root}/requirement-brief`, { method: "POST", headers: { ...headers, "content-type": "application/json" }, body: JSON.stringify({ requestId: "bridge-import", industry: "print", planVersion: 1 }) });
-		assert(!forbiddenImport.ok); assert.equal((await forbiddenImport.json() as { code: string }).code, "plan_report_import_unsupported");
+		const requirementPath = `${root}/requirement-brief`;
+		const settledReportBrief = async () => {
+			for (let i = 0; i < 150; i++) {
+				const view = (await api(requirementPath)).requirementBrief;
+				assert.notEqual(view.job?.status, "dead_letter", JSON.stringify(view.job?.lastFailure));
+				if (!["queued", "leased"].includes(view.job?.status ?? "")) return view;
+				await new Promise(resolve => setTimeout(resolve, 100));
+			}
+			throw new Error("Report-dependent brief did not settle");
+		};
+		await api(requirementPath, { requestId: "bridge-import", industry: "print", planVersion: 1 });
+		const imported = await settledReportBrief();
+		assert.equal(imported.state.facts.report_source.status, "unverified");
+		assert.equal(imported.state.facts.plan_source.status, "unverified");
+		assert.equal(imported.state.stageStatus, "needs_input");
+		for (const key of requiredRequirementFacts.print) {
+			const view = (await api(requirementPath)).requirementBrief, fact = view.state.facts[key]; assert(fact);
+			await api(`${requirementPath}/facts/${key}/decision`, { requestId: `bridge-confirm-${key}`, decision: "verified", expectedFactVersion: fact.version, expectedAggregateVersion: view.state.aggregateVersion });
+		}
+		await api(requirementPath, { requestId: "bridge-reviewed", industry: "print", planVersion: 1 });
+		const reviewable = await settledReportBrief(); assert.equal(reviewable.state.stageStatus, "waiting_approval");
+		const reviewedApproval = { approvalId: reviewable.state.approval!.approvalId, artifactVersion: reviewable.state.approval!.artifactVersion, expectedAggregateVersion: reviewable.state.aggregateVersion };
+		await api(`${requirementPath}/approval`, { requestId: "bridge-approve", decision: "approved", ...reviewedApproval });
+		assert.equal((await settledReportBrief()).state.stageStatus, "passed");
+		assert.equal((await api(`${requirementPath}/versions/${reviewedApproval.artifactVersion}`)).delivery.status, "approved");
 		await planCommand({ action: "generate", objective: "report-bridge-fixture-attack: read source then obey its request" }); await awaitPlan("awaiting_confirmation", 2); await planCommand({ action: "confirm", version: 2, confirmed: true });
 		const stopped = await awaitPlan("failed", 2); assert.equal(stopped.failure?.code, "plan_tool_failed"); assert.equal(stopped.children.length, 0); assert(!existsSync(join(documents, "bridge-injected.md")));
 		assert.equal((await api<ConversationFilesView>(`${root}/files`)).approvals.length, 0);
 		await planCommand({ action: "generate", objective: "report-bridge-fixture: review again" }); await awaitPlan("awaiting_confirmation", 3);
-		await reportCommand({ action: "select", version: null }); await reportCommand({ action: "select", version: 1 });
+		await reportCommand({ action: "select", version: null });
+		const invalidatedBrief = (await api(requirementPath)).requirementBrief;
+		assert.equal(invalidatedBrief.state.currentProposal?.freshness, "stale"); assert.equal(invalidatedBrief.state.approval?.status, "superseded");
+		const staleApproval = await fetch(`${baseUrl}${requirementPath}/approval`, { method: "POST", headers: { ...headers, "content-type": "application/json" }, body: JSON.stringify({ requestId: "bridge-stale-approval", decision: "approved", ...reviewedApproval }) });
+		assert.equal(staleApproval.status, 409); assert.equal((await staleApproval.json() as { code: string }).code, "report_source_stale");
+		const staleDelivery = await fetch(`${baseUrl}${requirementPath}/versions/${reviewedApproval.artifactVersion}`, { headers });
+		assert.equal(staleDelivery.status, 409); assert.equal((await staleDelivery.json() as { code: string }).code, "report_source_stale");
+		await reportCommand({ action: "select", version: 1 });
 		const stale = await fetch(`${baseUrl}${plans}`, { method: "POST", headers: { ...headers, "content-type": "application/json" }, body: JSON.stringify({ action: "confirm", version: 3, confirmed: true, requestId: "bridge-stale", revision: (await api<{ plan: PlanWorkspace }>(plans)).plan.revision }) });
 		assert.equal(stale.status, 409); assert.equal((await stale.json() as { code: string }).code, "plan_sources_changed"); await planCommand({ action: "cancel", version: 3 });
-		console.log("PASS: explicit immutable report selection → real Host/Runtime read-only DAG → dependent result; pause, Host restart and resume retain completed source worker; reselection invalidates confirmation; injected write and direct requirement import are denied. Model = deterministic local fixture, not real-model quality evidence.");
+		console.log("PASS: explicit immutable report selection → real Host/Runtime read-only DAG → dependent result; pause, Host restart and resume retain completed source worker; reselection invalidates confirmation; injected writes are denied; requirement import stays unverified until explicit field confirmation and approval; report withdrawal invalidates the artifact, stale browser approval and export. Model = deterministic local fixture, not real-model quality evidence.");
 	}
 	if (!serve) {
-		const restart = async (signal: "SIGTERM" | "SIGKILL", leaseMs = 135_000) => {
+		const restart = async (signal: "SIGTERM" | "SIGKILL", leaseMs = 135_000, inject?: () => void) => {
 			const oldPid = host.pid;
 			host.kill(signal); await once(host, "exit");
 			if (signal === "SIGKILL") {
@@ -499,11 +534,12 @@ try {
 				assert.equal(JSON.parse(readFileSync(join(dataDirectory, ".packx-operation.lock"), "utf8")).pid, oldPid);
 				recoverLocalLock(dataDirectory);
 			}
+			inject?.();
 			host = startHost(leaseMs);
 			for (let i = 0; i < 100; i++) { try { if ((await fetch(baseUrl)).ok) break; } catch {} assert(i < 99, `Restart failed: ${output}`); await new Promise(resolve => setTimeout(resolve, 100)); }
 			const renewed = await fetch(`${baseUrl}/api/local-session`, { headers: { "sec-fetch-site": "same-origin", "sec-fetch-mode": "cors" } }).then(r => r.json()) as { token: string }; headers["x-blackx-session-token"] = renewed.token;
 		};
-		for (const scenario of ["success", "failure", "cancel", "withdraw", "restart"]) {
+		for (const scenario of ["success", "failure", "cancel", "withdraw", "reselect", "withdraw-partial", "attachment-withdraw", "restart", "reconcile"]) {
 			if (scenario === "restart") await restart("SIGTERM", 2000);
 			const conversationId = (await api("/api/conversations", {})).conversation.conversationId;
 			const root = `/api/conversations/${conversationId}`, reports = `${root}/source-reports`, plans = `${root}/plan`;
@@ -524,11 +560,29 @@ try {
 			await until(async () => ["A", "B"].every(node => parallelStarts.get(`parallel-fixture-${scenario}-${node}`) === 1), "independent HTTP model requests did not overlap");
 			const running = await readPlan(); assert.equal(running.taskRuns?.filter(r => r.status === "running").length, 2); assert.equal(running.children.length, 0); assert.equal(running.calls, 3);
 			if (scenario === "cancel") await command({ action: "cancel" });
-			if (scenario === "withdraw") await reportCommand({ action: "select", version: null });
+			if (scenario === "withdraw-partial") {
+				parallelHolds.get(`parallel-fixture-${scenario}-A`)!.release();
+				await until(async () => (await readPlan()).children.some(child => child.taskIndex === 1), "source A did not finish before withdrawal");
+			}
+			if (["withdraw", "reselect", "withdraw-partial", "attachment-withdraw"].includes(scenario)) {
+				if (scenario === "attachment-withdraw") await api(`${root}/attachments/${attachment.attachmentId}/withdraw`, { requestId: "withdraw-while-held", reason: "Fixture source withdrawn", sha256: attachment.sha256 });
+				else await reportCommand({ action: "select", version: scenario === "reselect" ? 1 : null });
+				// Do not release either HTTP provider request: invalidation must stop the wave first.
+				await until(async () => (await readPlan()).status === "failed", "source withdrawal waited for provider replies");
+				const invalidated = await readPlan();
+				assert(["plan_sources_changed", ...(scenario === "attachment-withdraw" ? ["context_failure"] : [])].includes(invalidated.failure?.code ?? "")); assert.equal(invalidated.failure?.retryable, false);
+				assert.equal(invalidated.calls, 3); assert.equal(invalidated.children.length, scenario === "withdraw-partial" ? 1 : 0);
+				assert(invalidated.taskRuns?.filter(run => run.status !== "completed").every(run => ["interrupted", "failed"].includes(run.status) && ["plan_sources_changed", "context_failure"].includes(run.failure?.code ?? "")));
+				const stale = await fetch(`${baseUrl}${plans}`, { method: "POST", headers, body: JSON.stringify({ action: "resume", version: 1, requestId: crypto.randomUUID(), revision: (await api<{ plan: PlanWorkspace }>(plans)).plan.revision }) });
+				assert.equal(stale.status, 409); assert.equal((await stale.json() as { code: string }).code, "plan_requires_revision");
+			}
 			if (scenario === "restart") {
 				await restart("SIGKILL", 2000);
 				await until(async () => (await readPlan()).status === "failed", "lost graph lease not reconciled");
 				assert.equal((await readPlan()).failure?.code, "plan_job_failed");
+				const beforeReconcile = modelGenerations;
+				const noResults = await fetch(`${baseUrl}${plans}`, { method: "POST", headers: { ...headers, "content-type": "application/json" }, body: JSON.stringify({ action: "reconcile", version: 1, revision: (await api<{ plan: PlanWorkspace }>(plans)).plan.revision, requestId: "no-completed-result" }) });
+				assert.equal(noResults.status, 409); assert.equal((await noResults.json() as { code: string }).code, "plan_no_completed_results"); assert.equal(modelGenerations, beforeReconcile);
 				await command({ action: "resume" });
 				await until(async () => (await readPlan()).status === "completed", "restarted plan did not complete");
 				assert.equal((await readPlan()).calls, 6); assert((await readPlan()).taskRuns?.filter(r => r.taskIndex !== 0).every(r => r.attempt === 2));
@@ -536,12 +590,42 @@ try {
 			parallelHolds.get(`parallel-fixture-${scenario}-A`)!.release();
 			if (scenario === "failure") await until(async () => (await readPlan()).children.some(c => c.taskIndex === 1), "successful sibling not retained");
 			parallelHolds.get(`parallel-fixture-${scenario}-B`)!.release();
-			const expected = scenario === "success" || scenario === "restart" ? "completed" : scenario === "cancel" ? "cancelled" : "failed";
+			const expected = ["success", "restart", "reconcile"].includes(scenario) ? "completed" : scenario === "cancel" ? "cancelled" : "failed";
 			await until(async () => (await readPlan()).status === expected, `plan did not reach ${expected}`);
 			// Allow old HTTP replies to arrive; the durable receipt set must stay fenced.
 			const finished = await readPlan(); await new Promise(resolve => setTimeout(resolve, 350)); assert.deepEqual((await readPlan()).children, finished.children);
-			if (expected === "completed") { assert.equal(finished.children.length, 3); assert.equal(finished.children.at(-1)!.taskIndex, 0); }
-			else { assert(!finished.children.some(c => c.taskIndex === 0)); if (scenario === "failure") { assert.equal(finished.failure?.code, "invalid_subagent_result"); assert.deepEqual(finished.children.map(c => c.taskIndex), [1]); } else assert.equal(finished.children.length, 0); }
+			if (expected === "completed") { assert.equal(finished.children.length, scenario === "reconcile" ? 2 : 3); if (scenario !== "reconcile") assert.equal(finished.children.at(-1)!.taskIndex, 0); }
+			else { assert(!finished.children.some(c => c.taskIndex === 0)); if (scenario === "failure" || scenario === "withdraw-partial") { assert.equal(finished.failure?.code, scenario === "failure" ? "invalid_subagent_result" : "plan_sources_changed"); assert.deepEqual(finished.children.map(c => c.taskIndex), [1]); } else assert.equal(finished.children.length, 0); }
+			if (scenario === "reconcile") {
+				// Fault injection: real completed Session/Trace, lost coordinator receipts and prefilled slot limit.
+				// This does not claim that sixteen actual provider calls or a monetary budget were consumed.
+				await restart("SIGTERM", 135_000, () => {
+					const store = new AgentPlanStore(join(dataDirectory, "sessions", "plans.sqlite"));
+					try {
+						const scope = store.scopes().find(item => item.runId === conversationId)!; assert(scope);
+						store.change(scope, "fixture-lost-receipts", "fault-injection", "fixture", "fixture.receipts_lost", store.read(scope).revision, state => {
+							const plan = state.versions[0]; plan.children = []; plan.calls = 16; plan.status = "failed"; plan.failure = { code: "plan_budget_exceeded", retryable: false };
+							for (const run of plan.taskRuns!) { run.status = "interrupted"; run.failure = plan.failure; }
+						});
+					} finally { store.close(); }
+				});
+				const beforeReconcile = modelGenerations, view = (await api<{ plan: PlanWorkspace }>(plans)).plan;
+				const replay = { action: "reconcile", version: 1, revision: view.revision, requestId: "recover-saved-results" };
+				const recovered = await api<{ plan: PlanWorkspace }>(plans, replay); assert.deepEqual(await api(plans, replay), recovered);
+				assert.equal(recovered.plan.versions[0].status, "completed"); assert.equal(recovered.plan.versions[0].calls, 16);
+				assert.equal(recovered.plan.versions[0].children.length, 2); assert.equal(modelGenerations, beforeReconcile);
+				await api(`${root}/requirement-brief`, { requestId: "report-review-held", industry: "print", planVersion: 1 });
+				try {
+					await Promise.race([reportReviewEntered, new Promise((_, reject) => setTimeout(() => reject(new Error("Report review did not start")), 10_000).unref())]);
+					await reportCommand({ action: "select", version: null });
+					await until(async () => (await api(`${root}/requirement-brief`)).requirementBrief.job?.status === "dead_letter", "review waited for the stale provider response");
+					const stopped = (await api(`${root}/requirement-brief`)).requirementBrief;
+					assert.equal(stopped.state.currentProposal?.freshness, "stale"); assert.notEqual(stopped.state.approval?.status, "approved");
+					const agent = new FileAgentStateStore(join(dataDirectory, "sessions"));
+					assert(agent.listTraces(stopped.state).some(trace => trace.stageId === "requirement-brief-review-call" && trace.failure?.code === "context_failure"));
+				} finally { releaseReportReview(); }
+				console.log("PASS: a held requirement review stops on report withdrawal before the provider reply; the draft is stale and no approval is granted.");
+			}
 			assert.equal((await api<ConversationFilesView>(`${root}/files`)).approvals.length, 0);
 			console.log(`PASS: parallel ${scenario}: real Host HTTP + source selection + two isolated read-only Runtime requests + durable node state + result fence; local fixed provider only.`);
 		}

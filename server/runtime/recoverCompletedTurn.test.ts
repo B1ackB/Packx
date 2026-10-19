@@ -16,6 +16,11 @@ it("recovers committed child output without another model call and fails closed 
 		const completed = await runtime.executeTurn({ ...scope, sessionId: "child", stageId: "subagent-0", actorId: "user", idempotencyKey: "task-key", input: "task", fallbackOutput: "{}", policy: { sandboxMode: "read-only", approvalPolicy: "never", timeoutMs: 1000 } });
 		const recovered = recoverCompletedTurn(new FileAgentStateStore(dir), scope, "child", "task-key");
 		expect(recovered?.finalResponse).toBe(completed.finalResponse); expect(recovered?.executionId).toBe(completed.executionId); expect(calls).toBe(1);
+		for (const inReplyTo of ["another-key", "task-key"]) {
+			const session = store.load({ ...scope, sessionId: "child" });
+			store.save({ ...scope, sessionId: "child" }, session.revision, [...session.messages, { role: "assistant", messageId: `mismatch-${inReplyTo}`, content: "Unrelated final result", inReplyTo }], new Date().toISOString());
+			expect(() => recoverCompletedTurn(store, scope, "child", "task-key")).toThrow("plan_completion_evidence_missing");
+		}
 		expect(recoverCompletedTurn(store, { ...scope, tenantId: "other" }, "child", "task-key")).toBeUndefined();
 		store.save({ ...scope, sessionId: "gap" }, 0, [{ role: "assistant", content: "done" }], new Date().toISOString());
 		expect(() => recoverCompletedTurn(store, scope, "gap", "gap-key")).toThrow("plan_completion_evidence_missing");

@@ -1,3 +1,4 @@
+import { reconcileRequirementReport, reportDependencyCurrent, type RequirementReportSources } from "./requirementReportSource";
 import { RequirementTemplateLibrary, TemplateLibraryError } from "./requirementTemplateLibrary";
 import type { TemplateLibraryRef } from "../../src/manufacturing/requirementTemplate";
 import { RequirementTemplateService } from "./requirementTemplate";
@@ -69,6 +70,7 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 		readPlan?: (scope: PlanScope) => PlanWorkspace,
 		private readonly knowledge?: KnowledgeService,
 		private readonly templateLibrary?: RequirementTemplateLibrary,
+		private readonly reportSources?: RequirementReportSources,
 	) {
 		super(conversations, requirementEngine, requirementArtifacts, outbox, requirementScheduler, {
 			responseKey: "requirementBrief",
@@ -78,7 +80,7 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 			stageId: "requirement-brief",
 			jobPrefix: "requirement",
 			evaluationArtifactId: "requirement-brief-evaluation",
-			protectedFactKeys: ["industry", "customer_brief", "customer_messages", "customer_attachments", "plan_source", "knowledge_source"],
+			protectedFactKeys: ["industry", "customer_brief", "customer_messages", "customer_attachments", "plan_source", "knowledge_source", "report_source"],
 			assertWritable: (state) => {
 				if (state.aggregateVersion > 0 && state.facts.industry?.value !== "print") throw new ProposalWorkspaceValidationError("历史非包装需求已停用，请新建包装会话；原始资料与交付版本保留。");
 			},
@@ -109,12 +111,18 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 				let brief: string | undefined;
 				if (planVersion !== undefined) {
 					if (!readPlan) throw new ProposalWorkspaceValidationError("计划来源不可用。");
-					const imported = planRequirementSource(readPlan({ ...scope, runId: conversation.conversationId }), planVersion, conversation,
-						attachments?.list(attachmentScope).map(({ name, sourceRef, sha256 }) => ({ name, sourceRef, sha256 })) ?? []);
+					const planScope = { ...scope, runId: conversation.conversationId }, workspace = readPlan(planScope);
+					const frozenReport = JSON.parse(workspace.versions.at(-1)?.context ?? "{}").sourceReport;
+					const binding = frozenReport?.status === "selected" ? reportSources?.binding(planScope) : undefined;
+					const selectedReport = binding?.status === "selected" && binding.available ? { binding, report: reportSources!.read(planScope, binding.version) } : undefined;
+					const imported = planRequirementSource(workspace, planVersion, conversation,
+						attachments?.list(attachmentScope).map(({ name, sourceRef, sha256 }) => ({ name, sourceRef, sha256 })) ?? [], selectedReport);
 					const planSelection = JSON.parse(imported.brief).originalContext?.knowledge;
 					if ((planSelection?.digest ?? null) !== (selected?.selection?.digest ?? null)) throw new ProposalWorkspaceValidationError("计划中的证据已变化，请重新规划。", "plan_evidence_stale");
 					brief = imported.brief;
 					facts.push(imported.source);
+					if (imported.reportSource) facts.push(imported.reportSource);
+					else if (requirementEngine.load(scope).facts.report_source) facts.push({ key: "report_source", value: JSON.stringify({ schemaVersion: "source-report-binding.v1", status: "cleared" }), status: "unverified", sourceType: "source_document", sourceRef: "report:none" });
 				} else if (this.requirementEngine.load(scope).facts.plan_source) {
 					throw new ProposalWorkspaceValidationError("此需求单来自计划，请通过计划导入入口更新来源，或直接核对现有字段。", "plan_source_required");
 				}
@@ -130,9 +138,17 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 		});
 	}
 
+	reconcileReportSources(context: Parameters<ConversationApiController["get"]>[0], conversationId: unknown) {
+		return this.respond(() => {
+			const { scope, conversation } = this.target(context, conversationId);
+			reconcileRequirementReport(this.requirementEngine, scope, conversation.conversationId, this.reportSources);
+			return { status: 200, body: {} };
+		});
+	}
 	override get(context: Parameters<ConversationApiController["get"]>[0], conversationId: unknown) {
 		return this.respond(() => {
 			const { scope, conversation } = this.target(context, conversationId);
+			reconcileRequirementReport(this.requirementEngine, scope, conversation.conversationId, this.reportSources);
 			reconcileRequirementMessages(this.requirementEngine, scope, conversation);
 			if (this.attachments) reconcileRequirementAttachments(this.requirementEngine, this.attachments, { ...scope, conversationId: conversation.conversationId });
 			this.knowledge?.refreshRun(this.requirementEngine, scope);
@@ -143,6 +159,7 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 	override resolveApproval(context: Parameters<ConversationApiController["get"]>[0], conversationId: unknown, payload: unknown) {
 		return this.respond(() => {
 			const { scope, conversation } = this.target(context, conversationId);
+			if (!reconcileRequirementReport(this.requirementEngine, scope, conversation.conversationId, this.reportSources)) return { status: 409, body: { code: "report_source_stale", message: "报告来源已变化，请重新规划并核对来源。" } };
 			reconcileRequirementMessages(this.requirementEngine, scope, conversation);
 			if (this.attachments) reconcileRequirementAttachments(this.requirementEngine, this.attachments, { ...scope, conversationId: conversation.conversationId });
 			this.knowledge?.refreshRun(this.requirementEngine, scope);
@@ -155,6 +172,7 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 	withdrawAttachment(context: Parameters<ConversationApiController["get"]>[0], conversationId: unknown, attachmentId: string, payload: unknown) {
 		return this.respond(() => {
 			const { scope, conversation } = this.target(context, conversationId);
+			reconcileRequirementReport(this.requirementEngine, scope, conversation.conversationId, this.reportSources);
 			reconcileRequirementMessages(this.requirementEngine, scope, conversation);
 			if (!this.attachments || !payload || typeof payload !== "object" || !context.actorId) throw new ProposalWorkspaceValidationError("需要撤回请求、原因和附件版本。");
 			if (this.requirementScheduler.jobsForRun(scope).some((job) => job.status === "queued" || job.status === "leased")) return { status: 409, body: { code: "attachment_withdrawal_busy", message: "需求单正在执行，请先停止任务再撤回附件。" } };
@@ -182,6 +200,7 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 	override resolveFact(context: Parameters<ConversationApiController["get"]>[0], conversationId: unknown, key: unknown, payload: unknown) {
 		return this.respond(() => {
 			const { scope, conversation } = this.target(context, conversationId);
+			if (!reconcileRequirementReport(this.requirementEngine, scope, conversation.conversationId, this.reportSources)) return { status: 409, body: { code: "report_source_stale", message: "报告来源已变化，请重新规划并核对来源。" } };
 			reconcileRequirementMessages(this.requirementEngine, scope, conversation);
 			if (this.attachments) reconcileRequirementAttachments(this.requirementEngine, this.attachments, { ...scope, conversationId: conversation.conversationId });
 			this.knowledge?.refreshRun(this.requirementEngine, scope);
@@ -201,7 +220,7 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 				const proposal = state.currentProposal;
 				if (!proposal || input.reviewedArtifactVersion !== proposal.version || requirementMessagesChanged(state, conversation) ||
 					this.attachments && requirementAttachmentSnapshotChanged(state, this.attachments, { ...scope, conversationId: conversation.conversationId }) ||
-					["customer_brief", "customer_messages", "customer_attachments", "plan_source", "knowledge_source"].some(k => proposal.inputFactVersions[k] !== state.factVersions[k])) return stale();
+					["customer_brief", "customer_messages", "customer_attachments", "plan_source", "knowledge_source", "report_source"].some(k => proposal.inputFactVersions[k] !== state.factVersions[k])) return stale();
 				const brief = this.requirementArtifacts.readJson({ ...scope, artifactId: "requirement-brief", artifactVersion: proposal.version }) as RequirementBriefV1;
 				if (!evaluateRequirementBrief(brief).passed || conflicts.some(c => !brief.candidateConflicts?.some(item => item.id === c.id))) return stale();
 				const current = state.facts[String(key)];
@@ -321,6 +340,7 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 	delivery(context: Parameters<ConversationApiController["get"]>[0], conversationId: unknown, version: number) {
 		return this.respond(() => {
 			const { scope, conversation } = this.target(context, conversationId);
+			reconcileRequirementReport(this.requirementEngine, scope, conversation.conversationId, this.reportSources);
 			reconcileRequirementMessages(this.requirementEngine, scope, conversation);
 			if (this.attachments) reconcileRequirementAttachments(this.requirementEngine, this.attachments, { ...scope, conversationId: conversation.conversationId });
 			this.knowledge?.refreshRun(this.requirementEngine, scope);
@@ -335,6 +355,11 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 			const sourceVersion = state.proposalVersions.filter((item) => item.version <= version && item.inputFactVersions.customer_brief === artifact.inputFactVersions.customer_brief && item.inputFactVersions.customer_attachments === artifact.inputFactVersions.customer_attachments).reverse().find((item) => this.readCheckpointMetrics(state, item.version));
 			const checkpoint = sourceVersion ? this.readCheckpointMetrics(state, sourceVersion.version) : undefined;
 			const brief = content as RequirementBriefV1;
+			const reportVersion = artifact.inputFactVersions.report_source;
+			if (reportVersion !== undefined) {
+				const dependency = events.find(event => event.data.type === "fact.version_recorded" && event.data.factKey === "report_source" && event.data.factVersion === reportVersion);
+				if (dependency?.data.type !== "fact.version_recorded" || !reportDependencyCurrent({ ...scope, runId: conversation.conversationId }, dependency.data.value, this.reportSources)) return { status: 409, body: { code: "report_source_stale", message: "报告来源已变化或不可用，此交付物必须复核。" } };
+			}
 			const sourcePlan = artifact.inputFactVersions.plan_source === undefined ? undefined : events.find((event) => event.data.type === "fact.version_recorded" && event.data.factKey === "plan_source" && event.data.factVersion === artifact.inputFactVersions.plan_source);
 			const citations: Record<string, string> = {};
 			const knowledgeSource = artifact.inputFactVersions.knowledge_source === undefined ? undefined : events.find((event) => event.data.type === "fact.version_recorded" && event.data.factKey === "knowledge_source" && event.data.factVersion === artifact.inputFactVersions.knowledge_source);

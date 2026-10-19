@@ -2,13 +2,13 @@ import { createHash } from "node:crypto";
 import { mkdirSync, chmodSync } from "node:fs";
 import { dirname } from "node:path";
 import { DatabaseSync } from "node:sqlite";
-import type { ArtifactContentStore } from "../../src/enterprise/artifactStore";
+import { ArtifactStoreError, type ArtifactContentStore } from "../../src/enterprise/artifactStore";
 import type { StageJobLease, StageJobQueue } from "../../src/enterprise/stageJobQueue";
 import { REPORT_LIMITS, SourceReportError, type ReportInput, type ReportScope, type ReportVersion, type SourceSnapshot, type SourceReportArtifact, type SourceReportState, type SourceReportView, type SourceReportBinding } from "../../src/enterprise/sourceReport";
 import type { AgentHostTool } from "../../src/agent/contracts";
 import type { StageJobHandlerResult } from "../workers/stageJobScheduler";
 import { reconcileIndependently } from "../workers/stageJobScheduler";
-import type { FileConversationAttachmentStore } from "../runtime/conversationAttachments";
+import { ConversationAttachmentError, type FileConversationAttachmentStore } from "../runtime/conversationAttachments";
 import { RestrictedWebSource } from "../runtime/restrictedWebSource";
 
 const digest = (value: unknown) => createHash("sha256").update(JSON.stringify(value, (_key, v) => v && typeof v === "object" && !Array.isArray(v) ? Object.fromEntries(Object.keys(v).sort().map(key => [key, v[key]])) : v)).digest("hex");
@@ -28,6 +28,13 @@ function validState(state: SourceReportState, actor: string): boolean {
 		(v.status !== "completed" || v.captured.length === v.inputs.length && hashValid(v.reportDigest)) &&
 		(v.status !== "failed" || !!v.failure) && (!v.failure || typeof v.failure.code === "string" && v.failure.code.length <= 128 && typeof v.failure.retryable === "boolean"));
 }
+// A failed store read is not proof that a source was revoked or its bytes changed.
+function sourceUnavailable(error: unknown): boolean {
+	return error instanceof SourceReportError && ["report_not_found", "report_source_changed", "report_artifact_corrupt", "source_too_large", "web_url_denied"].includes(error.code)
+		|| error instanceof ArtifactStoreError && error.code === "artifact_not_found"
+		|| error instanceof ConversationAttachmentError && ["attachment_not_found", "attachment_withdrawn", "attachment_conflict"].includes(error.code);
+}
+
 interface Options { assertAvailable(scope: ReportScope): void; cancelJob(jobId: string, scope: ReportScope): void; now?: () => string }
 
 /** Local bounded reports use the existing queue and immutable Artifact store. No model or new bus. */
@@ -86,7 +93,7 @@ export class SourceReportWorkflow {
 		this.options.assertAvailable(scope);
 		const state = this.state(scope);
 		return { revision: state.revision, allowedWebDomains: [...this.web.allowedDomains], selectedVersion: state.selectedVersion, selectionRevision: state.selectionRevision, versions: state.versions.map(v => {
-			let available = true; try { this.checkSources(scope, v.inputs); if (v.status === "completed") this.report(scope, v.version); } catch { available = false; }
+			let available = true; try { this.checkSources(scope, v.inputs); if (v.status === "completed") this.report(scope, v.version); } catch (error) { if (!sourceUnavailable(error)) throw error; available = false; }
 			return { ...v, available };
 		}) };
 	}
@@ -230,7 +237,7 @@ export class SourceReportWorkflow {
 		const v = state.versions[state.selectedVersion - 1];
 		const selected = { ...base, status: "selected" as const, version: v.version, reportDigest: v.reportDigest!, artifactRef: `artifact://source-report/v${v.version}` };
 		try { const report = this.report(scope, v.version); return { ...selected, available: true, sources: report.sources.map(({ sourceRef, sha256, textSha256, snapshotRef }) => ({ sourceRef, sha256, textSha256, snapshotRef })) }; }
-		catch { return { ...selected, available: false }; }
+		catch (error) { if (!sourceUnavailable(error)) throw error; return { ...selected, available: false }; }
 	}
 	assertContext(scope: ReportScope, content: string): void {
 		let expected: unknown; try { expected = JSON.parse(content).sourceReport ?? null; } catch { expected = null; }
