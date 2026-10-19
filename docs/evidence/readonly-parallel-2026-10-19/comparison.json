@@ -1,0 +1,33 @@
+{
+  "fixture": "packx-readonly-parallel-v1",
+  "passed": true,
+  "sharedLimits": {
+    "tasks": 4,
+    "calls": 16,
+    "iterations": 4,
+    "tools": 8,
+    "inputTokens": 12000,
+    "timeoutMs": 60000,
+    "versions": 4,
+    "totalCalls": 32,
+    "consecutiveFailures": 3,
+    "dependencyChars": 24000
+  },
+  "serial": {
+    "concurrency": 1,
+    "maxOverlappingSourceCalls": 1,
+    "actualFixtureCalls": 4,
+    "reservedRuntimeSlices": 4,
+    "output": "11",
+    "elapsedMs": 175
+  },
+  "parallel": {
+    "concurrency": 2,
+    "maxOverlappingSourceCalls": 2,
+    "actualFixtureCalls": 4,
+    "reservedRuntimeSlices": 4,
+    "output": "11",
+    "elapsedMs": 88
+  },
+  "conclusion": "Two independent reads overlap with identical fixture output and call count. Elapsed time includes artificial waiting; no real-model quality, price cap or user-value claim."
+}

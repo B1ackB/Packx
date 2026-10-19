@@ -19,6 +19,18 @@ export interface SubagentResult {
 	limitations: string[];
 	assessment?: { decision: "continue" | "replan"; reason: string };
 }
+export interface PlanTaskRun {
+	taskIndex: number;
+	attempt: number;
+	generation: number;
+	jobId: string;
+	leaseId: string;
+	sessionId: string;
+	idempotencyKey: string;
+	status: "running" | "paused" | "completed" | "failed" | "interrupted";
+	startedAt: string;
+	failure?: { code: string; retryable: boolean };
+}
 export interface PlanVersion {
 	version: number;
 	objective: string;
@@ -33,6 +45,10 @@ export interface PlanVersion {
 	calls: number;
 	children: Array<{ taskIndex: number; sessionId: string; executionId: string; result: SubagentResult; usage?: RuntimeUsage }>;
 	activeTask?: number;
+	/** Host-selected before confirmation; absent on legacy serial plans. */
+	readConcurrency?: 2;
+	/** Latest attempt per node; earlier transitions remain in append-only events. */
+	taskRuns?: PlanTaskRun[];
 	failure?: { code: string; retryable: boolean; reason?: string };
 	replanFromVersion?: number;
 }
@@ -74,11 +90,12 @@ export function parsePlan(value: unknown, allowedTools: readonly string[]): Plan
 	return { summary: value.summary, tasks };
 }
 
-/** Deterministic serial dispatch; dependencies share reports, never sibling sessions. */
-export function nextPlanTask(plan: PlanVersion): number {
+/** Deterministic ready set; completion order never changes dependency routing. */
+export function readyPlanTasks(plan: PlanVersion): number[] {
 	const completed = new Set(plan.children.map((child) => child.taskIndex));
-	return plan.spec?.tasks.findIndex((task, index) => !completed.has(index) && (task.dependsOn ?? []).every((dep) => completed.has(dep))) ?? -1;
+	return plan.spec?.tasks.flatMap((task, index) => !completed.has(index) && (task.dependsOn ?? []).every((dep) => completed.has(dep)) ? [index] : []) ?? [];
 }
+export function nextPlanTask(plan: PlanVersion): number { return readyPlanTasks(plan)[0] ?? -1; }
 export function parseSubagentResult(value: unknown, requireAssessment = false): SubagentResult {
 	if (!record(value) || Object.keys(value).some((key) => !["summary", "evidence", "limitations", "assessment"].includes(key)) || !bounded(value.summary, 8000) || ![value.evidence, value.limitations].every((v) => Array.isArray(v) && v.length <= 20 && v.every((s) => bounded(s, 1000)))) throw new PlanError("invalid_subagent_result", 422);
 	const assessment = value.assessment;
@@ -108,6 +125,19 @@ export function validPlanWorkspace(value: unknown): value is PlanWorkspace {
 			if (!record(p) || p.version !== index + 1 || !bounded(p.objective, 8000) || typeof p.context !== "string" || !Number.isInteger(p.conversationRevision) || Number(p.conversationRevision) < 0 || !["planning", "awaiting_confirmation", "queued", "running", "paused", "completed", "failed", "cancelled", "superseded"].includes(String(p.status)) || !Number.isInteger(p.calls) || Number(p.calls) < 0 || Number(p.calls) > PLAN_LIMITS.calls || !Number.isInteger(p.generation) || Number(p.generation) < 1 || !bounded(p.actorId, 128) || typeof p.createdAt !== "string" || !Number.isFinite(Date.parse(p.createdAt)) || !Array.isArray(p.children) || p.children.length > PLAN_LIMITS.tasks) return false;
 			const declaredTools = record(p.spec) && Array.isArray(p.spec.tasks) ? p.spec.tasks.flatMap((t) => record(t) && Array.isArray(t.tools) ? t.tools.filter((tool): tool is string => bounded(tool, 128)) : []) : [];
 			const spec = p.spec === undefined ? undefined : parsePlan(p.spec, declaredTools);
+			if (p.readConcurrency !== undefined && (p.readConcurrency !== 2 || !spec)) return false;
+			if (p.taskRuns !== undefined) {
+				if (p.readConcurrency !== 2 || !Array.isArray(p.taskRuns) || p.taskRuns.length > (spec?.tasks.length ?? 0)) return false;
+				const indices = new Set<number>();
+				for (const run of p.taskRuns) {
+					if (!record(run) || !Number.isInteger(run.taskIndex) || Number(run.taskIndex) < 0 || Number(run.taskIndex) >= spec!.tasks.length || indices.has(Number(run.taskIndex)) || !Number.isInteger(run.attempt) || Number(run.attempt) < 1 || Number(run.attempt) > Number(p.calls) || !Number.isInteger(run.generation) || Number(run.generation) < 1 || Number(run.generation) > Number(p.generation) || ![run.jobId, run.leaseId, run.sessionId, run.idempotencyKey].every((v) => bounded(v, 128)) || !["running", "paused", "completed", "failed", "interrupted"].includes(String(run.status)) || typeof run.startedAt !== "string" || !Number.isFinite(Date.parse(run.startedAt))) return false;
+					if (run.failure !== undefined && (!record(run.failure) || !bounded(run.failure.code, 128) || typeof run.failure.retryable !== "boolean")) return false;
+					if (run.status === "running" && (!["queued", "running"].includes(String(p.status)) || run.generation !== p.generation)) return false;
+					if ((run.status === "completed") !== p.children.some((child) => record(child) && child.taskIndex === run.taskIndex)) return false;
+					indices.add(Number(run.taskIndex));
+				}
+				if (p.taskRuns.filter((run) => record(run) && run.status === "running").length > 2) return false;
+			}
 			if (["awaiting_confirmation", "queued", "running", "paused", "completed"].includes(String(p.status)) && !spec) return false;
 			if (p.approval !== undefined && (!record(p.approval) || p.approval.version !== p.version || !bounded(p.approval.actorId, 128) || typeof p.approval.at !== "string" || !Number.isFinite(Date.parse(p.approval.at)))) return false;
 			if (["queued", "running", "paused", "completed"].includes(String(p.status)) && !p.approval) return false;

@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { nextPlanTask, parsePlan, validPlanWorkspace, type PlanSpec, type PlanVersion } from "./agentPlan";
+import { nextPlanTask, readyPlanTasks, parsePlan, validPlanWorkspace, type PlanSpec, type PlanVersion } from "./agentPlan";
 
 const task = (dependsOn?: number[]) => ({ title: "Review", objective: "Review a source", tools: [], ...(dependsOn === undefined ? {} : { dependsOn }) });
 const spec = (dependencies: Array<number[] | undefined>): PlanSpec => ({ summary: "Source review", tasks: dependencies.map(task) });
@@ -23,6 +23,20 @@ it("selects the first ready task deterministically", () => {
 	expect(nextPlanTask(plan)).toBe(0);
 	plan.children.push({ taskIndex: 0 } as PlanVersion["children"][number]);
 	expect(nextPlanTask(plan)).toBe(-1);
+});
+it("returns a bounded-scheduler ready set while preserving declared dependency order", () => {
+	const plan = { spec: spec([[1, 2], [], []]), children: [] } as unknown as PlanVersion;
+	expect(readyPlanTasks(plan)).toEqual([1, 2]);
+	plan.children.push({ taskIndex: 2 } as PlanVersion["children"][number]); expect(readyPlanTasks(plan)).toEqual([1]);
+	plan.children.push({ taskIndex: 1 } as PlanVersion["children"][number]); expect(readyPlanTasks(plan)).toEqual([0]);
+});
+it("rejects corrupt parallel reservations and keeps legacy state readable", () => {
+	const run = (taskIndex: number) => ({ taskIndex, attempt: 1, generation: 2, jobId: "job", leaseId: "lease", sessionId: `session-${taskIndex}`, idempotencyKey: `key-${taskIndex}`, status: "running", startedAt: "2026-10-19T00:00:00Z" });
+	const plan = { version: 1, objective: "Review", context: "sources", conversationRevision: 1, status: "running", createdAt: "2026-10-19T00:00:00Z", actorId: "user", generation: 2, calls: 3, spec: spec([[], [], []]), approval: { actorId: "user", version: 1, at: "2026-10-19T00:00:00Z" }, children: [] };
+	const state = (extra: object) => ({ revision: 5, mode: "plan", versions: [{ ...plan, ...extra }] });
+	expect(validPlanWorkspace(state({}))).toBe(true);
+	expect(validPlanWorkspace(state({ readConcurrency: 2, taskRuns: [run(0), run(1)] }))).toBe(true);
+	for (const extra of [{ readConcurrency: 3 }, { taskRuns: [run(0)] }, { readConcurrency: 2, taskRuns: [run(0), run(0)] }, { readConcurrency: 2, taskRuns: [run(0), run(1), run(2)] }, { readConcurrency: 2, status: "paused", taskRuns: [run(0)] }, { readConcurrency: 2, taskRuns: [{ ...run(0), generation: 1 }] }, { readConcurrency: 2, taskRuns: [{ ...run(0), status: "completed" }] }]) expect(validPlanWorkspace(state(extra))).toBe(false);
 });
 it("rejects duplicate, out-of-order or unproven dependency receipts in persisted state", () => {
 	const result = { summary: "Report", evidence: ["fixture source"], limitations: [], assessment: { decision: "continue", reason: "Evidence collected" } };

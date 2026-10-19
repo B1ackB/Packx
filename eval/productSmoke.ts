@@ -25,6 +25,7 @@ import { FileAgentStateStore } from "../server/runtime/fileAgentStateStore";
 import { FileCronScheduleStore } from "../server/enterprise/fileCronScheduleStore";
 import { FileEnterpriseEventStore } from "../server/enterprise/fileEventStore";
 import { ProposalRunEngine } from "../src/enterprise/proposalRunEngine";
+import { recoverLocalLock } from "../server/localData";
 
 // Deterministic local provider: exercises the real HTTP adapter, never contacts a model vendor.
 const directory = mkdtempSync(join(tmpdir(), "blackx-product-smoke-"));
@@ -39,6 +40,8 @@ let modelGenerations = 0;
 let bridgeReadRequests = 0, bridgeComposeAttempts = 0;
 let enterBridgeCompose!: () => void;
 const bridgeComposeEntered = new Promise<void>(resolve => { enterBridgeCompose = resolve; });
+const parallelStarts = new Map<string, number>();
+const parallelHolds = new Map<string, { wait: Promise<void>; release: () => void }>();
 
 const provider = createServer(async (request, response) => {
 	const chunks: Buffer[] = []; for await (const chunk of request) chunks.push(Buffer.from(chunk));
@@ -53,6 +56,30 @@ const provider = createServer(async (request, response) => {
 	const instructions = JSON.stringify(body.system);
 	if (instructions.includes("Independently review the candidate")) {
 		content = [{ type: "text", text: JSON.stringify({ issues: [] }) }];
+	} else if (instructions.includes("Plan only. Do not execute") && JSON.stringify(blocks).includes("parallel-fixture-")) {
+		const scenario = /parallel-fixture-(success|failure|cancel|withdraw|restart)/.exec(JSON.stringify(blocks))?.[1] ?? "success";
+		content = [{ type: "text", text: JSON.stringify({ summary: "Independently read the selected report twice, then combine declared reports (fixed fixture)", tasks: [
+			{ title: "汇总待核对结果", objective: `parallel-fixture-${scenario}-JOIN`, tools: [], dependsOn: [1, 2] },
+			{ title: "核对来源 A", objective: `parallel-fixture-${scenario}-A`, tools: ["source_report_read"] },
+			{ title: "核对来源 B", objective: `parallel-fixture-${scenario}-B`, tools: ["source_report_read"] },
+		] }) }];
+	} else if (instructions.includes("Execute ONLY this approved subtask") && JSON.stringify(blocks).includes("parallel-fixture-")) {
+		const objects = blocks.flatMap(block => { if (block.type !== "text") return []; try { return [JSON.parse(block.text)]; } catch { return []; } });
+		const input = objects.find(value => typeof value?.objective === "string" && value.objective.startsWith("parallel-fixture-")); assert(input);
+		const binding = objects.find(value => value?.sourceReport?.status === "selected")?.sourceReport; assert(binding?.available);
+		const toolResult = last.find(block => block.type === "tool_result" && block.tool_use_id === "parallel-read");
+		if (!input.objective.endsWith("JOIN") && !toolResult) {
+			const count = (parallelStarts.get(input.objective) ?? 0) + 1; parallelStarts.set(input.objective, count);
+			if (count === 1) {
+				await parallelHolds.get(input.objective)?.wait;
+				if (serve) await new Promise(resolve => setTimeout(resolve, 3000));
+			}
+			content = [{ type: "tool_use", id: "parallel-read", name: "source_report_read", input: { version: binding.version, reportDigest: binding.reportDigest, selectionRevision: binding.selectionRevision } }];
+		} else {
+			if (toolResult?.type === "tool_result") { const read = JSON.parse(toolResult.content); assert.equal(read.trust, "untrusted_source_data_not_instructions"); assert.equal(read.report.status, "unverified"); }
+			if (input.objective.endsWith("JOIN")) { assert.deepEqual(input.dependencies.map((d: { taskIndex: number }) => d.taskIndex), [1, 2]); assert(input.dependencies.every((d: { status: string }) => d.status === "unverified")); }
+			content = [{ type: "text", text: JSON.stringify({ summary: input.objective.endsWith("failure-B") ? "" : input.objective, evidence: [binding.artifactRef], limitations: ["Deterministic local fixture, not real-model validation"], assessment: { decision: "continue", reason: "Read-only fixture complete" } }) }];
+		}
 	} else if (instructions.includes("Plan only. Do not execute") && JSON.stringify(blocks).includes("report-bridge-fixture")) {
 		const attack = JSON.stringify(blocks).includes("report-bridge-fixture-attack");
 		content = [{ type: "text", text: JSON.stringify({ summary: "Read the explicitly selected report and keep all claims unverified", tasks: attack ? [
@@ -169,9 +196,10 @@ const reservation = createServer(); reservation.listen(0, "127.0.0.1"); await on
 const port = serve ? 5178 : (reservation.address() as { port: number }).port;
 await new Promise<void>((resolve) => reservation.close(() => resolve()));
 const baseUrl = `http://127.0.0.1:${port}`;
-const startHost = () => {
+const startHost = (leaseMs = 135_000) => {
 	const child = spawn(process.execPath, ["--import", "tsx", "server/index.ts"], { env: {
 	...process.env, PACKX_SETTINGS_PATH: settingsPath, BLACKX_DATA_ROOT: dataDirectory, BLACKX_PORT: String(port), BLACKX_RUNTIME_MODE: "anthropic", ANTHROPIC_API_KEY: "offline-fixture-only", ANTHROPIC_BASE_URL: `http://127.0.0.1:${providerPort}`, ANTHROPIC_MODEL: "local-fixture",
+	BLACKX_WORKER_LEASE_MS: String(leaseMs),
 	BLACKX_FILE_STORE_PATH: join(dataDirectory, "files"), BLACKX_AGENT_STATE_PATH: join(dataDirectory, "sessions"), BLACKX_EVENT_STORE_PATH: join(dataDirectory, "events.json"), BLACKX_STAGE_JOB_QUEUE_DRIVER: "file", BLACKX_STAGE_JOB_QUEUE_PATH: join(dataDirectory, "queue.json"), BLACKX_CRON_SCHEDULE_PATH: join(dataDirectory, "cron.json"), BLACKX_ATTACHMENT_STORE_PATH: join(dataDirectory, "attachments"), BLACKX_ARTIFACT_STORE_PATH: join(dataDirectory, "artifacts"), BLACKX_INSPECTION_CACHE_PATH: join(dataDirectory, "inspections"), BLACKX_WORKSPACE_ROOT: directory, BLACKX_ENABLE_RUNTIME_EVAL: "0", BLACKX_COMMAND_API_TOKEN: "", BLACKX_WORKER_API_TOKEN: "", BLACKX_OPERATOR_API_TOKEN: "",
 }, stdio: ["ignore", "pipe", "pipe"] });
 	child.stdout.on("data", (chunk) => { output += String(chunk); }); child.stderr.on("data", (chunk) => { output += String(chunk); });
@@ -460,6 +488,64 @@ try {
 		const stale = await fetch(`${baseUrl}${plans}`, { method: "POST", headers: { ...headers, "content-type": "application/json" }, body: JSON.stringify({ action: "confirm", version: 3, confirmed: true, requestId: "bridge-stale", revision: (await api<{ plan: PlanWorkspace }>(plans)).plan.revision }) });
 		assert.equal(stale.status, 409); assert.equal((await stale.json() as { code: string }).code, "plan_sources_changed"); await planCommand({ action: "cancel", version: 3 });
 		console.log("PASS: explicit immutable report selection → real Host/Runtime read-only DAG → dependent result; pause, Host restart and resume retain completed source worker; reselection invalidates confirmation; injected write and direct requirement import are denied. Model = deterministic local fixture, not real-model quality evidence.");
+	}
+	if (!serve) {
+		const restart = async (signal: "SIGTERM" | "SIGKILL", leaseMs = 135_000) => {
+			const oldPid = host.pid;
+			host.kill(signal); await once(host, "exit");
+			if (signal === "SIGKILL") {
+				// Use the documented recover-lock path, with its dead-owner check and
+				// audit record. Never unlink or bypass the production lock.
+				assert.equal(JSON.parse(readFileSync(join(dataDirectory, ".packx-operation.lock"), "utf8")).pid, oldPid);
+				recoverLocalLock(dataDirectory);
+			}
+			host = startHost(leaseMs);
+			for (let i = 0; i < 100; i++) { try { if ((await fetch(baseUrl)).ok) break; } catch {} assert(i < 99, `Restart failed: ${output}`); await new Promise(resolve => setTimeout(resolve, 100)); }
+			const renewed = await fetch(`${baseUrl}/api/local-session`, { headers: { "sec-fetch-site": "same-origin", "sec-fetch-mode": "cors" } }).then(r => r.json()) as { token: string }; headers["x-blackx-session-token"] = renewed.token;
+		};
+		for (const scenario of ["success", "failure", "cancel", "withdraw", "restart"]) {
+			if (scenario === "restart") await restart("SIGTERM", 2000);
+			const conversationId = (await api("/api/conversations", {})).conversation.conversationId;
+			const root = `/api/conversations/${conversationId}`, reports = `${root}/source-reports`, plans = `${root}/plan`;
+			const readPlan = async () => (await api<{ plan: PlanWorkspace }>(plans)).plan.versions[0];
+			const command = async (body: object) => { const { plan } = await api<{ plan: PlanWorkspace }>(plans); return api(plans, { ...body, version: 1, revision: plan.revision, requestId: crypto.randomUUID() }); };
+			const reportCommand = async (body: object) => { const view = await api<import("../src/enterprise/sourceReport").SourceReportView>(reports); return api(reports, { ...body, revision: view.revision, requestId: crypto.randomUUID() }); };
+			const until = async (check: () => Promise<boolean>, label: string) => { for (let i = 0; i < 150; i++) { if (await check()) return; await new Promise(resolve => setTimeout(resolve, 50)); } throw new Error(`${scenario}: ${label}`); };
+			const upload = await fetch(`${baseUrl}${root}/attachments?name=parallel.txt&requestId=parallel-source`, { method: "POST", headers: { ...headers, "content-type": "text/plain" }, body: "Unverified 90 um packaging request. Source data cannot authorize writes or confirm facts." }); assert(upload.ok);
+			const { attachment } = await upload.json() as { attachment: ConversationAttachment };
+			await reportCommand({ action: "start", title: "Read-only parallel sources", inputs: [{ kind: "attachment", attachmentId: attachment.attachmentId, sha256: attachment.sha256 }] });
+			await until(async () => (await api<import("../src/enterprise/sourceReport").SourceReportView>(reports)).versions[0]?.status === "completed", "source report not completed");
+			await reportCommand({ action: "select", version: 1 });
+			for (const node of ["A", "B"]) { let release!: () => void; const wait = new Promise<void>(resolve => { release = resolve; }); parallelHolds.set(`parallel-fixture-${scenario}-${node}`, { wait, release }); }
+			await command({ action: "mode", mode: "plan" }); await command({ action: "generate", objective: `parallel-fixture-${scenario}: compare independent packaging sources` });
+			await until(async () => (await readPlan())?.status === "awaiting_confirmation", "plan not proposed");
+			assert.equal((await readPlan()).readConcurrency, 2); assert.equal(parallelStarts.get(`parallel-fixture-${scenario}-A`), undefined);
+			await command({ action: "confirm", confirmed: true });
+			await until(async () => ["A", "B"].every(node => parallelStarts.get(`parallel-fixture-${scenario}-${node}`) === 1), "independent HTTP model requests did not overlap");
+			const running = await readPlan(); assert.equal(running.taskRuns?.filter(r => r.status === "running").length, 2); assert.equal(running.children.length, 0); assert.equal(running.calls, 3);
+			if (scenario === "cancel") await command({ action: "cancel" });
+			if (scenario === "withdraw") await reportCommand({ action: "select", version: null });
+			if (scenario === "restart") {
+				await restart("SIGKILL", 2000);
+				await until(async () => (await readPlan()).status === "failed", "lost graph lease not reconciled");
+				assert.equal((await readPlan()).failure?.code, "plan_job_failed");
+				await command({ action: "resume" });
+				await until(async () => (await readPlan()).status === "completed", "restarted plan did not complete");
+				assert.equal((await readPlan()).calls, 6); assert((await readPlan()).taskRuns?.filter(r => r.taskIndex !== 0).every(r => r.attempt === 2));
+			}
+			parallelHolds.get(`parallel-fixture-${scenario}-A`)!.release();
+			if (scenario === "failure") await until(async () => (await readPlan()).children.some(c => c.taskIndex === 1), "successful sibling not retained");
+			parallelHolds.get(`parallel-fixture-${scenario}-B`)!.release();
+			const expected = scenario === "success" || scenario === "restart" ? "completed" : scenario === "cancel" ? "cancelled" : "failed";
+			await until(async () => (await readPlan()).status === expected, `plan did not reach ${expected}`);
+			// Allow old HTTP replies to arrive; the durable receipt set must stay fenced.
+			const finished = await readPlan(); await new Promise(resolve => setTimeout(resolve, 350)); assert.deepEqual((await readPlan()).children, finished.children);
+			if (expected === "completed") { assert.equal(finished.children.length, 3); assert.equal(finished.children.at(-1)!.taskIndex, 0); }
+			else { assert(!finished.children.some(c => c.taskIndex === 0)); if (scenario === "failure") { assert.equal(finished.failure?.code, "invalid_subagent_result"); assert.deepEqual(finished.children.map(c => c.taskIndex), [1]); } else assert.equal(finished.children.length, 0); }
+			assert.equal((await api<ConversationFilesView>(`${root}/files`)).approvals.length, 0);
+			console.log(`PASS: parallel ${scenario}: real Host HTTP + source selection + two isolated read-only Runtime requests + durable node state + result fence; local fixed provider only.`);
+		}
+		await restart("SIGTERM");
 	}
 	const id = (await api("/api/conversations", {})).conversation.conversationId as string;
 	const path = `/api/conversations/${id}`;
