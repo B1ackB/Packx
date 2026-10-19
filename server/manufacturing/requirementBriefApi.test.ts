@@ -1,3 +1,4 @@
+import { PlanError } from "../../src/enterprise/agentPlan";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -39,7 +40,7 @@ function requirement(response: { body: unknown }): RequirementBriefWorkspaceView
 	return (response.body as { requirementBrief: RequirementBriefWorkspaceView }).requirementBrief;
 }
 
-function harness(options: { readPlan?: (scope: PlanScope) => PlanWorkspace; reports?: RequirementReportSources } = {}) {
+function harness(options: { readPlan?: (scope: PlanScope) => PlanWorkspace | Promise<PlanWorkspace>; reports?: RequirementReportSources } = {}) {
 	const directory = mkdtempSync(join(tmpdir(), "blackx-requirement-workspace-"));
 	directories.push(directory);
 	const sessions = new FileAgentStateStore(join(directory, "agent"));
@@ -109,14 +110,14 @@ function approvalReview(view: RequirementBriefWorkspaceView) {
 
 async function readyForApproval(initialAttachment = false, h = harness(), planVersion?: number) {
 	if (initialAttachment) h.attachments.put({ ...context, conversationId: h.conversationId }, { requestId: "initial-source", name: "initial.txt", mediaType: "text/plain", content: Buffer.from("数量 5000 个") });
-	expect(h.controller.start(context, h.conversationId, { requestId: "start-ready", industry: "print", ...(planVersion ? { planVersion } : {}) }).status).toBe(202);
+	expect((await h.controller.start(context, h.conversationId, { requestId: "start-ready", industry: "print", ...(planVersion ? { planVersion } : {}) })).status).toBe(202);
 	await h.scheduler.runNext();
 	for (const key of requiredRequirementFacts.print) {
 		h.controller.recordFact(context, h.conversationId, { requestId: `record-${key}`, key, value: key === "quantity" ? 5000 : `confirmed-${key}` });
 		const state = requirement(h.controller.get(context, h.conversationId)).state;
 		expect(h.controller.resolveFact(context, h.conversationId, key, { requestId: `verify-${key}`, decision: "verified", expectedFactVersion: state.facts[key].version, expectedAggregateVersion: state.aggregateVersion }).status).toBe(200);
 	}
-	h.controller.start(context, h.conversationId, { requestId: "generate-ready", industry: "print", ...(planVersion ? { planVersion } : {}) });
+	(await h.controller.start(context, h.conversationId, { requestId: "generate-ready", industry: "print", ...(planVersion ? { planVersion } : {}) }));
 	expect((await h.scheduler.runNext()).status).toBe("completed");
 	expect(requirement(h.controller.get(context, h.conversationId)).state.stageStatus).toBe("waiting_approval");
 	return h;
@@ -138,7 +139,7 @@ async function withCandidateConflict(fileSource = false) {
 	};
 	const view = () => requirement(h.controller.get(context, h.conversationId));
 	const run = async (requestId: string) => {
-		expect(h.controller.start(context, h.conversationId, { requestId, industry: "print" }).status).toBe(202);
+		expect((await h.controller.start(context, h.conversationId, { requestId, industry: "print" })).status).toBe(202);
 		expect((await h.scheduler.runNext()).status).toBe("completed");
 	};
 	await run("initial-candidate");
@@ -260,7 +261,7 @@ it.each(["requirement-runtime-checkpoint", "requirement-intake-corrections", "re
 	};
 	const view = () => requirement(h.controller.get(context, h.conversationId));
 	const review = () => ({ requestId: "confirm-abandoned", decision: "verified", expectedFactVersion: view().state.facts.quantity.version, expectedAggregateVersion: view().state.aggregateVersion, reviewedArtifactVersion: view().state.currentProposal!.version });
-	h.controller.start(context, h.conversationId, { requestId: "initial", industry: "print" });
+	(await h.controller.start(context, h.conversationId, { requestId: "initial", industry: "print" }));
 	expect((await h.scheduler.runNext()).status).toBe("completed");
 	appendMessage(h, "user", "后续要求 6200 个，请核对前文。"); value = 6200;
 	const put = h.artifacts.putJson.bind(h.artifacts); let crashed = false;
@@ -269,14 +270,14 @@ it.each(["requirement-runtime-checkpoint", "requirement-intake-corrections", "re
 		if (!crashed && key.artifactId === artifactId) { crashed = true; throw new Error("abandoned candidate"); }
 		return ref;
 	};
-	h.controller.start(context, h.conversationId, { requestId: "abandoned", industry: "print" });
+	(await h.controller.start(context, h.conversationId, { requestId: "abandoned", industry: "print" }));
 	expect((await h.scheduler.runNext()).status).toBe("retry_scheduled");
 	h.artifacts.putJson = put;
 	expect(h.controller.cancel(context, h.conversationId, { requestId: "cancel-abandoned" }).status).toBe(200);
 	expect(view().candidateConflicts).toEqual([expect.objectContaining({ firstArtifactVersion: 2, proposed: expect.objectContaining({ value: 6200 }) })]);
 	expect(h.controller.resolveFact(context, h.conversationId, "quantity", review()).status).toBe(409);
 	value = undefined;
-	h.controller.start(context, h.conversationId, { requestId: "after-abandon", industry: "print" });
+	(await h.controller.start(context, h.conversationId, { requestId: "after-abandon", industry: "print" }));
 	expect((await h.scheduler.runNext()).status).toBe("completed");
 	expect(view().candidateConflicts).toHaveLength(1);
 	expect((view().artifact!.content as RequirementBriefV1).nextAction).toBe("clarify");
@@ -333,7 +334,7 @@ it.each(["review", "gate", "export"] as const)("invalidates changed user message
 it("fences a message change during intake before committing its checkpoint", async () => {
 	const h = harness(), execute = h.runtime.executeTurn.bind(h.runtime);
 	h.runtime.executeTurn = async (...args) => { const result = await execute(...args); appendMessage(h, "user", "改为 7000 个"); return result; };
-	h.controller.start(context, h.conversationId, { requestId: "changed-during-intake", industry: "print" });
+	(await h.controller.start(context, h.conversationId, { requestId: "changed-during-intake", industry: "print" }));
 	expect(await h.scheduler.runNext()).toMatchObject({ status: "dead_letter", job: { lastFailure: { code: "context_failure" } } });
 	expect(requirement(h.controller.get(context, h.conversationId)).state.proposalVersions).toHaveLength(0);
 });
@@ -350,8 +351,8 @@ it.each(["cancelled", "passed"] as const)("supports an explicit revision from %s
 	} else h.controller.cancel(context, h.conversationId, { requestId: "stop-before-revision" });
 	appendMessage(h, "user", "请按更正后的数量重新整理。");
 	const input = { requestId: "explicit-revision", industry: "print" };
-	expect(h.controller.start(context, h.conversationId, input).status).toBe(202);
-	expect(h.controller.start(context, h.conversationId, input).status).toBe(202);
+	expect((await h.controller.start(context, h.conversationId, input)).status).toBe(202);
+	expect((await h.controller.start(context, h.conversationId, input)).status).toBe(202);
 	expect((await h.scheduler.runNext()).status).toBe("completed");
 	const after = requirement(h.controller.get(context, h.conversationId));
 	expect(after.state.currentProposal!.version).toBeGreaterThan(before.state.currentProposal!.version);
@@ -362,21 +363,21 @@ it("opens a new execution after completed approval without requiring a dummy sou
 	const h = await readyForApproval(), before = requirement(h.controller.get(context, h.conversationId));
 	h.controller.resolveApproval(context, h.conversationId, { requestId: "finish", decision: "approved", ...approvalReview(before) }); await h.scheduler.runNext();
 	const finished = requirement(h.controller.get(context, h.conversationId)).state;
-	expect(h.controller.start(context, h.conversationId, { requestId: "generate-ready", industry: "print" }).status).toBe(202);
+	expect((await h.controller.start(context, h.conversationId, { requestId: "generate-ready", industry: "print" })).status).toBe(202);
 	expect(requirement(h.controller.get(context, h.conversationId)).state).toEqual(finished);
-	expect(h.controller.start(context, h.conversationId, { requestId: "revise-finished", industry: "print" }).status).toBe(202);
+	expect((await h.controller.start(context, h.conversationId, { requestId: "revise-finished", industry: "print" })).status).toBe(202);
 	expect((await h.scheduler.runNext()).status).toBe("completed");
 	expect(requirement(h.controller.get(context, h.conversationId)).state).toMatchObject({ currentProposal: { version: 3 }, approval: { status: "requested" } });
 });
 
 it.each(["cancelled", "needs_input"] as const)("keeps the original execution replay from restarting %s", async status => {
 	const h = harness(), input = { requestId: "original-execution", industry: "print" };
-	h.controller.start(context, h.conversationId, input);
+	(await h.controller.start(context, h.conversationId, input));
 	if (status === "cancelled") h.controller.cancel(context, h.conversationId, { requestId: "cancel-original" });
 	else await h.scheduler.runNext();
 	const before = requirement(h.controller.get(context, h.conversationId)).state;
 	expect(before.stageStatus).toBe(status);
-	expect(h.controller.start(context, h.conversationId, input).status).toBe(202);
+	expect((await h.controller.start(context, h.conversationId, input)).status).toBe(202);
 	expect(requirement(h.controller.get(context, h.conversationId)).state).toEqual(before);
 	expect((await h.scheduler.runNext()).status).toBe("idle");
 });
@@ -389,11 +390,11 @@ it.each(["requirement-runtime-checkpoint", "requirement-intake-corrections", "re
 		if (!injected && key.artifactId === artifactId) { injected = true; abandoned = value; throw new Error("crash after immutable write"); }
 		return ref;
 	};
-	h.controller.start(context, h.conversationId, { requestId: "abandoned", industry: "print" });
+	(await h.controller.start(context, h.conversationId, { requestId: "abandoned", industry: "print" }));
 	expect((await h.scheduler.runNext()).status).toBe("retry_scheduled");
 	h.artifacts.putJson = put;
 	h.controller.cancel(context, h.conversationId, { requestId: "cancel-abandoned" });
-	expect(h.controller.start(context, h.conversationId, { requestId: "new-execution", industry: "print" }).status).toBe(202);
+	expect((await h.controller.start(context, h.conversationId, { requestId: "new-execution", industry: "print" })).status).toBe(202);
 	expect((await h.scheduler.runNext()).status).toBe("completed");
 	const state = requirement(h.controller.get(context, h.conversationId)).state;
 	expect(state.currentProposal?.version).toBe(2);
@@ -403,17 +404,17 @@ it.each(["requirement-runtime-checkpoint", "requirement-intake-corrections", "re
 
 it("restarts a cancelled first execution with changed messages before any Artifact exists", async () => {
 	const h = harness();
-	h.controller.start(context, h.conversationId, { requestId: "first-queued", industry: "print" });
+	(await h.controller.start(context, h.conversationId, { requestId: "first-queued", industry: "print" }));
 	h.controller.cancel(context, h.conversationId, { requestId: "cancel-queued" });
 	appendMessage(h, "user", "数量修改为 7000 个。");
-	expect(h.controller.start(context, h.conversationId, { requestId: "new-input", industry: "print" }).status).toBe(202);
+	expect((await h.controller.start(context, h.conversationId, { requestId: "new-input", industry: "print" })).status).toBe(202);
 	expect((await h.scheduler.runNext()).status).toBe("completed");
 	expect(requirement(h.controller.get(context, h.conversationId)).state.facts.customer_brief.value).toContain("7000");
 });
 
 it("preserves an orphan draft even when no intake checkpoint reserved its version", async () => {
 	const h = harness();
-	const started = requirement(h.controller.start(context, h.conversationId, { requestId: "orphan-draft", industry: "print" }));
+	const started = requirement((await h.controller.start(context, h.conversationId, { requestId: "orphan-draft", industry: "print" })));
 	const orphan = { note: "An interrupted review wrote this draft before its version event" };
 	h.artifacts.putJson({ ...context, runId: started.runId, artifactId: "requirement-brief", artifactVersion: 1 }, orphan);
 	expect((await h.scheduler.runNext()).status).toBe("completed");
@@ -439,7 +440,7 @@ it.each(["approved", "rejected"] as const)("rejects stale %s decisions and binds
 	h.controller.recordFact(context, h.conversationId, { requestId: "new-quantity", key: "quantity", value: 6000 });
 	const changed = view().state;
 	h.controller.resolveFact(context, h.conversationId, "quantity", { requestId: "confirm-new-quantity", decision: "verified", expectedFactVersion: changed.facts.quantity.version, expectedAggregateVersion: changed.aggregateVersion });
-	h.controller.start(context, h.conversationId, { requestId: "new-version", industry: "print" });
+	(await h.controller.start(context, h.conversationId, { requestId: "new-version", industry: "print" }));
 	await h.scheduler.runNext();
 	expect(h.controller.resolveApproval(context, h.conversationId, { requestId: "stale-tab", decision, ...old })).toMatchObject({ status: 409, body: { code: "approval_review_stale" } });
 	expect(view().state.approval).toMatchObject({ status: "requested", artifactVersion: 3 });
@@ -483,7 +484,7 @@ it.each([false, true])("invalidates additions at review, gate and export (initia
 		expect(current).toMatchObject({ stageStatus: "revision_required", approval: { status: "superseded" }, facts: { quantity: { value: 5000, status: "verified" } } });
 		expect(requirement(h.controller.get(context, h.conversationId)).state.aggregateVersion).toBe(current.aggregateVersion);
 		// An explicit new intake can bind the changed snapshot; old approval stays invalid.
-		expect(h.controller.start(context, h.conversationId, { requestId: "review-new-sources", industry: "print" }).status).toBe(202);
+		expect((await h.controller.start(context, h.conversationId, { requestId: "review-new-sources", industry: "print" })).status).toBe(202);
 		expect((await h.scheduler.runNext()).status).toBe("completed");
 		const regenerated = requirement(h.controller.get(context, h.conversationId)).state;
 		expect(regenerated.currentProposal?.version).toBe(3);
@@ -496,7 +497,7 @@ it.each([false, true])("invalidates additions at review, gate and export (initia
 
 it("confirms the reviewed version only, preserves source excerpts and deduplicates retries", async () => {
 	const h = harness();
-	h.controller.start(context, h.conversationId, { requestId: "start-review", industry: "print" });
+	(await h.controller.start(context, h.conversationId, { requestId: "start-review", industry: "print" }));
 	await h.scheduler.runNext();
 	const view = () => requirement(h.controller.get(context, h.conversationId));
 	h.controller.recordFact(context, h.conversationId, { requestId: "initial-quantity", key: "quantity", value: 5000 });
@@ -518,7 +519,7 @@ it("confirms the reviewed version only, preserves source excerpts and deduplicat
 
 it("stores review observations immutably with scope and version binding, without confirming business state", async () => {
 	const h = harness();
-	h.controller.start(context, h.conversationId, { requestId: "trial-start", industry: "print" });
+	(await h.controller.start(context, h.conversationId, { requestId: "trial-start", industry: "print" }));
 	await h.scheduler.runNext();
 	const before = requirement(h.controller.get(context, h.conversationId));
 	const input = { observationId: "observation-0001", caseId: "SYN-1", reviewerAlias: "operator-A", sourceKind: "synthetic", artifactVersion: 1, expectedAggregateVersion: before.state.aggregateVersion, startedAt: "2026-09-26T01:00:00.000Z", endedAt: "2026-09-26T01:01:00.000Z", recordedReviewMs: 30_000, interruptions: 1, correctionCount: 2, criticalErrorCount: 1, outcome: "needs_work", notes: "合成资料，手动计时。" };
@@ -546,7 +547,7 @@ describe("RequirementBriefWorkspaceApiController", () => {
 		const payload = { requestId: "withdraw", reason: "wrong order", sha256: source.sha256 };
 		expect(h.controller.withdrawAttachment({ ...context, tenantId: "other" }, h.conversationId, source.attachmentId, payload).status).toBe(404);
 		expect(h.controller.withdrawAttachment(context, h.conversationId, source.attachmentId, { reason: "missing request" }).status).toBe(400);
-		h.controller.start(context, h.conversationId, { requestId: "start", industry: "print" });
+		(await h.controller.start(context, h.conversationId, { requestId: "start", industry: "print" }));
 		expect(h.controller.withdrawAttachment(context, h.conversationId, source.attachmentId, payload).status).toBe(409);
 		expect(h.attachments.list({ ...context, conversationId: h.conversationId })).toHaveLength(1);
 		await h.scheduler.runNext();
@@ -556,11 +557,11 @@ describe("RequirementBriefWorkspaceApiController", () => {
 		expect(requirement(h.controller.get(context, h.conversationId)).state.currentProposal?.freshness).toBe("stale");
 	});
 
-	it("rejects new furniture requests and fields before creating any workflow", () => {
+	it("rejects new furniture requests and fields before creating any workflow", async () => {
 		const { controller, conversationId } = harness();
-		expect(controller.start(context, conversationId, { requestId: "retired", industry: "furniture" })).toMatchObject({ status: 400 });
+		expect((await controller.start(context, conversationId, { requestId: "retired", industry: "furniture" }))).toMatchObject({ status: 400 });
 		expect(requirement(controller.get(context, conversationId))).toBeNull();
-		controller.start(context, conversationId, { requestId: "packaging", industry: "print" });
+		(await controller.start(context, conversationId, { requestId: "packaging", industry: "print" }));
 		const before = requirement(controller.get(context, conversationId)).state.aggregateVersion;
 		expect(controller.recordFact(context, conversationId, { requestId: "retired-field", key: "installation_required", value: true })).toMatchObject({ status: 400 });
 		expect(requirement(controller.get(context, conversationId)).state.aggregateVersion).toBe(before);
@@ -568,13 +569,13 @@ describe("RequirementBriefWorkspaceApiController", () => {
 
 	it("keeps a legacy industry read-only and refuses queued execution without rewriting its facts", async () => {
 		const { controller, conversationId, eventPath, scheduler } = harness();
-		const started = requirement(controller.start(context, conversationId, { requestId: "legacy-seed", industry: "print" }));
+		const started = requirement((await controller.start(context, conversationId, { requestId: "legacy-seed", industry: "print" })));
 		const engine = new ProposalRunEngine(new FileEnterpriseEventStore(eventPath), "requirement-brief");
 		engine.recordFactVersion({ ...context, runId: started.runId, commandId: "legacy-industry", correlationId: "legacy-import", expectedVersion: started.state.aggregateVersion,
 			factKey: "industry", factVersion: 2, value: "furniture", status: "verified", sourceType: "human_confirmation", sourceRef: "legacy:confirmed" }, { duringExecution: true });
 		const before = engine.load(started.state).aggregateVersion;
 		expect(requirement(controller.get(context, conversationId)).readOnlyReason).toContain("包装");
-		expect(controller.start(context, conversationId, { requestId: "convert", industry: "print" }).status).toBe(400);
+		expect((await controller.start(context, conversationId, { requestId: "convert", industry: "print" })).status).toBe(400);
 		expect(controller.recordFact(context, conversationId, { requestId: "edit", key: "quantity", value: 100 }).status).toBe(400);
 		expect(controller.resolveFact(context, conversationId, "quantity", { requestId: "confirm", decision: "verified" }).status).toBe(400);
 		expect(controller.resolveApproval(context, conversationId, { requestId: "approve", decision: "approved" }).status).toBe(400);
@@ -592,10 +593,10 @@ describe("RequirementBriefWorkspaceApiController", () => {
 			status: 200,
 			body: { requirementBrief: null },
 		});
-		const started = controller.start(context, conversationId, {
+		const started = (await controller.start(context, conversationId, {
 			requestId: "requirement-start-1",
 			industry: "print",
-		});
+		}));
 		expect(requirement(started).state.facts.industry).toMatchObject({
 			value: "print",
 			status: "verified",
@@ -668,10 +669,10 @@ describe("RequirementBriefWorkspaceApiController", () => {
 			});
 		}
 
-		controller.start(context, conversationId, {
+		(await controller.start(context, conversationId, {
 			requestId: "requirement-start-2",
 			industry: "print",
-		});
+		}));
 		const secondRun = await scheduler.runNext();
 		expect(secondRun).toMatchObject({ status: "completed" });
 		const waiting = requirement(controller.get(context, conversationId));
@@ -758,7 +759,7 @@ describe("RequirementBriefWorkspaceApiController", () => {
 
 	it("builds a tenant-scoped time series across Requirement Runs", async () => {
 		const { controller, conversationId, conversations, scheduler, sessions } = harness();
-		controller.start(context, conversationId, { requestId: "series-run-1", industry: "print" });
+		(await controller.start(context, conversationId, { requestId: "series-run-1", industry: "print" }));
 		controller.cancel(context, conversationId, { requestId: "series-cancel-1" });
 
 		const second = (conversations.create(context).body as { conversation: ConversationView }).conversation;
@@ -779,7 +780,7 @@ describe("RequirementBriefWorkspaceApiController", () => {
 			}],
 			"2026-09-04T00:02:00.000Z",
 		);
-		controller.start(context, second.conversationId, { requestId: "series-run-2", industry: "print" });
+		(await controller.start(context, second.conversationId, { requestId: "series-run-2", industry: "print" }));
 		expect(await scheduler.runNext()).toMatchObject({ status: "completed" });
 
 		const series = (controller.metricsSeries(context).body as {
@@ -799,16 +800,16 @@ describe("RequirementBriefWorkspaceApiController", () => {
 		expect(isolated.points).toEqual([]);
 	});
 
-	it("rejects an invalid industry and does not expose another tenant's Run", () => {
+	it("rejects an invalid industry and does not expose another tenant's Run", async () => {
 		const { controller, conversationId } = harness();
-		expect(controller.start(context, conversationId, {
+		expect((await controller.start(context, conversationId, {
 			requestId: "invalid-industry",
 			industry: "other",
-		})).toMatchObject({ status: 400 });
-		controller.start(context, conversationId, {
+		}))).toMatchObject({ status: 400 });
+		(await controller.start(context, conversationId, {
 			requestId: "valid-industry",
 			industry: "print",
-		});
+		}));
 		expect(controller.get({ ...context, tenantId: "other-tenant" }, conversationId)).toEqual({
 			status: 404,
 			body: { code: "conversation_not_found" },
@@ -817,10 +818,10 @@ describe("RequirementBriefWorkspaceApiController", () => {
 
 	it("cancels a queued Requirement Run idempotently and persists the terminal state", async () => {
 		const { controller, conversationId, eventPath, scheduler } = harness();
-		controller.start(context, conversationId, {
+		(await controller.start(context, conversationId, {
 			requestId: "cancel-start",
 			industry: "print",
-		});
+		}));
 		const cancelled = controller.cancel(context, conversationId, { requestId: "cancel-request" });
 		expect(requirement(cancelled)).toMatchObject({
 			state: { status: "cancelled", stageStatus: "cancelled" },
@@ -845,10 +846,10 @@ describe("RequirementBriefWorkspaceApiController", () => {
 		});
 		expect(restored).toMatchObject({ status: "cancelled", stageStatus: "cancelled" });
 
-		const reopened = controller.start(context, conversationId, {
+		const reopened = (await controller.start(context, conversationId, {
 			requestId: "reopen-request",
 			industry: "print",
-		});
+		}));
 		expect(requirement(reopened)).toMatchObject({
 			state: { status: "running", stageStatus: "running" },
 			job: { status: "queued" },
@@ -863,7 +864,7 @@ describe("RequirementBriefWorkspaceApiController", () => {
 		expect(eventTypes.indexOf("stage.cancelled")).toBeLessThan(eventTypes.lastIndexOf("stage.restarted"));
 	});
 
-	it("versions the current attachment set into Requirement source lineage", () => {
+	it("versions the current attachment set into Requirement source lineage", async () => {
 		const { attachments, controller, conversationId } = harness();
 		attachments.put({
 			...context,
@@ -875,10 +876,10 @@ describe("RequirementBriefWorkspaceApiController", () => {
 			content: Buffer.from("delivery date: 2026-10-01"),
 		});
 
-		const started = requirement(controller.start(context, conversationId, {
+		const started = requirement((await controller.start(context, conversationId, {
 			requestId: "requirement-with-attachment",
 			industry: "print",
-		}));
+		})));
 
 		expect(started.state.facts.customer_attachments).toMatchObject({
 			version: 1,
@@ -901,10 +902,10 @@ describe("RequirementBriefWorkspaceApiController", () => {
 			mediaType: "image/png",
 			content: Buffer.from("reference-image"),
 		});
-		const started = requirement(controller.start(context, conversationId, {
+		const started = requirement((await controller.start(context, conversationId, {
 			requestId: "requirement-with-image",
 			industry: "print",
-		}));
+		})));
 
 		expect(await scheduler.runNext()).toMatchObject({ status: "completed" });
 		const runtimeSession = sessions.listSessions(context).find((session) => session.runId === started.runId && session.messages.some((message) => message.attachments?.length));
@@ -964,7 +965,7 @@ it.each(["clear", "reselect", "withdraw"] as const)("invalidates report-dependen
 	expect(h.controller.get({ ...context, tenantId: "other" }, h.conversationId).status).toBe(404);
 	// A replacement with no report records the cleared dependency, while old versions keep theirs.
 	const newVersion = h.replan(false);
-	expect(h.controller.start(context, h.conversationId, { requestId: "new-plan-source", industry: "print", planVersion: newVersion }).status).toBe(202);
+	expect((await h.controller.start(context, h.conversationId, { requestId: "new-plan-source", industry: "print", planVersion: newVersion })).status).toBe(202);
 	expect((await h.scheduler.runNext()).status).toBe("completed");
 	expect(requirement(h.controller.get(context, h.conversationId)).state.facts.report_source.sourceRef).toBe("report:none");
 	expect(h.controller.delivery(context, h.conversationId, version).status).toBe(409);
@@ -977,7 +978,7 @@ it("preserves approvals when the report store is unavailable and refuses stale r
 	expect(h.controller.get(context, h.conversationId).status).toBe(500);
 	expect(h.engine.load(before.state)).toEqual(before.state);
 	const stale = reportHarness(); stale.change("reselect");
-	expect(stale.controller.start(context, stale.conversationId, { requestId: "stale-import", industry: "print", planVersion: 1 })).toMatchObject({ status: 400, body: { code: "report_source_stale" } });
+	expect((await stale.controller.start(context, stale.conversationId, { requestId: "stale-import", industry: "print", planVersion: 1 }))).toMatchObject({ status: 400, body: { code: "report_source_stale" } });
 });
 
 it("fences a late requirement worker result after its selected report becomes unavailable", async () => {
@@ -985,7 +986,7 @@ it("fences a late requirement worker result after its selected report becomes un
 	let enter!: () => void, release!: () => void;
 	const entered = new Promise<void>(resolve => { enter = resolve; }), held = new Promise<void>(resolve => { release = resolve; });
 	h.runtime.executeTurn = async (...args) => { const result = await execute(...args); enter(); await held; return result; };
-	expect(h.controller.start(context, h.conversationId, { requestId: "held-report", industry: "print", planVersion: 1 }).status).toBe(202);
+	expect((await h.controller.start(context, h.conversationId, { requestId: "held-report", industry: "print", planVersion: 1 })).status).toBe(202);
 	const pending = h.scheduler.runNext();
 	try {
 		await Promise.race([entered, pending.then(() => { throw new Error("Worker ended before the injected hold"); })]);
@@ -997,4 +998,15 @@ it("fences a late requirement worker result after its selected report becomes un
 	expect(after.state.currentProposal).toBeUndefined();
 	expect(after.state.approval).toBeUndefined();
 	expect(after.state.facts.report_source.status).toBe("unverified");
+});
+
+
+it("waits for source review before importing and returns an unavailable response without enqueuing work", async () => {
+	let reject!: (error: Error) => void;
+	const h = harness({ readPlan: async () => new Promise<PlanWorkspace>((_resolve, fail) => { reject = fail; }) });
+	const pending = h.controller.start(context, h.conversationId, { requestId: "await-source-review", industry: "print", planVersion: 1 });
+	expect(h.queue.list()).toHaveLength(0);
+	reject(new PlanError("plan_source_review_unavailable", 503));
+	expect(await pending).toMatchObject({ status: 503, body: { code: "plan_source_review_unavailable" } });
+	expect(h.queue.list()).toHaveLength(0);
 });

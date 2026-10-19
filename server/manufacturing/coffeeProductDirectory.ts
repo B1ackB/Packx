@@ -34,5 +34,9 @@ export async function findCoffeeProducts(store: KnowledgeStore, scope: Knowledge
 export function createCoffeeProductTool(store: KnowledgeStore): AgentHostTool {
 	return { name: "packaging_find_products", description: "Start coffee packaging sourcing with this product-directory tool. Returns manufacturer/product-family metadata, official source links and specific supplier questions, never supplier full text or verified specifications. Coffee form is an explicit filter: roasted_beans, ground or instant. Cite returned evidenceId, preserve unknown parameters; no production sizes, prices, certification or shelf life may be inferred. Directory records can be selected using the normal evidence workflow. Research papers are excluded.", inputSchema: { type: "object", properties: { query: { type: "string", minLength: 1, maxLength: 300 }, coffeeForm: { enum: ["roasted_beans", "ground", "instant"] } }, required: ["query"], additionalProperties: false }, execution: "host", risk: "read", idempotent: true, timeoutMs: 1000, maxResultChars: 24_000,
 		validate: (input) => { try { assertProductQuery(input); return true; } catch { return false; } },
+		validateContextResult: (_input, output, context) => {
+			const value = JSON.parse(output) as { result: EvidenceResult };
+			store.assertCurrentReferences(context, value.result.hits);
+		},
 		execute: async (input, context) => { context.signal.throwIfAborted(); return findCoffeeProducts(store, context, input, context.executionId, context.signal); } };
 }

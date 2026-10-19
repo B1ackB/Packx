@@ -3,6 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, expect, it, vi } from "vitest";
 import { AgentPlanStore } from "./agentPlanStore";
+import { planInputDependencies } from "./planInputDependencies";
 import { AgentPlanWorkflow, type PlanWorkflowOptions } from "./agentPlanWorkflow";
 import { FileStageJobQueue } from "./fileStageJobQueue";
 import { StageJobScheduler } from "../workers/stageJobScheduler";
@@ -361,4 +362,190 @@ it.each([
 	h.command({ action: "reconcile" });
 	expect(h.plan()).toMatchObject({ status: "failed", calls: PLAN_LIMITS.calls, failure: { code: expected, retryable: false } });
 	expect(h.requests).toHaveLength(1);
+});
+
+
+it("marks completed read-only results stale on the next read after a source change, preserving history and budgets", async () => {
+	const h = harness(async request => response(request));
+	await h.start(); await h.scheduler.runNext(); await h.scheduler.runNext();
+	const completed = h.store.read(scope), before = completed.versions[0];
+	expect(before.status).toBe("completed");
+	h.revoke();
+	const changed = (await h.workflow.read(scope)), stale = changed.versions[0];
+	expect(stale.status).toBe("stale");
+	expect(stale.failure).toEqual({ code: "plan_sources_changed", retryable: false });
+	expect(stale.children).toEqual(before.children);
+	expect(stale.taskRuns).toEqual(before.taskRuns);
+	expect(stale.approval).toEqual(before.approval);
+	expect(stale.calls).toBe(before.calls);
+	expect(stale.generation).toBe(before.generation);
+	expect(changed.consecutiveFailures).toBe(completed.consecutiveFailures);
+	expect(h.requests).toHaveLength(4);
+	h.workflow.reconcile(); h.workflow.reconcile();
+	expect((await h.workflow.read(scope))).toEqual(changed);
+	expect(h.queue.list().filter(job => ["queued", "leased"].includes(job.status))).toEqual([]);
+});
+
+
+it("retains stale results through restart and restored inputs; only a new plan and confirmation can execute", async () => {
+	const h = harness(async request => response(request));
+	await h.start(); await h.scheduler.runNext(); await h.scheduler.runNext();
+	const completed = h.store.read(scope), original = h.options.readInput(scope);
+	h.revoke();
+	const store = new AgentPlanStore(h.path); cleanup.push(() => store.close());
+	const queue = new FileStageJobQueue(h.queuePath);
+	const workflow = new AgentPlanWorkflow(store, queue, h.runtime, h.options);
+	const stale = (await workflow.read(scope));
+	expect(stale.versions[0].status).toBe("stale");
+	h.options.readInput = () => original;
+	expect((await workflow.read(scope))).toEqual(stale);
+	for (const action of ["resume", "confirm", "reconcile", "cancel"]) expect(() => h.command({ action, confirmed: true })).toThrow();
+	expect(h.requests).toHaveLength(4);
+	h.command({ action: "replan" }); await h.scheduler.runNext();
+	const revised = h.store.read(scope).versions[1];
+	expect(revised).toMatchObject({ status: "awaiting_confirmation", replanFromVersion: 1, calls: 1, children: [] });
+	expect(revised.approval).toBeUndefined();
+	expect(h.requests).toHaveLength(5);
+	await h.scheduler.runNext(); expect(h.requests).toHaveLength(5);
+	h.command({ action: "confirm", version: 2, confirmed: true }); await h.scheduler.runNext(); await h.scheduler.runNext();
+	expect(h.store.read(scope).versions[1].status).toBe("completed");
+	expect(h.store.read(scope).versions[0].children).toEqual(completed.versions[0].children);
+});
+
+it("does not mark completed results stale when the input store fails and does not touch another scope", async () => {
+	const h = harness(async request => response(request), graph, { assertAvailable: () => {} });
+	await h.start(); await h.scheduler.runNext(); await h.scheduler.runNext();
+	const before = h.store.read(scope), readInput = h.options.readInput;
+	expect((await h.workflow.read(scope))).toEqual(before);
+	h.options.readInput = () => { throw new PlanError("context_store_unavailable", 503); };
+	await expect(h.workflow.read(scope)).rejects.toThrow("context_store_unavailable");
+	expect(h.store.read(scope)).toEqual(before);
+	h.options.readInput = readInput;
+	const other = { ...scope, tenantId: "another-tenant" };
+	const otherState = h.store.change(other, "fixture-copy", "fixture", "fixture", "fixture.completed", 0, state => Object.assign(state, structuredClone(before), { revision: 0 }));
+	h.revoke(); (await h.workflow.read(scope));
+	expect(h.plan().status).toBe("stale");
+	expect(h.store.read(other)).toEqual(otherState);
+	expect(h.requests).toHaveLength(4);
+});
+
+it("keeps legacy serial completion unchanged when current inputs change", async () => {
+	const h = harness(async request => response(request), graph, { maxReadConcurrency: undefined });
+	await h.start(); for (let i = 0; i < 3; i++) await h.scheduler.runNext();
+	const completed = h.store.read(scope);
+	expect(completed.versions[0].readConcurrency).toBeUndefined();
+	expect(completed.versions[0].status).toBe("completed");
+	h.revoke(); expect((await h.workflow.read(scope))).toEqual(completed);
+	expect(h.requests).toHaveLength(4);
+});
+
+
+it("checks completed inputs on demand without rebuilding them in every general queue sweep", async () => {
+	const h = harness(async request => response(request), graph, { assertAvailable: () => {} });
+	await h.start(); await h.scheduler.runNext(); await h.scheduler.runNext();
+	const readInput = vi.fn(h.options.readInput); h.options.readInput = readInput;
+	h.workflow.reconcile(); h.workflow.reconcile();
+	expect(readInput).not.toHaveBeenCalled();
+	(await h.workflow.read(scope)); expect(readInput).toHaveBeenCalledTimes(1);
+});
+
+
+it.each(["report", "attachment", "knowledge", "verified_fact", "prior_artifact", "unknown_input", "revision"])("keeps downstream draft changes out of completion validity but detects changed %s", async change => {
+	const frozen = { schemaVersion: "task-context.v1", scope, attachments: [{ sourceRef: "attachment://source", sha256: "original" }], sourceReport: { status: "selected", version: 1, selectionRevision: 1 }, knowledge: { digest: "original" },
+		facts: [{ key: "quantity", version: 1, status: "verified", value: 100 }], artifacts: [{ artifactId: "prior", version: 1 }], unresolved: [], stage: { status: "passed" }, completed: [], pendingChanges: [], approval: null };
+	let input = { revision: 1, context: JSON.stringify(frozen) };
+	const h = harness(async request => response(request), graph, { assertAvailable: () => {}, readInput: () => input });
+	await h.start(); await h.scheduler.runNext(); await h.scheduler.runNext();
+	const completed = h.store.read(scope);
+	const downstream = { ...frozen, stage: { status: "waiting_approval" }, completed: [{ version: 2 }], pendingChanges: [{ key: "candidate" }], approval: { id: "new-draft-approval" },
+		facts: [...frozen.facts, { key: "candidate", version: 1, status: "unverified", value: 200 }], artifacts: [...frozen.artifacts, { artifactId: "new-draft", version: 1 }] };
+	input = { revision: 1, context: JSON.stringify(downstream) };
+	expect((await h.workflow.read(scope))).toEqual(completed);
+	downstream.facts[1].status = "verified";
+	input = { revision: 1, context: JSON.stringify(downstream) };
+	expect((await h.workflow.read(scope))).toEqual(completed);
+	const changed = structuredClone(downstream);
+	if (change === "report") changed.sourceReport.selectionRevision++;
+	if (change === "attachment") changed.attachments[0].sha256 = "changed";
+	if (change === "knowledge") changed.knowledge.digest = "changed";
+	if (change === "verified_fact") changed.facts[0].value = 101;
+	if (change === "prior_artifact") changed.artifacts[0].version++;
+	input = { revision: change === "revision" ? 2 : 1, context: JSON.stringify(change === "unknown_input" ? { ...changed, newPolicyInput: "changed" } : changed) };
+	expect((await h.workflow.read(scope)).versions[0].status).toBe("stale");
+	expect(h.requests).toHaveLength(4);
+});
+
+
+it.each(["value", "version", "confirmation", "source", "withdrawal", "removed"])("invalidates completed results when a frozen unverified input changes: %s", async change => {
+	const frozen = { schemaVersion: "task-context.v1", scope, facts: [{ key: "quantity", version: 1, value: 100, status: "unverified", sourceRef: "attachment:customer-v1", sourceValidity: "current_record_source_not_independently_verified" }], artifacts: [], unresolved: [{ key: "quantity", version: 1, reason: "confirmation_required" }] };
+	let context = JSON.stringify(frozen);
+	const h = harness(async request => response(request), graph, { readInput: () => ({ revision: 1, context }) });
+	await h.start(); await h.scheduler.runNext(); await h.scheduler.runNext();
+	const completed = h.store.read(scope);
+	const changed = structuredClone(frozen);
+	if (change === "value") changed.facts[0].value++;
+	if (change === "version") changed.facts[0].version++;
+	if (change === "confirmation") changed.facts[0].status = "verified";
+	if (change === "source") changed.facts[0].sourceRef = "attachment:replacement";
+	if (change === "withdrawal") changed.facts[0].sourceValidity = "stale";
+	if (change === "removed") changed.facts = [];
+	context = JSON.stringify(changed);
+	const stale = (await h.workflow.read(scope));
+	expect(stale.versions[0].status).toBe("stale");
+	expect(stale.versions[0].children).toEqual(completed.versions[0].children);
+	expect(stale.versions[0].inputDependencies).toEqual(completed.versions[0].inputDependencies);
+	expect((await h.workflow.read(scope))).toEqual(stale);
+	expect(h.requests).toHaveLength(4);
+});
+
+
+it("persists the input receipt before confirmation, validates it after restart and never adopts later records", async () => {
+	const frozen = { schemaVersion: "task-context.v1", scope, facts: [{ key: "quantity", version: 2, status: "suggested", value: 100 }, { key: "material", version: 1, status: "rejected", value: "unsuitable" }], artifacts: [{ artifactId: "source-comparison", version: 3, freshness: "fresh" }], unresolved: [] };
+	let context = JSON.stringify(frozen);
+	const h = harness(async request => response(request), graph, { readInput: () => ({ revision: 1, context }) });
+	await h.start();
+	const dependencies = h.plan().inputDependencies!;
+	expect(dependencies).toMatchObject({ schemaVersion: "plan-input-dependencies.v1", facts: [{ key: "material", version: 1 }, { key: "quantity", version: 2 }], artifacts: [{ artifactId: "source-comparison", version: 3 }] });
+	expect(JSON.stringify(dependencies)).not.toContain("unsuitable");
+	expect(dependencies.facts.every(item => /^[a-f0-9]{64}$/.test(item.sha256))).toBe(true);
+	await h.scheduler.runNext(); await h.scheduler.runNext();
+	const completed = h.store.read(scope);
+	const store = new AgentPlanStore(h.path); cleanup.push(() => store.close());
+	const workflow = new AgentPlanWorkflow(store, h.queue, h.runtime, h.options);
+	expect((await workflow.read(scope))).toEqual(completed);
+	const downstream = { ...frozen, facts: [...frozen.facts].reverse().concat(Array.from({ length: 128 }, (_, index) => ({ key: `new-draft-${index}`, version: 1, status: "verified", value: "downstream" }))), artifacts: [...frozen.artifacts, { artifactId: "new-output", version: 1, freshness: "fresh" }] };
+	context = JSON.stringify(downstream);
+	expect((await workflow.read(scope))).toEqual(completed);
+	downstream.facts.find(fact => fact.key === "material")!.value = "changed rejected input";
+	context = JSON.stringify(downstream);
+	const stale = (await workflow.read(scope));
+	expect(stale.versions[0].status).toBe("stale");
+	expect(stale.versions[0].inputDependencies).toEqual(dependencies);
+	expect(stale.versions[0].calls).toBe(completed.versions[0].calls);
+	expect(h.requests).toHaveLength(4);
+});
+
+it("does not invent candidate dependencies for completed legacy plans without a receipt", async () => {
+	const frozen = { schemaVersion: "task-context.v1", scope, facts: [{ key: "quantity", version: 1, status: "unverified", value: 100 }], artifacts: [], unresolved: [] };
+	let context = JSON.stringify(frozen);
+	const h = harness(async request => response(request), graph, { readInput: () => ({ revision: 1, context }) });
+	await h.start(); await h.scheduler.runNext(); await h.scheduler.runNext();
+	h.store.change(scope, "fixture-legacy", "legacy", "fixture", "fixture.legacy", h.store.read(scope).revision, state => { delete state.versions[0].inputDependencies; });
+	const legacy = h.store.read(scope);
+	frozen.facts[0].value++;
+	context = JSON.stringify(frozen);
+	expect((await h.workflow.read(scope))).toEqual(legacy);
+	expect(h.plan().inputDependencies).toBeUndefined();
+});
+
+
+it("rejects ambiguous or oversized frozen records rather than omitting their dependencies", () => {
+	const fact = { key: "quantity", version: 1, status: "unverified", value: 100 };
+	const source = { schemaVersion: "task-context.v1", facts: [fact], artifacts: [{ artifactId: "source", version: 1 }], unresolved: [] };
+	for (const invalid of [
+		{ ...source, facts: [fact, fact] }, { ...source, artifacts: [source.artifacts[0], source.artifacts[0]] },
+		{ ...source, facts: [{ ...fact, version: 0 }] }, { ...source, facts: [{ ...fact, key: "" }] },
+		{ ...source, unresolved: null }, { ...source, facts: Array.from({ length: 129 }, (_, index) => ({ ...fact, key: `key${index}` })) },
+	]) expect(() => planInputDependencies(JSON.stringify(invalid))).toThrow("plan_input_dependencies_invalid");
+	expect(planInputDependencies("legacy text")).toBeUndefined();
 });

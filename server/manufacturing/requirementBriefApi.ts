@@ -67,7 +67,7 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 		private readonly requirementScheduler: StageJobScheduler,
 		private readonly attachments?: FileConversationAttachmentStore,
 		private readonly now: () => string = () => new Date().toISOString(),
-		readPlan?: (scope: PlanScope) => PlanWorkspace,
+		readPlan?: (scope: PlanScope) => PlanWorkspace | Promise<PlanWorkspace>,
 		private readonly knowledge?: KnowledgeService,
 		private readonly templateLibrary?: RequirementTemplateLibrary,
 		private readonly reportSources?: RequirementReportSources,
@@ -84,7 +84,7 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 			assertWritable: (state) => {
 				if (state.aggregateVersion > 0 && state.facts.industry?.value !== "print") throw new ProposalWorkspaceValidationError("历史非包装需求已停用，请新建包装会话；原始资料与交付版本保留。");
 			},
-			prepareStart: (payload, conversation, scope) => {
+			prepareStart: async (payload, conversation, scope) => {
 				reconcileRequirementMessages(requirementEngine, scope, conversation);
 				if (attachments) {
 					const previous = requirementEngine.load(scope);
@@ -111,7 +111,7 @@ export class RequirementBriefWorkspaceApiController extends ProposalWorkspaceApi
 				let brief: string | undefined;
 				if (planVersion !== undefined) {
 					if (!readPlan) throw new ProposalWorkspaceValidationError("计划来源不可用。");
-					const planScope = { ...scope, runId: conversation.conversationId }, workspace = readPlan(planScope);
+					const planScope = { ...scope, runId: conversation.conversationId }, workspace = await readPlan(planScope);
 					const frozenReport = JSON.parse(workspace.versions.at(-1)?.context ?? "{}").sourceReport;
 					const binding = frozenReport?.status === "selected" ? reportSources?.binding(planScope) : undefined;
 					const selectedReport = binding?.status === "selected" && binding.available ? { binding, report: reportSources!.read(planScope, binding.version) } : undefined;

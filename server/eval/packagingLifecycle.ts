@@ -71,7 +71,7 @@ export async function runPackagingLifecycle(directory: string) {
 			h.state.save(scope, stored.revision, [{ role: "user", content: input, messageId: "customer-input", pinned: true }], "2026-10-16T00:01:00Z");
 			h.attachments.put({ ...context, conversationId }, { requestId: "source", name: "customer.txt", mediaType: "text/plain", content: Buffer.from(input) });
 			const view = () => (h.controller.get(context, conversationId).body as { requirementBrief: RequirementBriefWorkspaceView }).requirementBrief;
-			check("initial request accepted", h.controller.start(context, conversationId, { requestId: "initial", industry: "print" }).status === 202);
+			check("initial request accepted", (await h.controller.start(context, conversationId, { requestId: "initial", industry: "print" })).status === 202);
 			const initial = await h.scheduler.runNext();
 			check("source stage executed", initial.status === "completed");
 			check("unconfirmed input cannot approve", view().state.stageStatus === "needs_input");
@@ -80,7 +80,7 @@ export async function runPackagingLifecycle(directory: string) {
 				const state = view().state;
 				check(`confirm ${key}`, h.controller.resolveFact(context, conversationId, key, { requestId: `verify-${key}`, decision: "verified", expectedFactVersion: state.facts[key].version, expectedAggregateVersion: state.aggregateVersion }).status === 200); humanDecisions++;
 			}
-			h.controller.start(context, conversationId, { requestId: "generate", industry: "print" });
+			await h.controller.start(context, conversationId, { requestId: "generate", industry: "print" });
 			check("requirement generated", (await h.scheduler.runNext()).status === "completed");
 			const before = view().state;
 			check("approval is version bound", before.stageStatus === "waiting_approval" && before.approval?.artifactVersion === before.currentProposal?.version);

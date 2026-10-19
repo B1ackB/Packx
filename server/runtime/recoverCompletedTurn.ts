@@ -3,7 +3,7 @@ import { PlanError, type PlanScope } from "../../src/enterprise/agentPlan";
 import type { RuntimeTurnResult } from "../../src/runtime/contracts";
 import type { FileAgentStateStore } from "./fileAgentStateStore";
 
-export function recoverCompletedTurn(store: FileAgentStateStore, scope: PlanScope, sessionId: string, key: string): RuntimeTurnResult | undefined {
+export function recoverCompletedTurn(store: Pick<FileAgentStateStore, "getSession" | "listTraces">, scope: PlanScope, sessionId: string, key: string): RuntimeTurnResult | undefined {
 	const session = store.getSession({ ...scope, sessionId });
 	const last = session?.messages.at(-1);
 	if (!last || last.role !== "assistant" || last.toolCalls?.length || last.durable || !last.content.trim()) return undefined;
@@ -13,5 +13,5 @@ export function recoverCompletedTurn(store: FileAgentStateStore, scope: PlanScop
 	const replyId = `reply-${createHash("sha256").update(key).digest("hex")}`;
 	const reply = session?.transcript?.find(message => message.messageId === replyId && message.inReplyTo === key);
 	if (!trace || last.messageId !== replyId || last.inReplyTo !== key || !reply || last.content !== reply.content) throw new PlanError("plan_completion_evidence_missing", 409);
-	return { adapter: "blackx-agent", status: "completed", sessionId, executionId: trace.executionId, finalResponse: last.content, events: trace.events, usage: trace.usage };
+	return { adapter: "blackx-agent", status: "completed", sessionId, executionId: trace.executionId, finalResponse: last.content, events: trace.events, usage: trace.usage, contextSnapshotId: trace.contextSnapshotId };
 }

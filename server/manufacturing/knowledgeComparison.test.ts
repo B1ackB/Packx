@@ -145,3 +145,16 @@ describe("server comparison boundary", () => {
 		expect((await h.api.handle({ ...h.context, tenantId: "foreign" }, h.conversationId, "compare", { left: refs[0], right: refs[1] })).status).toBe(404);
 	});
 });
+
+
+it("revalidates saved comparison references without recomparing or losing withdrawal and tenant checks", async () => {
+	const { store, left, right, docs } = await setup(), tool = createPackagingComparisonTool(store), input = { left, right };
+	const output = JSON.stringify(compareEvidence(store, scope, input));
+	const context: AgentToolExecutionContext = { ...scope, runId: "run", stageId: "subagent-1", actorId: "operator", executionId: "review", toolCallId: "review", idempotencyKey: "review", signal: new AbortController().signal };
+	const audit = store.audit(scope);
+	expect(() => tool.validateContextResult!(input, output, context)).not.toThrow();
+	expect(store.audit(scope)).toEqual(audit);
+	expect(() => tool.validateContextResult!(input, output, { ...context, ...other })).toThrow("evidence_unavailable");
+	store.transition(scope, docs[1].versionId, "withdrawn", "operator");
+	expect(() => tool.validateContextResult!(input, output, context)).toThrow("evidence_unavailable");
+});

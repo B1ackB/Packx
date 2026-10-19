@@ -48,10 +48,7 @@ export class KnowledgeService {
 		const validateContextResult: NonNullable<AgentHostTool["validateContextResult"]> = (_input, output, context) => {
 			const result = JSON.parse(output) as { evidenceId?: string; contentHash?: string; hits?: EvidenceHit[]; references?: EvidenceHit[] };
 			const references = result.evidenceId ? [result] : result.references ?? result.hits ?? [];
-			for (const reference of references) {
-				const current = this.store.readEvidence(context, reference.evidenceId!);
-				if (reference.contentHash && current.contentHash !== reference.contentHash) throw new KnowledgeError("evidence_version_changed", 409);
-			}
+			this.store.assertCurrentReferences(context, references);
 		};
 		return [{
 			validateContextResult,

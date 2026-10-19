@@ -19,7 +19,7 @@ it("runs selected evidence through real tools/context, human confirmation, appro
 		const hit = result.hits[0]; expect(hit.location.page).toBe(2);
 		const selected = await h.api.handle(h.context, h.conversationId, "select", { ids: [hit.evidenceId], applicability: { region: "HK", asOf: "2026-09-17T10:00:00.000Z" }, requestId: "select", expectedVersion: 0 });
 		expect(selected.status).toBe(200);
-		expect(h.requirements.start(h.context, h.conversationId, { requestId: "start", industry: "print" }).status).toBe(202);
+		expect((await h.requirements.start(h.context, h.conversationId, { requestId: "start", industry: "print" })).status).toBe(202);
 		expect(await h.scheduler.runNext()).toMatchObject({ status: "completed" });
 		expect(view().state.facts.material_thickness).toMatchObject({ status: "unverified", value: "0.1", sourceRef: hit.evidenceId });
 		expect(view().state.facts.dimensions).toBeUndefined();
@@ -30,7 +30,7 @@ it("runs selected evidence through real tools/context, human confirmation, appro
 			expect(h.requirements.resolveFact(h.context, h.conversationId, key, { requestId: `confirm-${key}`, decision: "verified", expectedFactVersion: view().state.facts[key].version, expectedAggregateVersion: view().state.aggregateVersion }).status).toBe(200);
 		}
 		expect(h.requirements.resolveFact(h.context, h.conversationId, "material_thickness", { requestId: "confirm-thickness", decision: "verified", expectedFactVersion: view().state.facts.material_thickness.version, expectedAggregateVersion: view().state.aggregateVersion }).status).toBe(200);
-		expect(h.requirements.start(h.context, h.conversationId, { requestId: "regenerate", industry: "print" }).status).toBe(202);
+		expect((await h.requirements.start(h.context, h.conversationId, { requestId: "regenerate", industry: "print" })).status).toBe(202);
 		expect(await h.scheduler.runNext()).toMatchObject({ status: "completed" });
 		expect(view().state.stageStatus).toBe("waiting_approval");
 		expect(h.requirements.resolveApproval(h.context, h.conversationId, { requestId: "approve", decision: "approved", approvalId: view().state.approval!.approvalId, artifactVersion: view().state.approval!.artifactVersion, expectedAggregateVersion: view().state.aggregateVersion }).status).toBe(202);
@@ -46,9 +46,9 @@ it("runs selected evidence through real tools/context, human confirmation, appro
 		expect(h.requirements.delivery(h.context, h.conversationId, 2).status).toBe(409);
 		expect(h.requirements.resolveApproval(h.context, h.conversationId, { requestId: "approve-revoked", decision: "approved" }).status).toBe(409);
 		await h.api.handle(h.context, h.conversationId, "select", { ids: [], applicability: { region: "HK", asOf: "2026-09-17T10:00:00.000Z" }, requestId: "clear-revoked", expectedVersion: 1 });
-		expect(h.requirements.start(h.context, h.conversationId, { requestId: "launder-confirmed-fact", industry: "print" })).toMatchObject({ status: 400, body: { code: "evidence_fact_requires_review" } });
+		expect((await h.requirements.start(h.context, h.conversationId, { requestId: "launder-confirmed-fact", industry: "print" }))).toMatchObject({ status: 400, body: { code: "evidence_fact_requires_review" } });
 		expect(h.requirements.recordFact(h.context, h.conversationId, { requestId: "independent-human-source", key: "material_thickness", value: "0.1", unit: "mm" }).status).toBe(200);
-		expect(h.requirements.start(h.context, h.conversationId, { requestId: "reviewed-source", industry: "print" }).status).toBe(202);
+		expect((await h.requirements.start(h.context, h.conversationId, { requestId: "reviewed-source", industry: "print" })).status).toBe(202);
 		expect(await h.scheduler.runNext()).toMatchObject({ status: "completed" });
 		const revised = h.requirements.delivery(h.context, h.conversationId, 3);
 		expect(revised.status).toBe(200);
@@ -66,15 +66,15 @@ it("binds the Plan handoff to the selected evidence snapshot and rejects changed
 		await h.api.handle(h.context, h.conversationId, "select", { ids: [found.hits[0].evidenceId], applicability: { region: "HK", asOf: "2026-09-17T10:00:00.000Z" }, requestId: "plan-selection", expectedVersion: 0 });
 		const selection = h.store.selection({ ...h.context, runId: h.conversationId })!;
 		plan = { revision: 4, mode: "plan", versions: [{ version: 1, objective: "核对咖啡袋证据", context: JSON.stringify({ messages: [], attachments: [], knowledge: selection }), conversationRevision: h.sessions.getSession({ ...h.context, runId: h.conversationId, sessionId: h.conversationId })!.revision, status: "completed", createdAt: "2026-09-17T10:00:00.000Z", actorId: h.context.actorId, generation: 1, calls: 2, spec: { summary: "核对已选资料", tasks: [{ title: "读取证据", objective: "保留来源", tools: ["knowledge_selected"] }] }, approval: { actorId: h.context.actorId, version: 1, at: "2026-09-17T10:00:00.000Z" }, children: [{ taskIndex: 0, sessionId: "child", executionId: "execution", result: { summary: "厚度待人工确认", evidence: [found.hits[0].evidenceId], limitations: ["合成资料"] } }] }] };
-		expect(h.requirements.start(h.context, h.conversationId, { requestId: "plan-import", industry: "print", planVersion: 1 }).status).toBe(202);
+		expect((await h.requirements.start(h.context, h.conversationId, { requestId: "plan-import", industry: "print", planVersion: 1 })).status).toBe(202);
 		expect(await h.scheduler.runNext()).toMatchObject({ status: "completed" });
 		const view = (h.requirements.get(h.context, h.conversationId).body as { requirementBrief: RequirementBriefWorkspaceView }).requirementBrief;
 		expect(JSON.parse(String(view.state.facts.customer_brief.value)).originalContext.knowledge.digest).toBe(selection.digest);
 		expect(view.state.facts.plan_source.status).toBe("unverified");
 		await h.api.handle(h.context, h.conversationId, "select", { ids: [], applicability: selection.applicability, requestId: "different-selection", expectedVersion: 1 });
-		expect(h.requirements.start(h.context, h.conversationId, { requestId: "stale-plan", industry: "print", planVersion: 1 })).toMatchObject({ status: 400, body: { code: "evidence_fact_requires_review" } });
+		expect((await h.requirements.start(h.context, h.conversationId, { requestId: "stale-plan", industry: "print", planVersion: 1 }))).toMatchObject({ status: 400, body: { code: "evidence_fact_requires_review" } });
 		expect(h.requirements.recordFact(h.context, h.conversationId, { requestId: "manual-review", key: "material_thickness", value: "awaiting supplier confirmation" }).status).toBe(200);
-		expect(h.requirements.start(h.context, h.conversationId, { requestId: "changed-plan-evidence", industry: "print", planVersion: 1 })).toMatchObject({ status: 400, body: { code: "plan_evidence_stale" } });
+		expect((await h.requirements.start(h.context, h.conversationId, { requestId: "changed-plan-evidence", industry: "print", planVersion: 1 }))).toMatchObject({ status: 400, body: { code: "plan_evidence_stale" } });
 	} finally { h.store.close(); rmSync(root, { recursive: true, force: true }); }
 });
 
@@ -87,7 +87,7 @@ it("imports licensed research through the durable queue and refuses to convert r
 		const id = `${doc.versionId}:37`;
 		const hit = h.store.readEvidence(h.context, id); expect(hit.parameters[2].authority).toBe("research_report");
 		expect((await h.api.handle(h.context, h.conversationId, "select", { ids: [id], applicability: { region: "unknown", asOf: "2026-09-17T10:00:00.000Z" }, requestId: "select-research", expectedVersion: 0 })).status).toBe(200);
-		expect(h.requirements.start(h.context, h.conversationId, { requestId: "research-start", industry: "print" }).status).toBe(202);
+		expect((await h.requirements.start(h.context, h.conversationId, { requestId: "research-start", industry: "print" })).status).toBe(202);
 		expect(await h.scheduler.runNext()).toMatchObject({ status: "completed" });
 		const view = (h.requirements.get(h.context, h.conversationId).body as { requirementBrief: RequirementBriefWorkspaceView }).requirementBrief;
 		expect(view.state.facts.material_thickness).toBeUndefined();

@@ -41,3 +41,9 @@ it("imports a report-backed plan only with the exact current Host binding and ke
 	expect(imported.reportSource).toMatchObject({ key: "report_source", status: "unverified", sourceRef: binding.artifactRef, value: JSON.stringify(binding) });
 	expect(JSON.parse(imported.brief)).toMatchObject({ status: "unverified", sourceReport: { status: "unverified" } });
 });
+
+
+it("rejects a persisted stale plan even when restored inputs match its original snapshot", () => {
+	const state = workspace(); state.versions[0].status = "stale";
+	expect(() => planRequirementSource(state, 1, conversation, [])).toThrowError(expect.objectContaining({ code: "plan_source_stale" }));
+});

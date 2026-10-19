@@ -241,7 +241,7 @@ function testSuite(native: boolean) {
 	const report = resolve(`temp/ci-${native ? "native" : "core"}.json`);
 	mkdirSync(dirname(report), { recursive: true }); rmSync(report, { force: true });
 	const output = npm(["run", native ? "test:native" : "test", "--", "--reporter=default", "--reporter=json", `--outputFile=${report}`]);
-	const required = native ? nativeFiles : ["runtime/runtime.contract.test.ts", "runtime/executionRecovery.test.ts", "runtime/fileContextPermissions.test.ts", "eval/packagingLifecycle.test.ts", "enterprise/enterpriseEventStore.contract.test.ts", "enterprise/personalMemory.test.ts", "src/enterprise/agentPlan.test.ts", "server/enterprise/agentPlanWorkflow.test.ts", "server/enterprise/parallelPlanWorkflow.test.ts", "server/enterprise/sourceReportWorkflow.test.ts", "server/runtime/restrictedWebSource.test.ts"];
+	const required = native ? nativeFiles : ["runtime/runtime.contract.test.ts", "runtime/executionRecovery.test.ts", "runtime/fileContextPermissions.test.ts", "eval/packagingLifecycle.test.ts", "enterprise/enterpriseEventStore.contract.test.ts", "enterprise/personalMemory.test.ts", "src/enterprise/agentPlan.test.ts", "server/enterprise/agentPlanWorkflow.test.ts", "server/enterprise/parallelPlanWorkflow.test.ts", "server/enterprise/completedPlanSources.test.ts", "server/enterprise/sourceReportWorkflow.test.ts", "server/runtime/restrictedWebSource.test.ts"];
 	const parsed = JSON.parse(readFileSync(report, "utf8"));
 	validateTestReport(parsed, required, native);
 	console.log(output.slice(-3000));

@@ -57,11 +57,11 @@ it.each([
 	if (failure === "oversized") h.changeContext("x".repeat(40_000));
 	else h.failInput(new PlanError("context_store_unavailable", 503));
 	const reads = h.inputReads();
-	expect(h.workflow.read(scope).versions[0].status).toBe("queued");
+	expect((await h.workflow.read(scope)).versions[0].status).toBe("queued");
 	expect(h.command({ action, version: 1 }).versions[0].status).toBe(action === "pause" ? "paused" : "cancelled");
 	expect(h.command({ action: "mode", mode: "execute" }).mode).toBe("execute");
 	h.workflow.reconcile();
-	expect(h.workflow.read(scope).mode).toBe("execute");
+	expect((await h.workflow.read(scope)).mode).toBe("execute");
 	expect(h.inputReads()).toBe(reads);
 	expect(h.queue.list().filter((job) => ["queued", "leased"].includes(job.status))).toHaveLength(0);
 	expect(h.requests).toHaveLength(1);
@@ -72,11 +72,11 @@ it("retains ownership and deletion checks for context-free Plan reads and stop a
 	const h = harness(); h.generate(); await h.scheduler.runNext();
 	const before = h.store.read(scope);
 	for (const target of [{ ...scope, tenantId: "other" }, { ...scope, workspaceId: "other" }, { ...scope, runId: "other" }]) {
-		expect(() => h.workflow.read(target)).toThrow("conversation_not_found");
+		await expect(h.workflow.read(target)).rejects.toThrow("conversation_not_found");
 		expect(() => h.workflow.command(target, "user", { action: "mode", mode: "execute", requestId: "exit", revision: 0 })).toThrow("conversation_not_found");
 	}
 	h.remove();
-	expect(() => h.workflow.read(scope)).toThrow("conversation_not_found");
+	await expect(h.workflow.read(scope)).rejects.toThrow("conversation_not_found");
 	expect(() => h.command({ action: "cancel", version: 1 })).toThrow("conversation_not_found");
 	expect(h.store.read(scope)).toEqual(before);
 	h.workflow.reconcile();
@@ -126,7 +126,7 @@ it("rejects changed sources, stale revisions, command collisions and other tenan
 	expect(h.workflow.command(scope, "user", payload).revision).toBe(old.revision + 1);
 	expect(() => h.workflow.command(scope, "user", { ...payload, confirmed: false })).toThrow("plan_command_conflict");
 	expect(() => h.workflow.command(scope, "user", { ...payload, requestId: "other" })).toThrow("plan_revision_conflict");
-	expect(() => h.workflow.read({ ...scope, tenantId: "other" })).toThrow("conversation_not_found");
+	await expect(h.workflow.read({ ...scope, tenantId: "other" })).rejects.toThrow("conversation_not_found");
 	h.changeSource(); await h.scheduler.runNext();
 	expect(h.requests).toHaveLength(1);
 	expect(h.store.read(scope).versions[0]).toMatchObject({ status: "failed", failure: { code: "plan_sources_changed" } });

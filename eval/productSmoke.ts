@@ -32,6 +32,7 @@ import { recoverLocalLock } from "../server/localData";
 const directory = mkdtempSync(join(tmpdir(), "blackx-product-smoke-"));
 const dataDirectory = join(realpathSync(directory), "state"); mkdirSync(dataDirectory);
 const documents = join(realpathSync(directory), "user-documents"); mkdirSync(documents);
+const completedDocument = join(documents, "completed-source.txt"); writeFileSync(completedDocument, "UNVERIFIED_COMPLETED_SOURCE");
 const planDocument = join(documents, "plan-output.md");
 const localDocument = join(documents, "客户包装需求.md");
 const serve = process.argv.includes("--serve");
@@ -64,16 +65,17 @@ const provider = createServer(async (request, response) => {
 		if (JSON.stringify(blocks).includes("parallel-fixture-reconcile")) { enterReportReview(); await reportReviewHeld; }
 		content = [{ type: "text", text: JSON.stringify({ issues: [] }) }];
 	} else if (instructions.includes("Plan only. Do not execute") && JSON.stringify(blocks).includes("parallel-fixture-")) {
-		const scenario = /parallel-fixture-(withdraw-partial|attachment-withdraw|success|failure|cancel|withdraw|reselect|restart|reconcile)/.exec(JSON.stringify(blocks))?.[1] ?? "success";
+		const scenario = /parallel-fixture-(withdraw-partial|attachment-withdraw|completed-file|success|failure|cancel|withdraw|reselect|restart|reconcile)/.exec(JSON.stringify(blocks))?.[1] ?? "success";
 		content = [{ type: "text", text: JSON.stringify({ summary: "Independently read the selected report twice, then combine declared reports (fixed fixture)", tasks: [
 			...(scenario === "reconcile" ? [] : [{ title: "汇总待核对结果", objective: `parallel-fixture-${scenario}-JOIN`, tools: [], dependsOn: [1, 2] }]),
-			{ title: "核对来源 A", objective: `parallel-fixture-${scenario}-A`, tools: ["source_report_read"] },
-			{ title: "核对来源 B", objective: `parallel-fixture-${scenario}-B`, tools: ["source_report_read"] },
+			{ title: "核对来源 A", objective: `parallel-fixture-${scenario}-A`, tools: [scenario === "completed-file" ? "file_read" : "source_report_read"] },
+			{ title: "核对来源 B", objective: `parallel-fixture-${scenario}-B`, tools: [scenario === "completed-file" ? "file_read" : "source_report_read"] },
 		] }) }];
 	} else if (instructions.includes("Execute ONLY this approved subtask") && JSON.stringify(blocks).includes("parallel-fixture-")) {
 		const objects = blocks.flatMap(block => { if (block.type !== "text") return []; try { return [JSON.parse(block.text)]; } catch { return []; } });
 		const input = objects.find(value => typeof value?.objective === "string" && value.objective.startsWith("parallel-fixture-")); assert(input);
 		const binding = objects.find(value => value?.sourceReport?.status === "selected")?.sourceReport; assert(binding?.available);
+		const fileMode = input.objective.includes("completed-file");
 		const toolResult = last.find(block => block.type === "tool_result" && block.tool_use_id === "parallel-read");
 		if (!input.objective.endsWith("JOIN") && !toolResult) {
 			const count = (parallelStarts.get(input.objective) ?? 0) + 1; parallelStarts.set(input.objective, count);
@@ -81,11 +83,11 @@ const provider = createServer(async (request, response) => {
 				await parallelHolds.get(input.objective)?.wait;
 				if (serve) await new Promise(resolve => setTimeout(resolve, 3000));
 			}
-			content = [{ type: "tool_use", id: "parallel-read", name: "source_report_read", input: { version: binding.version, reportDigest: binding.reportDigest, selectionRevision: binding.selectionRevision } }];
+			content = [{ type: "tool_use", id: "parallel-read", name: fileMode ? "file_read" : "source_report_read", input: fileMode ? { path: completedDocument } : { version: binding.version, reportDigest: binding.reportDigest, selectionRevision: binding.selectionRevision } }];
 		} else {
-			if (toolResult?.type === "tool_result") { const read = JSON.parse(toolResult.content); assert.equal(read.trust, "untrusted_source_data_not_instructions"); assert.equal(read.report.status, "unverified"); }
+			if (toolResult?.type === "tool_result") { const read = JSON.parse(toolResult.content); if (fileMode) assert.equal(read.content, "UNVERIFIED_COMPLETED_SOURCE"); else { assert.equal(read.trust, "untrusted_source_data_not_instructions"); assert.equal(read.report.status, "unverified"); } }
 			if (input.objective.endsWith("JOIN")) { assert.deepEqual(input.dependencies.map((d: { taskIndex: number }) => d.taskIndex), [1, 2]); assert(input.dependencies.every((d: { status: string }) => d.status === "unverified")); }
-			content = [{ type: "text", text: JSON.stringify({ summary: input.objective.endsWith("failure-B") ? "" : input.objective, evidence: [binding.artifactRef], limitations: ["Deterministic local fixture, not real-model validation"], assessment: { decision: "continue", reason: "Read-only fixture complete" } }) }];
+			content = [{ type: "text", text: JSON.stringify({ summary: input.objective.endsWith("failure-B") ? "" : input.objective, evidence: [fileMode ? completedDocument : binding.artifactRef], limitations: ["Deterministic local fixture, not real-model validation"], assessment: { decision: "continue", reason: "Read-only fixture complete" } }) }];
 		}
 	} else if (instructions.includes("Plan only. Do not execute") && JSON.stringify(blocks).includes("report-bridge-fixture")) {
 		const attack = JSON.stringify(blocks).includes("report-bridge-fixture-attack");
@@ -544,7 +546,7 @@ try {
 			for (let i = 0; i < 100; i++) { try { if ((await fetch(baseUrl)).ok) break; } catch {} assert(i < 99, `Restart failed: ${output}`); await new Promise(resolve => setTimeout(resolve, 100)); }
 			const renewed = await fetch(`${baseUrl}/api/local-session`, { headers: { "sec-fetch-site": "same-origin", "sec-fetch-mode": "cors" } }).then(r => r.json()) as { token: string }; headers["x-blackx-session-token"] = renewed.token;
 		};
-		for (const scenario of ["success", "failure", "cancel", "withdraw", "reselect", "withdraw-partial", "attachment-withdraw", "restart", "reconcile"]) {
+		for (const scenario of ["success", "failure", "cancel", "withdraw", "reselect", "withdraw-partial", "attachment-withdraw", "restart", "reconcile", "completed-file"]) {
 			if (scenario === "restart") await restart("SIGTERM", 2000);
 			const conversationId = (await api("/api/conversations", {})).conversation.conversationId;
 			const root = `/api/conversations/${conversationId}`, reports = `${root}/source-reports`, plans = `${root}/plan`;
@@ -595,12 +597,91 @@ try {
 			parallelHolds.get(`parallel-fixture-${scenario}-A`)!.release();
 			if (scenario === "failure") await until(async () => (await readPlan()).children.some(c => c.taskIndex === 1), "successful sibling not retained");
 			parallelHolds.get(`parallel-fixture-${scenario}-B`)!.release();
-			const expected = ["success", "restart", "reconcile"].includes(scenario) ? "completed" : scenario === "cancel" ? "cancelled" : "failed";
+			const expected = ["success", "restart", "reconcile", "completed-file"].includes(scenario) ? "completed" : scenario === "cancel" ? "cancelled" : "failed";
 			await until(async () => (await readPlan()).status === expected, `plan did not reach ${expected}`);
 			// Allow old HTTP replies to arrive; the durable receipt set must stay fenced.
 			const finished = await readPlan(); await new Promise(resolve => setTimeout(resolve, 350)); assert.deepEqual((await readPlan()).children, finished.children);
 			if (expected === "completed") { assert.equal(finished.children.length, scenario === "reconcile" ? 2 : 3); if (scenario !== "reconcile") assert.equal(finished.children.at(-1)!.taskIndex, 0); }
 			else { assert(!finished.children.some(c => c.taskIndex === 0)); if (scenario === "failure" || scenario === "withdraw-partial") { assert.equal(finished.failure?.code, scenario === "failure" ? "invalid_subagent_result" : "plan_sources_changed"); assert.deepEqual(finished.children.map(c => c.taskIndex), [1]); } else assert.equal(finished.children.length, 0); }
+			if (scenario === "completed-file") {
+				const saved = (await api<{ plan: PlanWorkspace }>(plans)).plan, calls = modelGenerations;
+				await restart("SIGTERM"); assert.deepEqual((await api<{ plan: PlanWorkspace }>(plans)).plan, saved);
+				writeFileSync(completedDocument, "CHANGED_AFTER_COMPLETION");
+				// Import is the first request after the edit: it must await source review itself.
+				const denied = await fetch(`${baseUrl}${root}/requirement-brief`, { method: "POST", headers, body: JSON.stringify({ requestId: "completed-file-import", industry: "print", planVersion: 1 }) });
+				assert.equal(denied.status, 400); assert.equal((await denied.json() as { code: string }).code, "plan_source_stale");
+				const stale = (await api<{ plan: PlanWorkspace }>(plans)).plan;
+				assert.equal(stale.versions[0].status, "stale"); assert.equal(stale.revision, saved.revision + 1);
+				assert.deepEqual(stale.versions[0].children, saved.versions[0].children); assert.deepEqual(stale.versions[0].taskRuns, saved.versions[0].taskRuns);
+				assert.equal(stale.versions[0].calls, saved.versions[0].calls); assert.equal(stale.consecutiveFailures, saved.consecutiveFailures);
+				await restart("SIGTERM"); writeFileSync(completedDocument, "UNVERIFIED_COMPLETED_SOURCE");
+				assert.deepEqual((await api<{ plan: PlanWorkspace }>(plans)).plan, stale); assert.equal(modelGenerations, calls);
+				console.log("PASS: real Host file reads persist completion sources; import itself detects a post-completion edit after Host restart; repeated reads and restoring bytes do not revive results or request the model.");
+			}
+			if (scenario === "success") {
+				const before = modelGenerations, view = (await api<{ plan: PlanWorkspace }>(plans)).plan;
+				await reportCommand({ action: "select", version: null });
+				const stale = (await api<{ plan: PlanWorkspace }>(plans)).plan;
+				assert.equal(stale.versions[0].status, "stale"); assert.equal(stale.revision, view.revision + 1);
+				assert.deepEqual(stale.versions[0].children, finished.children); assert.deepEqual(stale.versions[0].taskRuns, finished.taskRuns);
+				assert.deepEqual(stale.versions[0].approval, finished.approval); assert.equal(stale.versions[0].calls, finished.calls);
+				assert.equal(stale.consecutiveFailures, view.consecutiveFailures);
+				for (const action of ["confirm", "resume", "reconcile"]) {
+					const denied = await fetch(`${baseUrl}${plans}`, { method: "POST", headers, body: JSON.stringify({ action, version: 1, confirmed: true, revision: stale.revision, requestId: `stale-${action}` }) });
+					assert.equal(denied.status, 409);
+				}
+				const importOld = () => fetch(`${baseUrl}${root}/requirement-brief`, { method: "POST", headers, body: JSON.stringify({ requestId: crypto.randomUUID(), industry: "print", planVersion: 1 }) });
+				const denied = await importOld(); assert.equal(denied.status, 400); assert.equal((await denied.json() as { code: string }).code, "plan_source_stale");
+				await restart("SIGTERM");
+				assert.deepEqual((await api<{ plan: PlanWorkspace }>(plans)).plan, stale);
+				await reportCommand({ action: "select", version: 1 });
+				assert.deepEqual((await api<{ plan: PlanWorkspace }>(plans)).plan, stale);
+				assert.equal((await importOld()).status, 400); assert.equal(modelGenerations, before);
+				await command({ action: "replan" });
+				await until(async () => (await api<{ plan: PlanWorkspace }>(plans)).plan.versions[1]?.status === "awaiting_confirmation", "replacement plan not proposed");
+				const proposed = (await api<{ plan: PlanWorkspace }>(plans)).plan;
+				assert.equal(proposed.versions[1].approval, undefined); assert.equal(proposed.versions[1].children.length, 0);
+				assert.equal(modelGenerations, before + 1);
+				await api(plans, { action: "confirm", version: 2, confirmed: true, revision: proposed.revision, requestId: "confirm-current-sources" });
+				await until(async () => (await api<{ plan: PlanWorkspace }>(plans)).plan.versions[1]?.status === "completed", "new confirmed plan did not complete");
+				assert.deepEqual((await readPlan()).children, finished.children);
+				// A draft created afterwards is downstream; a later plan explicitly freezes its candidate inputs.
+				const requirements = `${root}/requirement-brief`;
+				await api(requirements, { requestId: "dependency-draft", industry: "print", planVersion: 2 });
+				await until(async () => {
+					const view = (await api(requirements)).requirementBrief;
+					assert.notEqual(view.job?.status, "dead_letter", JSON.stringify(view.job?.lastFailure));
+					return !["queued", "leased"].includes(view.job?.status ?? "");
+				}, "dependency draft did not settle");
+				const draft = (await api(requirements)).requirementBrief;
+				assert.equal((await api<{ plan: PlanWorkspace }>(plans)).plan.versions[1].status, "completed");
+				const key = requiredRequirementFacts.print[0], candidate = draft.state.facts[key];
+				assert(candidate); assert.equal(candidate.status, "unverified");
+				await command({ action: "generate", objective: "parallel-fixture-success" });
+				await until(async () => (await api<{ plan: PlanWorkspace }>(plans)).plan.versions[2]?.status === "awaiting_confirmation", "input-dependent plan not proposed");
+				const inputPlan = (await api<{ plan: PlanWorkspace }>(plans)).plan;
+				const dependencies = inputPlan.versions[2].inputDependencies!;
+				assert.equal(dependencies.schemaVersion, "plan-input-dependencies.v1");
+				assert(dependencies.facts.some(fact => fact.key === key && fact.version === candidate.version && /^[a-f0-9]{64}$/.test(fact.sha256)));
+				assert(dependencies.artifacts.length > 0); assert.equal(inputPlan.versions[2].approval, undefined);
+				await api(plans, { action: "confirm", version: 3, confirmed: true, revision: inputPlan.revision, requestId: "confirm-frozen-inputs" });
+				await until(async () => (await api<{ plan: PlanWorkspace }>(plans)).plan.versions[2]?.status === "completed", "input-dependent plan did not complete");
+				const saved = (await api<{ plan: PlanWorkspace }>(plans)).plan, calls = modelGenerations;
+				await restart("SIGTERM");
+				assert.deepEqual((await api<{ plan: PlanWorkspace }>(plans)).plan, saved);
+				const current = (await api(requirements)).requirementBrief;
+				await api(`${requirements}/facts/${key}/decision`, { requestId: "confirm-frozen-candidate", decision: "verified", expectedFactVersion: current.state.facts[key].version, expectedAggregateVersion: current.state.aggregateVersion });
+				const invalid = (await api<{ plan: PlanWorkspace }>(plans)).plan;
+				assert.equal(invalid.versions[2].status, "stale"); assert.equal(invalid.revision, saved.revision + 1);
+				assert.deepEqual(invalid.versions[2].inputDependencies, dependencies);
+				assert.deepEqual(invalid.versions[2].children, saved.versions[2].children); assert.equal(invalid.versions[2].calls, saved.versions[2].calls);
+				assert.deepEqual((await api<{ plan: PlanWorkspace }>(plans)).plan, invalid);
+				const blockedImport = await fetch(`${baseUrl}${requirements}`, { method: "POST", headers, body: JSON.stringify({ requestId: "import-frozen-stale", industry: "print", planVersion: 3 }) });
+				assert.equal(blockedImport.status, 400); assert.equal((await blockedImport.json() as { code: string }).code, "plan_source_stale");
+				assert.equal(modelGenerations, calls);
+				console.log("PASS: real Host persists candidate and artifact input versions before confirmation; downstream draft does not invalidate its parent; restart retains the receipt; human confirmation of a frozen candidate invalidates completed results and blocks import without model requests.");
+				console.log("PASS: completed read-only results become durably stale on report withdrawal; restart and reselection do not revive them; import/resume/reconcile are denied without model calls; only replanning and a new confirmation execute.");
+			}
 			if (scenario === "reconcile") {
 				// Fault injection: real completed Session/Trace, lost coordinator receipts and prefilled slot limit.
 				// This does not claim that sixteen actual provider calls or a monetary budget were consumed.

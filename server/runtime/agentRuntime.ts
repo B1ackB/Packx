@@ -1,5 +1,6 @@
+import { validateContextSources } from "./contextSources";
 import { createHash } from "node:crypto";
-import { contextReadTool, pageUnits, readContextSource } from "./contextRead";
+import { contextReadTool, pageUnits } from "./contextRead";
 import type { ModelTelemetryStore } from "./modelTelemetry";
 import type { RuntimeActivity } from "../../src/runtime/conversationContracts";
 import type {
@@ -246,75 +247,11 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 				}
 				return resolved;
 			};
-			const validateSources = async (messages: readonly AgentMessage[], visited = new Set<string>()): Promise<void> => {
-				// Older v2 records may predate an adapter's source validator. Complete
-				// protocol groups retain the trusted tool name and original input.
-				const legacyReads = new Map<string, { name: string; input: unknown }>();
-				for (const message of messages) {
-					if (message.role !== "tool") {
-						legacyReads.clear();
-						if (message.role === "assistant") for (const call of message.toolCalls ?? []) {
-							if (call.name === "context_read" || this.options.tools?.some((tool) => tool.name === call.name && tool.validateContextResult)) legacyReads.set(call.id, { name: call.name, input: call.input });
-						}
-					}
-					combinedSignal.throwIfAborted();
-					for (const ref of message.readDependencies ?? []) {
-						if (visited.has(ref)) continue;
-						if (visited.size >= 128) throw new RuntimeFailure("context_failure", "Context source dependency limit exceeded; rebuild task", false);
-						visited.add(ref);
-						const dependency = this.snapshots.read(scope, ref);
-						if (taskContext?.historyBinding !== undefined && dependency.historyBinding !== taskContext.historyBinding) throw new RuntimeFailure("context_failure", "Archived context dependency changed; rebuild task", false);
-						await validateSources(dependency.messages, visited);
-					}
-					let legacyRead: { name: string; input: unknown } | undefined;
-					if (!message.sourceTool && message.role === "tool" && message.toolCallId && legacyReads.has(message.toolCallId)) {
-						const call = legacyReads.get(message.toolCallId)!;
-						if (call.name !== "context_read") legacyRead = call;
-						try {
-							const output = JSON.parse(message.content) as { status?: string; ok?: boolean; error?: { code?: string; message?: string } };
-							// Exact Host failure envelopes contain no source bytes. Do not turn
-							// a prior failed read into an assertion of successful source access.
-							if (output.ok === false && Object.keys(output).sort().join() === "error,ok" && output.error?.code === "tool_execution_failed" && Object.keys(output.error).sort().join() === "code,message" && output.error.message === "Tool execution failed") legacyRead = undefined;
-							if (call.name === "context_read" && ["historical_unverified", "body_externalized"].includes(output.status ?? "")) legacyRead = call;
-						} catch { /* Failed reads and ordinary text do not assert a readable source. */ }
-					}
-					if (!message.sourceTool && !legacyRead && message.role === "tool") {
-						// Pre-fix externalized readbacks are singleton archives, without
-						// their assistant call. Recognize only the Host's exact page shape.
-						try {
-							const value = JSON.parse(message.content) as Record<string, unknown>;
-							const page = value.status === "historical_unverified" && typeof value.stale === "boolean" && Array.isArray(value.items) && Number.isSafeInteger(value.offset) && Number.isSafeInteger(value.total) && typeof value.truncated === "boolean" && (value.nextOffset === null || Number.isSafeInteger(value.nextOffset));
-							const external = value.status === "body_externalized" && value.readTool === "context_read" && value.truncated === true;
-							if ((page || external) && typeof value.sourceRef === "string") legacyRead = { name: "context_read", input: { sourceRef: value.sourceRef } };
-						} catch { /* Unrelated text is not treated as a source reference. */ }
-					}
-					const sourceTool = message.sourceTool ?? legacyRead;
-					if (!sourceTool && messages.length === 1 && message.role === "tool") {
-						throw new RuntimeFailure("context_failure", "Legacy tool archive has no source provenance; rebuild task context", false);
-					}
-					if (!sourceTool) continue;
-					if (sourceTool.name === "context_read") {
-						const ref = (sourceTool.input as { sourceRef?: unknown })?.sourceRef;
-						if (typeof ref !== "string") throw new RuntimeFailure("context_failure", "Archived context read has no source", false);
-						if (visited.has(ref)) continue;
-						if (visited.size >= 128) throw new RuntimeFailure("context_failure", "Context source dependency limit exceeded; rebuild task", false);
-						visited.add(ref);
-						try {
-							const source = readContextSource(scope, this.sessions, this.snapshots, ref, taskContext?.binding, taskContext?.historyBinding);
-							await validateSources(source.messages, visited);
-						} catch (error) { throw new RuntimeFailure("context_failure", "Read-back source is unavailable, changed or no longer permitted", false, { cause: error }); }
-						continue;
-					}
-					const tool = this.options.tools?.find((item) => item.name === sourceTool.name);
-					if (!tool?.validateContextResult) throw new RuntimeFailure("context_failure", "Source validation tool unavailable", false);
-					let output = message.content;
-					let envelope: { status?: string; sourceRef?: string } | undefined;
-					try { envelope = JSON.parse(output); } catch { /* Plain-text bodies are validated by their source adapter. */ }
-					if (envelope?.status === "body_externalized" && typeof envelope.sourceRef === "string") output = this.snapshots.read(scope, envelope.sourceRef).messages[0].content;
-					try { await abortable(Promise.resolve(tool.validateContextResult(sourceTool.input, output, { ...scope, actorId: request.actorId, executionId, stageId: request.stageId, toolCallId: message.toolCallId ?? "restore", idempotencyKey: request.idempotencyKey, signal: combinedSignal })), combinedSignal); }
-					catch (error) { combinedSignal.throwIfAborted(); throw new RuntimeFailure("context_failure", "Context source is unavailable, changed or no longer permitted", false, { cause: error }); }
-				}
-			};
+			const validateSources = (messages: readonly AgentMessage[], visited?: Set<string>) => validateContextSources({
+				sessions: this.sessions, snapshots: this.snapshots, tools: this.options.tools,
+				context: { ...scope, actorId: request.actorId, executionId, stageId: request.stageId, toolCallId: "restore", idempotencyKey: request.idempotencyKey, signal: combinedSignal },
+				binding: taskContext?.binding, historyBinding: taskContext?.historyBinding,
+			}, messages, visited);
 			const observationEvents: RuntimeTurnResult["events"] = [];
 			const rebuild = taskContext?.historyBinding !== undefined && session.historyBinding !== taskContext.historyBinding;
 			// ConversationApi persists the current user input before resume. Keep only
@@ -564,6 +501,8 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 			}, combinedSignal), combinedSignal);
 			combinedSignal.throwIfAborted();
 			validateContext();
+			if (request.policy.sandboxMode === "read-only") await validateSources(result.messages);
+			assertWithinDeadline(); validateContext();
 			if (result.stopReason === "completed") validateOutput(result.finalText);
 			saveWorking(result.messages, result.stopReason === "slice_limit");
 			const response: RuntimeTurnResult = {

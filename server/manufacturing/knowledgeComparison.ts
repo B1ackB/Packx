@@ -43,6 +43,10 @@ export function createPackagingComparisonTool(store: KnowledgeStore): AgentHostT
 		inputSchema: { type: "object", properties: { left: reference, right: reference, region: { type: "string", minLength: 1, maxLength: 100 }, asOf: { type: "string", format: "date-time" } }, required: ["left", "right"], additionalProperties: false },
 		execution: "host", risk: "read", idempotent: true, timeoutMs: 1000, maxResultChars: 24_000,
 		validate: (input) => { try { assertComparisonInput(input); return true; } catch { return false; } },
+		validateContextResult: (_input, output, context) => {
+			const result = JSON.parse(output) as PackagingComparisonResult;
+			store.assertCurrentReferences(context, [result.left, result.right], result.filters);
+		},
 		execute: async (input, context) => { context.signal.throwIfAborted(); return compareEvidence(store, context, input, context.executionId); },
 	};
 }

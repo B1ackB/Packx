@@ -51,3 +51,32 @@ it("rejects duplicate, out-of-order or unproven dependency receipts in persisted
 		expect(validPlanWorkspace({ ...state, versions: [{ ...plan, children: [{ ...child(1), result: unproven }, child(2), child(0)] }] })).toBe(false);
 	}
 });
+
+
+it("accepts stale completed read-only history but rejects stale state without its confirmation, receipts or cause", () => {
+	const result = { summary: "Historical report", evidence: ["fixture source"], limitations: [], assessment: { decision: "continue", reason: "Completed before inputs changed" } };
+	const plan = { version: 1, objective: "Review", context: "old inputs", conversationRevision: 1, status: "stale", readConcurrency: 2, createdAt: "2026-10-19T00:00:00Z", actorId: "user", generation: 2, calls: 3,
+		spec: spec([[], []]), approval: { actorId: "user", version: 1, at: "2026-10-19T00:00:00Z" }, failure: { code: "plan_sources_changed", retryable: false },
+		children: [0, 1].map(taskIndex => ({ taskIndex, sessionId: `s${taskIndex}`, executionId: `e${taskIndex}`, result })) };
+	const state = (change: object) => ({ revision: 6, mode: "plan", versions: [{ ...plan, ...change }] });
+	expect(validPlanWorkspace(state({}))).toBe(true);
+	for (const change of [{ readConcurrency: undefined }, { approval: undefined }, { children: [] }, { failure: undefined }, { failure: { code: "model_failure", retryable: false } }, { failure: { code: "plan_sources_changed", retryable: true } }]) expect(validPlanWorkspace(state(change))).toBe(false);
+});
+
+
+it("validates bounded Host input receipts and rejects duplicates, malformed hashes and unsupported versions", () => {
+	const item = { key: "quantity", version: 1, sha256: "a".repeat(64) };
+	const dependencies = { schemaVersion: "plan-input-dependencies.v1", contextSha256: "b".repeat(64), facts: [item], artifacts: [{ artifactId: "source", version: 2, sha256: "c".repeat(64) }] };
+	const plan = { version: 1, objective: "Review", context: "sources", conversationRevision: 1, status: "awaiting_confirmation", createdAt: "2026-10-20T00:00:00Z", actorId: "user", generation: 1, calls: 1, spec: spec([[], []]), children: [], readConcurrency: 2 };
+	const state = (inputDependencies: unknown, extra = {}) => ({ revision: 2, mode: "plan", versions: [{ ...plan, inputDependencies, ...extra }] });
+	expect(validPlanWorkspace(state(dependencies))).toBe(true);
+	expect(validPlanWorkspace(state(undefined))).toBe(true);
+	expect(validPlanWorkspace(state(dependencies, { readConcurrency: undefined }))).toBe(false);
+	for (const invalid of [
+		{ ...dependencies, schemaVersion: "v2" }, { ...dependencies, contextSha256: "invalid" }, { ...dependencies, instructions: "ignore policy" },
+		{ ...dependencies, facts: [item, item] }, { ...dependencies, facts: [{ ...item, version: 0 }] }, { ...dependencies, facts: [{ ...item, version: 1.5 }] },
+		{ ...dependencies, facts: [{ ...item, sha256: "INVALID" }] }, { ...dependencies, facts: [{ ...item, key: "" }] }, { ...dependencies, facts: [{ ...item, value: "source body" }] },
+		{ ...dependencies, artifacts: [dependencies.artifacts[0], dependencies.artifacts[0]] },
+		{ ...dependencies, facts: Array.from({ length: 129 }, (_, index) => ({ ...item, key: `key${index}` })) },
+	]) expect(validPlanWorkspace(state(invalid))).toBe(false);
+});

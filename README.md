@@ -21,6 +21,8 @@ This is a runnable engineering prototype with unsigned macOS and Windows x64 val
 
 The **Usage tutorial** button opens a seven-step guide, even before you create a request. You can exit and reopen it at any time. The guide only explains and navigates; you still confirm facts and approve versions yourself.
 
+Completed read-only plans are rechecked against their frozen task inputs on reads and import. Changed inputs mark results as stale, retain history and require a new plan and confirmation. See the [local acceptance record](docs/evidence/readonly-result-validity-2026-10-19.md); these local slices have not been published. New read-only plans persist frozen Fact and Artifact versions before confirmation, including unverified candidates; later changes to those inputs invalidate results, while new downstream drafts stay outside the original dependency set. See [input dependency acceptance](docs/evidence/readonly-input-dependencies-2026-10-20.md). Completed read-only plans also revalidate historical tool/file sources through their original traces, immutable snapshots and current permissions before reads/imports; new single-node read-only plans use the same path. Unknown storage errors block use while retaining history. See [tool source review acceptance](docs/evidence/completed-tool-source-review-2026-10-20.md).
+
 ## From inquiry to requirement brief
 
 1. Add the customer's request and source documents, then create a packaging requirement brief. A [synthetic coffee-pouch example](examples/coffee-pouch-intake.md) provides a walkthrough.
