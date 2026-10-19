@@ -4,6 +4,7 @@ import {
 	existsSync,
 	mkdirSync,
 	readFileSync,
+	readdirSync,
 	renameSync,
 	unlinkSync,
 	writeFileSync,
@@ -40,6 +41,16 @@ function canonicalJson(value: unknown): string {
 
 export class FileArtifactContentStore implements ArtifactContentStore {
 	constructor(private readonly rootDirectory: string) {}
+
+	list(scope: import("../../src/enterprise/contracts").AggregateScope): ArtifactContentKey[] {
+		const directory = dirname(dirname(this.pathFor({ ...scope, artifactId: "catalog", artifactVersion: 1 })));
+		if (!existsSync(directory)) return [];
+		try {
+			return readdirSync(directory, { withFileTypes: true }).filter((entry) => entry.isDirectory() && /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(entry.name)).flatMap((entry) =>
+				readdirSync(join(directory, entry.name), { withFileTypes: true }).filter((file) => file.isFile() && /^v[1-9][0-9]*\.json$/.test(file.name)).map((file) => ({ ...scope, artifactId: entry.name, artifactVersion: Number(file.name.slice(1, -5)) })),
+			).sort((a, b) => a.artifactId.localeCompare(b.artifactId) || a.artifactVersion - b.artifactVersion);
+		} catch (cause) { throw new ArtifactStoreError("artifact_store_unavailable", "Artifact history cannot be read", { cause }); }
+	}
 
 	putJson(key: ArtifactContentKey, content: unknown): string {
 		const path = this.pathFor(key);

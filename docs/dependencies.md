@@ -70,3 +70,7 @@ GitHub API 已核对两个 Action tag 指向上述原仓库 commit；工具归�
 首次审计发现 [sharp 高危公告 GHSA-wq5f-xc86-pv6w](https://github.com/advisories/GHSA-wq5f-xc86-pv6w) 与 [source-map-js 高危公告 GHSA-68fv-2mgg-jv7q](https://github.com/advisories/GHSA-68fv-2mgg-jv7q)。仅在现有依赖范围内更新传递锁定：`sharp 0.35.4 → 0.35.5`、对应平台包同版更新、`@img/sharp-libvips-* 1.3.3 → 1.3.4`、`source-map-js 1.2.1 → 1.2.2`。未运行 `npm audit fix`，未放宽版本范围或忽略漏洞；更新后审计为 0 findings。
 
 实际锁文件的 sharp 元数据为 Apache-2.0，libvips 平台包为 LGPL-3.0-or-later，部分 Windows/WASM 包包含组合许可，source-map-js 为 BSD-3-Clause；与更新前各对应条目的 SPDX 相同。以当前锁文件及各包完整 LICENSE/NOTICE 为准，不能沿用上文历史段落中的简化 libvips 许可说明。本轮检查保留已安装包的许可文件，不打包分发原生库；未来发行物包含这些组件时仍须单独核对适用许可、NOTICE 与源代码提供等义务，不把漏洞审计通过视为再分发许可已审核完成。
+
+## 2026-10-16：工作区模板库
+
+模板配置与选择复用 Node 24.14.0 内置 `node:sqlite`、crypto/fs，不新增 npm 包、模型服务或系统安装。模板原件与配置保存在本地工作区，复用及下载均重新检查来源任务权限。沿用现有 CI 和供应链记录；旧工作树中的单 job CI 草稿不纳入本切片。

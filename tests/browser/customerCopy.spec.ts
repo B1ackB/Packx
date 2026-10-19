@@ -1,7 +1,7 @@
 import type { Page } from "@playwright/test";
 import { createRequirementBrief } from "../../src/manufacturing/requirementBrief";
 import type { RequirementDelivery } from "../../src/manufacturing/requirementDelivery";
-import type { RequirementTemplateView } from "../../src/manufacturing/requirementTemplate";
+import type { RequirementTemplateView, TemplateCatalog, TemplateLibraryEntry, RequirementTemplatePreview } from "../../src/manufacturing/requirementTemplate";
 import type { AssetInspectionRecord } from "../../src/runtime/assetInspection";
 import type { ConversationAttachment, RequirementBriefWorkspaceView } from "../../src/runtime/conversationContracts";
 import type { KnowledgeView } from "../../src/runtime/knowledgeView";
@@ -55,7 +55,7 @@ test.beforeEach(async ({ page }) => {
 	const overrides: Record<string, unknown> = {
 		[`${root}/requirement-brief`]: { requirementBrief: workspace },
 		[`${root}/requirement-brief/versions/1`]: { delivery },
-		[`${root}/requirement-brief/templates/${template.templateId}`]: { template },
+		[`${root}/requirement-brief/templates`]: { selected: { libraryId: "sample-template", version: 1 }, templates: [], history: [], library: [{ libraryId: "sample-template", version: 1, name: "Order template", description: "", template, mapping: { quantity: "quantity" }, createdAt: attachment.createdAt, available: true }] } satisfies TemplateCatalog,
 		[`${root}/attachments`]: { attachments: [attachment] },
 		[`${root}/knowledge`]: knowledge,
 		[`${root}/model-calls`]: monitor,
@@ -66,7 +66,6 @@ test.beforeEach(async ({ page }) => {
 		if (route.request().method() === "GET" && path in overrides) return route.fulfill({ json: overrides[path] });
 		return route.fallback();
 	});
-	await page.addInitScript(({ templateId }) => localStorage.setItem("packx-template:tutorial-fixture", templateId), template);
 	await page.goto("/");
 	await expect(page.locator(".delivery-preview h3")).toHaveText("Coffee bag requirements");
 });
@@ -127,4 +126,70 @@ test("source import uses files and names, preserves requests, and rejects malfor
 	await expect(page.locator("#panel-knowledge")).not.toContainText(technicalCopy);
 	await page.screenshot({ path: testInfo.outputPath("sources-copy.png") });
 	expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(page.viewportSize()!.width);
+});
+
+
+test("template saves replay after lost responses, restore settings and recheck delivery history", async ({ page }, testInfo) => {
+	const original: RequirementTemplateView = { ...template, slots: ["quantity", "version", "delivery_status"].map((key) => ({ key, location: "word/document.xml#paragraph=0", context: `Order: {{${key}}}` })) };
+	const mapping = { quantity: "quantity", version: "version", delivery_status: "delivery_status" };
+	const catalog: TemplateCatalog = { library: [], templates: [original], history: [] };
+	const saves: Array<{ requestId: string; expectedVersion?: number; mapping: Record<string, string> }> = [];
+	const commands = new Map<string, TemplateLibraryEntry>();
+	let generated = 0;
+	await page.route("**/requirement-brief/templates**", async (route) => {
+		const url = new URL(route.request().url()), action = url.searchParams.get("action");
+		if (route.request().method() === "GET" && url.pathname === `${root}/requirement-brief/templates`) return route.fulfill({ json: catalog });
+		if (action === "save-config") {
+			const input = route.request().postDataJSON(); saves.push(input);
+			let entry = commands.get(input.requestId);
+			if (!entry) {
+				entry = { libraryId: "saved-template", version: input.expectedVersion ? input.expectedVersion + 1 : 1, name: input.name, description: input.description, template: original, mapping: input.mapping, createdAt: attachment.createdAt, available: true };
+				commands.set(input.requestId, entry); catalog.library = [entry]; catalog.selected = { libraryId: entry.libraryId, version: entry.version };
+				// The server persisted the operation, but the browser received no usable success response.
+				return route.fulfill({ status: 503, json: { code: "request_failed" } });
+			}
+			return route.fulfill({ status: 201, json: { entry } });
+		}
+		if (action === "preview") {
+			const input = route.request().postDataJSON();
+			const preview: RequirementTemplatePreview = { template: original, library: input.library, mapping: input.mapping, values: { quantity: "5000 · UNVERIFIED", version: "1", delivery_status: "DRAFT" }, errors: [], reviewHash: "synthetic-preview", version: 1, status: "draft" };
+			return route.fulfill({ json: { preview } });
+		}
+		if (action === "generate") {
+			const input = route.request().postDataJSON(); expect(input.confirmed).toBe(true); expect(input.library.version).toBe(2); generated++;
+			catalog.history = [{ exportId: "generated-template", filename: "Order-v1.docx", format: "docx", createdAt: attachment.createdAt, requirementVersion: 1, templateName: "Customer template", templateVersion: 2, libraryId: "saved-template", status: "draft" }];
+			return route.fulfill({ status: 201, json: { exportId: "generated-template", filename: "Order-v1.docx" } });
+		}
+		if (action === "download") return route.fulfill({ body: "synthetic-file", contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+		return route.fallback();
+	});
+	await page.reload(); await openPanel(page, "requirement"); await expandDetails(page, "#panel-requirement");
+	await page.getByLabel(/^(本任务模板原件|Task template originals)$/).selectOption(original.templateId);
+	const saveNew = page.getByRole("button", { name: /^(另存为新模板|Save as new library template)$/ });
+	await page.getByLabel(/^(模板名称|Template name)$/).fill("Customer template");
+	await saveNew.click(); await expect(page.locator(".requirement-template [role=alert]")).toContainText(/原保存按钮重试|same save button to retry/);
+	await saveNew.click(); await expect(page.locator(".requirement-template [role=status]")).toContainText(/已保存|saved/);
+	expect(saves).toHaveLength(2); expect(saves[0].requestId).toBe(saves[1].requestId); expect(commands.size).toBe(1); expect(saves[0].mapping).toEqual(mapping);
+	await page.getByLabel(/^(模板说明|Template description)$/).fill("Revised settings");
+	const previewButton = page.getByRole("button", { name: /^(预览本次订单|Preview this order)$/ });
+	await expect(previewButton).toBeDisabled();
+	const saveVersion = page.getByRole("button", { name: /^(保存模板新版本|Save a new template version)$/ });
+	await saveVersion.click(); await expect(page.locator(".requirement-template [role=alert]")).toBeVisible();
+	await saveVersion.click(); await expect(page.locator(".requirement-template [role=status]")).toContainText("v2");
+	expect(saves).toHaveLength(4); expect(saves[2].requestId).toBe(saves[3].requestId); expect(saves[2].requestId).not.toBe(saves[0].requestId); expect(saves[2].expectedVersion).toBe(1); expect(commands.size).toBe(2);
+	await page.reload(); await openPanel(page, "requirement"); await expandDetails(page, "#panel-requirement");
+	await expect(page.getByLabel(/^(模板说明|Template description)$/)).toHaveValue("Revised settings");
+	await expect(page.locator(".requirement-template input[type=checkbox]")).toHaveCount(0);
+	await expect(page.getByRole("button", { name: /^(保存模板新版本|Save a new template version)$/ })).toBeDisabled();
+	await page.getByRole("button", { name: /^(预览本次订单|Preview this order)$/ }).click();
+	const generate = page.getByRole("button", { name: /^(保存新文件并下载|Save new file and download)$/ });
+	await expect(generate).toBeDisabled();
+	await page.locator(".requirement-template input[type=checkbox]").check();
+	await generate.click(); await expect(page.locator(".template-history-item")).toContainText("Order-v1.docx"); expect(generated).toBe(1);
+	catalog.history[0].status = "stale"; catalog.history[0].reason = "需求已变化";
+	await page.getByRole("button", { name: /^(刷新模板与历史|Refresh library and history)$/ }).click();
+	await expect(page.locator(".template-history-item button")).toBeDisabled();
+	await expect(page.locator("#panel-requirement")).not.toContainText(technicalCopy);
+	expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(page.viewportSize()!.width);
+	await page.screenshot({ path: testInfo.outputPath("template-library.png") });
 });
