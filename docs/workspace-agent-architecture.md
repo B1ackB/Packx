@@ -27,7 +27,7 @@ Packx 已有长任务基础，升级应复用它们。React 是界面框架；Re
 
 ## 2. 产品闭环与边界
 
-首个扩展场景：用户在一个工作空间中选取附件/已授权文件和网页资料，要求“对照供应商说明，产生带来源的比较报告和待确认事项”。简单任务一个 worker 完成；确有独立来源核验或独立交付物时拆分；最后一个节点消费明确依赖的报告。需求单可显式消费这份报告，但报告不会直接改写已确认 Fact。
+首个扩展场景：用户在一个工作空间中选取附件/已授权文件和网页资料，要求“对照供应商说明，产生带来源的比较报告和待确认事项”。简单任务一个 worker 完成；确有独立来源核验或独立交付物时拆分；最后一个节点消费明确依赖的报告。报告绑定 Plan 暂不能直接导入需求单：完整报告→业务 Fact/Approval 依赖失效尚未完成。旧无报告计划仍可显式导入未验证草稿；报告不能改写已确认 Fact。
 
 目标工作空间含：任务列表、当前计划与进度、资料/文件、版本化交付物、待确认操作、历史与运行诊断。一个工作空间可有多个任务；Conversation 是交互视图，不再承担全部业务状态。工作目录是用户授权路径；来源和交付物注册表是逻辑资源索引，两者不等价。未来允许新建通用任务时用显式 Domain 配置承载，不删包装规则，不在 Core 中塞行业判断。
 
@@ -41,11 +41,13 @@ flowchart TD
   Port --> B[Worker B 内部 ReAct]
   A --> Gateway[Host Tool Gateway / Policy / Approval]
   B --> Gateway
-  Gateway --> Files[文件 / 网页 / 隔离代码工具]
+  Gateway --> Files[现有文件 / 受限来源工具]
+  Gateway -. 后续设计 .-> Code[CodeJob 隔离代码执行：未实现]
   Host --> Store[事件 / 检查点 / Artifact / 来源版本]
   Store --> Context[每个任务的 Context Snapshot]
   Context --> Port
-  Store --> Projection[可重放 UI 投影与观测]
+  Store --> Projection[现有状态轮询 / 聊天 SSE / 关联记录]
+  Store -. 后续设计 .-> Replay[完整 cursor 增量重放：未实现]
   Projection --> UI
 ```
 
@@ -62,6 +64,13 @@ flowchart TD
 动态分工以有界重规划实现：worker 遇到缺失资料/假设冲突，提交 `assessment=replan`，Host 停止后续节点；规划器读取旧结果引用与当前来源，提出新版本；用户确认新版本后执行。当前最多 4 个版本/32 片，不存在模型随意 spawn 的工具。未来新增角色只是一组指令、工具能力和输出合同；不能自动变成独立 Agent。
 
 计划边、工具或预算变化必须形成新版本。新增外部副作用/权限时重新确认和单独批准。纯运行时把同一已批准节点分配给空闲 worker 可由 Host 自主进行；不因此改变任务语义。不能为了“自主”跳过审批。暂不做递归委派、自动增删节点或自动循环重规划。
+
+### 已实现的状态生命周期
+
+- Plan：planning → awaiting_confirmation → queued → running → completed。运行可进入 paused / failed / cancelled；恢复只将已确认、来源未变且可重试的 paused/failed 版本排队。旧版本被修订时进入 superseded。worker 报告 replan 或缺完成证据会停止，不能自行恢复为成功；新版本需要重新确认，预算跨版本累计。
+- SourceReport：queued → running → completed；任一未完成步骤可取消，失败进入 failed。仅可重试错误支持显式 retry，递增 generation/attempt，保留已提交来源收据；最多三次尝试。新报告是新版本，不覆盖 completed 内容。
+- 选择状态独立于报告运行：未选择 → selected(vN, digest, selectionRevision) → cleared；每次选择/清除均追加修订号，即使重选同版也使旧绑定失效。Report completed 不代表被选定，Plan completed 不代表 Fact 验证或文件批准。
+- 取消/暂停通过持久状态、AbortSignal 与 lease fence 阻止后续派发/提交；不承诺撤回已经发送的模型输入或回滚外部副作用。页面关闭不等于任务取消。
 
 ## 4. Agent 与 Tool 协议
 

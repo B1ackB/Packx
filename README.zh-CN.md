@@ -10,6 +10,8 @@
 
 [业务流程](#从询价到需求单) · [架构图](#项目架构) · [快速启动](#安装) · [验证证据](#验证到了哪一步)
 
+架构入口：[工作空间 Agent 完整设计与分阶段计划](docs/workspace-agent-architecture.md)、[已实现/延期/未验证覆盖表](docs/workspace-agent-delivery.md)、[本批发布前验收与迁移边界](docs/evidence/workspace-agent-publication-2026-10-19.md)。
+
 新增[资料报告工作区](docs/source-reports.md)：显式选择文本附件和 Host 允许的 HTTPS 网页，生成可查看原文、下载和恢复的版本化报告，无需模型连接；摘录保持未验证。
 
 ## 当前能力

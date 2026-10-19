@@ -1,6 +1,6 @@
 # 资料报告：文件与受限网页到版本化 Artifact
 
-日期：2026-10-18。状态：本地纵向切片；不代表公网网站兼容性、真实用户或生产多租户验收完成。
+初始实现：2026-10-18。发布：已推送并纳入 [PR #53](https://github.com/B1ackB/Packx/pull/53)，按必需 CI 与正常合并流程验收，见[发布记录](evidence/workspace-agent-publication-2026-10-19.md)；不代表公网网站兼容性、真实用户或生产多租户验收完成。
 
 ## 可运行演示
 
@@ -71,4 +71,4 @@ PACKX_SOURCE_WEB_DOMAINS=example.com npm run dev:fixture
 
 [阶段证据](evidence/source-report-slice-2026-10-18.md) 区分定向测试、完整回归、浏览器拦截、真实 Host 文件报告、离线网页 Fake、以及受限网络下未通过的公网尝试。
 
-本报告切片不新增 npm 依赖、付费 API、系统安全配置或远程发布。报告生成不调用模型；选定报告后的 Agent 闭环仅使用本机固定 Provider 验收，没有付费模型调用。延期：Office/PDF 到此报告链路、登录/交互网页、任意代码、并行写入、模型语义比较、跨业务 Artifact/Fact 的完整依赖失效与 RBAC。现有 Office/PDF 与需求单功能继续保留。明确选择版本与 worker 输入已连接；下一步先补正常公网环境与真实用户走查，再评估完整业务 Artifact 依赖失效。最终增量证据见[报告到 worker 闭环验收](evidence/report-plan-bridge-2026-10-18.md)。
+本批升级不新增 npm 依赖、付费 API 或系统安全配置；已获独立授权通过 PR 发布，不包含部署。报告生成不调用模型；选定报告后的 Agent 闭环仅使用本机固定 Provider 验收，没有付费模型调用。延期：Office/PDF 到此报告链路、登录/交互网页、任意代码、并行写入、模型语义比较、跨业务 Artifact/Fact 的完整依赖失效与 RBAC。现有 Office/PDF 与需求单功能继续保留。明确选择版本与 worker 输入已连接；下一步先补正常公网环境与真实用户走查，再评估完整业务 Artifact 依赖失效。最终增量证据见[报告到 worker 闭环验收](evidence/report-plan-bridge-2026-10-18.md)。

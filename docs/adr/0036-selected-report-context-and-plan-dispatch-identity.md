@@ -1,6 +1,8 @@
 # ADR-0036：选定报告版本进入 worker，上下文撤回与 Plan 派发身份
 
-日期：2026-10-18。状态：Accepted，本地实现；证据为离线模型/本机 fixture，不代表真实模型质量。
+日期：2026-10-18。状态：Accepted，已实现；证据为离线模型/本机 fixture，不代表真实模型质量。
+
+发布更新（2026-10-19）：本批已获独立推送与条件合并授权，纳入 [PR #53](https://github.com/B1ackB/Packx/pull/53)；历史授权描述按原日期保留，现行验证/迁移边界见[发布记录](../evidence/workspace-agent-publication-2026-10-19.md)。
 
 ## 背景
 

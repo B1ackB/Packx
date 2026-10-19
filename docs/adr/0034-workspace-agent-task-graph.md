@@ -1,6 +1,8 @@
 # ADR-0034：以现有 Plan 升级工作空间 Agent，先实现串行依赖图
 
-日期：2026-10-18。状态：Accepted（本地首批实现）；后续能力为 Proposed。
+日期：2026-10-18。状态：Accepted（首批实现）；后续能力为 Proposed。
+
+发布更新（2026-10-19）：本批已获独立推送与条件合并授权，纳入 [PR #53](https://github.com/B1ackB/Packx/pull/53)；历史授权描述按原日期保留，现行验证/迁移边界见[发布记录](../evidence/workspace-agent-publication-2026-10-19.md)。
 
 ## 背景和授权
 
