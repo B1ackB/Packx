@@ -1,7 +1,7 @@
 # Packx 工作空间 Agent：架构与分阶段交付
 
 日期：2026-10-18。工程基线：`1326092260672164e52fbae685aa271f2ca4870a`；最终本地分支同时保留已修复的模板库 PR #40（`b1c92d7`）。
-状态：架构方案、有界串行依赖图、来源报告与显式版本到 worker 的只读闭环已实现；其余按阶段表标为后续。
+状态：四节点 DAG、来源报告与显式版本到 worker 的只读闭环已实现。2026-10-19 后续阶段增加单图租约下最多两个只读节点并行；含写入/旧计划保持串行。见 [ADR-0037](adr/0037-bounded-readonly-plan-waves.md) 和[提交前本地验收](evidence/readonly-parallel-2026-10-19.md)。本批已获提交、推送和 PR 授权，实际远端 CI 以对应 PR 检查为准；合并和部署未授权。
 2026-10-19：本批获发布与条件合并授权，已合入 main `243b691`；发布前检查和未验证边界见[发布验收](evidence/workspace-agent-publication-2026-10-19.md)。
 
 决策：[ADR-0034](adr/0034-workspace-agent-task-graph.md)。验收：[本轮证据](evidence/workspace-agent-upgrade-2026-10-18.md)。
@@ -13,7 +13,7 @@ Packx 已有长任务基础，升级应复用它们。React 是界面框架；Re
 | 当前代码 | 已有行为 | 本轮处理 |
 | --- | --- | --- |
 | `src/agent/loop.ts`、`server/runtime/agentRuntime.ts`、`src/runtime/contracts.ts` | 模型/工具循环、Session、压缩、权限与失败、Runtime Port | 保留；不新增第二套循环 |
-| `server/enterprise/agentPlanWorkflow.ts`、`agentPlanStore.ts` | 确认具体版本、最多 4 个顺序独立子任务、SQLite 事件、跨版本预算 | 扩为可验证的 DAG；仍串行派发 |
+| `server/enterprise/agentPlanWorkflow.ts`、`agentPlanStore.ts` | 确认具体版本、最多 4 节点 DAG、SQLite 事件、跨版本预算 | 新只读图最多两项并行，含写入/旧图串行 |
 | `server/workers/stageJobScheduler.ts`、`src/enterprise/stageJobQueue.ts` | 确定性 job、lease/heartbeat、取消、失败/恢复、失效 worker 防护 | 复用同一计划 job，不加总线或队列 |
 | `server/runtime/recoverCompletedTurn.ts` | 按 Session 与完成 Trace 取回结果；证据缺失时停止 | 任务身份仍绑定版本/索引，复用恢复路径 |
 | `server/enterprise/taskContext.ts`、`taskCheckpointStore.ts` | 来源与版本化上下文、任务检查点 | 保留共享来源快照；新增显式上游报告 |
@@ -57,9 +57,9 @@ flowchart TD
 
 协调器是确定性程序，不是具有无限权限的“老板 Agent”。模型可以提出任务、依赖和角色；Host 校验图、来源版本、工具集合、预算、审批与执行证据，决定是否派发。
 
-当前合同：`PlanSpec.tasks[]` 中可选 `dependsOn: number[]`，指向同版本内零起始索引。省略/空数组表示独立。拒绝越界、自依赖、重复、非整数和环。索引在这个不可变版本中稳定，Session/key 继续绑定 scope + planVersion + taskIndex。第一批每次选取索引最小的就绪节点，一个执行片只派发一个 worker；不引入并发。因此 `tasks[0] dependsOn [2]` 可按 1→2→0 完成，展示顺序仍保持用户所确认的顺序。
+当前合同：`PlanSpec.tasks[]` 中可选 `dependsOn: number[]`，指向同版本内零起始索引。省略/空数组表示独立。拒绝越界、自依赖、重复、非整数和环。索引在这个不可变版本中稳定。旧图及含写操作图每次选取索引最小的就绪节点；新只读图每片选取至多两个就绪节点，使用独立 Session 和尝试身份，下一批等待本批结束。收据可按完成顺序追加，展示顺序和依赖路由保持用户确认的索引。
 
-第一批继续使用 Plan 状态机、`children` 完成收据和 `activeTask`，不建设一个闲置的通用图引擎。未来允许更大图/并行时才把节点状态独立投影为 `blocked → ready → leased → running → succeeded | failed | cancelled | awaiting_approval | reconciliation_required`，并持久化每次转换；不能把现在“尚无 child”直接当成未来多种状态。
+沿用 Plan 状态机和 `children` 完成收据。串行图保留 `activeTask`；新只读图使用持久 `taskRuns`，记录尝试身份、父 lease、状态与失败，转换保留在 SQLite 事件。就绪/等待由图和收据计算。更大图或节点独立队列仍需另建合同，不能将本次投影等同于完整的 `blocked → ready → leased → running → succeeded | failed | cancelled | awaiting_approval | reconciliation_required` 状态机。
 
 动态分工以有界重规划实现：worker 遇到缺失资料/假设冲突，提交 `assessment=replan`，Host 停止后续节点；规划器读取旧结果引用与当前来源，提出新版本；用户确认新版本后执行。当前最多 4 个版本/32 片，不存在模型随意 spawn 的工具。未来新增角色只是一组指令、工具能力和输出合同；不能自动变成独立 Agent。
 
@@ -68,6 +68,7 @@ flowchart TD
 ### 已实现的状态生命周期
 
 - Plan：planning → awaiting_confirmation → queued → running → completed。运行可进入 paused / failed / cancelled；恢复只将已确认、来源未变且可重试的 paused/failed 版本排队。旧版本被修订时进入 superseded。worker 报告 replan 或缺完成证据会停止，不能自行恢复为成功；新版本需要重新确认，预算跨版本累计。
+- 只读节点：running → completed / paused / failed / interrupted。失败停止同批及下游；已提交节点保留。新尝试扣除执行槽并保留旧尝试事件；Runtime 主动暂停继续原 Session/key，其他中断工作在复核完成记录后采用新尝试身份。
 - SourceReport：queued → running → completed；任一未完成步骤可取消，失败进入 failed。仅可重试错误支持显式 retry，递增 generation/attempt，保留已提交来源收据；最多三次尝试。新报告是新版本，不覆盖 completed 内容。
 - 选择状态独立于报告运行：未选择 → selected(vN, digest, selectionRevision) → cleared；每次选择/清除均追加修订号，即使重选同版也使旧绑定失效。Report completed 不代表被选定，Plan completed 不代表 Fact 验证或文件批准。
 - 取消/暂停通过持久状态、AbortSignal 与 lease fence 阻止后续派发/提交；不承诺撤回已经发送的模型输入或回滚外部副作用。页面关闭不等于任务取消。
@@ -105,21 +106,22 @@ Tool 继续沿用 Core 的输入 Schema/validate、风险、幂等、timeout、m
 | 已预留调用、尚未收到响应 | 保留调用消耗；不能因 crash 获得额外预算；查询 Runtime/Provider 可用证据 |
 | Session 完成、Plan 结果未提交 | 复用完成 Trace + Session；没有完成 Trace 时 `plan_completion_evidence_missing` 停止 |
 | 已提交 child、Queue ACK 前崩溃 | 根据 taskIndex 完成收据跳过；不能用 children.length 推断任务身份 |
+| 只读批次执行中 Host 被强杀 | 先用现有 recover-lock 核对旧 PID 并记录审计；lease 过期后显式恢复，按节点完成 Trace 对账，已提交结果不重跑，不明消耗不退还 |
 | lease 过期/取消后迟到结果 | 提交前验证 lease、generation、source binding；拒绝迟到提交 |
 | Tool 已发生副作用、receipt 丢失 | 账本 started/unknown → Host 查询目标状态/文件哈希，证实后 reconcile；不重放猜测 |
 | 存储不可用/结果不完整 | 不把未知当失败，也不把模型“完成”当成功；保留证据并停止 |
 
 每个 Tool 的幂等键须绑定 scope、逻辑操作、目标资源和输入摘要；重试复用相同逻辑 key，同 key 换 payload 拒绝。按执行 attempt 生成新 key 会掩盖重复写入，禁止。模型调用也可能已计费但没有响应，不承诺 exactly-once。恢复过程中任何读回都重新检查权限和来源。
 
-后续 Checkpoint 必须携带 graphVersion、node/attempt、lease fence、input digest、输出/Tool receipt 引用、budget revision、cancellation generation。暂停只暂停派发和可中断执行，不假设外部世界回滚。代码执行器、外部服务必须有具体取消/清理证明。MCP 的取消是协议通知，不能替代操作结果核验，见[取消规范](https://modelcontextprotocol.io/specification/2025-11-25/basic/utilities/cancellation)。
+当前只读节点投影携带版本/attempt、父 lease、Session/key 与代次，输入 binding 和完成 Tool/Usage 证据仍由原 Runtime/Trace 保存。跨系统 Checkpoint 的统一信封、预算修订引用及节点独立 lease 为后续。暂停只暂停派发和可中断执行，不假设外部世界回滚。代码执行器、外部服务必须有具体取消/清理证明。MCP 的取消是协议通知，不能替代操作结果核验，见[取消规范](https://modelcontextprotocol.io/specification/2025-11-25/basic/utilities/cancellation)。
 
 ## 7. 并发与文件冲突
 
-第一批单计划串行；不把这个实现宣称为多主机锁或跨任务文件隔离。现有 Runtime/文件批准/版本检查保留。
+本地后续阶段仅将全部工具属于 Host 只读白名单的新图标为 readConcurrency=2，并在确认前展示。一个 Queue job 的排他 lease 覆盖整图、最多两个运行节点；没有跨图并发。每个节点在调用前用 SQLite CAS 保存尝试/父 lease 并消耗共享执行槽，结果提交复核 lease、代次、尝试、来源与版本。不同 Session、直接依赖报告、read-only/never 权限保留。批次等待慢节点，当前只沿用原队列的批次间调度，不声称跨租户公平或多主机隔离。
 
-下一步只先并行独立只读节点（初始上限 2，另有工作空间上限与公平队列），用 lease + 节点 CAS，按任务 ID 存结果，聚合按图顺序；禁止 Promise.all 共享同一 Session。新增并发必须对照同任务同预算的串行基线。
+取消/单项失败中断同批，成功收据保留；超时与迟到结果有提交 fence。失去图租约后保留 maxFailures=1，等待用户恢复及完成记录对账，未知费用不自动重试或退还执行槽。固定同图/同预算对照验证调用量与输出一致、两个请求确实重叠；人工等待的耗时不能证明真实模型收益。节点独立 lease、跨图资源 reservation、公平调度和并发写入均延期，见 ADR-0037。
 
-写任务采用每节点私有 staging 目录 `workspace/.packx-runs/run/node/attempt/`，只允许生成候选输出，不直接覆盖用户原件。Host commit 阶段验证 expected original hash/Artifact version、权限、审批绑定版本，然后原子提交新版本。目标资源规范化后登记写集合；同路径/祖先目录冲突串行化。CAS 冲突标记 `conflict`，保留两个版本供人工选择，不让模型最后写入获胜。
+后续设计（未实现）：并发写任务采用每节点私有 staging 目录 `workspace/.packx-runs/run/node/attempt/`，只允许生成候选输出，不直接覆盖用户原件。Host commit 阶段验证 expected original hash/Artifact version、权限、审批绑定版本，然后原子提交新版本。目标资源规范化后登记写集合；同路径/祖先目录冲突串行化。CAS 冲突标记 `conflict`，保留两个版本供人工选择，不让模型最后写入获胜。
 
 代码项目用独立 checkout/worktree、明确 patch/base commit 和受限合并器；二进制、批准交付物和非 Git 目录不自动合并。路径穿越、符号链接、硬链接、case-insensitive 文件名、改名与权限撤回进入攻击集。只做进程锁或路径字符串前缀比较不够。
 
@@ -158,6 +160,8 @@ Tool 继续沿用 Core 的输入 Schema/validate、风险、幂等、timeout、m
 
 本轮 `eval:plan-graph` 使用同一固定 Provider、同一来源与每片限额，对比单 worker 与规划+三节点图：输出相同，调用为 1 对 4；验证依赖顺序/报告路由/确认。它证明机制并显示额外成本，**不证明真实模型更准确、更快或有商业收益**。`eval:plan` 保留独立上下文基线。
 
+后续本地 `eval:plan-parallel` 冻结同一个三节点图、同 Provider/输入/执行片预算，仅改变 Host 并发 1/2；输出和 fixture 模型调用量一致，独立来源的最大重叠为 1/2。人工等待只用于证明重叠。故障矩阵和真实 Host SIGKILL/来源撤回见 ADR-0037 与本阶段验收。
+
 后续冻结三组各至少 10 个任务：简单单 worker、独立多来源、强依赖交付；另有故障/恶意输入矩阵。对照同模型/同任务/同总预算，报告失败和需要人工的全部样例；真实模型评测需另获费用授权。先看可验证完成率和来源准确率，再看时间与成本，不因多 Agent 数量而给分。
 
 | 阶段 | 交付与落点 | 通过条件 | 本轮状态 |
@@ -165,16 +169,18 @@ Tool 继续沿用 Core 的输入 Schema/validate、风险、幂等、timeout、m
 | P0 现状/安全隔离 | 原仓库状态、独立分支、CI 基线、ADR/设计 | 不触碰原未提交成果，不调用付费模型；能定位当前差距 | 已做 |
 | P1 有界依赖任务图 | 现有 Plan API → DAG 校验/确认 → Runtime → SQLite receipts → UI；固定 Eval 入 CI | 旧计划兼容、环/坏边拒绝、隔离、重启、不重复、预算、确认、类型/浏览器/离线 Eval | 本轮实现 |
 | P2 工作空间与来源报告 | Workspace task/resource/artifact 视图；保留需求单工具；受限网页 fetch；大上游结果改引用 | 文件+网页比较报告贯通；可追溯来源、撤权/stale、审批、一次进程终止恢复；原需求单回归全过 | 来源报告与选定版本到 worker 闭环已实现；模型质量、完整业务依赖失效与公网正向验收待补 |
-| P3 受控只读并发 | 每节点 lease/fence、共享预算 reservation、公平调度、UI cursor 流 | 同预算对照；取消/超时/重投/迟到结果零错误提交；可测延迟收益超过成本 | 设计，未实现 |
+| P3 受控只读并发 | 单图 lease/fence、持久节点尝试、共享执行槽、现有轮询 UI | 同图/同预算固定对照；取消/超时/重投/迟到/来源撤回及进程终止恢复 | 本地最多两项只读批次已实现；节点独立 lease、公平调度、cursor 流及真实模型收益延期 |
 | P4 代码与写入协作 | CodeJob 私有输出、资源预算、patch/Artifact 原子提交、冲突 UI | 真平台攻击集、进程树回收、不明副作用对账、冲突留存；能力默认关闭至验收 | 设计，未实现 |
 | P5 更大动态图/远程执行 | 有证据后才扩节点数、远程 Adapter、持久事件行级投影 | P2–P4 真实任务价值成立；容量/故障数据驱动选型 | 暂缓 |
 
-P2 已完成有边界的来源报告与选定版本到 worker 闭环。下一次先补正常公网解析环境的正向读取与真实用户走查，再选择完整业务依赖失效或模型语义评测；并发与代码仍需独立证据 Gate。见[最终交付与架构覆盖](workspace-agent-delivery.md)。
+P2 已完成有边界的来源报告与选定版本到 worker 闭环；P3 的首个本地只读批次阶段已按 ADR-0037 实现。正常公网正向读取、真实用户走查、完整业务依赖失效和模型语义评测仍未完成；不能用本轮调度 fixture 代替。见[最终交付与架构覆盖](workspace-agent-delivery.md)。
 
 ## 12. 迁移、回退与明确未完成项
 
-旧计划省略 dependsOn 继续独立串行；旧结果仍可读，不能作为新依赖的成功凭据，除非已有 assessment/evidence 满足合同。默认直接执行不改。已确认旧计划的 worker 不会自动消费兄弟报告。新计划因图结构变化自然生成新版本、重新确认。
+旧计划缺少 readConcurrency 继续串行；新图是否并行由 Host 在提出时固化，确认前可见。旧结果仍可读，不能作为新依赖的成功凭据，除非已有 assessment/evidence 满足合同。默认直接执行不改。已确认旧计划的 worker 不会自动消费兄弟报告。新计划因图结构变化自然生成新版本、重新确认。
 
 本轮不改用户数据库、不切换 Event Store 驱动、不移动工作目录或替换需求单。正式升级前应排空运行中的规划任务：规划器输出 Schema 已变化，旧检查点继续执行会被现有输出合同校验拒绝，必须重新规划。带 dependsOn 的新持久计划不能交给旧二进制混跑，旧 parsePlan 会拒绝未知字段。代码回退前先停止新任务并升级/保留兼容读取器；不要删除计划、剥离边或回退旧数据快照伪造兼容。长期可增加显式 plan schemaVersion 与只读历史适配，但当前四节点本地规模不引入新存储。
 
-仍未完成：完整通用任务/文件/Artifact 工作台、通用网页浏览与 Agent 网页工具、任意代码执行、OS 级 Agent 隔离、跨节点并发与冲突合并、精确费用硬上限、自动动态分工、完整租户 RBAC、分布式调度、端到端事件重放、真实模型/用户价值评测。这些边界不得以“架构已经支持”代替实现证据。
+并发字段不能交给旧二进制混跑或忽略执行；回退先暂停/排空新图并保留支持 taskRuns 的读取/恢复能力，不删字段或历史来伪造兼容。
+
+仍未完成：完整通用任务/文件/Artifact 工作台、通用网页浏览与 Agent 网页工具、任意代码执行、OS 级 Agent 隔离、跨图并发、并发写入与冲突合并、节点独立 lease、公平调度、精确费用硬上限、自动动态分工、完整租户 RBAC、分布式调度、端到端事件重放、真实模型/用户价值评测。这些边界不得以“架构已经支持”代替实现证据。

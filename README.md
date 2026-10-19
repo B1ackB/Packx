@@ -100,7 +100,7 @@ flowchart TB
 
 The Host decides stage transitions, allowed tools, budgets, approvals, and completion. The Core executes within those limits; packaging rules stay in the domain layer. Review and revision reuse the runtime with tools disabled. A model reply alone cannot complete a workflow or confirm a Fact.
 
-Direct chat and confirmed Plan tasks also use this runtime; they are omitted to keep the main packaging path visible. Plan mode supports a confirmed DAG of up to four tasks, dispatched serially in separate sessions; workers receive only declared prerequisite reports. Confirming a plan does not approve file writes or business delivery. See the [workspace Agent architecture](docs/workspace-agent-architecture.md), [implemented/design-only coverage](docs/workspace-agent-delivery.md), [Plan mode](docs/plan-mode.md), [context management](docs/context-management.md), [personal memory](docs/memory-system.md), and [recovery](docs/reliability-recovery.md).
+Direct chat and confirmed Plan tasks also use this runtime; they are omitted to keep the main packaging path visible. Plan mode supports a confirmed DAG of up to four tasks in separate sessions. New plans containing only permitted read tools run up to two ready tasks together under one durable graph lease; dependent tasks wait for a later slice. Plans containing writes and legacy plans remain serial. Workers receive only declared prerequisite reports. Confirming a plan does not approve file writes or business delivery. See the [workspace Agent architecture](docs/workspace-agent-architecture.md), [implemented/design-only coverage](docs/workspace-agent-delivery.md), [Plan mode](docs/plan-mode.md), [context management](docs/context-management.md), [personal memory](docs/memory-system.md), and [recovery](docs/reliability-recovery.md).
 
 | Location | Responsibility |
 | --- | --- |
@@ -218,6 +218,7 @@ Run `npm run release` to produce a macOS directory, archive and checksum under `
 | `npm run eval:recovery` | Recovery and uncertain-side-effect boundaries | No |
 | `npm run eval:context`, `npm run eval:memory` | Context and personal-memory mechanism checks | No |
 | `npm run eval:plan` | Fixed Plan confirmation and subagent baseline | No |
+| `npm run eval:plan-parallel` | Same-graph serial/parallel fixture: overlap, identical output and call count | No |
 | `npm run build:native` | Compile the native reader (macOS; bounded Windows UTF-8 with pinned preinstalled tools) | No |
 | `npm run test:native` | Real macOS sandbox and document tests | No |
 | `npm run eval:product` | Local provider/API/workflow smoke test; cleans up afterward | No |

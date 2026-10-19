@@ -41,10 +41,22 @@ export function PlanPanel({ state, language, busy, onCommand, part, onCreateBrie
 			{plan.replanFromVersion && <p>{en ? `Replanned from v${plan.replanFromVersion}; requires a new confirmation.` : `基于 v${plan.replanFromVersion} 重新规划，需重新确认。`}</p>}
 			{plan.spec && <>
 				<Markdown text={plan.spec.summary} language={language} />
+				{plan.readConcurrency === 2 && <p>{en ? "Up to two independent read-only tasks can run together. Dependent tasks wait for their results. Processing limits are not a price cap." : "互不依赖的只读任务最多两项同时处理；后续任务等待所需结果。处理次数限制不代表费用上限。"}</p>}
 				<ol>{plan.spec.tasks.map((task, index) => {
 					const child = plan.children.find((c) => c.taskIndex === index);
+					const run = plan.taskRuns?.find((r) => r.taskIndex === index);
 					const needsReplan = child && (child.result.assessment?.decision === "replan" || !child.result.evidence.length);
-					return <li key={index}><strong>{task.title}</strong> · {needsReplan ? en ? "Needs replanning" : "需要重新规划" : child ? en ? "Completed" : "已完成" : plan.activeTask === index && running ? en ? "Running" : "执行中" : en ? "Pending" : "待执行"}
+					const waiting = task.dependsOn?.some((dep) => !plan.children.some((c) => c.taskIndex === dep));
+					const canResume = plan.status === "paused" || plan.status === "failed" && plan.failure?.retryable;
+					let status = waiting ? en ? "Waiting for prerequisite results" : "等待上游结果" : en ? "Pending" : "待执行";
+					if ((run?.status === "running" || plan.activeTask === index) && running) status = en ? "Running" : "执行中";
+					if (run?.status === "paused") status = en ? "Progress saved; waiting to continue" : "已保存进度，等待继续";
+					if (run?.status === "interrupted") status = canResume ? en ? "Interrupted; resume plan to continue" : "已中断，可恢复计划继续" : en ? "Stopped" : "已停止";
+					if (run?.status === "failed") status = en ? "Failed" : "执行失败";
+					if (child) status = en ? "Completed" : "已完成";
+					if (needsReplan) status = en ? "Needs replanning" : "需要重新规划";
+					return <li key={index} data-plan-task={index}><strong>{task.title}</strong> · {status}
+						{run?.failure && <p>{errorText({ code: run.failure.code }, language)}</p>}
 						<p>{task.objective}</p><small>{en ? "Planned actions: " : "计划操作："}{task.tools.map((tool) => actionLabels[tool]?.[en ? 1 : 0] ?? (en ? "Other processing" : "其他处理")).join(en ? ", " : "、") || (en ? "No file or source operations" : "无需操作文件或资料")}</small>
 						{!!task.dependsOn?.length && <p>{en ? "Uses results from: " : "使用以下任务的结果："}{task.dependsOn.map((dep) => `${dep + 1}. ${plan.spec!.tasks[dep].title}`).join(en ? ", " : "、")} · {en ? "Reports require verification" : "结果仍需核对"}</p>}
 						{child && <div><Markdown text={child.result.summary} language={language} />
