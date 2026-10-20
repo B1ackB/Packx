@@ -8,6 +8,7 @@
 
 | 想解决的问题 | 主文档 | 决策／证据 |
 | --- | --- | --- |
+| 当前工作区如何收口、历史评测为何不再混入默认检查 | [工作区收口记录](evidence/workspace-cleanup-2026-10-20.md) | 历史证据原样保全、默认门禁、字段计数与交付日期回归 |
 | 产品到底做什么、分层怎么划分 | [产品交互](product-interaction-model.md)、[架构原则](architecture/principles.md) | [仓库约束](../AGENTS.md)、[包装范围 ADR-0010](adr/0010-packaging-product-focus.md) |
 | 模型如何执行一轮、接入哪些能力 | [Runtime 接入](runtime-integration.md)、[Provider 兼容](anthropic-compatibility.md) | [最小 Core ADR-0001](adr/0001-self-owned-agent-core.md)、[依赖清单](dependencies.md) |
 | 历史太长、摘要丢信息、恢复读到旧资料 | [上下文管理](context-management.md) | [分离对话与任务上下文 ADR-0024](adr/0024-separated-dialogue-and-versioned-task-context.md) |

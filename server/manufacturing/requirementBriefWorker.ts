@@ -17,6 +17,7 @@ import { ArtifactStoreError } from "../../src/enterprise/artifactStore";
 import type { AgentImageAttachment } from "../../src/agent/contracts";
 import type {
 	AggregateScope,
+	FactVersionState,
 	ProposalRunState,
 } from "../../src/enterprise/contracts";
 import { EnterpriseKernelError } from "../../src/enterprise/contracts";
@@ -43,7 +44,7 @@ import type {
 } from "../../src/runtime/contracts";
 import { RuntimeFailure } from "../../src/runtime/contracts";
 import { FileConversationAttachmentStore } from "../runtime/conversationAttachments";
-import { unsupportedNarrativeNumbers } from "./requirementReview";
+import { sameConfirmedDelivery, unsupportedNarrativeNumbers } from "./requirementReview";
 import { compareRequirementField, requirementFieldInstructions } from "../../src/manufacturing/requirementField";
 
 export { parseRequirementCandidate };
@@ -341,6 +342,7 @@ export class RequirementBriefWorker {
 			}
 		} catch { /* Ordinary conversation briefs are plain text. */ }
 		const originalRefs = new Set(sourceEvidence.map((item) => item.ref));
+		const confirmedValueMatches = (current: FactVersionState, fact: RequirementFactV1) => sameFactValue(current, fact) || sameConfirmedDelivery(current, fact, sourceEvidence, this.engine.readEvents(command));
 		const intakeIssues: Array<{ code: string; message: string }> = [];
 		const pendingChanges: RequirementFactChange[] = [];
 		let candidateConflicts: RequirementCandidateConflict[] = [];
@@ -373,7 +375,7 @@ export class RequirementBriefWorker {
 			for (const key of new Set(facts.map((fact) => fact.key))) {
 				const current = state.facts[key];
 				// Echoing a Host-confirmed value does not make one new proposal ambiguous.
-				const alternatives = facts.filter((fact) => fact.key === key && !(current?.status === "verified" && sameFactValue(current, fact)));
+				const alternatives = facts.filter((fact) => fact.key === key && !(current?.status === "verified" && confirmedValueMatches(current, fact)));
 				if (alternatives.some((fact) => !sameFactValue(alternatives[0], fact))) unresolved.add(key);
 			}
 			for (const key of unresolved) {
@@ -454,7 +456,7 @@ export class RequirementBriefWorker {
 				}
 
 				if (current?.status === "verified") {
-					if (!sameFactValue(current, fact)) {
+					if (!confirmedValueMatches(current, fact)) {
 						pendingChanges.push({ key: fact.key, currentFactVersion: current.version, value: fact.value, ...(fact.unit ? { unit: fact.unit } : {}), sourceRef });
 						intakeIssues.push({ code: "pending_fact_change", message: `${fact.key} 有新的待确认提议；旧交付物不能继续作为当前完整交接依据。` });
 					}
