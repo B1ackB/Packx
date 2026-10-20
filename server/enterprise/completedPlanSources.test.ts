@@ -201,3 +201,18 @@ it("reviews earlier model input snapshots even when the final context no longer 
 	expect((await h.workflow.read(scope)).versions[0].status).toBe("stale");
 	expect(h.store.read(scope).versions[0].children).toEqual(before.versions[0].children);
 });
+
+it.each(["empty", "wrong_role", "multiple"] as const)("rejects a %s externalized tool body archive as missing evidence", async mode => {
+	const h = await fixture("externalized"), before = h.store.read(scope), calls = h.calls();
+	const executions = h.tools.map(tool => tool.execute.mock.calls.length);
+	const read = h.state.read.bind(h.state);
+	vi.spyOn(h.state, "read").mockImplementation((scope, ref) => {
+		const snapshot = read(scope, ref);
+		if (snapshot.messages.length !== 1 || snapshot.messages[0].role !== "tool") return snapshot;
+		const messages: AgentMessage[] = mode === "empty" ? [] : mode === "wrong_role" ? [{ ...snapshot.messages[0], role: "user" }] : [...snapshot.messages, ...snapshot.messages];
+		return { ...snapshot, messages };
+	});
+	await expect(h.workflow.read(scope)).rejects.toMatchObject({ code: "plan_completion_evidence_missing" });
+	expect(h.store.read(scope)).toEqual(before); expect(h.calls()).toBe(calls);
+	expect(h.tools.map(tool => tool.execute.mock.calls.length)).toEqual(executions);
+});

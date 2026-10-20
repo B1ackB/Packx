@@ -1,5 +1,5 @@
 import type { AgentMessage, AgentTool, AgentToolExecutionContext } from "../../src/agent/contracts";
-import type { AgentSessionStore, ContextSnapshotStore } from "../../src/agent/state";
+import { AgentStateStoreError, type AgentSessionStore, type ContextSnapshotStore } from "../../src/agent/state";
 import { abortable } from "../../src/agent/loop";
 import { RuntimeFailure } from "../../src/runtime/contracts";
 import { readContextSource } from "./contextRead";
@@ -92,7 +92,9 @@ export async function validateContextSources(options: SourceValidationOptions, m
 		try { envelope = JSON.parse(output); } catch { /* Plain-text bodies are validated by their source adapter. */ }
 		if (envelope?.status === "body_externalized" && typeof envelope.sourceRef === "string") {
 			if (options.budget && --options.budget.remainingSources < 0) throw new RuntimeFailure("budget_exceeded", "Source review exceeds its bounded reference budget", false);
-			const archived = snapshots.read(scope, envelope.sourceRef).messages[0];
+			const body = snapshots.read(scope, envelope.sourceRef).messages;
+			if (body.length !== 1 || body[0].role !== "tool") throw new AgentStateStoreError("not_found", "Externalized tool result body is missing or invalid");
+			const archived = body[0];
 			charge(archived); output = archived.content;
 		}
 		try { await abortable(Promise.resolve(tool.validateContextResult(sourceTool.input, output, { ...context, toolCallId: message.toolCallId ?? "restore" })), combinedSignal); }

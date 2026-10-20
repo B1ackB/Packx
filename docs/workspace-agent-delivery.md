@@ -1,5 +1,7 @@
 # Packx 工作空间 Agent：本轮交付与架构覆盖
 
+2026-10-20 接续收尾：已确认上一开发轮次完成并保存为 `730588e`，从该提交新建独立分支 `codex/completed-source-review-followup`。新增三项故障回归，修复外置工具正文存档的完整性检查：空正文、角色错误或多条正文均作为缺失证据拒绝使用，保留历史结果与计数。设计沿用 ADR-0042，实际检查及交付状态见[接续验收](evidence/completed-source-followup-2026-10-20.md)。以下本地阶段说明保留历史范围。
+
 2026-10-20 后续本地切片：完成后历史工具/文件来源复核已接入原 Trace/快照及权限机制，读取与导入等待复核，下游启动和最终发布也复核。新单节点只读任务使用同一路径，旧串行不回填。比较/目录工具仅核对旧引用，不重新检索。见 [ADR-0042](adr/0042-completed-tool-source-review.md) 与[验收/演示](evidence/completed-tool-source-review-2026-10-20.md)。本批获准验证后本地提交；未推送、创建 PR 或部署。以下早期状态保留为历史记录。
 
 2026-10-20 本地增量：冻结输入依赖清单已实现，覆盖新只读图规划时已有的全部 Fact（含候选）和 Artifact；确认前可查看版本，完成后按原集合复核。新增下游草稿不反向失效，原有候选被确认则需重新规划。见 [ADR-0041](adr/0041-frozen-plan-input-dependencies.md) 与[验收/演示](evidence/readonly-input-dependencies-2026-10-20.md)。历史工具文件依赖仍延期；本地检查不代表远端 CI。
