@@ -52,12 +52,12 @@ export function sameConfirmedDelivery(current: FactVersionState, candidate: Requ
 	const original = frozen && originalCustomerText(frozen);
 	if (!frozen || !original || live.length !== 1 || live[0].version !== frozen.version || originalCustomerText(live[0]) !== original) return false;
 	const qualified = [current.value, candidate.value].map(value => String(value).normalize("NFKC").replaceAll(/\s/g, "")).find(value => /^\d{4}-\d{2}-\d{2}(?:到货|出货)$/.test(value));
-	const deliveryText = /\d{4}-\d{2}-\d{2}|到货|出货|交期|交货|发货/;
+	const deliveryText = /\d{4}-\d{2}-\d{2}|到货|出货|交期|交货|发货|交付/;
 	const explicit = (text: string) => {
 		const clauses = text.normalize("NFKC").split(/[，,。；;\n]/).filter(clause => deliveryText.test(clause));
-		if (clauses.length !== 1 || /不是|不要|并非|未定|待|或|改|取消|撤回|可能|预计|大约|旧|原来|之前|[?？]/.test(clauses[0]) ||
-			(clauses[0].match(/\d{4}-\d{2}-\d{2}/g) ?? []).length !== 1 || (clauses[0].match(/到货|出货/g) ?? []).length !== 1) return;
-		return /(\d{4}-\d{2}-\d{2})\s*(到货|出货)/.exec(clauses[0])?.slice(1).join("");
+		if (clauses.length !== 1) return;
+		// ponytail: fixed affirmative clauses only; expand with counterexamples, never a negation blacklist.
+		return /^(?:(?:订单约定|本单约定|明确约定|约定|交期(?:为)?|交付日期(?:为)?)[：:\s]*)?(\d{4}-\d{2}-\d{2})\s*(到货|出货)[!！.]?$/.exec(clauses[0].trim())?.slice(1).join("");
 	};
 	if (!qualified || explicit(original) !== qualified) return false;
 	return evidence.every(item => {

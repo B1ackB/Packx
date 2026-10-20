@@ -111,10 +111,13 @@ describe("requirement evidence review boundary", () => {
 	it.each([
 		{ original: "2026-11-30 到货。", proposed: "2026-11-30 到货", eligible: true },
 		{ original: "2026-11-30 出货。", proposed: "2026-11-30 出货", eligible: true },
+		{ original: "交期：2026-11-30 到货。", proposed: "2026-11-30 到货", eligible: true },
 		{ original: "2026-11-30 到货。", proposed: "2026-11-30 出货", eligible: false },
 		{ original: "2026-11-30 到货。", proposed: "2026-12-01 到货", eligible: false },
 		{ original: "2026-11-30，口径未定。", proposed: "2026-11-30 到货", eligible: false },
 		{ original: "不是 2026-11-30 到货。", proposed: "2026-11-30 到货", eligible: false },
+		{ original: "不要求 2026-11-30 到货。", proposed: "2026-11-30 到货", eligible: false },
+		{ original: "禁止在 2026-11-30 到货。", proposed: "2026-11-30 到货", eligible: false },
 		{ original: "2026-11-30 到货或出货，待确认。", proposed: "2026-11-30 到货", eligible: false },
 	])("compares delivery wording against the original bound to human confirmation: $original / $proposed", async ({ original, proposed, eligible }) => {
 		const candidate = structuredClone(fixture.artifact);
