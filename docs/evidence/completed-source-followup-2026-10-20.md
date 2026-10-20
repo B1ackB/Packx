@@ -34,3 +34,9 @@
 本机日志为 `/tmp/packx-followup-baseline.log`、`/tmp/packx-followup-targeted.log`、`/tmp/packx-followup-core.log`（首轮环境失败）、`/tmp/packx-followup-core-full.log`、`/tmp/packx-followup-native.log`、`/tmp/packx-followup-browser.log`、`/tmp/packx-followup-policy.log`、`/tmp/packx-followup-secrets.log`、`/tmp/packx-followup-audit.log`。不纳入用户数据、凭证或本机临时日志。常规测试没有单独 lint 脚本，以仓库 core 的类型/构建及 policy 门禁为准。
 
 本轮开始官方额度剩余 70%，本地验证完成时剩余 69%，至少保留 15%。未运行真实模型、公网正向抓取或 Windows 本机 runner，后者以实际远端 CI 为准。
+
+## 远端交付
+
+已正常推送 `codex/completed-source-review-followup`，远端代码提交核验为 `383490630584a36aee1dd5377cd997a370f4f3f0`，包含交接提交 `730588e` 和本轮修复。通过已有 B1ackB 浏览器登录创建 [draft PR #56](https://github.com/B1ackB/Packx/pull/56)，目标 main，累计 52 文件；未合并、部署、强推或修改凭证。
+
+本地验证统计对应上述代码。此后同步交付链接的提交仅修改文档；最终远端执行结果以 [PR 最新提交的 Checks](https://github.com/B1ackB/Packx/pull/56/checks) 为准，必须核对 core-offline、browser、native-product、windows-local-data 和 ci-required 的真实终态，不以 draft、可合并提示或上轮 CI 代替。
