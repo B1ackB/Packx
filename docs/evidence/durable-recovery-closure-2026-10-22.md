@@ -46,3 +46,9 @@ The first full run exposed two obsolete assertions (all snapshot reads counted a
 ## Evidence boundaries
 
 Local checks do not establish remote CI, Windows desktop acceptance, real employee acceptance or paid-model quality. Forced process termination is not a power-cut test. Responses lost before an intent is durably written cannot be reconstructed, and provider billing is not exactly once. No project push, merge, deployment, production-data rewrite or automatic lock removal is part of this closure.
+
+## Publication verification
+
+After the user authorized publication, PR #56 advanced to `dbd3705`. [CI run 39786139775](https://github.com/B1ackB/Packx/actions/runs/39786139775) passed core/offline, browser and macOS native/product checks. Windows passed all 182 local-data tests, including the new mutation, completion, Outbox and Cron suites, then stopped before native compilation because the pinned Visual Studio installation was unavailable on image `20261018.275.1`.
+
+The runner's linked image tag returned 404 and the official current image README still listed the older image and pinned version. The failure path now reports the available C++ installation versions through the existing bounded, read-only locator. Version matching, native checks and failure behavior remain mandatory; no unverified compiler is selected automatically. Full Windows validation remains pending until the toolchain pin and native execution are verified on the hosted runner.

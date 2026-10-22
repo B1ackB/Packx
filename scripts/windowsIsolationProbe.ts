@@ -68,7 +68,10 @@ export async function runWindowsIsolationProbe(environment: NodeJS.ProcessEnv, v
 	const select = ["-products", "*", "-version", policy.visualStudioRange, "-requires", "Microsoft.VisualStudio.Component.VC.Tools.x86.x64"];
 	const installation = discover("installation_path", [...select, "-property", "installationPath"]).trim();
 	const version = discover("installation_version", [...select, "-property", "installationVersion"]).trim();
-	if (!installation || version !== policy.visualStudioVersion) throw new Error("Pinned MSVC installation is unavailable; refusing to skip");
+	if (!installation || version !== policy.visualStudioVersion) {
+		const installed = discover("available_versions", ["-products", "*", "-requires", "Microsoft.VisualStudio.Component.VC.Tools.x86.x64", "-property", "installationVersion"]).trim();
+		throw new Error(`Pinned MSVC installation ${policy.visualStudioVersion} is unavailable; installed C++ toolchain versions: ${installed || "none"}; refusing to skip`);
+	}
 	mkdirSync("temp", { recursive: true });
 	const scratch = mkdtempSync(resolve("temp/windows-isolation-"));
 	const build = join(scratch, "build"), attempt = join(scratch, "attempt");
