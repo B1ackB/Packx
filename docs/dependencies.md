@@ -15,6 +15,12 @@ vitest@4.1.12: sha512-5eWdz2yb3ajxWF3C8C4TjkXl7FGm3n2E/VlazALrQHzK7nYMSGFnCZto0b
 
 ## 2026-10-16：Windows 固定隔离探针的 CI 工具链
 
+### 2026-10-22 hosted image rollout
+
+The CI manifest now lists the exact Visual Studio installation versions `18.11.12306.390` and `18.10.12224.181`, in preference order. Microsoft's [release history](https://learn.microsoft.com/en-us/visualstudio/releases/2026/release-history) identifies these as stable 18.11.0 (build 12306.390, October 13) and 18.10.3 (build 12224.181, September 29). [Windows job 119922077846](https://github.com/B1ackB/Packx/actions/runs/39806801058/job/119922077846) independently reported only `18.11.12306.390` on hosted image `20261018.275.1`; the previous single pin correctly blocked compilation. The image's reported release tag was unavailable when checked, so the new version's release provenance is recorded directly from Microsoft rather than claiming that image manifest was inspected.
+
+Only complete, launchable, stable installations with an exact listed version are selectable. The SDK remains `10.0.26100.0` and vswhere remains `3.1.7`; unsupported versions still fail. Source verification makes a version eligible for CI validation, not evidence that native isolation works: every selected build must pass the existing compilation, Job cleanup, LPAC permission/network, protected-text, and portable-package checks. Both versions are preinstalled CI tools under the same Microsoft licensing boundary below; there is no compiler download or new distribution approval. Later image changes require another source review and actual native validation.
+
 独立编写的测试探针只使用微软 Win32 AppContainer／LPAC、ACL、Job Object 和 Winsock API，没有引入外部 Harness 源码、npm 依赖或生产运行时组件。固定已安装 Visual Studio Enterprise 2026 `18.10.12224.181`、Windows SDK `10.0.26100.0` 与 vswhere `3.1.7`，来源为 [GitHub 官方 runner image 20261007.264.1 清单](https://github.com/actions/runner-images/blob/win25-vs2026/20261007.264/images/windows/Windows2025-VS2026-Readme.md)，配置见 `.github/windows-isolation-toolchain.json`。固定版本不存在则失败，不下载替代工具或修改系统设置。
 
 vswhere 为 [MIT](https://github.com/microsoft/vswhere/blob/3.1.7/LICENSE.txt)。Visual Studio／Windows SDK 属微软专有许可，仅使用 GitHub 托管运行器已提供的 CI 工具链；不下载、复制或分发 SDK、编译器及其许可证所约束的运行时组件。静态链接的探针仅在本次临时目录中执行并删除，不加入发行物、不上传二进制；正式产品分发需要另行审核 SDK／CRT 再分发许可，不能以此实验替代。编译和测试不访问真实模型或客户资料，网络探针仅连接同一运行器的合成回环 listener。

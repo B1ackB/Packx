@@ -1,6 +1,6 @@
 # Windows 验证包的来源与许可边界
 
-Packx 源码采用根 LICENSE 的 MIT 许可。包内两个原生程序独立来自本仓库 native/windows 源码；使用既有 Windows hosted CI 的固定 Visual Studio 18.10.12224.181 / SDK 10.0.26100.0，Release /MT 编译。包不包含 Visual Studio、Windows SDK、独立 CRT DLL、编译工具、Node/npm 安装器或未审计 Harness 源码。Microsoft 编译器/运行库不因 Packx 的 MIT 许可而改变许可。
+Packx source uses the MIT license in the root LICENSE. The two native programs are independently implemented in `native/windows` and built with the preinstalled Windows hosted CI toolchain using Release `/MT`. The exact eligible Visual Studio versions are `18.11.12306.390` and `18.10.12224.181`, with Windows SDK `10.0.26100.0`; the CI log records the selected version. The package excludes Visual Studio, the Windows SDK, separate CRT DLLs, compiler tools, Node/npm installers, and unaudited Harness source. Packx's MIT license does not change Microsoft's compiler or runtime licensing terms.
 
 编译工具使用受其原有许可约束，不要求用户安装或新购编译器。此产物限内部验证，不是客户商业分发批准；签名安装器及商业再分发需在正式发行流程确认工具链许可、静态链接运行库的适用条款、终端条款和组织签名。不得把 CI 提供编译器误写为拥有任意再分发权利。微软官方来源：
 

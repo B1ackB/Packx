@@ -48,6 +48,10 @@ The configuration isolates this invocation from the runner's mirror lists and AP
 
 This addresses the repeated package-download stalls in [main run 39796308895](https://github.com/B1ackB/Packx/actions/runs/39796308895): both attempts timed out before browser tests started. The first failure completed at 2026-10-22 14:48:23 UTC. Offline installer tests verify source policy, phase failures, cleanup, and platform scope; only an actual hosted run verifies network installation and browser execution. After a merge, inspect the new `push` run on the merge commit separately from the PR checks.
 
+### Windows toolchain rollout
+
+The Windows job discovers complete C++ installations once and selects only an exact version from `.github/windows-isolation-toolchain.json`, in reviewed preference order. This supports the observed old/new hosted image rollout without a wildcard or automatic update. The existing SDK and vswhere pins, build limits, native isolation assertions, and required gate remain in force. An unknown build still fails with the observed versions in its diagnostic; review its provenance and validate the actual native checks before adding a pin. See the [dependency review](dependencies.md#2026-10-22-hosted-image-rollout).
+
 | 失败位置 | 处理方式 |
 | --- | --- |
 | 锁文件安装 | 核对清单与锁文件，不在 CI 自动修锁；用同版 Node/npm 在本地重现 |

@@ -1,5 +1,28 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { assessRegistryReadCandidate, assessWindowsIsolationReport } from "../scripts/windowsIsolationProbe";
+import { assessRegistryReadCandidate, assessWindowsIsolationReport, selectWindowsToolchain } from "../scripts/windowsIsolationProbe";
+
+describe("reviewed Windows toolchain selection", () => {
+	const policy = JSON.parse(readFileSync(".github/windows-isolation-toolchain.json", "utf8"));
+	const installed = (version: string) => ({ installationVersion: version, installationPath: "C:\\Program Files\\Microsoft Visual Studio\\18\\Enterprise", isComplete: true, isLaunchable: true, isPrerelease: false });
+	it.each(["18.10.12224.181", "18.11.12306.390"])("accepts the exact reviewed build %s during the hosted image rollout", (version) => {
+		expect(selectWindowsToolchain([installed(version)], policy.visualStudioVersions)).toEqual({ installation: installed(version).installationPath, version });
+	});
+	it("uses reviewed preference order, regardless of discovery order or a newer unreviewed build", () => {
+		const available = [installed("99.1.10000.1"), installed("18.10.12224.181"), installed("18.11.12306.390")];
+		expect(selectWindowsToolchain(available, ["18.11.12306.390", "18.10.12224.181"]).version).toBe("18.11.12306.390");
+	});
+	it("rejects an unknown build and reports the observed version instead of downloading or falling back", () => {
+		expect(() => selectWindowsToolchain([installed("18.11.12306.391")], policy.visualStudioVersions)).toThrow(/installed C\+\+ toolchain versions: 18\.11\.12306\.391; refusing to skip/);
+	});
+	it.each([{ isComplete: false }, { isLaunchable: false }, { isPrerelease: true }, { installationPath: 'C:\\VS" & echo unexpected' }])("rejects an unusable or unsafe pinned installation: %j", (change) => {
+		expect(() => selectWindowsToolchain([{ ...installed("18.10.12224.181"), ...change }], policy.visualStudioVersions)).toThrow();
+	});
+	it("rejects malformed discovery and non-exact version policies", () => {
+		for (const report of [null, {}, [null], [{ installationVersion: "18.10.12224.181" }]]) expect(() => selectWindowsToolchain(report, policy.visualStudioVersions)).toThrow("Invalid Visual Studio installation report");
+		for (const versions of [[], ["18.*"], ["[18,19)"]]) expect(() => selectWindowsToolchain([installed("18.10.12224.181")], versions)).toThrow("Expected exact reviewed Visual Studio versions");
+	});
+});
 
 const unavailable = {
 	schemaVersion: "windows-isolation-experiment.v2", experimentOnly: true, productionAdapterEnabled: false, mode: "diagnostic",
