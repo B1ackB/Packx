@@ -40,6 +40,14 @@ node --import tsx scripts/ci.ts windows-local-data
 
 ## 失败排查
 
+### Hosted Ubuntu browser setup
+
+On the reviewed GitHub-hosted `ubuntu24` image, `browser-install` prepares system dependencies and the locked Chromium headless shell in separate phases, each limited to five minutes. Playwright still owns the dependency list. Its dependency installer receives a temporary APT configuration after `sudo`, using the official Ubuntu archive and security HTTPS endpoints, Noble suites, and the Ubuntu archive signing key. Connections and stalled transfers have a 30-second timeout and at most two retries; an incomplete package-index refresh fails the job.
+
+The configuration isolates this invocation from the runner's mirror lists and APT configuration snippets. It does not edit `/etc/apt` or disable package signatures or TLS checks, and is removed on success or failure. Local machines and self-hosted runners retain the standard Playwright installer. A different hosted Linux image requires review before these Ubuntu-specific sources can be used.
+
+This addresses the repeated package-download stalls in [main run 39796308895](https://github.com/B1ackB/Packx/actions/runs/39796308895): both attempts timed out before browser tests started. The first failure completed at 2026-10-22 14:48:23 UTC. Offline installer tests verify source policy, phase failures, cleanup, and platform scope; only an actual hosted run verifies network installation and browser execution. After a merge, inspect the new `push` run on the merge commit separately from the PR checks.
+
 | 失败位置 | 处理方式 |
 | --- | --- |
 | 锁文件安装 | 核对清单与锁文件，不在 CI 自动修锁；用同版 Node/npm 在本地重现 |
