@@ -468,30 +468,29 @@ it("recovers the gap between an approval commit and gate dispatch using the same
 	expect(requirement(h.controller.get(context, h.conversationId)).state.stageStatus).toBe("passed");
 });
 
-it.each([false, true])("invalidates additions at review, gate and export (initial attachment=%s)", async initialAttachment => {
-	for (const phase of ["review", "gate", "export"] as const) {
-		const h = await readyForApproval(initialAttachment);
-		const before = requirement(h.controller.get(context, h.conversationId));
-		const input = { requestId: "approve-current", decision: "approved", ...approvalReview(before) };
-		if (phase !== "review") expect(h.controller.resolveApproval(context, h.conversationId, input).status).toBe(202);
-		if (phase === "export") expect((await h.scheduler.runNext()).status).toBe("completed");
-		h.attachments.put({ ...context, conversationId: h.conversationId }, { requestId: "amendment", name: "amendment.txt", mediaType: "text/plain", content: Buffer.from("最新数量 7000 个，不使用原 5000 个订单") });
-		if (phase === "review") expect(h.controller.resolveApproval(context, h.conversationId, input)).toMatchObject({ status: 409, body: { code: "approval_review_stale" } });
-		if (phase === "gate") expect(await h.scheduler.runNext()).toMatchObject({ status: "dead_letter", job: { lastFailure: { code: "context_failure" } } });
-		const delivered = h.controller.delivery(context, h.conversationId, before.state.currentProposal!.version);
-		expect(delivered).toMatchObject({ status: 200, body: { delivery: { status: "stale" } } });
-		const current = requirement(h.controller.get(context, h.conversationId)).state;
-		expect(current).toMatchObject({ stageStatus: "revision_required", approval: { status: "superseded" }, facts: { quantity: { value: 5000, status: "verified" } } });
-		expect(requirement(h.controller.get(context, h.conversationId)).state.aggregateVersion).toBe(current.aggregateVersion);
-		// An explicit new intake can bind the changed snapshot; old approval stays invalid.
-		expect((await h.controller.start(context, h.conversationId, { requestId: "review-new-sources", industry: "print" })).status).toBe(202);
-		expect((await h.scheduler.runNext()).status).toBe("completed");
-		const regenerated = requirement(h.controller.get(context, h.conversationId)).state;
-		expect(regenerated.currentProposal?.version).toBe(3);
-		if (phase !== "review") {
-			expect(h.controller.resolveApproval(context, h.conversationId, input).status).toBe(202);
-			expect(requirement(h.controller.get(context, h.conversationId)).state).toEqual(regenerated);
-		}
+it.each([false, true].flatMap(initialAttachment => ["review", "gate", "export"].map(phase => ({ initialAttachment, phase }))))(
+	"invalidates additions at $phase (initial attachment=$initialAttachment)", async ({ initialAttachment, phase }) => {
+	const h = await readyForApproval(initialAttachment);
+	const before = requirement(h.controller.get(context, h.conversationId));
+	const input = { requestId: "approve-current", decision: "approved", ...approvalReview(before) };
+	if (phase !== "review") expect(h.controller.resolveApproval(context, h.conversationId, input).status).toBe(202);
+	if (phase === "export") expect((await h.scheduler.runNext()).status).toBe("completed");
+	h.attachments.put({ ...context, conversationId: h.conversationId }, { requestId: "amendment", name: "amendment.txt", mediaType: "text/plain", content: Buffer.from("最新数量 7000 个，不使用原 5000 个订单") });
+	if (phase === "review") expect(h.controller.resolveApproval(context, h.conversationId, input)).toMatchObject({ status: 409, body: { code: "approval_review_stale" } });
+	if (phase === "gate") expect(await h.scheduler.runNext()).toMatchObject({ status: "dead_letter", job: { lastFailure: { code: "context_failure" } } });
+	const delivered = h.controller.delivery(context, h.conversationId, before.state.currentProposal!.version);
+	expect(delivered).toMatchObject({ status: 200, body: { delivery: { status: "stale" } } });
+	const current = requirement(h.controller.get(context, h.conversationId)).state;
+	expect(current).toMatchObject({ stageStatus: "revision_required", approval: { status: "superseded" }, facts: { quantity: { value: 5000, status: "verified" } } });
+	expect(requirement(h.controller.get(context, h.conversationId)).state.aggregateVersion).toBe(current.aggregateVersion);
+	// An explicit new intake can bind the changed snapshot; old approval stays invalid.
+	expect((await h.controller.start(context, h.conversationId, { requestId: "review-new-sources", industry: "print" })).status).toBe(202);
+	expect((await h.scheduler.runNext()).status).toBe("completed");
+	const regenerated = requirement(h.controller.get(context, h.conversationId)).state;
+	expect(regenerated.currentProposal?.version).toBe(3);
+	if (phase !== "review") {
+		expect(h.controller.resolveApproval(context, h.conversationId, input).status).toBe(202);
+		expect(requirement(h.controller.get(context, h.conversationId)).state).toEqual(regenerated);
 	}
 });
 

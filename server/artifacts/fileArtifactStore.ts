@@ -1,4 +1,5 @@
-import { FileWriteLockError, withFileWriteLock } from "../fileWriteLock";
+import { withFileWriteLock } from "../fileWriteLock";
+import { syncDirectory } from "../syncDirectory";
 import {
 	chmodSync,
 	existsSync,
@@ -63,15 +64,17 @@ export class FileArtifactContentStore implements ArtifactContentStore {
 						"Artifact version already exists with different content",
 					);
 				}
+				syncDirectory(dirname(path));
 				return;
 			}
 			const directory = dirname(path);
 			mkdirSync(directory, { recursive: true, mode: 0o700 });
 			const temporaryPath = `${path}.${crypto.randomUUID()}.tmp`;
 			try {
-				writeFileSync(temporaryPath, serialized, { encoding: "utf8", mode: 0o600 });
+				writeFileSync(temporaryPath, serialized, { encoding: "utf8", mode: 0o600, flush: true });
 				renameSync(temporaryPath, path);
 				chmodSync(path, 0o600);
+				syncDirectory(directory);
 			} finally {
 				if (existsSync(temporaryPath)) unlinkSync(temporaryPath);
 			}
@@ -112,8 +115,8 @@ export class FileArtifactContentStore implements ArtifactContentStore {
 	private withLock<T>(path: string, operation: () => T): T {
 		try { return withFileWriteLock(path, operation); }
 		catch (error) {
-			if (error instanceof FileWriteLockError) throw new ArtifactStoreError("artifact_store_unavailable", "Artifact version is locked or unavailable", { cause: error });
-			throw error;
+			if (error instanceof ArtifactStoreError) throw error;
+			throw new ArtifactStoreError("artifact_store_unavailable", "Artifact version is locked or unavailable", { cause: error });
 		}
 	}
 }

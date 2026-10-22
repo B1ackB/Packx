@@ -358,7 +358,7 @@ const proposalWorkerApi = new ProposalWorkerApiController(
 	process.env.BLACKX_WORKER_API_TOKEN,
 	process.env.BLACKX_OPERATOR_API_TOKEN,
 );
-let stopStageJobScheduler = () => {};
+let stopStageJobScheduler = () => Promise.resolve();
 const server = createServer();
 const vite = process.env.BLACKX_PRODUCTION === "1" ? undefined : await (await import("vite")).createServer({
 	server: {
@@ -1333,20 +1333,25 @@ server.listen(port, "127.0.0.1", () => {
   });
 });
 server.on("close", () => {
-	stopStageJobScheduler();
-	sqliteStageJobQueue?.close();
+	void stopStageJobScheduler();
 });
 function stopHost() {
 	if (hostState === "stopping") return;
 	try { recordHostStop("process_signal"); } catch { console.error("host_stop_audit_unavailable"); }
 	hostState = "stopping";
-	stopStageJobScheduler();
+	const drained = stopStageJobScheduler();
+	let finished = false;
 	const finish = () => {
+		if (finished) return;
+		finished = true;
+		clearTimeout(deadline);
 		sourceReports.close(); planStore.close(); taskNames.close(); personalMemoryStore.close(); templateLibrary.close(); taskCheckpoints.close();
+		knowledgeStore.close(); sqliteStageJobQueue?.close();
 		process.exit(0);
 	};
-	server.close(finish);
-	// Running work is cancelled; unfinished leases/side effects keep their recovery evidence.
-	setTimeout(() => { server.closeAllConnections(); finish(); }, 5000).unref();
+	// Keep stores open until both HTTP work and the active worker have stopped.
+	// The deadline still bounds an uncooperative task; its lease/evidence survive restart.
+	const deadline = setTimeout(() => { server.closeAllConnections(); finish(); }, 5000);
+	void Promise.all([drained, new Promise<void>((resolve) => server.close(() => resolve()))]).then(finish);
 }
 for (const signal of ["SIGINT", "SIGTERM"] as const) process.once(signal, stopHost);

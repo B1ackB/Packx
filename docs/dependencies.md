@@ -1,5 +1,18 @@
 # 本次切片依赖记录
 
+## 2026-10-22 security patch verification
+
+The current npm audit reported one high and two moderate package findings. The patch keeps the existing major versions and pins `vite` to `7.3.7` and `vitest` to `4.1.12`; the seven existing `@vitest/*` packages move to `4.1.12` with Vitest. Unrelated transitive versions remain unchanged. Installation used `--ignore-scripts --no-audit --no-fund`; the subsequent explicit audit reports zero findings at every severity.
+
+Sources: [Vite 7.3.7](https://github.com/vitejs/vite/releases/tag/v7.3.7), [launch-editor advisory and affected Vite versions](https://github.com/advisories/GHSA-587h-7wmj-h5pm), [Vitest manual mock injection](https://github.com/vitest-dev/vitest/security/advisories/GHSA-qxg6-89mg-rqv8), and [Vitest Windows redirect traversal](https://github.com/vitest-dev/vitest/security/advisories/GHSA-xp26-3454-mjgp). The npm registry metadata identifies the official Vite and Vitest repositories. Both installed packages retain their MIT license and bundled dependency notices. This update introduces no new provider, telemetry service, or model/data transfer.
+
+The lockfile records each tarball URL and integrity. The direct package integrity values are:
+
+```text
+vite@7.3.7: sha512-AHEzTORMbi7/7aXp7w7KZ5+DCUdSeLsJz0grY8xHpc9DHdYb0vQu6DqJfm2tOw3gDExNgPgnJTXxM6syYFHaCA==
+vitest@4.1.12: sha512-5eWdz2yb3ajxWF3C8C4TjkXl7FGm3n2E/VlazALrQHzK7nYMSGFnCZto0bbPNl77AwkOZVLk0YnBAejUu0NiWA==
+```
+
 ## 2026-10-16：Windows 固定隔离探针的 CI 工具链
 
 独立编写的测试探针只使用微软 Win32 AppContainer／LPAC、ACL、Job Object 和 Winsock API，没有引入外部 Harness 源码、npm 依赖或生产运行时组件。固定已安装 Visual Studio Enterprise 2026 `18.10.12224.181`、Windows SDK `10.0.26100.0` 与 vswhere `3.1.7`，来源为 [GitHub 官方 runner image 20261007.264.1 清单](https://github.com/actions/runner-images/blob/win25-vs2026/20261007.264/images/windows/Windows2025-VS2026-Readme.md)，配置见 `.github/windows-isolation-toolchain.json`。固定版本不存在则失败，不下载替代工具或修改系统设置。

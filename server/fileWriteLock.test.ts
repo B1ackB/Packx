@@ -8,6 +8,7 @@ import { expect, it } from "vitest";
 import { withFileWriteLock } from "./fileWriteLock";
 import { FileArtifactContentStore } from "./artifacts/fileArtifactStore";
 import { FileAgentStateStore } from "./runtime/fileAgentStateStore";
+import { FileConversationAttachmentStore } from "./runtime/conversationAttachments";
 import { FileEnterpriseEventStore } from "./enterprise/fileEventStore";
 import { ProposalRunEngine } from "../src/enterprise/proposalRunEngine";
 
@@ -17,7 +18,7 @@ const command = { ...scope, actorId: "employee", commandId: "create", correlatio
 const now = "2026-09-30T00:00:00.000Z";
 const modulePath = (path: string) => JSON.stringify(pathToFileURL(resolve(path)).href);
 
-it.each(["artifact", "session", "event"] as const)("releases the %s writer lock on forced termination before and after atomic commit", kind => {
+it.each(["artifact", "session", "event", "attachment"] as const)("releases the %s writer lock on forced termination before and after atomic commit", kind => {
 	for (const phase of ["before", "after"]) {
 		const root = mkdtempSync(join(tmpdir(), "packx-store-crash-"));
 		try {
@@ -27,6 +28,7 @@ it.each(["artifact", "session", "event"] as const)("releases the %s writer lock 
 				const rename = fs.renameSync;
 				const crash = () => { fs.writeSync(2, 'packx_test_crash_injected'); process.kill(process.pid, 'SIGKILL'); };
 				fs.renameSync = (...args) => {
+					if (${JSON.stringify(kind)} === 'attachment' && !String(args[1]).endsWith('.bin')) return rename(...args);
 					if (${JSON.stringify(phase)} === 'before') crash();
 					rename(...args);
 					crash();
@@ -34,12 +36,14 @@ it.each(["artifact", "session", "event"] as const)("releases the %s writer lock 
 				syncBuiltinESMExports();
 				const { FileArtifactContentStore } = await import(${modulePath("server/artifacts/fileArtifactStore.ts")});
 				const { FileAgentStateStore } = await import(${modulePath("server/runtime/fileAgentStateStore.ts")});
+				const { FileConversationAttachmentStore } = await import(${modulePath("server/runtime/conversationAttachments.ts")});
 				const { FileEnterpriseEventStore } = await import(${modulePath("server/enterprise/fileEventStore.ts")});
 				const { ProposalRunEngine } = await import(${modulePath("src/enterprise/proposalRunEngine.ts")});
 				const root = ${JSON.stringify(root)};
 				if (${JSON.stringify(kind)} === 'artifact') new FileArtifactContentStore(root).putJson(${JSON.stringify(key)}, { value: 5000 });
 				if (${JSON.stringify(kind)} === 'session') new FileAgentStateStore(root).createSession(${JSON.stringify(scope)}, ${JSON.stringify(now)});
 				if (${JSON.stringify(kind)} === 'event') new ProposalRunEngine(new FileEnterpriseEventStore(root + '/events.json')).create(${JSON.stringify(command)});
+				if (${JSON.stringify(kind)} === 'attachment') new FileConversationAttachmentStore(root).put({ ...${JSON.stringify(scope)}, conversationId: 'conversation' }, { requestId: 'upload', name: 'source.txt', mediaType: 'text/plain', content: Buffer.from('original source') });
 			`], { encoding: "utf8", timeout: 10_000 });
 			expect(child.stderr).toContain("packx_test_crash_injected");
 			expect(child.status !== 0 || child.signal !== null).toBe(true);
@@ -53,6 +57,17 @@ it.each(["artifact", "session", "event"] as const)("releases the %s writer lock 
 				expect(store.load(scope).revision).toBe(phase === "before" ? 0 : 1);
 				store.save(scope, store.load(scope).revision, [], now);
 				expect(store.load(scope).revision).toBe(phase === "before" ? 1 : 2);
+			} else if (kind === "attachment") {
+				const store = new FileConversationAttachmentStore(root), attachmentScope = { ...scope, conversationId: "conversation" };
+				const input = { requestId: "upload", name: "source.txt", mediaType: "text/plain", content: Buffer.from("original source") };
+				expect(store.list(attachmentScope)).toEqual([]);
+				for (const changed of [{ ...input, content: Buffer.from("replacement") }, { ...input, name: "another.txt" }]) {
+					expect(() => store.put(attachmentScope, changed)).toThrow(expect.objectContaining({ code: "attachment_conflict" }));
+				}
+				const saved = store.put(attachmentScope, input);
+				expect(store.put(attachmentScope, input)).toEqual({ ...saved, duplicate: true });
+				expect(store.read(attachmentScope, saved.attachment.attachmentId).content.toString()).toBe("original source");
+				expect(store.list(attachmentScope)).toHaveLength(1);
 			} else {
 				const engine = new ProposalRunEngine(new FileEnterpriseEventStore(join(root, "events.json")));
 				expect(engine.load(scope).aggregateVersion).toBe(phase === "before" ? 0 : 1);

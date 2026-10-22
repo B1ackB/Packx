@@ -10,7 +10,7 @@ import {
 import { RuntimeFailure } from "../../src/runtime/contracts";
 
 export type StageJobRunResult =
-	| { status: "idle" | "busy" }
+	| { status: "idle" | "busy" | "stopped" }
 	| { status: "completed" | "paused" | "retry_scheduled" | "dead_letter" | "cancelled"; job: StageJob };
 
 export interface StageJobHandlerResult {
@@ -71,6 +71,7 @@ export class StageJobScheduler {
 	private readonly pollIntervalMs: number;
 	private readonly heartbeatMs: number;
 	private running = false;
+	private idle = Promise.resolve();
 	private stopRequested = false;
 	private timer?: NodeJS.Timeout;
 	private readonly activeJobs = new Map<string, AbortController>();
@@ -141,8 +142,11 @@ export class StageJobScheduler {
 	}
 
 	async runNext(): Promise<StageJobRunResult> {
+		if (this.stopRequested) return { status: "stopped" };
 		if (this.running) return { status: "busy" };
 		this.running = true;
+		let finish!: () => void;
+		this.idle = new Promise<void>((resolve) => { finish = resolve; });
 		let lease = undefined as ReturnType<StageJobQueue["claim"]>;
 		try {
 			try { this.options.dispatchOutbox?.(); }
@@ -209,6 +213,8 @@ export class StageJobScheduler {
 			}
 			return { status: "completed", job: this.queue.ack(activeLease) };
 		} catch (error) {
+			// Shutdown is not a job failure. Retain the lease and execution evidence for recovery.
+			if (this.stopRequested) return { status: "stopped" };
 			if (!lease || error instanceof StageJobQueueError && error.code === "lease_lost") throw error;
 			const current = this.queue.get(lease.jobId);
 			if (current?.status === "cancelled") return { status: "cancelled", job: current };
@@ -224,6 +230,7 @@ export class StageJobScheduler {
 		} finally {
 			if (lease) this.activeJobs.delete(lease.jobId);
 			this.running = false;
+			finish();
 		}
 	}
 
@@ -231,7 +238,7 @@ export class StageJobScheduler {
 		return this.options.handlers?.[lease.stageId];
 	}
 
-	start(): () => void {
+	start(): () => Promise<void> {
 		if (this.timer) return () => this.stop();
 		this.stopRequested = false;
 		const tick = async () => {
@@ -250,10 +257,11 @@ export class StageJobScheduler {
 		return () => this.stop();
 	}
 
-	stop(): void {
+	stop(): Promise<void> {
 		this.stopRequested = true;
 		for (const controller of this.activeJobs.values()) controller.abort(new RuntimeFailure("cancelled", "Worker stopped", false));
 		if (this.timer) clearTimeout(this.timer);
 		this.timer = undefined;
+		return this.idle;
 	}
 }

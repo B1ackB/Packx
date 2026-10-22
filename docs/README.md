@@ -1,5 +1,7 @@
 # Packx 文档导航
 
+Latest maintenance: [2026-10-22 project reliability audit and closure record](evidence/project-closure-2026-10-22.md), covering current fixes, validation results, dependency patches, and the remaining recovery backlog.
+
 整理日期：2026-09-29。文档按用途组织；机制文档说明当前行为，ADR 记录决策，日期报告保留当时证据。历史报告的测试数量、产品范围和待办不自动代表当前实现。
 
 第一次阅读建议从[项目首页](../README.zh-CN.md)开始，先看[需求单流程图](../README.zh-CN.md#从询价到需求单)、[当前架构图](../README.zh-CN.md#项目架构)与[验证边界](../README.zh-CN.md#验证到了哪一步)，再按下表进入具体机制。英文入口见 [README](../README.md)。

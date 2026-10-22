@@ -1,5 +1,17 @@
 # 错误处理与可靠性恢复
 
+## 2026-10-22 recovery update
+
+Scheduled knowledge indexing now has a two-minute deadline. The service checks both cancellation and elapsed time before the index commit, so a delayed timer cannot admit a late result. A timeout leaves the document `parsed` and records a retryable `timeout` in the existing Job. The existing three-failure limit and explicit redrive remain in force. Direct `KnowledgeStore.process` callers still supply their own execution policy; this does not introduce process isolation for a blocked native model.
+
+The scheduler's `stop()` now returns a drain promise. Host shutdown waits for active HTTP requests and the worker before closing stores, with the existing five-second exit bound. A stopped worker retains its lease and execution evidence instead of entering the dead-letter queue as a non-retryable cancellation. After lease expiry, the next Host uses normal recovery. Explicit user cancellation still cancels the Job.
+
+Attachment upload now persists a private `.pending` intent containing the original request identity before publishing bytes. Pending uploads stay outside the visible attachment list. An identical retry finishes the saved upload; changed names, media types, sizes, or hashes fail. Existing unmatched bytes and legacy ownerless directory locks remain preserved for operator review. The attachment store reuses the SQLite process-owned write lock, which the OS releases on process death.
+
+Session, snapshot, Trace, execution-ledger, Artifact, and attachment writes flush temporary file contents before rename and flush the containing directory through the existing platform adapter. Artifact and attachment errors retain their cause and use their storage error category. A directory flush failure after rename means the write may already exist: reread the revision or retry the same immutable identity. Windows still lacks directory flushing through this adapter; these checks do not establish power-loss guarantees or a cross-store transaction.
+
+Reproduction, regression results, and the remaining recovery backlog appear in the [closure record](evidence/project-closure-2026-10-22.md). The dated discussion below describes its earlier implementation.
+
 日期：2026-09-21。决策见 [ADR-0025](adr/0025-evidence-bound-recovery-and-explicit-degradation.md)。本次复用执行账本、文件审批、不可变文件版本、Runtime Adapter 和 KnowledgeStore，补齐已有幂等、超时与有界重试之后的恢复路径。
 
 2026-09-21 追加：[逐节点故障、回滚与恢复审计](failure-handling-audit.md) 按 40 个节点核对当前调用链，记录事务边界、已实现处理、人工处置、验证证据和未闭合缺口。下文是文件恢复与检索降级的专项机制，不代表全任务都能 rollback；特别是索引总超时、非文件工具未决结果对账、跨存储提交、残留锁及关停仍有限制。Outbox 有退避但没有总尝试次数上限，不能把 Job 的有界重试扩大解释为全链路保证。

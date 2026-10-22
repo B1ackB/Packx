@@ -40,8 +40,19 @@ export class KnowledgeService {
 	}
 	async execute(lease: StageJobLease, signal: AbortSignal, assertActive: () => void) {
 		if (lease.stageId !== "knowledge-import" || typeof lease.payload?.versionId !== "string") throw new RuntimeFailure("permission_denied", "Invalid knowledge job", false);
-		try { await this.store.process(lease, lease.payload.versionId, signal, assertActive); }
-		catch (error) { if (error instanceof KnowledgeError) throw new RuntimeFailure("invalid_output", error.code, error.status === 503); throw error; }
+		const deadline = AbortSignal.timeout(120_000), bounded = AbortSignal.any([signal, deadline]);
+		const started = performance.now();
+		try { await this.store.process(lease, lease.payload.versionId, bounded, () => {
+			bounded.throwIfAborted();
+			if (performance.now() - started >= 120_000) throw new RuntimeFailure("timeout", "Knowledge indexing exceeded its two-minute deadline", true);
+			assertActive();
+		}); }
+		catch (error) {
+			signal.throwIfAborted();
+			if (deadline.aborted) throw new RuntimeFailure("timeout", "Knowledge indexing exceeded its two-minute deadline", true, { cause: error });
+			if (error instanceof KnowledgeError) throw new RuntimeFailure("invalid_output", error.code, error.status === 503);
+			throw error;
+		}
 		return { status: "completed" as const };
 	}
 	tools(engine: ProposalRunEngine): AgentHostTool[] {
