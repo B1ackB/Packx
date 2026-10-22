@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { expect, it } from "vitest";
 import { KnowledgeStore } from "../knowledge/store";
 import { FakeEmbedding } from "../knowledge/embedding";
-import { coffeeProductManifests, findCoffeeProducts } from "./coffeeProductDirectory";
+import { coffeeProductManifests, findCoffeeProducts, createCoffeeProductTool } from "./coffeeProductDirectory";
 import { coffeeProductDirectory } from "../../src/manufacturing/coffeeProducts";
 import { loadCoffeeCorpus } from "./coffeeOpenCorpus";
 
@@ -41,5 +41,20 @@ it("product directory respects private scope, expiry and invalid input", async (
 		now = "2027-01-01T00:00:00.000Z"; expect((await findCoffeeProducts(store, scope, { query: "EcoLamHighPlus" })).result.hits).toEqual([]);
 		await expect(findCoffeeProducts(store, scope, { query: "coffee", coffeeForm: "invented" })).rejects.toThrow("invalid_product_query");
 		await expect(findCoffeeProducts(store, scope, { query: "coffee", tenantId: "other" })).rejects.toThrow("invalid_product_query");
+	} finally { store.close(); rmSync(root, { recursive: true, force: true }); }
+});
+
+
+it("rechecks directory evidence withdrawal without rerunning discovery", async () => {
+	const root = mkdtempSync(join(tmpdir(), "packx-catalog-review-")), scope = { tenantId: "t", workspaceId: "w" };
+	const store = new KnowledgeStore(root, new FakeEmbedding(), undefined, () => "2026-09-18T12:00:00.000Z");
+	try {
+		const manifest = coffeeProductManifests()[0], doc = store.import(scope, manifest, "operator"); await store.process(scope, doc.versionId);
+		const input = { query: coffeeProductDirectory[0].product }, tool = createCoffeeProductTool(store), output = JSON.stringify(await findCoffeeProducts(store, scope, input));
+		const context = { ...scope, runId: "run", stageId: "subagent-1", actorId: "operator", executionId: "review", toolCallId: "review", idempotencyKey: "review", signal: new AbortController().signal };
+		const audit = store.audit(scope);
+		expect(() => tool.validateContextResult!(input, output, context)).not.toThrow(); expect(store.audit(scope)).toEqual(audit);
+		store.transition(scope, doc.versionId, "withdrawn", "operator");
+		expect(() => tool.validateContextResult!(input, output, context)).toThrow("evidence_unavailable");
 	} finally { store.close(); rmSync(root, { recursive: true, force: true }); }
 });

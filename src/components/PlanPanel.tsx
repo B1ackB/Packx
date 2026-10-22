@@ -5,7 +5,7 @@ import { errorText, type Language } from "../i18n";
 const labels: Record<PlanStatus, [string, string]> = {
 	planning: ["正在规划（只读）", "Planning (read-only)"], awaiting_confirmation: ["等待你确认", "Awaiting your confirmation"],
 	queued: ["等待执行", "Queued"], running: ["正在按计划执行", "Executing plan"], paused: ["已暂停", "Paused"],
-	completed: ["执行完成，结果待核对", "Completed; review results"], failed: ["执行失败", "Failed"], cancelled: ["已取消", "Cancelled"], superseded: ["已被替代", "Superseded"],
+	completed: ["执行完成，结果待核对", "Completed; review results"], stale: ["结果已过期，需重新规划", "Results outdated; replan required"], failed: ["执行失败", "Failed"], cancelled: ["已取消", "Cancelled"], superseded: ["已被替代", "Superseded"],
 };
 const actionLabels: Record<string, [string, string]> = {
 	source_report_read: ["读取所选资料报告（未验证）", "Read selected source report (unverified)"],
@@ -36,6 +36,14 @@ export function PlanPanel({ state, language, busy, onCommand, part, onCreateBrie
 			<summary>{en ? "Plan and results" : "计划与结果"} · v{plan.version}</summary>
 			<p>{plan.objective}</p>
 			{selectedReport && <p>{en ? `Bound source report v${selectedReport.version} · Unverified; final results require source review. Import creates an unverified draft and keeps this report version as a dependency.` : `绑定资料报告 v${selectedReport.version} · 未验证，最终结果仍需核对来源；导入只创建未验证草稿，并保留此报告版本作为依赖。`}</p>}
+			{plan.inputDependencies && <details>
+				<summary>{en ? "Frozen input versions" : "冻结输入版本"} · {plan.inputDependencies.facts.length + plan.inputDependencies.artifacts.length}</summary>
+				<p>{en ? "Includes inputs awaiting confirmation. Recording a version does not verify it. Later drafts are not added to this plan's inputs." : "包含待确认的输入；记录版本不代表已经验证，后续新增草稿不会加入本计划的输入。"}</p>
+				<ul>
+					{plan.inputDependencies.facts.map(item => <li key={`fact:${item.key}`}>{item.key} · v{item.version}</li>)}
+					{plan.inputDependencies.artifacts.map(item => <li key={`artifact:${item.artifactId}`}>{item.artifactId} · v{item.version}</li>)}
+				</ul>
+			</details>}
 			{state && <p>{en ? "Task limits: " : "本任务已使用："}{state.versions.length}/{PLAN_LIMITS.versions}{en ? " plan versions · " : " 个计划版本 · "}{state.versions.reduce((sum, p) => sum + p.calls, 0)}/{PLAN_LIMITS.totalCalls}{en ? " processing steps · " : " 次处理 · "}{state.consecutiveFailures ?? 0}/{PLAN_LIMITS.consecutiveFailures}{en ? " consecutive failures" : " 次连续失败"}</p>}
 			{(generationBlocked || executionBlocked) && <p role="alert">{executionBlocked ? en ? "This task has reached its failure or execution limit. Saved results can still be checked without model requests. Review existing results and resolve the cause before starting a new task. Replanning cannot reset this budget." : "本任务已达到连续失败或执行次数上限；仍可核对已保存结果，此操作不请求模型。请先核对已有结果并解决原因，再新建任务；重新规划不能重置预算。" : en ? "Plan-version limit reached. You can still confirm or resume the current plan within its execution budget; further plans need a new task." : "已达计划版本上限。执行预算充足时仍可确认或恢复当前计划；后续新计划需新建任务。"}</p>}
 			{plan.replanFromVersion && <p>{en ? `Replanned from v${plan.replanFromVersion}; requires a new confirmation.` : `基于 v${plan.replanFromVersion} 重新规划，需重新确认。`}</p>}
@@ -53,7 +61,7 @@ export function PlanPanel({ state, language, busy, onCommand, part, onCreateBrie
 					if (run?.status === "paused") status = en ? "Progress saved; waiting to continue" : "已保存进度，等待继续";
 					if (run?.status === "interrupted") status = canResume ? en ? "Interrupted; resume plan to continue" : "已中断，可恢复计划继续" : en ? "Stopped" : "已停止";
 					if (run?.status === "failed") status = en ? "Failed" : "执行失败";
-					if (child) status = en ? "Completed" : "已完成";
+					if (child) status = plan.status === "stale" ? en ? "Completed previously; source changed" : "历史已完成；来源已变化" : en ? "Completed" : "已完成";
 					if (needsReplan) status = en ? "Needs replanning" : "需要重新规划";
 					return <li key={index} data-plan-task={index}><strong>{task.title}</strong> · {status}
 						{run?.failure && <p>{errorText({ code: run.failure.code }, language)}</p>}
@@ -67,15 +75,16 @@ export function PlanPanel({ state, language, busy, onCommand, part, onCreateBrie
 					</li>;
 				})}</ol>
 			</>}
-			{plan.failure && <p role="alert">{en ? "The task did not complete. " : "任务未完成。"}{errorText({ code: plan.failure.code }, language)}{!executionBlocked && plan.failure.retryable ? en ? " You can resume." : "可以恢复执行。" : en ? generationBlocked ? " Resolve the cause before starting a new task." : " Revise the task and generate a new plan." : generationBlocked ? "请先处理原因，再新建任务。" : "请修改任务并生成新计划。"}</p>}
+			{plan.status === "stale" && <p role="alert">{en ? "Completed results are outdated because task inputs changed. Retained results and the original confirmation are history only. Replan with current sources and confirm the new version before execution or import." : "任务输入已变化，已完成结果现已过期。保留结果与原确认仅供历史核对；请基于当前来源重新规划、确认新版本，再执行或导入需求单。"}</p>}
+			{plan.failure && plan.status !== "stale" && <p role="alert">{en ? "The task did not complete. " : "任务未完成。"}{errorText({ code: plan.failure.code }, language)}{!executionBlocked && plan.failure.retryable ? en ? " You can resume." : "可以恢复执行。" : en ? generationBlocked ? " Resolve the cause before starting a new task." : " Revise the task and generate a new plan." : generationBlocked ? "请先处理原因，再新建任务。" : "请修改任务并生成新计划。"}</p>}
 			<div className="plan-actions">
-				{["failed", "paused", "awaiting_confirmation"].includes(plan.status) && state?.mode === "plan" && <button disabled={busy || !!generationBlocked} onClick={() => onCommand({ action: "replan", version: plan.version })}>{en ? "Replan using current results" : "结合当前结果重新规划"}</button>}
+				{["failed", "paused", "awaiting_confirmation", "stale"].includes(plan.status) && state?.mode === "plan" && <button disabled={busy || !!generationBlocked} onClick={() => onCommand({ action: "replan", version: plan.version })}>{en ? "Replan using current results" : "结合当前结果重新规划"}</button>}
 				{plan.status === "completed" && onCreateBrief && <button disabled={busy} onClick={() => onCreateBrief(plan.version)}>{en ? "Create requirement draft from results" : "将结果转为需求单草稿"}</button>}
 				{plan.status === "awaiting_confirmation" && state?.mode === "plan" && <button disabled={busy || !!executionBlocked} onClick={() => onCommand({ action: "confirm", version: plan.version, confirmed: true })}>{en ? `Confirm v${plan.version} and execute` : `确认 v${plan.version} 并执行`}</button>}
 				{canReconcilePlan(plan) && state?.mode === "plan" && <button disabled={busy} onClick={() => onCommand({ action: "reconcile", version: plan.version })}>{en ? "Check saved results · no model requests" : "核对已保存结果 · 不发起模型请求"}</button>}
 				{running && <button disabled={busy} onClick={() => onCommand({ action: "pause", version: plan.version })}>{en ? "Pause" : "暂停"}</button>}
 				{(plan.status === "paused" || plan.status === "failed" && plan.failure?.retryable) && plan.approval && state?.mode === "plan" && <button disabled={busy || !!executionBlocked} onClick={() => onCommand({ action: "resume", version: plan.version })}>{en ? "Resume approved plan" : "恢复已确认计划"}</button>}
-				{!["completed", "cancelled", "superseded"].includes(plan.status) && <button disabled={busy} onClick={() => onCommand({ action: "cancel", version: plan.version })}>{en ? "Cancel plan" : "取消计划"}</button>}
+				{!["completed", "stale", "cancelled", "superseded"].includes(plan.status) && <button disabled={busy} onClick={() => onCommand({ action: "cancel", version: plan.version })}>{en ? "Cancel plan" : "取消计划"}</button>}
 			</div>
 			{state && state.versions.length > 1 && <details><summary>{en ? "Previous versions" : "历史版本"}</summary>{state.versions.slice(0, -1).map((p) => <div key={p.version}><strong>v{p.version} · {labels[p.status][en ? 1 : 0]}</strong><p>{p.spec?.summary ?? p.objective}</p></div>)}</details>}
 		</details>}

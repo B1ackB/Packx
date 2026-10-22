@@ -173,6 +173,14 @@ export class KnowledgeStore {
 		return this.hit(row);
 	}
 	assess(query: string, hits: EvidenceHit[]) { return this.retrieval?.assess?.(query, hits); }
+	/** Recheck existing evidence references without rerunning retrieval or model calls. */
+	assertCurrentReferences(scope: KnowledgeScope, references: readonly { evidenceId?: string; contentHash?: string }[], query: Partial<KnowledgeQuery> = {}) {
+		for (const reference of references) {
+			const current = this.readEvidence(scope, reference.evidenceId!, query);
+			if (reference.contentHash && current.contentHash !== reference.contentHash) throw new KnowledgeError("evidence_version_changed", 409);
+		}
+	}
+
 	readParameters(scope: KnowledgeScope, references: EvidenceParameterRef[], filters: Pick<KnowledgeQuery, "region" | "asOf">, correlationId: string, consumerVersion: string): ParameterEvidence[] {
 		const started = performance.now();
 		if (!filters || Object.keys(filters).some((k) => !["region", "asOf"].includes(k))) throw new KnowledgeError("invalid_knowledge_query");

@@ -71,12 +71,13 @@ describe("FileStageJobQueue", () => {
 		);
 	});
 
-	it("removes a stale writer lock left by a crashed process", () => {
+	it("preserves legacy locks whose owner cannot be proven dead", () => {
 		const path = createPath();
 		mkdirSync(`${path}.lock`);
 		const stale = new Date(Date.now() - 31_000);
 		utimesSync(`${path}.lock`, stale, stale);
 
-		expect(new FileStageJobQueue(path).enqueue(input()).status).toBe("queued");
+		expect(() => new FileStageJobQueue(path).enqueue(input())).toThrow(expect.objectContaining({ code: "queue_unavailable" }));
+		expect(new FileStageJobQueue(path).list()).toEqual([]);
 	});
 });

@@ -103,7 +103,7 @@ flowchart TB
 
 Host 决定阶段转换、工具范围、预算、审批和完成条件；Core 在这些边界内执行，包装规则留在领域层。复核与修订复用 Runtime，但禁用工具。模型结束回复不代表工作流完成，也不能把候选 Fact 变成已确认事实。
 
-普通对话与确认后的 Plan 任务也复用该 Runtime，图中省略这两条支线以突出包装主流程。Plan 支持最多四节点 DAG；新的只读图每批最多两个就绪节点并行，依赖节点等待，含写入与旧图仍串行。报告绑定的已完成计划可显式导入未验证需求单，来源撤回使依赖交付和审批失效；停止的只读图可在预算耗尽时零模型调用核对已保存结果。确认计划不同时批准文件写入或业务交付。见[当前本地验收](docs/evidence/readonly-recovery-completion-2026-10-19.md)。详见 [Plan 模式](docs/plan-mode.md)、[上下文管理](docs/context-management.md)、[个人记忆](docs/memory-system.md)与[可靠性恢复](docs/reliability-recovery.md)。
+普通对话与确认后的 Plan 任务也复用该 Runtime，图中省略这两条支线以突出包装主流程。Plan 支持最多四节点 DAG；新的只读图每批最多两个就绪节点并行，依赖节点等待，含写入与旧图仍串行。报告绑定的已完成计划可显式导入未验证需求单，来源撤回使依赖交付和审批失效；停止的只读图可在预算耗尽时零模型调用核对已保存结果。最新只读计划完成后，冻结输入变化会将结果持久标为过期；历史内容保留，须重新规划并确认后才能再次执行或导入。新只读提案在确认前记录已有 Fact（含未确认候选）及交付物的冻结版本；原输入变化需重新规划，后续新增草稿不反向成为旧依赖。已完成只读计划的历史工具/文件来源也会在读取、导入及后续使用前按原执行快照与当前权限复核；新单节点只读计划同样适用，未知存储故障阻断使用但保留历史。见[历史来源复核验收](docs/evidence/completed-tool-source-review-2026-10-20.md)。见[冻结输入依赖验收](docs/evidence/readonly-input-dependencies-2026-10-20.md)。见[完成结果过期验收](docs/evidence/readonly-result-validity-2026-10-19.md)。确认计划不同时批准文件写入或业务交付。见[此前可靠性验收](docs/evidence/readonly-recovery-completion-2026-10-19.md)。详见 [Plan 模式](docs/plan-mode.md)、[上下文管理](docs/context-management.md)、[个人记忆](docs/memory-system.md)与[可靠性恢复](docs/reliability-recovery.md)。
 
 | 位置 | 职责 |
 | --- | --- |

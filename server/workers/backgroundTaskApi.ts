@@ -1,3 +1,4 @@
+import type { RecordedMutation } from "../../src/enterprise/mutationReceipt";
 import { createHash } from "node:crypto";
 import { StageJobQueueError, type StageJob, type StageJobQueue } from "../../src/enterprise/stageJobQueue";
 import type { AgentRuntimePort } from "../../src/runtime/contracts";
@@ -63,6 +64,7 @@ export function enqueueBackgroundConversationTask(
 		requestedBy: "user" | "agent" | "cron";
 		availableAt?: string;
 	},
+	mutation?: RecordedMutation<StageJob>,
 ): StageJob {
 	const idValue = taskId(request, request.conversationId, request.messageId);
 	return queue.enqueue({
@@ -85,7 +87,7 @@ export function enqueueBackgroundConversationTask(
 			actorId: request.actorId,
 			requestedBy: request.requestedBy,
 		},
-	});
+	}, mutation);
 }
 
 export class BackgroundTaskApiController {

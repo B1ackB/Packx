@@ -1,3 +1,5 @@
+import { failOutboxDelivery, redriveOutboxDelivery } from "../../src/enterprise/outboxDelivery";
+import type { OutboxRedriveRequest } from "../../src/enterprise/contracts";
 import { FileWriteLockError, withFileWriteLock } from "../fileWriteLock";
 import { syncDirectory } from "../syncDirectory";
 import {
@@ -185,7 +187,9 @@ export function isOutboxMessage(value: unknown): value is OutboxMessage {
 	return value.schemaVersion === "enterprise-outbox.v1" &&
 		isId(value.messageId) &&
 		value.topic === "stage-job.requested" &&
-		(value.status === "pending" || value.status === "published") &&
+		(["pending", "published", "dead_letter"].includes(String(value.status))) &&
+		(value.failureCount === undefined || Number.isSafeInteger(value.failureCount) && Number(value.failureCount) >= 0) &&
+		(value.redrives === undefined || Array.isArray(value.redrives) && value.redrives.length <= 64 && value.redrives.every(item => isRecord(item) && isId(item.requestId) && isId(item.actorId) && isString(item.reason) && item.reason.length <= 500 && isString(item.expectedUpdatedAt) && Number.isFinite(Date.parse(item.expectedUpdatedAt)) && isString(item.at) && Number.isFinite(Date.parse(item.at)))) &&
 		Number.isInteger(value.deliveryCount) && Number(value.deliveryCount) >= 0 &&
 		isString(value.availableAt) && Number.isFinite(Date.parse(value.availableAt)) &&
 		isString(value.createdAt) && Number.isFinite(Date.parse(value.createdAt)) &&
@@ -366,6 +370,12 @@ export class FileEnterpriseEventStore implements EnterpriseEventStore {
 		});
 	}
 
+	readOutbox(scope: { tenantId: string; workspaceId: string }): OutboxMessage[] {
+		return structuredClone(this.loadDocument().outbox.filter(message => message.payload.tenantId === scope.tenantId && message.payload.workspaceId === scope.workspaceId));
+	}
+	redriveOutbox(messageId: string, request: OutboxRedriveRequest): OutboxMessage {
+		return this.updateOutbox(messageId, (message, now) => redriveOutboxDelivery(message, request, now));
+	}
 	readPendingOutbox(limit: number): OutboxMessage[] {
 		if (!Number.isInteger(limit) || limit < 1) {
 			throw new EnterpriseKernelError("event_store_unavailable", "Outbox read limit is invalid");
@@ -378,7 +388,9 @@ export class FileEnterpriseEventStore implements EnterpriseEventStore {
 	}
 
 	markOutboxPublished(messageId: string): OutboxMessage {
-		return this.updateOutbox(messageId, (message, now) => message.status === "published"
+		return this.updateOutbox(messageId, (message, now) => {
+			if (message.status === "dead_letter") throw new EnterpriseKernelError("illegal_transition", "Outbox message requires operator redrive");
+			return message.status === "published"
 			? message
 			: {
 				...message,
@@ -386,26 +398,19 @@ export class FileEnterpriseEventStore implements EnterpriseEventStore {
 				deliveryCount: message.deliveryCount + 1,
 				publishedAt: now,
 				updatedAt: now,
-			});
+			};
+		});
 	}
 
 	markOutboxFailed(
 		messageId: string,
-		failure: { code: string; message: string; delayMs: number },
+		failure: { code: string; message: string; delayMs: number; retryable?: boolean },
 	): OutboxMessage {
 		if (!isId(failure.code) || !isString(failure.message) ||
 			!Number.isInteger(failure.delayMs) || failure.delayMs < 0) {
 			throw new EnterpriseKernelError("event_store_unavailable", "Outbox failure is invalid");
 		}
-		return this.updateOutbox(messageId, (message, now) => message.status === "published"
-			? message
-			: {
-				...message,
-				deliveryCount: message.deliveryCount + 1,
-				availableAt: new Date(Date.parse(now) + failure.delayMs).toISOString(),
-				updatedAt: now,
-				lastFailure: { code: failure.code, message: failure.message, at: now },
-			});
+		return this.updateOutbox(messageId, (message, now) => failOutboxDelivery(message, failure, now));
 	}
 
 	private assertScope(events: EnterpriseEvent[], scope: AggregateScope): void {

@@ -43,7 +43,7 @@ function fakeResult(manifest: ToolExecutionManifest): ToolExecutionResult {
 	};
 }
 
-function harness(native = false, omitInspection = false, input = documentFixture()) {
+async function harness(native = false, omitInspection = false, input = documentFixture()) {
 	const root = mkdtempSync(join(tmpdir(), "blackx-document-slice-")); directories.push(root);
 	const events = new InMemoryEnterpriseEventStore();
 	const engine = new ProposalRunEngine(events, "requirement-brief");
@@ -74,7 +74,7 @@ function harness(native = false, omitInspection = false, input = documentFixture
 	let worker = new RequirementBriefWorker(engine, runtime, artifacts, attachments, inspector, undefined, undefined, conversations);
 	const scheduler = new StageJobScheduler(queue, { workerId: "document-worker", handlers: { "requirement-brief": (lease, signal, guard) => worker.executeLease(lease, signal, guard) } });
 	const api = new RequirementBriefWorkspaceApiController(conversations, engine, artifacts, outbox, scheduler, attachments);
-	const start = api.start(context, conversation.conversationId, { requestId: "start-1", industry: "print" });
+	const start = (await api.start(context, conversation.conversationId, { requestId: "start-1", industry: "print" }));
 	expect(start.status).toBe(202);
 	const view = (start.body as { requirementBrief: RequirementBriefWorkspaceView }).requirementBrief;
 	const run = { ...context, runId: view.runId };
@@ -85,7 +85,7 @@ afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); for (const root of d
 
 describe("asset inspection product slice", () => {
 	it("binds a prepared invocation to its original tenant, workspace and run", async () => {
-		const h = harness(), tool = h.inspector.tool(), signal = new AbortController().signal;
+		const h = await harness(), tool = h.inspector.tool(), signal = new AbortController().signal;
 		const invocation = await tool.createInvocation({ attachmentId: h.stored.attachmentId }, { ...h.run, actorId: context.actorId, stageId: "requirement-brief", executionId: "scope-check", toolCallId: "scope-check", idempotencyKey: "scope-check", sandboxAttemptId: "scope-check", signal });
 		const manifest = compileToolExecutionManifest({ ...h.run, attemptId: "scope-check", stageId: "requirement-brief", executionId: "scope-check", toolCallId: "scope-check", idempotencyKey: "scope-check", tool: { name: tool.name, version: tool.version }, command: { executable: tool.executable, argv: invocation.argv, workingDirectory: invocation.workingDirectory }, paths: invocation.paths, environment: tool.sandbox.environment, network: tool.sandbox.network, limits: { ...tool.sandbox.limits, timeoutMs: tool.timeoutMs } });
 		for (const key of ["tenantId", "workspaceId", "runId"] as const) await expect(h.inspector.execute({ ...manifest, [key]: "other" }, signal)).rejects.toThrow("Host-owned");
@@ -95,7 +95,7 @@ describe("asset inspection product slice", () => {
 	});
 	it("recovers after a checkpoint without invoking the model or parser again", async () => {
 		vi.useFakeTimers();
-		const h = harness();
+		const h = await harness();
 		const original = h.artifacts.putJson.bind(h.artifacts);
 		let interrupted = false;
 		vi.spyOn(h.artifacts, "putJson").mockImplementation((key, content) => {
@@ -115,7 +115,7 @@ describe("asset inspection product slice", () => {
 	});
 
 	it("imports sandbox observations as versioned sources without promoting model Facts", async () => {
-		const h = harness();
+		const h = await harness();
 		expect(await h.scheduler.runNext()).toMatchObject({ status: "completed" });
 		const state = h.engine.load(h.run);
 		expect(state).toMatchObject({ stageStatus: "needs_input", facts: { quantity: { value: 5000, status: "unverified", sourceRef: `${h.stored.sourceRef}#page=1` } } });
@@ -131,20 +131,20 @@ describe("asset inspection product slice", () => {
 		expect(h.fake.manifests).toHaveLength(1);
 	});
 	it("fails the source gate when a model answers without inspecting the uploaded document", async () => {
-		const h = harness(false, true);
+		const h = await harness(false, true);
 		expect(await h.scheduler.runNext()).toMatchObject({ status: "dead_letter", job: { lastFailure: { code: "invalid_output" } } });
 		expect(h.engine.load(h.run).currentProposal).toBeUndefined();
 		expect(h.engine.load(h.run).facts.quantity).toBeUndefined();
 	});
-	it("rejects model paths and invalidates a frozen attachment set after another upload", () => {
-		const h = harness();
+	it("rejects model paths and invalidates a frozen attachment set after another upload", async () => {
+		const h = await harness();
 		expect(h.inspector.tool().validate({ attachmentId: "../../secret" })).toBe(false);
 		expect(h.inspector.tool().validate({ attachmentId: h.stored.attachmentId, path: "/etc/passwd" })).toBe(false);
 		h.attachments.put(h.scope, { requestId: "upload-2", name: "revision.txt", mediaType: "text/plain", content: Buffer.from("Changed quantity") });
 		expect(() => h.inspector.scope(h.run)).toThrow("资料已变化");
 	});
 	it("does not copy customer bytes through a staging-directory symlink", async () => {
-		const h = harness();
+		const h = await harness();
 		const outside = mkdtempSync(join(tmpdir(), "blackx-staging-outside-")); directories.push(outside);
 		symlinkSync(outside, join(h.root, ".blackx-tool-inputs"));
 		expect(await h.scheduler.runNext()).toMatchObject({ status: "dead_letter" });
@@ -155,7 +155,7 @@ describe("asset inspection product slice", () => {
 
 describe.skipIf(process.platform !== "darwin" || process.env.BLACKX_RUN_SEATBELT_TESTS !== "1")("native document product slice", () => {
 	it("retains text beyond the legacy 8000-character parser limit", async () => {
-		const h = harness(true, false, Buffer.from("x".repeat(9000)));
+		const h = await harness(true, false, Buffer.from("x".repeat(9000)));
 		expect(await h.scheduler.runNext()).toMatchObject({ status: "completed" });
 		const inspection = h.inspector.readRecords(h.run)[0]!.inspection;
 		expect(inspection).toMatchObject({ kind: "text", status: "parsed", truncated: false });
@@ -163,21 +163,21 @@ describe.skipIf(process.platform !== "darwin" || process.env.BLACKX_RUN_SEATBELT
 	}, 20_000);
 	it("extracts pixel metadata without claiming image text or production dimensions", async () => {
 		const pixel = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aZ1EAAAAASUVORK5CYII=", "base64");
-		const h = harness(true, false, pixel);
+		const h = await harness(true, false, pixel);
 		expect(await h.scheduler.runNext()).toMatchObject({ status: "completed" });
 		expect(h.inspector.readRecords(h.run)[0]!.inspection).toMatchObject({ kind: "image", status: "metadata_only", width: 1, height: 1, pages: [] });
 	}, 20_000);
 
 	it("runs Queue → Worker → Agent → real Seatbelt PDFKit → Artifact → export", async () => {
 		expect(existsSync(".blackx-tools/asset-inspector")).toBe(true);
-		const h = harness(true);
+		const h = await harness(true);
 		expect(await h.scheduler.runNext()).toMatchObject({ status: "completed" });
 		const delivery = (h.api.delivery(context, h.scope.conversationId, 1).body as { delivery: RequirementDelivery }).delivery;
 		expect(delivery.sources[0]!.inspection).toMatchObject({ kind: "pdf", status: "parsed", pageCount: 1, pages: [{ page: 1, text: expect.stringContaining("Quantity: 5000") }] });
 		expect(delivery.content.facts[0]!.status).toBe("unverified");
 	}, 20_000);
 	it("marks image-only PDF as needs OCR without inventing extracted text", async () => {
-		const h = harness(true, false, documentFixture(""));
+		const h = await harness(true, false, documentFixture(""));
 		expect(await h.scheduler.runNext()).toMatchObject({ status: "completed" });
 		expect(h.inspector.readRecords(h.run)[0]!.inspection).toMatchObject({ status: "needs_ocr", pages: [{ page: 1, text: "" }] });
 	}, 20_000);

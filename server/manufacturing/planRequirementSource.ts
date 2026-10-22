@@ -6,6 +6,7 @@ import { ProposalWorkspaceValidationError } from "../enterprise/proposalWorkspac
 
 export function planRequirementSource(state: PlanWorkspace, version: unknown, conversation: ConversationView, attachments: unknown[], selectedReport?: { binding: SourceReportBinding; report: SourceReportArtifact }) {
 	const plan = state.versions.at(-1);
+	if (plan && plan.version === version && plan.status === "stale") throw new ProposalWorkspaceValidationError("计划结果的来源已变化，请重新规划并确认新版本后导入需求单。", "plan_source_stale");
 	if (!Number.isSafeInteger(version) || !plan || plan.version !== version || plan.status !== "completed" || plan.approval?.version !== version || !plan.spec || plan.children.length !== plan.spec.tasks.length) {
 		throw new ProposalWorkspaceValidationError("请选择已完成的最新计划版本，再导入需求单。", "plan_source_not_ready");
 	}

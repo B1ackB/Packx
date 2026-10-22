@@ -4,12 +4,13 @@ import {
 	readdirSync,
 	readFileSync,
 	renameSync,
-	rmdirSync,
 	unlinkSync,
 	writeFileSync,
 } from "node:fs";
 import { createHash } from "node:crypto";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { withFileWriteLock } from "../fileWriteLock";
+import { syncDirectory } from "../syncDirectory";
 import type { AgentImageAttachment } from "../../src/agent/contracts";
 import type { ConversationAttachment } from "../../src/runtime/conversationContracts";
 
@@ -23,8 +24,9 @@ export class ConversationAttachmentError extends Error {
 	constructor(
 		readonly code: "invalid_attachment" | "attachment_conflict" | "attachment_not_found" | "attachment_withdrawn" | "attachment_store_unavailable",
 		message: string,
+		options?: ErrorOptions,
 	) {
-		super(message);
+		super(message, options);
 		this.name = "ConversationAttachmentError";
 	}
 }
@@ -105,11 +107,15 @@ export class FileConversationAttachmentStore {
 			.slice(0, 32)}`;
 		const sha256 = createHash("sha256").update(input.content).digest("hex");
 		const metadataPath = join(directory, `${attachmentId}.json`);
+		const pendingPath = `${metadataPath}.pending`, contentPath = join(directory, `${attachmentId}.bin`);
 		mkdirSync(directory, { recursive: true, mode: 0o700 });
 		return this.withLock(metadataPath, () => {
-			if (existsSync(metadataPath)) {
-				const existing = this.readMetadata(metadataPath);
+			const committed = existsSync(metadataPath);
+			const existing = committed ? this.readMetadata(metadataPath) : existsSync(pendingPath) ? this.readMetadata(pendingPath) : undefined;
+			if (existing) {
 				if (
+					existing.attachmentId !== attachmentId ||
+					existing.conversationId !== scope.conversationId ||
 					existing.name !== attachmentName ||
 					existing.mediaType !== attachmentMediaType ||
 					existing.size !== input.content.byteLength ||
@@ -120,7 +126,7 @@ export class FileConversationAttachmentStore {
 						"requestId is already bound to another attachment",
 					);
 				}
-				return { attachment: existing, duplicate: true };
+				if (committed) { syncDirectory(directory); return { attachment: existing, duplicate: true }; }
 			}
 			const existingAttachments = this.list(scope, { includeWithdrawn: true });
 			if (
@@ -132,7 +138,7 @@ export class FileConversationAttachmentStore {
 					"a conversation may contain up to 20 attachments and 50 MB",
 				);
 			}
-			const attachment: ConversationAttachment = {
+			const attachment: ConversationAttachment = existing ?? {
 				attachmentId,
 				conversationId: scope.conversationId,
 				name: attachmentName,
@@ -148,8 +154,15 @@ export class FileConversationAttachmentStore {
 				sourceRef: `attachment://${attachmentId}`,
 				createdAt: this.now(),
 			};
-			this.atomicWrite(join(directory, `${attachmentId}.bin`), input.content);
-			this.atomicWrite(metadataPath, Buffer.from(JSON.stringify(attachment), "utf8"));
+			// Retain the request's complete identity before bytes can commit without metadata.
+			// Pending uploads remain invisible and only identical requests can finish them.
+			if (existsSync(contentPath) && createHash("sha256").update(readFileSync(contentPath)).digest("hex") !== sha256) {
+				throw new ConversationAttachmentError("attachment_conflict", "Stored upload bytes differ; retain them for review");
+			}
+			if (!existing) this.atomicWrite(pendingPath, Buffer.from(JSON.stringify(attachment), "utf8"));
+			if (!existsSync(contentPath)) this.atomicWrite(contentPath, input.content);
+			renameSync(pendingPath, metadataPath);
+			syncDirectory(directory);
 			return { attachment, duplicate: false };
 		});
 	}
@@ -323,24 +336,19 @@ export class FileConversationAttachmentStore {
 	private atomicWrite(path: string, content: Buffer): void {
 		const temporaryPath = `${path}.${crypto.randomUUID()}.tmp`;
 		try {
-			writeFileSync(temporaryPath, content, { mode: 0o600 });
+			writeFileSync(temporaryPath, content, { mode: 0o600, flush: true });
 			renameSync(temporaryPath, path);
+			syncDirectory(dirname(path));
 		} finally {
 			if (existsSync(temporaryPath)) unlinkSync(temporaryPath);
 		}
 	}
 
 	private withLock<T>(path: string, operation: () => T): T {
-		const lockPath = `${path}.lock`;
-		try {
-			mkdirSync(lockPath);
-		} catch {
-			throw new ConversationAttachmentError("attachment_store_unavailable", "attachment is locked by another upload");
-		}
-		try {
-			return operation();
-		} finally {
-			rmdirSync(lockPath);
+		try { return withFileWriteLock(path, operation); }
+		catch (cause) {
+			if (cause instanceof ConversationAttachmentError) throw cause;
+			throw new ConversationAttachmentError("attachment_store_unavailable", "Attachment storage is locked or unavailable; retain existing evidence", { cause });
 		}
 	}
 }

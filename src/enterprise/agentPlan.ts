@@ -1,7 +1,7 @@
 import type { RuntimeUsage } from "../runtime/contracts";
 
 export type AgentMode = "execute" | "plan";
-export type PlanStatus = "planning" | "awaiting_confirmation" | "queued" | "running" | "paused" | "completed" | "failed" | "cancelled" | "superseded";
+export type PlanStatus = "planning" | "awaiting_confirmation" | "queued" | "running" | "paused" | "completed" | "stale" | "failed" | "cancelled" | "superseded";
 export interface PlanTask {
 	title: string;
 	objective: string;
@@ -31,6 +31,13 @@ export interface PlanTaskRun {
 	startedAt: string;
 	failure?: { code: string; retryable: boolean };
 }
+/** Host-owned receipt of inputs present before confirmation; contains no source bodies. */
+export interface PlanInputDependencies {
+	schemaVersion: "plan-input-dependencies.v1";
+	contextSha256: string;
+	facts: Array<{ key: string; version: number; sha256: string }>;
+	artifacts: Array<{ artifactId: string; version: number; sha256: string }>;
+}
 export interface PlanVersion {
 	version: number;
 	objective: string;
@@ -49,6 +56,7 @@ export interface PlanVersion {
 	readConcurrency?: 2;
 	/** Latest attempt per node; earlier transitions remain in append-only events. */
 	taskRuns?: PlanTaskRun[];
+	inputDependencies?: PlanInputDependencies;
 	failure?: { code: string; retryable: boolean; reason?: string };
 	replanFromVersion?: number;
 }
@@ -59,7 +67,7 @@ export interface PlanWorkspace {
 	consecutiveFailures?: number;
 }
 export interface PlanScope { tenantId: string; workspaceId: string; runId: string }
-export const PLAN_LIMITS = { tasks: 4, calls: 16, iterations: 4, tools: 8, inputTokens: 12_000, timeoutMs: 60_000, versions: 4, totalCalls: 32, consecutiveFailures: 3, dependencyChars: 24_000 } as const;
+export const PLAN_LIMITS = { tasks: 4, calls: 16, iterations: 4, tools: 8, inputTokens: 12_000, timeoutMs: 60_000, versions: 4, totalCalls: 32, consecutiveFailures: 3, dependencyChars: 24_000, inputRecords: 128 } as const;
 
 export function planBudgetBlock(state: PlanWorkspace, generating = false): string | undefined {
 	if ((state.consecutiveFailures ?? 0) >= PLAN_LIMITS.consecutiveFailures) return "plan_failure_limit";
@@ -128,10 +136,21 @@ export function validPlanWorkspace(value: unknown): value is PlanWorkspace {
 	if (value.consecutiveFailures !== undefined && (!Number.isInteger(value.consecutiveFailures) || Number(value.consecutiveFailures) < 0 || Number(value.consecutiveFailures) > PLAN_LIMITS.consecutiveFailures)) return false;
 	try {
 		return value.versions.every((p, index) => {
-			if (!record(p) || p.version !== index + 1 || !bounded(p.objective, 8000) || typeof p.context !== "string" || !Number.isInteger(p.conversationRevision) || Number(p.conversationRevision) < 0 || !["planning", "awaiting_confirmation", "queued", "running", "paused", "completed", "failed", "cancelled", "superseded"].includes(String(p.status)) || !Number.isInteger(p.calls) || Number(p.calls) < 0 || Number(p.calls) > PLAN_LIMITS.calls || !Number.isInteger(p.generation) || Number(p.generation) < 1 || !bounded(p.actorId, 128) || typeof p.createdAt !== "string" || !Number.isFinite(Date.parse(p.createdAt)) || !Array.isArray(p.children) || p.children.length > PLAN_LIMITS.tasks) return false;
+			if (!record(p) || p.version !== index + 1 || !bounded(p.objective, 8000) || typeof p.context !== "string" || !Number.isInteger(p.conversationRevision) || Number(p.conversationRevision) < 0 || !["planning", "awaiting_confirmation", "queued", "running", "paused", "completed", "stale", "failed", "cancelled", "superseded"].includes(String(p.status)) || !Number.isInteger(p.calls) || Number(p.calls) < 0 || Number(p.calls) > PLAN_LIMITS.calls || !Number.isInteger(p.generation) || Number(p.generation) < 1 || !bounded(p.actorId, 128) || typeof p.createdAt !== "string" || !Number.isFinite(Date.parse(p.createdAt)) || !Array.isArray(p.children) || p.children.length > PLAN_LIMITS.tasks) return false;
 			const declaredTools = record(p.spec) && Array.isArray(p.spec.tasks) ? p.spec.tasks.flatMap((t) => record(t) && Array.isArray(t.tools) ? t.tools.filter((tool): tool is string => bounded(tool, 128)) : []) : [];
 			const spec = p.spec === undefined ? undefined : parsePlan(p.spec, declaredTools);
 			if (p.readConcurrency !== undefined && (p.readConcurrency !== 2 || !spec)) return false;
+			if (p.inputDependencies !== undefined) {
+				const dependencies = p.inputDependencies;
+				if (p.readConcurrency !== 2 || !record(dependencies) || Object.keys(dependencies).sort().join() !== "artifacts,contextSha256,facts,schemaVersion" || dependencies.schemaVersion !== "plan-input-dependencies.v1" || typeof dependencies.contextSha256 !== "string" || !/^[a-f0-9]{64}$/.test(dependencies.contextSha256) || !Array.isArray(dependencies.facts) || !Array.isArray(dependencies.artifacts) || dependencies.facts.length + dependencies.artifacts.length > PLAN_LIMITS.inputRecords) return false;
+				for (const [records, identity] of [[dependencies.facts, "key"], [dependencies.artifacts, "artifactId"]] as const) {
+					const seen = new Set<string>();
+					for (const item of records) {
+						if (!record(item) || Object.keys(item).sort().join() !== [identity, "sha256", "version"].sort().join() || !bounded(item[identity], 128) || seen.has(String(item[identity])) || !Number.isSafeInteger(item.version) || Number(item.version) < 1 || typeof item.sha256 !== "string" || !/^[a-f0-9]{64}$/.test(item.sha256)) return false;
+						seen.add(String(item[identity]));
+					}
+				}
+			}
 			if (p.taskRuns !== undefined) {
 				if (p.readConcurrency !== 2 || !Array.isArray(p.taskRuns) || p.taskRuns.length > (spec?.tasks.length ?? 0)) return false;
 				const indices = new Set<number>();
@@ -144,13 +163,14 @@ export function validPlanWorkspace(value: unknown): value is PlanWorkspace {
 				}
 				if (p.taskRuns.filter((run) => record(run) && run.status === "running").length > 2) return false;
 			}
-			if (["awaiting_confirmation", "queued", "running", "paused", "completed"].includes(String(p.status)) && !spec) return false;
+			if (["awaiting_confirmation", "queued", "running", "paused", "completed", "stale"].includes(String(p.status)) && !spec) return false;
 			if (p.approval !== undefined && (!record(p.approval) || p.approval.version !== p.version || !bounded(p.approval.actorId, 128) || typeof p.approval.at !== "string" || !Number.isFinite(Date.parse(p.approval.at)))) return false;
-			if (["queued", "running", "paused", "completed"].includes(String(p.status)) && !p.approval) return false;
-			if (p.status === "completed" && p.children.length !== spec?.tasks.length) return false;
+			if (["queued", "running", "paused", "completed", "stale"].includes(String(p.status)) && !p.approval) return false;
+			if (["completed", "stale"].includes(String(p.status)) && p.children.length !== spec?.tasks.length) return false;
+			if (p.status === "stale" && (p.readConcurrency !== 2 || !record(p.failure) || p.failure.code !== "plan_sources_changed" || p.failure.retryable !== false)) return false;
 			if (p.replanFromVersion !== undefined && (!Number.isInteger(p.replanFromVersion) || Number(p.replanFromVersion) < 1 || Number(p.replanFromVersion) >= Number(p.version))) return false;
 			if (p.failure !== undefined && (!record(p.failure) || !bounded(p.failure.code, 128) || typeof p.failure.retryable !== "boolean" || (p.failure.reason !== undefined && !bounded(p.failure.reason, 2000)))) return false;
-			if (p.status === "completed" && p.children.some((child) => record(child) && record(child.result) && record(child.result.assessment) && child.result.assessment.decision === "replan")) return false;
+			if (["completed", "stale"].includes(String(p.status)) && p.children.some((child) => record(child) && record(child.result) && record(child.result.assessment) && child.result.assessment.decision === "replan")) return false;
 			const completed = new Set<number>();
 			const successful = new Set<number>();
 			return p.children.every((child) => {

@@ -1,5 +1,7 @@
 # Packx 文档导航
 
+Latest maintenance: [2026-10-22 project reliability audit and closure record](evidence/project-closure-2026-10-22.md), covering current fixes, validation results, dependency patches, and the remaining recovery backlog.
+
 整理日期：2026-09-29。文档按用途组织；机制文档说明当前行为，ADR 记录决策，日期报告保留当时证据。历史报告的测试数量、产品范围和待办不自动代表当前实现。
 
 第一次阅读建议从[项目首页](../README.zh-CN.md)开始，先看[需求单流程图](../README.zh-CN.md#从询价到需求单)、[当前架构图](../README.zh-CN.md#项目架构)与[验证边界](../README.zh-CN.md#验证到了哪一步)，再按下表进入具体机制。英文入口见 [README](../README.md)。
@@ -8,6 +10,7 @@
 
 | 想解决的问题 | 主文档 | 决策／证据 |
 | --- | --- | --- |
+| 当前工作区如何收口、历史评测为何不再混入默认检查 | [工作区收口记录](evidence/workspace-cleanup-2026-10-20.md) | 历史证据原样保全、默认门禁、字段计数与交付日期回归 |
 | 产品到底做什么、分层怎么划分 | [产品交互](product-interaction-model.md)、[架构原则](architecture/principles.md) | [仓库约束](../AGENTS.md)、[包装范围 ADR-0010](adr/0010-packaging-product-focus.md) |
 | 模型如何执行一轮、接入哪些能力 | [Runtime 接入](runtime-integration.md)、[Provider 兼容](anthropic-compatibility.md) | [最小 Core ADR-0001](adr/0001-self-owned-agent-core.md)、[依赖清单](dependencies.md) |
 | 历史太长、摘要丢信息、恢复读到旧资料 | [上下文管理](context-management.md) | [分离对话与任务上下文 ADR-0024](adr/0024-separated-dialogue-and-versioned-task-context.md) |
@@ -15,7 +18,7 @@
 | 报错后谁重试、哪些操作不能重做 | [错误处理与恢复](reliability-recovery.md) | [恢复 ADR-0025](adr/0025-evidence-bound-recovery-and-explicit-degradation.md) |
 | 哪些节点可以回滚、哪里仍有缺口 | [40 节点故障审计](failure-handling-audit.md) | [Harness 故障测试记录](harness-error-handling-tests.md) |
 | Plan、子任务、重规划怎样受控 | [Plan 模式](plan-mode.md) | [ADR-0015](adr/0015-confirmed-plans-and-bounded-subagents.md)、[停止与预算 ADR-0023](adr/0023-loop-guards-and-task-plan-budgets.md) |
-| 如何从需求单演进为工作空间 Agent，哪些多 Agent 能力已实现 | [工作空间 Agent 架构与阶段计划](workspace-agent-architecture.md) | [任务图 ADR-0034](adr/0034-workspace-agent-task-graph.md)、[有界只读并行 ADR-0037](adr/0037-bounded-readonly-plan-waves.md)、[并行本地验收](evidence/readonly-parallel-2026-10-19.md)、[主动来源失效 ADR-0038](adr/0038-readonly-source-invalidation.md)、[来源失效验收](evidence/readonly-source-invalidation-2026-10-19.md)、[只读恢复与报告依赖 ADR-0039](adr/0039-readonly-source-recovery-and-report-dependencies.md)、[当前本地验收](evidence/readonly-recovery-completion-2026-10-19.md) |
+| 如何从需求单演进为工作空间 Agent，哪些多 Agent 能力已实现 | [工作空间 Agent 架构与阶段计划](workspace-agent-architecture.md) | [任务图 ADR-0034](adr/0034-workspace-agent-task-graph.md)、[有界只读并行 ADR-0037](adr/0037-bounded-readonly-plan-waves.md)、[并行本地验收](evidence/readonly-parallel-2026-10-19.md)、[主动来源失效 ADR-0038](adr/0038-readonly-source-invalidation.md)、[来源失效验收](evidence/readonly-source-invalidation-2026-10-19.md)、[只读恢复与报告依赖 ADR-0039](adr/0039-readonly-source-recovery-and-report-dependencies.md)、[PR #55 验收](evidence/readonly-recovery-completion-2026-10-19.md)、[完成结果过期 ADR-0040](adr/0040-completed-readonly-result-validity.md)、[本地验收/演示](evidence/readonly-result-validity-2026-10-19.md)、[冻结输入依赖 ADR-0041](adr/0041-frozen-plan-input-dependencies.md)、[输入依赖验收](evidence/readonly-input-dependencies-2026-10-20.md)、[历史工具复核 ADR-0042](adr/0042-completed-tool-source-review.md)、[历史来源验收](evidence/completed-tool-source-review-2026-10-20.md) |
 | 本轮最终交付了哪些能力、如何演示、哪些只是设计 | [最终交付与架构覆盖](workspace-agent-delivery.md) | [报告上下文 ADR-0036](adr/0036-selected-report-context-and-plan-dispatch-identity.md)、[最终验收](evidence/report-plan-bridge-2026-10-18.md)、[PR #53 发布检查](evidence/workspace-agent-publication-2026-10-19.md) |
 | 如何将文件与受限网页整理为版本化资料报告 | [资料报告与演示](source-reports.md) | [ADR-0035](adr/0035-source-report-workspace-slice.md)、[阶段验证](evidence/source-report-slice-2026-10-18.md) |
 | Reviewer 能改什么、何时转人工、复核失败怎样恢复 | [需求单证据复核](requirement-evidence-review.md) | [受限纠错 ADR-0029](adr/0029-controlled-requirement-corrections.md)、[当前策略离线验证](evidence/requirement-controlled-corrections-2026-09-29.md) |

@@ -1,5 +1,7 @@
+import { prepareCompletion, readCompletion, commitCompletion } from "./turnCompletion";
+import { validateContextSources } from "./contextSources";
 import { createHash } from "node:crypto";
-import { contextReadTool, pageUnits, readContextSource } from "./contextRead";
+import { contextReadTool, pageUnits } from "./contextRead";
 import type { ModelTelemetryStore } from "./modelTelemetry";
 import type { RuntimeActivity } from "../../src/runtime/conversationContracts";
 import type {
@@ -25,6 +27,7 @@ import type {
 	AgentRuntimePort,
 	RuntimeHealth,
 	RuntimeTraceStore,
+	RuntimeTraceRecord,
 	RuntimeTurnRequest,
 	RuntimeTurnResult,
 } from "../../src/runtime/contracts";
@@ -180,6 +183,7 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 			this.options.onActivity?.(scope, { executionId, phase, updatedAt: this.now(), ...detail });
 		};
 		let guard = new RuntimeLoopGuard();
+		let completionPending = false;
 		try {
 			combinedSignal.throwIfAborted();
 			const originalExecution = this.traces.listTraces(scope).find(trace => trace.stageId === request.stageId && trace.idempotencyKey === request.idempotencyKey && trace.sessionId === sessionId && trace.failure?.code !== "session_conflict");
@@ -220,10 +224,11 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 				const priorInput = session.transcript?.find((message) => message.messageId === replyId.replace("reply-", "input-"));
 				if (priorInput && (priorInput.content !== request.input || JSON.stringify(priorInput.attachments ?? []) !== JSON.stringify(request.attachments ?? []))) throw new RuntimeFailure("session_conflict", "Turn idempotency key was reused with different input", false);
 				const trace = this.traces.listTraces(scope).findLast((item) => item.sessionId === sessionId && item.idempotencyKey === request.idempotencyKey && item.status === "completed");
-				if (!trace) throw new RuntimeFailure("context_failure", "Completed dialogue is missing execution evidence; review required", false);
-				if (trace.outputContractDigest !== outputContractDigest) throw new RuntimeFailure("session_conflict", "Turn output contract changed; start a new execution", false);
-				validateContext(); validateOutput(priorReply.content);
-				return { adapter: "blackx-agent", status: "completed", sessionId, executionId: trace.executionId, finalResponse: priorReply.content, events: trace.events, usage: trace.usage, contextSnapshotId: trace.contextSnapshotId };
+				if (trace) {
+					if (trace.actorId !== request.actorId || trace.stageId !== request.stageId || trace.outputContractDigest !== outputContractDigest) throw new RuntimeFailure("session_conflict", "Turn identity or output contract changed; start a new execution", false);
+					validateContext(); validateOutput(priorReply.content);
+					return { adapter: "blackx-agent", status: "completed", sessionId, executionId: trace.executionId, finalResponse: priorReply.content, events: trace.events, usage: trace.usage, contextSnapshotId: trace.contextSnapshotId };
+				}
 			}
 			const hydrate = async (attachment: AgentImageAttachment): Promise<AgentImageAttachment> => {
 				if (!this.options.resolveImageAttachment) {
@@ -246,75 +251,22 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 				}
 				return resolved;
 			};
-			const validateSources = async (messages: readonly AgentMessage[], visited = new Set<string>()): Promise<void> => {
-				// Older v2 records may predate an adapter's source validator. Complete
-				// protocol groups retain the trusted tool name and original input.
-				const legacyReads = new Map<string, { name: string; input: unknown }>();
-				for (const message of messages) {
-					if (message.role !== "tool") {
-						legacyReads.clear();
-						if (message.role === "assistant") for (const call of message.toolCalls ?? []) {
-							if (call.name === "context_read" || this.options.tools?.some((tool) => tool.name === call.name && tool.validateContextResult)) legacyReads.set(call.id, { name: call.name, input: call.input });
-						}
-					}
-					combinedSignal.throwIfAborted();
-					for (const ref of message.readDependencies ?? []) {
-						if (visited.has(ref)) continue;
-						if (visited.size >= 128) throw new RuntimeFailure("context_failure", "Context source dependency limit exceeded; rebuild task", false);
-						visited.add(ref);
-						const dependency = this.snapshots.read(scope, ref);
-						if (taskContext?.historyBinding !== undefined && dependency.historyBinding !== taskContext.historyBinding) throw new RuntimeFailure("context_failure", "Archived context dependency changed; rebuild task", false);
-						await validateSources(dependency.messages, visited);
-					}
-					let legacyRead: { name: string; input: unknown } | undefined;
-					if (!message.sourceTool && message.role === "tool" && message.toolCallId && legacyReads.has(message.toolCallId)) {
-						const call = legacyReads.get(message.toolCallId)!;
-						if (call.name !== "context_read") legacyRead = call;
-						try {
-							const output = JSON.parse(message.content) as { status?: string; ok?: boolean; error?: { code?: string; message?: string } };
-							// Exact Host failure envelopes contain no source bytes. Do not turn
-							// a prior failed read into an assertion of successful source access.
-							if (output.ok === false && Object.keys(output).sort().join() === "error,ok" && output.error?.code === "tool_execution_failed" && Object.keys(output.error).sort().join() === "code,message" && output.error.message === "Tool execution failed") legacyRead = undefined;
-							if (call.name === "context_read" && ["historical_unverified", "body_externalized"].includes(output.status ?? "")) legacyRead = call;
-						} catch { /* Failed reads and ordinary text do not assert a readable source. */ }
-					}
-					if (!message.sourceTool && !legacyRead && message.role === "tool") {
-						// Pre-fix externalized readbacks are singleton archives, without
-						// their assistant call. Recognize only the Host's exact page shape.
-						try {
-							const value = JSON.parse(message.content) as Record<string, unknown>;
-							const page = value.status === "historical_unverified" && typeof value.stale === "boolean" && Array.isArray(value.items) && Number.isSafeInteger(value.offset) && Number.isSafeInteger(value.total) && typeof value.truncated === "boolean" && (value.nextOffset === null || Number.isSafeInteger(value.nextOffset));
-							const external = value.status === "body_externalized" && value.readTool === "context_read" && value.truncated === true;
-							if ((page || external) && typeof value.sourceRef === "string") legacyRead = { name: "context_read", input: { sourceRef: value.sourceRef } };
-						} catch { /* Unrelated text is not treated as a source reference. */ }
-					}
-					const sourceTool = message.sourceTool ?? legacyRead;
-					if (!sourceTool && messages.length === 1 && message.role === "tool") {
-						throw new RuntimeFailure("context_failure", "Legacy tool archive has no source provenance; rebuild task context", false);
-					}
-					if (!sourceTool) continue;
-					if (sourceTool.name === "context_read") {
-						const ref = (sourceTool.input as { sourceRef?: unknown })?.sourceRef;
-						if (typeof ref !== "string") throw new RuntimeFailure("context_failure", "Archived context read has no source", false);
-						if (visited.has(ref)) continue;
-						if (visited.size >= 128) throw new RuntimeFailure("context_failure", "Context source dependency limit exceeded; rebuild task", false);
-						visited.add(ref);
-						try {
-							const source = readContextSource(scope, this.sessions, this.snapshots, ref, taskContext?.binding, taskContext?.historyBinding);
-							await validateSources(source.messages, visited);
-						} catch (error) { throw new RuntimeFailure("context_failure", "Read-back source is unavailable, changed or no longer permitted", false, { cause: error }); }
-						continue;
-					}
-					const tool = this.options.tools?.find((item) => item.name === sourceTool.name);
-					if (!tool?.validateContextResult) throw new RuntimeFailure("context_failure", "Source validation tool unavailable", false);
-					let output = message.content;
-					let envelope: { status?: string; sourceRef?: string } | undefined;
-					try { envelope = JSON.parse(output); } catch { /* Plain-text bodies are validated by their source adapter. */ }
-					if (envelope?.status === "body_externalized" && typeof envelope.sourceRef === "string") output = this.snapshots.read(scope, envelope.sourceRef).messages[0].content;
-					try { await abortable(Promise.resolve(tool.validateContextResult(sourceTool.input, output, { ...scope, actorId: request.actorId, executionId, stageId: request.stageId, toolCallId: message.toolCallId ?? "restore", idempotencyKey: request.idempotencyKey, signal: combinedSignal })), combinedSignal); }
-					catch (error) { combinedSignal.throwIfAborted(); throw new RuntimeFailure("context_failure", "Context source is unavailable, changed or no longer permitted", false, { cause: error }); }
-				}
-			};
+			const validateSources = (messages: readonly AgentMessage[], visited?: Set<string>) => validateContextSources({
+				sessions: this.sessions, snapshots: this.snapshots, tools: this.options.tools,
+				context: { ...scope, actorId: request.actorId, executionId, stageId: request.stageId, toolCallId: "restore", idempotencyKey: request.idempotencyKey, signal: combinedSignal },
+				binding: taskContext?.binding, historyBinding: taskContext?.historyBinding,
+			}, messages, visited);
+			const completion = readCompletion(this.snapshots, scope, { ...request, taskContext }, outputContractDigest);
+			if (completion) {
+				completionPending = true;
+				await validateSources(completion.messages);
+				validateContext();
+				const recovered = commitCompletion(this.sessions, this.traces, scope, completion);
+				this.providerStatus = "last_request_succeeded";
+				this.options.onActivity?.(scope, { executionId: recovered.executionId, phase: "completed", updatedAt: this.now() });
+				return recovered;
+			}
+			if (priorReply) throw new RuntimeFailure("context_failure", "Completed dialogue is missing execution evidence; review required", false);
 			const observationEvents: RuntimeTurnResult["events"] = [];
 			const rebuild = taskContext?.historyBinding !== undefined && session.historyBinding !== taskContext.historyBinding;
 			// ConversationApi persists the current user input before resume. Keep only
@@ -446,13 +398,13 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 					usage: { ...event.response.usage },
 				});
 			});
+			const workingMessages = (messages: readonly AgentMessage[], paused: boolean) => messages
+				.filter((message) => message.kind !== "task_context" && !(message.role === "system" && message.pinned))
+				.map((message) => ({ ...withoutImageData(message), pinned: message.durable === true || (paused && message.pinned === true) }));
 			const saveWorking = (messages: readonly AgentMessage[], paused: boolean) => {
 				validateContext();
-				const saved = this.sessions.save(scope, sessionRevision, messages
-					.filter((message) => message.kind !== "task_context" && !(message.role === "system" && message.pinned))
-					.map((message) => ({ ...withoutImageData(message), pinned: message.durable === true || (paused && message.pinned === true) })),
-					this.now(), paused ? { turnKey: request.idempotencyKey, ...(taskContext ? { contextBinding: taskContext.binding } : {}) } : null, taskContext?.historyBinding);
-				sessionRevision = saved.revision;
+				sessionRevision = this.sessions.save(scope, sessionRevision, workingMessages(messages, paused),
+					this.now(), paused ? { turnKey: request.idempotencyKey, ...(taskContext ? { contextBinding: taskContext.binding } : {}) } : null, taskContext?.historyBinding).revision;
 			};
 			hooks.on("loop.checkpoint", (event) => saveWorking(event.messages, true));
 			const archive = (snapshotId: string, messages: readonly AgentMessage[], purpose: "archive" | "summary" = "archive") => {
@@ -564,8 +516,9 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 			}, combinedSignal), combinedSignal);
 			combinedSignal.throwIfAborted();
 			validateContext();
+			if (request.policy.sandboxMode === "read-only") await validateSources(result.messages);
+			assertWithinDeadline(); validateContext();
 			if (result.stopReason === "completed") validateOutput(result.finalText);
-			saveWorking(result.messages, result.stopReason === "slice_limit");
 			const response: RuntimeTurnResult = {
 				executionId,
 				adapter: "blackx-agent",
@@ -607,7 +560,7 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 				usage: result.usage,
 			};
 			traceEvents = response.events;
-			this.traces.putTrace({
+			const completedTrace: RuntimeTraceRecord = {
 				schemaVersion: "runtime-trace.v1",
 				tenantId: request.tenantId,
 				workspaceId: request.workspaceId,
@@ -628,7 +581,15 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 					: event),
 				usage: response.usage,
 				loopGuard: guard.state,
-			});
+			};
+			if (response.status === "completed") {
+				completionPending = true;
+				const intent = prepareCompletion(this.snapshots, this.sessions, scope, { ...request, taskContext }, completedTrace, workingMessages(result.messages, false), sessionRevision);
+				commitCompletion(this.sessions, this.traces, scope, intent);
+			} else {
+				saveWorking(result.messages, true);
+				this.traces.putTrace(completedTrace);
+			}
 			this.providerStatus = "last_request_succeeded";
 			progress(response.status);
 			return response;
@@ -639,7 +600,7 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 			const reportingFailures: unknown[] = [];
 			try { progress("failed"); } catch (reportingError) { reportingFailures.push(reportingError); }
 			traceEvents = [...traceEvents, { type: "turn.failed", message: failure.message }];
-			try { this.traces.putTrace({
+			if (!completionPending) try { this.traces.putTrace({
 				schemaVersion: "runtime-trace.v1",
 				tenantId: request.tenantId,
 				workspaceId: request.workspaceId,

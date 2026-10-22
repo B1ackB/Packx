@@ -1,3 +1,4 @@
+import { RuntimeFailure } from "../../src/runtime/contracts";
 import type { AgentHostTool } from "../../src/agent/contracts";
 import { ProposalRunEngine } from "../../src/enterprise/proposalRunEngine";
 import { requirementBriefFixtures } from "../../src/manufacturing/requirementBrief.fixtures";
@@ -44,13 +45,13 @@ export function createProjectSourceReadTool(
 			const prior = JSON.parse(output);
 			const state = engine.load(context);
 			const brief = state.facts.customer_brief;
-			if (!brief || prior.sourceRef !== brief.sourceRef || prior.content !== brief.value) throw new Error("Requirement source changed");
+			if (!brief || prior.sourceRef !== brief.sourceRef || prior.content !== brief.value) throw new RuntimeFailure("context_failure", "Requirement source changed", false);
 			const conversationId = /^conversation:(.+):revision:\d+$/.exec(brief.sourceRef)?.[1];
 			if (attachments && conversationId) {
 				const scope = { ...context, conversationId };
-				if (prior.attachmentDigest !== undefined && prior.attachmentDigest !== attachments.digest(scope)) throw new Error("Requirement attachments changed");
+				if (prior.attachmentDigest !== undefined && prior.attachmentDigest !== attachments.digest(scope)) throw new RuntimeFailure("context_failure", "Requirement attachments changed", false);
 				for (const source of [...(prior.attachments ?? []), ...(prior.textAttachments ?? [])]) {
-					if (attachments.read(scope, source.attachmentId).attachment.sha256 !== source.sha256) throw new Error("Requirement attachment changed");
+					if (attachments.read(scope, source.attachmentId).attachment.sha256 !== source.sha256) throw new RuntimeFailure("context_failure", "Requirement attachment changed", false);
 				}
 			}
 		},

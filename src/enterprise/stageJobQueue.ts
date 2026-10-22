@@ -1,3 +1,4 @@
+import { findMutationReceipt, recordMutation, validMutationReceipts, type MutationReceipt, type RecordedMutation } from "./mutationReceipt";
 import type { AggregateScope, StageJobDispatch } from "./contracts";
 
 export type EnqueueStageJob = StageJobDispatch;
@@ -12,6 +13,7 @@ export interface StageJobFailure {
 }
 
 export interface StageJob extends AggregateScope {
+	mutationReceipts?: MutationReceipt[];
 	schemaVersion: "stage-job.v1";
 	jobId: string;
 	stageId: string;
@@ -84,7 +86,7 @@ export interface StageJobLeaseKey {
 }
 
 export interface StageJobQueue {
-	enqueue(input: EnqueueStageJob): StageJob;
+	enqueue(input: EnqueueStageJob, mutation?: RecordedMutation<StageJob>): StageJob;
 	claim(workerId: string, leaseMs: number): StageJobLease | undefined;
 	renew(lease: StageJobLeaseKey, leaseMs: number): StageJobLease;
 	checkpoint(
@@ -105,7 +107,7 @@ export interface StageJobQueue {
 			additionalSlices?: number;
 		},
 	): StageJob;
-	cancel(jobId: string, scope: { tenantId: string; workspaceId: string; runId: string }): StageJob;
+	cancel(jobId: string, scope: { tenantId: string; workspaceId: string; runId: string }, mutation?: RecordedMutation<StageJob>): StageJob;
 	get(jobId: string): StageJob | undefined;
 	list(): StageJob[];
 	listDeadLetters(scope?: { tenantId: string; workspaceId: string }): StageJob[];
@@ -193,6 +195,7 @@ export function isStageJob(value: unknown): value is StageJob {
 		? validId(job.leaseId) && validId(job.leaseOwner) && validDate(job.leaseExpiresAt)
 		: job.leaseId === undefined && job.leaseOwner === undefined && job.leaseExpiresAt === undefined;
 	return job.schemaVersion === "stage-job.v1" &&
+		validMutationReceipts(job) &&
 		[
 			job.jobId,
 			job.tenantId,
@@ -297,7 +300,7 @@ export class DurableStageJobQueue implements StageJobQueue {
 		this.nextId = options.nextId ?? (() => crypto.randomUUID());
 	}
 
-	enqueue(input: EnqueueStageJob): StageJob {
+	enqueue(input: EnqueueStageJob, mutation?: RecordedMutation<StageJob>): StageJob {
 		assertInput(input);
 		return this.storage.transaction((jobs) => {
 			const existing = jobs.find((job) => job.jobId === input.jobId);
@@ -305,6 +308,7 @@ export class DurableStageJobQueue implements StageJobQueue {
 				if (!sameIdentity(existing, input)) {
 					throw new StageJobQueueError("job_conflict", "Stage Job ID is already bound to another command");
 				}
+				if (mutation && !findMutationReceipt(existing.mutationReceipts, mutation.binding)) throw new StageJobQueueError("job_conflict", "Existing job has no matching mutation receipt");
 				return clone(existing);
 			}
 			const now = this.now().toISOString();
@@ -326,6 +330,7 @@ export class DurableStageJobQueue implements StageJobQueue {
 				createdAt: now,
 				updatedAt: now,
 			};
+			recordMutation(job, mutation);
 			jobs.push(job);
 			return clone(job);
 		});
@@ -490,7 +495,7 @@ export class DurableStageJobQueue implements StageJobQueue {
 		});
 	}
 
-	cancel(jobId: string, scope: { tenantId: string; workspaceId: string; runId: string }): StageJob {
+	cancel(jobId: string, scope: { tenantId: string; workspaceId: string; runId: string }, mutation?: RecordedMutation<StageJob>): StageJob {
 		if (![jobId, scope.tenantId, scope.workspaceId, scope.runId].every(validId)) {
 			throw new StageJobQueueError("invalid_job", "Stage Job cancellation is invalid");
 		}
@@ -500,11 +505,13 @@ export class DurableStageJobQueue implements StageJobQueue {
 				candidate.workspaceId === scope.workspaceId &&
 				candidate.runId === scope.runId);
 			if (!job) throw new StageJobQueueError("job_conflict", "Stage Job does not exist in this scope");
-			if (job.status === "cancelled" || job.status === "completed") return clone(job);
+			if (mutation && findMutationReceipt(job.mutationReceipts, mutation.binding)) return clone(job);
+			if (job.status === "cancelled" || job.status === "completed") { recordMutation(job, mutation); return clone(job); }
 			if (job.status !== "queued" && job.status !== "leased") {
 				throw new StageJobQueueError("job_conflict", "Only a queued or leased Stage Job can be cancelled");
 			}
 			const updated: StageJob = { ...job, status: "cancelled", updatedAt: this.now().toISOString() };
+			recordMutation(updated, mutation);
 			delete updated.leaseId;
 			delete updated.leaseOwner;
 			delete updated.leaseExpiresAt;

@@ -1,5 +1,9 @@
 # Packx 逐节点故障、回滚与恢复审计
 
+Update (2026-10-22): G2, G3 and G6 are closed by [durable recovery and bounded delivery](evidence/durable-recovery-closure-2026-10-22.md). [ADR-0043](adr/0043-durable-completion-and-bounded-delivery.md) defines the current protocol. The tables below preserve the earlier audit snapshot; their missing-adapter, missing-intent and unbounded-delivery statements no longer describe the current implementation. Provider billing and results lost before durable preparation remain outside the recovery guarantee.
+
+Current follow-up (2026-10-22): [project reliability audit and closure record](evidence/project-closure-2026-10-22.md). It adds the scheduled indexing deadline, worker shutdown draining, attachment upload recovery, and file/directory flushes. The G1–G7 table below remains the original dated audit; the follow-up records which parts are fixed and which remain open.
+
 核查日期：2026-09-21。基准代码：`4df7f4d0b86fdd047cb051d76cc35db84b1e07f8`，以及本次后台续执行、错误分类和 Plan 调度修复。范围为当前本地 Host 的实际产品调用链，包括普通会话、个人记忆、知识库、Plan／子任务、需求单、文件操作和后台调度；历史 Proposal 使用的共用基础设施一并核对。**这是代码与离线故障验证记录，不是“所有故障均可自动回滚”的承诺。**
 
 后续追加的独立测试及修复见 [Harness 错误处理测试闭环](harness-error-handling-tests.md)：新增 86 项，覆盖 Provider、Runtime、Worker／队列及知识取消。本表 G1、G3 与 R4 已同步后续修复，文末原审计的测试计数保留其历史范围。

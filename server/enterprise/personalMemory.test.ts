@@ -142,7 +142,7 @@ it("only explicit source user messages may create tool candidates; document inst
 		{ role: "user", kind: "dialogue", messageId: "ask", content: "请长期记住：报告使用简洁中文" },
 	], new Date().toISOString());
 	const tool = service.tool();
-	const context = { ...scope, stageId: "conversation", executionId: "e", toolCallId: "c", idempotencyKey: "tool-propose", signal: new AbortController().signal };
+	const context = { ...scope, stageId: "conversation", approvalId: "policy:memory_propose:v1", executionId: "e", toolCallId: "c", idempotencyKey: "tool-propose", signal: new AbortController().signal };
 	for (const sourceMessageId of ["normal", "doc", "invented"]) await expect(tool.execute({ ...draft, sourceMessageId }, context)).rejects.toThrow("memory_explicit_request_required");
 	const input = { ...draft, sourceMessageId: "ask" };
 	expect(await tool.execute(input, context)).toMatchObject({ status: "awaiting_user_confirmation", active: false });

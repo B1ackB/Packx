@@ -1,4 +1,5 @@
 import { FileWriteLockError, withFileWriteLock } from "../fileWriteLock";
+import { syncDirectory } from "../syncDirectory";
 import {
 	chmodSync,
 	existsSync,
@@ -563,9 +564,10 @@ export class FileAgentStateStore implements AgentSessionStore, ContextSnapshotSt
 		mkdirSync(directory, { recursive: true, mode: 0o700 });
 		const temporary = `${path}.${crypto.randomUUID()}.tmp`;
 		try {
-			writeFileSync(temporary, canonical(value), { encoding: "utf8", mode: 0o600 });
+			writeFileSync(temporary, canonical(value), { encoding: "utf8", mode: 0o600, flush: true });
 			renameSync(temporary, path);
 			chmodSync(path, 0o600);
+			syncDirectory(directory);
 		} catch (error) {
 			throw new AgentStateStoreError("unavailable", "Agent State file cannot be written", { cause: error });
 		} finally {
@@ -581,3 +583,5 @@ export class FileAgentStateStore implements AgentSessionStore, ContextSnapshotSt
 		}
 	}
 }
+
+export { messages as isStoredAgentMessages, runtimeTrace as isStoredRuntimeTrace };

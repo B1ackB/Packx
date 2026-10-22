@@ -90,6 +90,92 @@ describe("requirement evidence review boundary", () => {
 		expect(h.requests).toHaveLength(phase === "intake" ? 1 : 3);
 	});
 
+	it.each(["7 个必填字段已齐全。", "All 7 required fields are present."])("accepts a schema-derived field count without changing Facts: %s", async note => {
+		const candidate = { ...structuredClone(fixture.artifact), assumptions: [note] };
+		const h = harness([pass], candidate);
+		const before = h.engine.load(h.scope).facts;
+		await h.run();
+		expect(h.report()).toMatchObject({ passed: true, approvalEligible: true });
+		expect(h.engine.load(h.scope)).toMatchObject({ stageStatus: "waiting_approval", facts: before });
+		await h.run(); expect(h.requests).toHaveLength(2);
+	});
+
+	it.each(["8 个必填字段已齐全。", "7 个必填字段已齐全，订单数量是 7 个。", "All 7 required fields are present; order quantity is 7."])("still blocks unsupported counts and order values: %s", async note => {
+		const h = harness([pass], { ...structuredClone(fixture.artifact), assumptions: [note] });
+		await h.run();
+		expect(h.report()).toMatchObject({ passed: false, approvalEligible: false });
+		expect(h.report().issues).toContainEqual(expect.objectContaining({ code: "unsupported_narrative_number" }));
+		expect(h.requests).toHaveLength(1);
+	});
+
+	it.each([
+		{ original: "2026-11-30 到货。", proposed: "2026-11-30 到货", eligible: true },
+		{ original: "2026-11-30 出货。", proposed: "2026-11-30 出货", eligible: true },
+		{ original: "交期：2026-11-30 到货。", proposed: "2026-11-30 到货", eligible: true },
+		{ original: "2026-11-30 到货。", proposed: "2026-11-30 出货", eligible: false },
+		{ original: "2026-11-30 到货。", proposed: "2026-12-01 到货", eligible: false },
+		{ original: "2026-11-30，口径未定。", proposed: "2026-11-30 到货", eligible: false },
+		{ original: "不是 2026-11-30 到货。", proposed: "2026-11-30 到货", eligible: false },
+		{ original: "不要求 2026-11-30 到货。", proposed: "2026-11-30 到货", eligible: false },
+		{ original: "禁止在 2026-11-30 到货。", proposed: "2026-11-30 到货", eligible: false },
+		{ original: "2026-11-30 到货或出货，待确认。", proposed: "2026-11-30 到货", eligible: false },
+	])("compares delivery wording against the original bound to human confirmation: $original / $proposed", async ({ original, proposed, eligible }) => {
+		const candidate = structuredClone(fixture.artifact);
+		candidate.facts.find(fact => fact.key === "target_delivery")!.value = proposed;
+		candidate.facts.find(fact => fact.key === "target_delivery")!.sourceRef = "source:brief:v1";
+		const h = harness([pass], candidate, `订单资料。${original}`);
+		h.engine.recordFactVersion({ ...h.command, actorId: "user", commandId: "delivery-source", expectedVersion: h.engine.load(h.scope).aggregateVersion,
+			factKey: "target_delivery", factVersion: 2, value: "2026-11-30", status: "unverified", sourceType: "model_output", sourceRef: "source:brief:v1" });
+		h.engine.resolveFact({ ...h.command, actorId: "user", commandId: "delivery-confirmed", expectedVersion: h.engine.load(h.scope).aggregateVersion,
+			factKey: "target_delivery", decision: "verified", sourceRef: "confirmation:delivery:v3" });
+		h.command.expectedVersion = h.engine.load(h.scope).aggregateVersion;
+		const before = h.engine.load(h.scope).facts;
+		await h.run();
+		expect(h.report().approvalEligible).toBe(eligible);
+		expect(h.engine.load(h.scope)).toMatchObject({ stageStatus: eligible ? "waiting_approval" : "needs_input", facts: before });
+		expect((h.read("requirement-brief") as RequirementBriefV1).pendingChanges ?? []).toHaveLength(eligible ? 0 : 1);
+		await h.run(); expect(h.requests).toHaveLength(2);
+	});
+
+	it.each(["订单约定 2026-11-30 到货。", "新的约定也是 2026-11-30 到货。"])("requires the confirmed source version even when the replacement says: %s", async source => {
+		const candidate = structuredClone(fixture.artifact);
+		Object.assign(candidate.facts.find(fact => fact.key === "target_delivery")!, { value: "2026-11-30 到货", sourceRef: "source:brief:v1" });
+		const h = harness([pass], candidate, "订单约定 2026-11-30 到货。");
+		const command = (commandId: string) => ({ ...h.command, actorId: "user", commandId, expectedVersion: h.engine.load(h.scope).aggregateVersion });
+		h.engine.recordFactVersion({ ...command("delivery-source"), factKey: "target_delivery", factVersion: 2, value: "2026-11-30", status: "unverified", sourceType: "model_output", sourceRef: "source:brief:v1" });
+		h.engine.resolveFact({ ...command("delivery-confirmed"), factKey: "target_delivery", decision: "verified", sourceRef: "confirmation:delivery:v3" });
+		h.engine.recordFactVersion({ ...command("source-changed"), factKey: "customer_brief", factVersion: 2, value: source, status: "unverified", sourceType: "user_input", sourceRef: "source:brief:v1" });
+		h.command.expectedVersion = h.engine.load(h.scope).aggregateVersion;
+		await h.run();
+		expect(h.report()).toMatchObject({ approvalEligible: false });
+		expect((h.read("requirement-brief") as RequirementBriefV1).pendingChanges).toHaveLength(1);
+		expect(h.engine.load(h.scope).facts.target_delivery).toMatchObject({ version: 3, value: "2026-11-30", status: "verified" });
+	});
+
+	it("does not infer a delivery basis without the confirmed Fact's source chain", async () => {
+		const candidate = structuredClone(fixture.artifact);
+		candidate.facts.find(fact => fact.key === "target_delivery")!.value = "2026-11-30 到货";
+		const h = harness([pass], candidate, "订单约定 2026-11-30 到货。");
+		await h.run();
+		expect(h.report()).toMatchObject({ approvalEligible: false });
+		expect((h.read("requirement-brief") as RequirementBriefV1).pendingChanges).toHaveLength(1);
+	});
+
+	it.each([false, true])("checks original message references and other delivery statements (conflict=%s)", async conflict => {
+		const candidate = structuredClone(fixture.artifact);
+		Object.assign(candidate.facts.find(fact => fact.key === "target_delivery")!, { value: "2026-11-30 到货", sourceRef: "customer-S01" });
+		const messages = [{ sourceRef: "customer-S01", content: "订单约定 2026-11-30 到货。" },
+			...(conflict ? [{ sourceRef: "customer-S02", content: "２０２６-１２-０１" }] : [])];
+		const h = harness([pass], candidate, JSON.stringify({ messages }));
+		const command = (commandId: string) => ({ ...h.command, actorId: "user", commandId, expectedVersion: h.engine.load(h.scope).aggregateVersion });
+		h.engine.recordFactVersion({ ...command("delivery-source"), factKey: "target_delivery", factVersion: 2, value: "2026-11-30", status: "unverified", sourceType: "model_output", sourceRef: "customer-S01" });
+		h.engine.resolveFact({ ...command("delivery-confirmed"), factKey: "target_delivery", decision: "verified", sourceRef: "confirmation:delivery:v3" });
+		h.command.expectedVersion = h.engine.load(h.scope).aggregateVersion;
+		await h.run();
+		expect(h.report().approvalEligible).toBe(!conflict);
+		expect((h.read("requirement-brief") as RequirementBriefV1).pendingChanges ?? []).toHaveLength(conflict ? 1 : 0);
+	});
+
 	it("runs rules before independent review and still requires version-bound human approval", async () => {
 		const h = harness([pass]); await h.run();
 		expect(h.engine.load(h.scope)).toMatchObject({ stageStatus: "waiting_approval", approval: { artifactVersion: 1, status: "requested" } });

@@ -111,3 +111,17 @@ it.each(["changed", "removed"] as const)("stops a blocked read-only model call w
 		expect(h.state.listTraces(scope).at(-1)).toMatchObject({ status: "failed", failure: { code: "context_failure" } });
 	} finally { release(); }
 });
+
+
+it("rechecks read-only sources after the final provider response before publishing a completion", async () => {
+	const h = await fixture(), path = join(h.root, "final-source.txt"); writeFileSync(path, "ORIGINAL"); let calls = 0;
+	const runtime = new BlackxAgentRuntime({ sessions: h.state, snapshots: h.state, traces: h.state, tools: h.files.tools(), skills: new SkillRegistry(), provider: { async generate() {
+		calls++;
+		if (calls === 1) return { text: "", toolCalls: [{ id: "source", name: "file_read", input: { path } }], usage: { inputTokens: 1, outputTokens: 1, cachedInputTokens: 0, reasoningOutputTokens: 0 } };
+		writeFileSync(path, "CHANGED_DURING_FINAL_REPLY");
+		return { text: "must-not-publish", toolCalls: [], usage: { inputTokens: 1, outputTokens: 1, cachedInputTokens: 0, reasoningOutputTokens: 0 } };
+	} } });
+	await expect(runtime.executeTurn({ ...turn, idempotencyKey: "final-source-gate" })).rejects.toMatchObject({ code: "context_failure", retryable: false });
+	expect(h.state.listTraces(scope).at(-1)?.status).toBe("failed");
+	expect(h.state.getSession(scope)?.transcript?.some(message => message.content === "must-not-publish")).not.toBe(true);
+});

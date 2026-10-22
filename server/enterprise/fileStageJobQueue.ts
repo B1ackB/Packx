@@ -1,3 +1,5 @@
+import { withFileWriteLock } from "../fileWriteLock";
+import { syncDirectory } from "../syncDirectory";
 import { randomUUID } from "node:crypto";
 import {
 	chmodSync,
@@ -8,8 +10,6 @@ import {
 	openSync,
 	readFileSync,
 	renameSync,
-	rmdirSync,
-	statSync,
 	unlinkSync,
 	writeFileSync,
 } from "node:fs";
@@ -98,6 +98,7 @@ class FileStageJobQueueStorage implements StageJobQueueStorage {
 			}
 			renameSync(temporaryPath, this.filePath);
 			chmodSync(this.filePath, 0o600);
+			syncDirectory(dirname(this.filePath));
 		} catch (error) {
 			if (existsSync(temporaryPath)) unlinkSync(temporaryPath);
 			throw new StageJobQueueError(
@@ -109,27 +110,10 @@ class FileStageJobQueueStorage implements StageJobQueueStorage {
 	}
 
 	private withLock<Value>(operation: () => Value): Value {
-		const lockPath = `${this.filePath}.lock`;
-		mkdirSync(dirname(this.filePath), { recursive: true, mode: 0o700 });
-		try {
-			mkdirSync(lockPath, { mode: 0o700 });
-		} catch (error) {
-			try {
-				if (Date.now() - statSync(lockPath).mtimeMs <= 30_000) throw error;
-				rmdirSync(lockPath);
-				mkdirSync(lockPath, { mode: 0o700 });
-			} catch (recoveryError) {
-				throw new StageJobQueueError(
-					"queue_unavailable",
-					"Persistent Stage Job Queue is locked by another writer",
-					{ cause: recoveryError },
-				);
-			}
-		}
-		try {
-			return operation();
-		} finally {
-			rmdirSync(lockPath);
+		try { return withFileWriteLock(this.filePath, operation); }
+		catch (cause) {
+			if (cause instanceof StageJobQueueError) throw cause;
+			throw new StageJobQueueError("queue_unavailable", "Persistent store is locked or unavailable", { cause });
 		}
 	}
 }

@@ -18,6 +18,7 @@ export function pageUnits<T>(units: readonly T[], offset: number, maxChars = 12_
 }
 
 export function readContextSource(scope: AgentSessionScope, sessions: AgentSessionStore, snapshots: ContextSnapshotStore, sourceRef: string, binding?: string, historyBinding?: string) {
+	if (sourceRef.startsWith("completion-")) throw new Error("host_completion_intent_is_private");
 	const current = sessions.load(scope);
 	if (sourceRef === "transcript") return { stale: false, messages: (current.transcript ?? []).filter((message) => historyBinding === undefined || message.role === "user") };
 	const snapshot = snapshots.read(scope, sourceRef);

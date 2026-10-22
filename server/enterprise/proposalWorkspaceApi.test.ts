@@ -92,7 +92,7 @@ describe("ProposalWorkspaceApiController", () => {
 			status: 200,
 			body: { proposal: null },
 		});
-		const started = controller.start(context, conversationId, { requestId: "proposal-request-1" });
+		const started = (await controller.start(context, conversationId, { requestId: "proposal-request-1" }));
 		expect(started.status).toBe(202);
 		expect(proposal(started)).toMatchObject({
 			state: {
@@ -106,7 +106,7 @@ describe("ProposalWorkspaceApiController", () => {
 			},
 			job: { status: "queued" },
 		});
-		const repeated = controller.start(context, conversationId, { requestId: "proposal-request-1" });
+		const repeated = (await controller.start(context, conversationId, { requestId: "proposal-request-1" }));
 		expect(proposal(repeated).state.aggregateVersion).toBe(proposal(started).state.aggregateVersion);
 		expect(queue.list()).toHaveLength(1);
 		expect(controller.recordFact(context, conversationId, {
@@ -146,7 +146,7 @@ describe("ProposalWorkspaceApiController", () => {
 
 	it("records and resolves field Facts after a Worker slice, then invalidates only the dependent Artifact", async () => {
 		const { controller, conversationId, scheduler } = harness();
-		controller.start(context, conversationId, { requestId: "proposal-for-facts" });
+		(await controller.start(context, conversationId, { requestId: "proposal-for-facts" }));
 		expect(await scheduler.runNext()).toMatchObject({ status: "completed" });
 
 		const recorded = controller.recordFact(context, conversationId, {
@@ -190,9 +190,9 @@ describe("ProposalWorkspaceApiController", () => {
 		});
 	});
 
-	it("does not expose another tenant's Conversation or Proposal Run", () => {
+	it("does not expose another tenant's Conversation or Proposal Run", async () => {
 		const { controller, conversationId } = harness();
-		controller.start(context, conversationId, { requestId: "proposal-request-tenant" });
+		(await controller.start(context, conversationId, { requestId: "proposal-request-tenant" }));
 
 		expect(controller.get({ ...context, tenantId: "tenant-other" }, conversationId)).toEqual({
 			status: 404,

@@ -303,4 +303,34 @@ describe("StageJobScheduler", () => {
 		expect(scheduler.cancel(job.jobId, job)).toMatchObject({ status: "cancelled" });
 		expect(await result).toMatchObject({ status: "cancelled", job: { status: "cancelled" } });
 	});
+
+	it("waits for shutdown cleanup and preserves the active lease for restart recovery", async () => {
+		let release!: () => void;
+		const gate = new Promise<void>((resolve) => { release = resolve; });
+		let current = new Date("2026-10-22T00:00:00Z"), cleaned = false;
+		const queue = new InMemoryStageJobQueue({ now: () => current });
+		const job = queue.enqueue({ tenantId: "tenant", workspaceId: "workspace", runId: "run", stageId: "cleanup", jobId: "job", commandId: "command", correlationId: "trace", expectedVersion: 0, sessionId: "session" });
+		const scheduler = new StageJobScheduler(queue, { workerId: "stopping-worker", leaseMs: 1000, heartbeatMs: 250, handlers: {
+			cleanup: async (_lease, signal) => {
+				try { await gate; signal.throwIfAborted(); return { status: "completed" }; }
+				finally { cleaned = true; }
+			},
+		} });
+		const running = scheduler.runNext();
+		let drained = false;
+		const stopping = Promise.resolve(scheduler.stop()).then(() => { drained = true; });
+		await Promise.resolve();
+		const stoppedBeforeCleanup = drained;
+		release();
+		await running; await stopping;
+		expect(stoppedBeforeCleanup).toBe(false);
+		expect(cleaned).toBe(true);
+		expect(queue.get(job.jobId)).toMatchObject({ status: "leased", failureCount: 0 });
+		current = new Date(current.getTime() + 1001);
+		// A stopped scheduler must neither reconcile nor claim work again.
+		await scheduler.runNext();
+		expect(queue.get(job.jobId)?.deliveryCount).toBe(1);
+		const restarted = new StageJobScheduler(queue, { workerId: "restarted-worker", handlers: { cleanup: async () => ({ status: "completed" }) } });
+		expect(await restarted.runNext()).toMatchObject({ status: "completed", job: { deliveryCount: 2, recoveryCount: 1, failureCount: 0 } });
+	});
 });

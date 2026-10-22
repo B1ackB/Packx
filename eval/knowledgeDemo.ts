@@ -11,7 +11,7 @@ try {
 	const found = await h.store.search(h.context, { query: "thickness OTR", mode: "hybrid", model: "DEMO-PE-A", region: "HK" });
 	const hit = found.hits[0];
 	assert.equal((await h.api.handle(h.context, h.conversationId, "select", { ids: [hit.evidenceId], applicability: { region: "HK", asOf: "2026-09-17T10:00:00.000Z" }, requestId: "select-demo", expectedVersion: 0 })).status, 200);
-	assert.equal(h.requirements.start(h.context, h.conversationId, { requestId: "demo-brief", industry: "print" }).status, 202);
+	assert.equal((await h.requirements.start(h.context, h.conversationId, { requestId: "demo-brief", industry: "print" })).status, 202);
 	assert.equal((await h.scheduler.runNext()).status, "completed");
 	const brief = (h.requirements.get(h.context, h.conversationId).body as { requirementBrief: RequirementBriefWorkspaceView }).requirementBrief;
 	assert.equal(brief.state.facts.material_thickness.status, "unverified"); assert.equal(brief.state.facts.dimensions, undefined);

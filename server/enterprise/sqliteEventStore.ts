@@ -1,3 +1,5 @@
+import { failOutboxDelivery, redriveOutboxDelivery } from "../../src/enterprise/outboxDelivery";
+import type { OutboxRedriveRequest } from "../../src/enterprise/contracts";
 import { randomUUID } from "node:crypto";
 import { chmodSync, existsSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
@@ -136,6 +138,13 @@ export class SqliteEnterpriseEventStore implements EnterpriseEventStore {
 		});
 	}
 
+	readOutbox(scope: { tenantId: string; workspaceId: string }): OutboxMessage[] {
+		const rows = this.db.prepare("SELECT document FROM outbox").all() as unknown as OutboxRow[];
+		return rows.map(row => this.parseOutbox(row.document)).filter(message => message.payload.tenantId === scope.tenantId && message.payload.workspaceId === scope.workspaceId);
+	}
+	redriveOutbox(messageId: string, request: OutboxRedriveRequest): OutboxMessage {
+		return this.updateOutbox(messageId, (message, now) => redriveOutboxDelivery(message, request, now));
+	}
 	readPendingOutbox(limit: number): OutboxMessage[] {
 		if (!Number.isInteger(limit) || limit < 1) throw unavailable("Outbox read limit is invalid");
 		const rows = this.db.prepare(`
@@ -144,11 +153,13 @@ export class SqliteEnterpriseEventStore implements EnterpriseEventStore {
 			ORDER BY created_at_ms, rowid
 			LIMIT ?
 		`).all(this.now().getTime(), limit) as unknown as OutboxRow[];
-		return rows.map((row) => JSON.parse(row.document) as OutboxMessage);
+		return rows.map((row) => this.parseOutbox(row.document));
 	}
 
 	markOutboxPublished(messageId: string): OutboxMessage {
-		return this.updateOutbox(messageId, (message, now) => message.status === "published"
+		return this.updateOutbox(messageId, (message, now) => {
+			if (message.status === "dead_letter") throw new EnterpriseKernelError("illegal_transition", "Outbox message requires operator redrive");
+			return message.status === "published"
 			? message
 			: {
 				...message,
@@ -156,23 +167,16 @@ export class SqliteEnterpriseEventStore implements EnterpriseEventStore {
 				deliveryCount: message.deliveryCount + 1,
 				publishedAt: now,
 				updatedAt: now,
-			});
+			};
+		});
 	}
 
-	markOutboxFailed(messageId: string, failure: { code: string; message: string; delayMs: number }): OutboxMessage {
+	markOutboxFailed(messageId: string, failure: { code: string; message: string; delayMs: number; retryable?: boolean }): OutboxMessage {
 		if (!/^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(failure.code) || typeof failure.message !== "string" ||
 			!Number.isInteger(failure.delayMs) || failure.delayMs < 0) {
 			throw unavailable("Outbox failure is invalid");
 		}
-		return this.updateOutbox(messageId, (message, now) => message.status === "published"
-			? message
-			: {
-				...message,
-				deliveryCount: message.deliveryCount + 1,
-				availableAt: new Date(Date.parse(now) + failure.delayMs).toISOString(),
-				updatedAt: now,
-				lastFailure: { code: failure.code, message: failure.message, at: now },
-			});
+		return this.updateOutbox(messageId, (message, now) => failOutboxDelivery(message, failure, now));
 	}
 
 	/**
@@ -251,9 +255,14 @@ export class SqliteEnterpriseEventStore implements EnterpriseEventStore {
 		`).run(message.messageId, message.status, Date.parse(message.availableAt), Date.parse(message.createdAt), JSON.stringify(message));
 	}
 
+	private parseOutbox(document: string): OutboxMessage {
+		const message: unknown = JSON.parse(document);
+		if (!isOutboxMessage(message)) throw new EnterpriseKernelError("event_store_corrupt", "Outbox evidence is invalid");
+		return message;
+	}
 	private outboxRow(messageId: string): OutboxMessage | undefined {
 		const row = this.db.prepare("SELECT document FROM outbox WHERE message_id = ?").get(messageId) as OutboxRow | undefined;
-		return row ? JSON.parse(row.document) as OutboxMessage : undefined;
+		return row ? this.parseOutbox(row.document) : undefined;
 	}
 
 	private updateOutbox(messageId: string, update: (message: OutboxMessage, now: string) => OutboxMessage): OutboxMessage {

@@ -5,6 +5,7 @@ import type { StageJobLease, StageJobQueue } from "../../src/enterprise/stageJob
 import { RuntimeFailure, type AgentRuntimePort, type RuntimeTurnResult } from "../../src/runtime/contracts";
 import { reconcileIndependently, type StageJobHandlerResult } from "../workers/stageJobScheduler";
 import { AgentPlanStore } from "./agentPlanStore";
+import { planInputDependencies } from "./planInputDependencies";
 
 const hash = (value: unknown) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
 const active = (p?: PlanVersion) => !!p && ["planning", "queued", "running"].includes(p.status);
@@ -25,6 +26,32 @@ function failPlan(state: PlanWorkspace, code: string, retryable: boolean, reason
 		...(exhausted || reason ? { reason: `${code}${reason ? `: ${reason}` : ""}`.slice(0, 2000) } : {}),
 	};
 }
+// A requirement import adds downstream draft state to the same workspace. It must not
+// invalidate its own source or break idempotent import. Keep all other context fields.
+function sameCompletedInputs(plan: PlanVersion, input: PlanInputSnapshot): boolean {
+	if (plan.conversationRevision !== input.revision) return false;
+	try {
+		if (plan.inputDependencies) {
+			// Validate the receipt against its frozen context as well as the current source records.
+			return JSON.stringify(planInputDependencies(plan.context)) === JSON.stringify(plan.inputDependencies)
+				&& JSON.stringify(planInputDependencies(input.context, plan.inputDependencies)) === JSON.stringify(plan.inputDependencies);
+		}
+		if (plan.context === input.context) return true;
+		const frozen = JSON.parse(plan.context), current = JSON.parse(input.context);
+		if (![frozen, current].every(value => value?.schemaVersion === "task-context.v1" && [value.facts, value.artifacts, value.unresolved].every(Array.isArray))) return false;
+		const artifacts = new Set(frozen.artifacts.map((item: { artifactId: string }) => item.artifactId));
+		const facts = new Set(frozen.facts.filter((fact: { status: string }) => fact.status === "verified").map((fact: { key: string }) => fact.key));
+		const inputs = (value: typeof frozen) => {
+			const basis = { ...value };
+			for (const key of ["stage", "completed", "pendingChanges", "approval"]) delete basis[key];
+			basis.facts = value.facts.filter((fact: { key: string }) => facts.has(fact.key));
+			basis.artifacts = value.artifacts.filter((item: { artifactId: string }) => artifacts.has(item.artifactId));
+			basis.unresolved = value.unresolved.filter((item: { reason: string }) => item.reason === "source_unavailable");
+			return JSON.stringify(basis);
+		};
+		return inputs(frozen) === inputs(current);
+	} catch { return false; }
+}
 const json = (text: string): unknown => { try { return JSON.parse(text); } catch { throw new PlanError("invalid_plan_output", 422); } };
 export interface PlanInputSnapshot { revision: number; context: string }
 export interface PlanWorkflowOptions {
@@ -36,6 +63,7 @@ export interface PlanWorkflowOptions {
 	/** Opt in only at Host composition. Legacy/unspecified plans remain serial. */
 	maxReadConcurrency?: 2;
 	instructions: string[];
+	validateCompletedSources?(scope: PlanScope, plan: PlanVersion, signal: AbortSignal): Promise<void>;
 	recoverResult?(scope: PlanScope, sessionId: string, key: string): RuntimeTurnResult | undefined;
 	cancelJob?: (jobId: string, scope: PlanScope) => void;
 	now?: () => string;
@@ -46,7 +74,35 @@ export class AgentPlanWorkflow {
 	private now() { return this.options.now?.() ?? new Date().toISOString(); }
 	private jobId(scope: PlanScope, plan: PlanVersion) { return `plan-${hash([{ tenantId: scope.tenantId, workspaceId: scope.workspaceId, runId: scope.runId }, plan.version, plan.generation]).slice(0, 40)}`; }
 	private assertAvailable(scope: PlanScope) { if (this.options.assertAvailable) this.options.assertAvailable(scope); else this.options.readInput(scope); }
-	read(scope: PlanScope) { this.assertAvailable(scope); return this.store.read(scope); }
+	async read(scope: PlanScope): Promise<PlanWorkspace> {
+		this.assertAvailable(scope);
+		for (let attempt = 0; attempt < 2; attempt++) {
+			let state = this.store.read(scope), plan = latest(state);
+			if (plan?.readConcurrency !== 2 || plan.status !== "completed") return state;
+			this.dispatch(scope);
+			state = this.store.read(scope); plan = latest(state)!;
+			if (plan.status !== "completed" || !this.options.validateCompletedSources) return state;
+			const signal = AbortSignal.timeout(5000);
+			let changed = false;
+			try { await abortable(this.options.validateCompletedSources(scope, plan, signal), signal); }
+			catch (error) {
+				if (!(error instanceof RuntimeFailure) || error.code !== "context_failure" || error.retryable) {
+					if (error instanceof PlanError) throw error;
+					throw new PlanError("plan_source_review_unavailable", 503);
+				}
+				changed = true;
+			}
+			this.assertAvailable(scope);
+			if (this.store.read(scope).revision !== state.revision) continue;
+			this.dispatch(scope);
+			if (this.store.read(scope).revision !== state.revision) continue;
+			if (!changed) return state;
+			return this.store.change(scope, `results-stale:${plan.version}`, "plan_sources_changed", "host", "plan.results_stale", state.revision, state => {
+				const current = latest(state)!; current.status = "stale"; current.failure = { code: "plan_sources_changed", retryable: false, reason: "plan_tool_sources_changed" };
+			});
+		}
+		throw new PlanError("plan_revision_conflict");
+	}
 	assertChatAllowed(scope: PlanScope) {
 		const state = this.store.read(scope);
 		if (state.mode === "plan" || active(latest(state))) throw new PlanError("plan_mode_requires_plan_action");
@@ -71,11 +127,11 @@ export class AgentPlanWorkflow {
 				if (state.mode !== "plan" || active(current)) throw new PlanError("plan_not_ready");
 				const blocked = planBudgetBlock(state, true);
 				if (blocked) throw new PlanError(blocked);
-				if (p.action === "replan" && (!current || current.version !== p.version || !["failed", "paused", "awaiting_confirmation"].includes(current.status))) throw new PlanError("plan_not_replannable");
+				if (p.action === "replan" && (!current || current.version !== p.version || !["failed", "paused", "awaiting_confirmation", "stale"].includes(current.status))) throw new PlanError("plan_not_replannable");
 				const objective = p.action === "replan" ? current!.objective : p.objective;
 				if (typeof objective !== "string" || !objective.trim() || objective.length > 8000) throw new PlanError("invalid_plan_objective", 400);
-				const replanFromVersion = current && ["awaiting_confirmation", "paused", "failed"].includes(current.status) ? current.version : undefined;
-				if (current && ["awaiting_confirmation", "paused", "failed"].includes(current.status)) current.status = "superseded";
+				const replanFromVersion = current && ["awaiting_confirmation", "paused", "failed", "stale"].includes(current.status) ? current.version : undefined;
+				if (current && ["awaiting_confirmation", "paused", "failed", "stale"].includes(current.status)) current.status = "superseded";
 				state.versions.push({ version: state.versions.length + 1, objective: objective.trim(), context: input!.context, conversationRevision: input!.revision, status: "planning", createdAt: this.now(), actorId, generation: 1, calls: 0, children: [], ...(replanFromVersion === undefined ? {} : { replanFromVersion }) });
 			} else {
 				if (!current || current.version !== p.version) throw new PlanError("plan_version_conflict");
@@ -107,7 +163,7 @@ export class AgentPlanWorkflow {
 					if (!active(current)) throw new PlanError("plan_not_running");
 					current.status = current.spec ? "paused" : "cancelled";
 				} else {
-					if (["completed", "cancelled", "superseded"].includes(current.status)) throw new PlanError("plan_already_terminal");
+					if (["completed", "stale", "cancelled", "superseded"].includes(current.status)) throw new PlanError("plan_already_terminal");
 					current.status = "cancelled";
 				}
 			}
@@ -163,12 +219,12 @@ export class AgentPlanWorkflow {
 	}
 	// The durable plan status is the outbox intent. Deterministic job IDs repair
 	// a crash between confirmation and queue insertion without re-approving.
-	dispatch(scope: PlanScope) {
+	dispatch(scope: PlanScope, checkCompleted = true) {
 		const state = this.store.read(scope);
 		let plan = latest(state);
 		if (!plan) return;
 		let input: PlanInputSnapshot | undefined;
-		try { if (active(plan)) input = this.options.readInput(scope); else this.assertAvailable(scope); }
+		try { if (active(plan) || checkCompleted && plan.readConcurrency === 2 && plan.status === "completed") input = this.options.readInput(scope); else this.assertAvailable(scope); }
 		catch (error) {
 			// An unavailable context store is not evidence that the user deleted the task.
 			if (!(error instanceof PlanError) || error.code !== "conversation_not_found" || error.status !== 404) throw error;
@@ -178,9 +234,14 @@ export class AgentPlanWorkflow {
 			}
 			return;
 		}
-		if (plan.readConcurrency === 2 && input && (plan.conversationRevision !== input.revision || plan.context !== input.context)) {
+		if (plan.readConcurrency === 2 && input && (plan.status === "completed" ? !sameCompletedInputs(plan, input) : plan.conversationRevision !== input.revision || plan.context !== input.context)) {
 			// Durable invalidation precedes cancellation; reconcile repairs a crash between them.
-			plan = latest(this.store.change(scope, `sources-changed:${plan.version}:${plan.generation}`, "plan_sources_changed", "host", "plan.sources_changed", state.revision, (s) => { failPlan(s, "plan_sources_changed", false); }))!;
+			if (plan.status === "completed") {
+				// Completed receipts stay historical; a changed input is not an execution failure or a new call.
+				plan = latest(this.store.change(scope, `results-stale:${plan.version}`, "plan_sources_changed", "host", "plan.results_stale", state.revision, (s) => {
+					const p = latest(s)!; p.status = "stale"; p.failure = { code: "plan_sources_changed", retryable: false };
+				}))!;
+			} else plan = latest(this.store.change(scope, `sources-changed:${plan.version}:${plan.generation}`, "plan_sources_changed", "host", "plan.sources_changed", state.revision, (s) => { failPlan(s, "plan_sources_changed", false); }))!;
 		}
 		const jobId = this.jobId(scope, plan);
 		// ponytail: scan the local queue; use a scoped queue index if measured size requires it.
@@ -197,7 +258,8 @@ export class AgentPlanWorkflow {
 		if (existing) return;
 		this.queue.enqueue({ ...scope, jobId, stageId: "plan-subagents", commandId: jobId, correlationId: jobId, expectedVersion: plan.version, sessionId: `planner-${hash([scope, plan.version]).slice(0, 40)}`, maxFailures: 1, maxSlices: PLAN_LIMITS.calls + 2, payload: { version: plan.version, generation: plan.generation } });
 	}
-	reconcile() { reconcileIndependently(Object.fromEntries(this.store.scopes().map(scope => [hash(scope), () => this.dispatch(scope)]))); }
+	// Finished inputs are checked on reads/imports/source commands, not on every queue sweep.
+	reconcile() { reconcileIndependently(Object.fromEntries(this.store.scopes().map(scope => [hash(scope), () => this.dispatch(scope, false)]))); }
 	async execute(lease: StageJobLease, signal: AbortSignal, assertActive: () => void): Promise<StageJobHandlerResult> {
 		const plan = latest(this.store.read(lease));
 		if (plan?.readConcurrency !== 2 || plan.status === "planning") return this.executeSlice(lease, signal, assertActive);
@@ -257,6 +319,12 @@ export class AgentPlanWorkflow {
 			if (!planning) parsePlan(plan.spec, this.options.executionTools);
 			const parallel = !planning && plan.readConcurrency === 2;
 			if (parallel && plan.spec!.tasks.some((t) => t.tools.some((tool) => !this.options.readTools.includes(tool)))) throw new PlanError("plan_readonly_required", 422);
+			if (parallel && this.options.validateCompletedSources) {
+				const sourceSignal = AbortSignal.any([signal, AbortSignal.timeout(5000)]);
+				await abortable(this.options.validateCompletedSources(scope, plan, sourceSignal), sourceSignal);
+				check();
+				state = this.store.read(scope); plan = latest(state)!;
+			}
 			const task = planning ? undefined : plan.spec!.tasks[index];
 			if (!planning && !task) throw new PlanError("plan_task_missing");
 			const dependencies = task?.dependsOn?.map((taskIndex) => {
@@ -331,6 +399,13 @@ export class AgentPlanWorkflow {
 			const parsed = json(response.finalResponse);
 			const spec = planning ? parsePlan(parsed, this.options.executionTools) : undefined;
 			const result = planning ? undefined : parseSubagentResult(parsed, true);
+			if (parallel && result && this.options.validateCompletedSources) {
+				const current = latest(this.store.read(scope))!;
+				const preview = { ...current, children: [...current.children, { taskIndex: index, sessionId, executionId: response.executionId, result, usage: response.usage }] };
+				const sourceSignal = AbortSignal.any([signal, AbortSignal.timeout(5000)]);
+				await abortable(this.options.validateCompletedSources(scope, preview, sourceSignal), sourceSignal);
+				check();
+			}
 			const replanReason = result?.assessment?.decision === "replan" ? result.assessment.reason
 				: result && !result.evidence.length ? "No completion evidence was reported for the approved subtask." : undefined;
 			state = this.store.read(scope);
@@ -338,7 +413,11 @@ export class AgentPlanWorkflow {
 				const p = latest(s)!;
 				if (spec) {
 					p.spec = spec; p.status = "awaiting_confirmation";
-					if (this.options.maxReadConcurrency === 2 && spec.tasks.length > 1 && spec.tasks.every((t) => t.tools.every((tool) => this.options.readTools.includes(tool)))) p.readConcurrency = 2;
+					if (this.options.maxReadConcurrency === 2 && spec.tasks.every((t) => t.tools.every((tool) => this.options.readTools.includes(tool)))) {
+						p.readConcurrency = 2;
+						const dependencies = planInputDependencies(p.context);
+						if (dependencies) p.inputDependencies = dependencies;
+					}
 				}
 				else {
 					p.children.push({ taskIndex: index, sessionId, executionId: response!.executionId, result: result!, usage: response!.usage });

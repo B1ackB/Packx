@@ -1,7 +1,7 @@
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { afterAll, beforeAll, expect, it } from "vitest";
+import { afterAll, expect, it } from "vitest";
 import type { AgentModelProvider } from "../src/agent/contracts";
 import { createRequirementBrief } from "../src/manufacturing/requirementBrief";
 import { equivalentField, loadAutomaticSuite, scoreAutomatic } from "./requirementAutomatic";
@@ -10,27 +10,26 @@ import { executeIntakeCase, jsonDigest, newIntakeResult, verdict, type Checkpoin
 
 const suite = loadAutomaticSuite(), root = mkdtempSync(join(tmpdir(), "packx-automatic-qualification-"));
 const runs: IntakeResult[] = [];
-beforeAll(async () => {
-	for (const input of suite.cases) {
-		const result = newIntakeResult(input), oracle = suite.oracles.find((o) => o.caseId === input.id)!;
-		const provider: AgentModelProvider = { async generate(request) {
-			if (request.outputSchema?.properties && typeof request.outputSchema.properties === "object" && "issues" in request.outputSchema.properties) return { text: '{"issues":[]}', toolCalls: [], usage: { inputTokens: 0, outputTokens: 0, cachedInputTokens: 0, reasoningOutputTokens: 0 } };
-			const event = input.events[result.nextEvent];
-			if (event.kind !== "evaluate") throw new Error("unexpected_generation");
-			const point = oracle.checkpoints.find((p) => p.id === event.checkpointId)!;
-			const pending = (point as typeof point & { expectedPendingChanges: Array<{ key: string; value: number; unit: string; evidenceSourceIds: string[] }> }).expectedPendingChanges;
-			const facts = point.expectedFacts.map((f) => {
-				const change = pending.find((p) => p.key === f.key);
-				const sourceId = change?.evidenceSourceIds[0] ?? f.evidence[0].sourceId;
-				const sourceRef = Object.entries(result.sourceRefs).find(([ref, ids]) => ref.startsWith("attachment://") && ids.includes(sourceId))?.[0] ?? sourceId;
-				return { key: f.key, value: change?.value ?? f.value, ...(f.unit ? { unit: change?.unit ?? f.unit } : {}), version: 1, status: "unverified" as const, sourceType: "model_output" as const, sourceRef };
-			});
-			return { text: JSON.stringify(createRequirementBrief({ industry: "print", title: "离线参考结果", customerGoal: "整理结构化需求供人工核对", facts, assumptions: [] })), toolCalls: [], usage: { inputTokens: 0, outputTokens: 0, cachedInputTokens: 0, reasoningOutputTokens: 0 } };
-		} };
-		await executeIntakeCase({ input, oracle, result, directory: join(root, input.id), provider, score: scoreAutomaticV2, save() {} });
-		runs.push(result);
-	}
-}, 30_000);
+it.each(suite.cases)("executes reference scenario $id through the production workflow", async (input) => {
+	const result = newIntakeResult(input), oracle = suite.oracles.find((o) => o.caseId === input.id)!;
+	const provider: AgentModelProvider = { async generate(request) {
+		if (request.outputSchema?.properties && typeof request.outputSchema.properties === "object" && "issues" in request.outputSchema.properties) return { text: '{"issues":[]}', toolCalls: [], usage: { inputTokens: 0, outputTokens: 0, cachedInputTokens: 0, reasoningOutputTokens: 0 } };
+		const event = input.events[result.nextEvent];
+		if (event.kind !== "evaluate") throw new Error("unexpected_generation");
+		const point = oracle.checkpoints.find((p) => p.id === event.checkpointId)!;
+		const pending = (point as typeof point & { expectedPendingChanges: Array<{ key: string; value: number; unit: string; evidenceSourceIds: string[] }> }).expectedPendingChanges;
+		const facts = point.expectedFacts.map((f) => {
+			const change = pending.find((p) => p.key === f.key);
+			const sourceId = change?.evidenceSourceIds[0] ?? f.evidence[0].sourceId;
+			const sourceRef = Object.entries(result.sourceRefs).find(([ref, ids]) => ref.startsWith("attachment://") && ids.includes(sourceId))?.[0] ?? sourceId;
+			return { key: f.key, value: change?.value ?? f.value, ...(f.unit ? { unit: change?.unit ?? f.unit } : {}), version: 1, status: "unverified" as const, sourceType: "model_output" as const, sourceRef };
+		});
+		return { text: JSON.stringify(createRequirementBrief({ industry: "print", title: "离线参考结果", customerGoal: "整理结构化需求供人工核对", facts, assumptions: [] })), toolCalls: [], usage: { inputTokens: 0, outputTokens: 0, cachedInputTokens: 0, reasoningOutputTokens: 0 } };
+	} };
+	await executeIntakeCase({ input, oracle, result, directory: join(root, input.id), provider, score: scoreAutomaticV2, save() {} });
+	runs.push(result);
+	expect({ verdict: verdict(result), error: result.error, failures: result.checkpoints.flatMap(point => point.checks.filter(check => check.status !== "passed")) }).toEqual({ verdict: "passed", error: undefined, failures: [] });
+}, 10_000);
 afterAll(() => rmSync(root, { recursive: true, force: true }));
 
 it("executes 12 scripted reference scenarios and all 31 checkpoints through the production workflow", () => {

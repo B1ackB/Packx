@@ -1,3 +1,4 @@
+import { PlanError } from "../../src/enterprise/agentPlan";
 import { createHash } from "node:crypto";
 import type { ArtifactContentStore } from "../../src/enterprise/artifactStore";
 import { ArtifactStoreError } from "../../src/enterprise/artifactStore";
@@ -125,7 +126,7 @@ export interface ArtifactWorkspaceOptions {
 		payload: unknown,
 		conversation: ConversationView,
 		scope: AggregateScope,
-	) => { facts: ArtifactWorkspaceStartFact[]; brief?: string; briefSourceType?: FactSourceType };
+	) => { facts: ArtifactWorkspaceStartFact[]; brief?: string; briefSourceType?: FactSourceType } | Promise<{ facts: ArtifactWorkspaceStartFact[]; brief?: string; briefSourceType?: FactSourceType }>;
 }
 
 const proposalWorkspaceOptions: ArtifactWorkspaceOptions = {
@@ -171,18 +172,20 @@ export class ProposalWorkspaceApiController {
 		});
 	}
 
-	start(
+	async start(
 		context: ConversationApiContext,
 		conversationId: unknown,
 		payload: unknown,
-	): ConversationApiResponse {
-		return this.respond(() => {
+	): Promise<ConversationApiResponse> {
+		return this.respondAsync(async () => {
 			const id = requestId(payload);
 			const { scope, conversation } = this.target(context, conversationId);
 			this.options.assertWritable?.(this.engine.load(scope));
 			const actorId = requiredId(context.actorId, "actorId");
 			const messages = conversation.messages.filter((message) => message.role === "user");
-			const prepared = this.options.prepareStart?.(payload, conversation, scope);
+			const prepared = await this.options.prepareStart?.(payload, conversation, scope);
+			if (this.target(context, conversationId).conversation.revision !== conversation.revision) throw new ProposalWorkspaceValidationError("Conversation changed during source review", "conversation_revision_conflict");
+			this.options.assertWritable?.(this.engine.load(scope));
 			if (messages.length === 0 && !prepared?.brief) {
 				throw new ProposalWorkspaceValidationError("Conversation has no user message to propose from");
 			}
@@ -562,11 +565,16 @@ export class ProposalWorkspaceApiController {
 		return { [this.options.responseKey]: value };
 	}
 
+	protected async respondAsync(operation: () => Promise<ConversationApiResponse>): Promise<ConversationApiResponse> {
+		try { return await operation(); } catch (error) { return this.respond(() => { throw error; }); }
+	}
+
 	protected respond(operation: () => ConversationApiResponse): ConversationApiResponse {
 		try {
 			return operation();
 		} catch (error) {
 			if (error instanceof ConversationAccessError) return error.response;
+			if (error instanceof PlanError) return { status: error.status, body: { code: error.code } };
 			if (error instanceof ProposalWorkspaceValidationError) {
 				return { status: 400, body: { code: error.code ?? this.options.requestErrorCode, message: error.message } };
 			}
