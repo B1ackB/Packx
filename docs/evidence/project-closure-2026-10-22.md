@@ -39,6 +39,8 @@ The 12 Windows-specific default-suite skips remain unexecuted on this macOS host
 
 ## Status of the older G1–G7 backlog
 
+Follow-up: G2, G3 and G6 are now closed by [durable recovery and bounded delivery](durable-recovery-closure-2026-10-22.md). The rows below retain the findings at this initial audit checkpoint.
+
 | Earlier item | Current disposition | Remaining completion evidence |
 | --- | --- | --- |
 | G1 indexing deadline | Fixed for scheduled imports; cancellation and late-result protection verified offline. | Blocking native inference still needs process isolation before claiming forced termination of its compute. Direct store callers own their execution policy. |
@@ -49,7 +51,7 @@ The 12 Windows-specific default-suite skips remain unexecuted on this macOS host
 | G6 Outbox/Cron retry policy | Still open. Outbox has capped backoff but no total attempt ceiling; Cron creates separately bounded Jobs without an automatic failure circuit breaker. | Define persistent terminal delivery state, operator visibility/redrive, and a Cron failure policy. Verify that a failed delivery neither duplicates work nor starves unrelated scopes. |
 | G7 shutdown and cleanup | Worker drain and shutdown lease preservation are fixed. | The five-second forced-exit path still depends on persisted checkpoints and subsequent lease recovery. It cannot guarantee completion of arbitrary blocked I/O. |
 
-These open items are recorded as engineering debt, not silently marked complete. Unknown execution and completion records still block automatic replay. Completing G2 and G3 requires durable evidence in the affected business transactions; completing G6 requires a persisted terminal delivery state and operator redrive, plus an explicit Cron failure policy. A generic success repair or retry counter alone would leave those recovery paths incomplete.
+At this initial checkpoint, these items were recorded as engineering debt. The linked follow-up implements and verifies G2, G3 and G6. Unknown execution and completion records still block automatic replay. Completing G2 and G3 requires durable evidence in the affected business transactions; completing G6 requires a persisted terminal delivery state and operator redrive, plus an explicit Cron failure policy. A generic success repair or retry counter alone would leave those recovery paths incomplete.
 
 Real employee acceptance, Windows 11 desktop/release acceptance, paid-model benchmarking, and power-failure validation still require their own inputs and environments. No production data migration, forced lock removal, deployment, push, or merge occurred in this audit.
 

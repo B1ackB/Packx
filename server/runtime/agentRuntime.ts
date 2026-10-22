@@ -1,3 +1,4 @@
+import { prepareCompletion, readCompletion, commitCompletion } from "./turnCompletion";
 import { validateContextSources } from "./contextSources";
 import { createHash } from "node:crypto";
 import { contextReadTool, pageUnits } from "./contextRead";
@@ -26,6 +27,7 @@ import type {
 	AgentRuntimePort,
 	RuntimeHealth,
 	RuntimeTraceStore,
+	RuntimeTraceRecord,
 	RuntimeTurnRequest,
 	RuntimeTurnResult,
 } from "../../src/runtime/contracts";
@@ -181,6 +183,7 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 			this.options.onActivity?.(scope, { executionId, phase, updatedAt: this.now(), ...detail });
 		};
 		let guard = new RuntimeLoopGuard();
+		let completionPending = false;
 		try {
 			combinedSignal.throwIfAborted();
 			const originalExecution = this.traces.listTraces(scope).find(trace => trace.stageId === request.stageId && trace.idempotencyKey === request.idempotencyKey && trace.sessionId === sessionId && trace.failure?.code !== "session_conflict");
@@ -221,10 +224,11 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 				const priorInput = session.transcript?.find((message) => message.messageId === replyId.replace("reply-", "input-"));
 				if (priorInput && (priorInput.content !== request.input || JSON.stringify(priorInput.attachments ?? []) !== JSON.stringify(request.attachments ?? []))) throw new RuntimeFailure("session_conflict", "Turn idempotency key was reused with different input", false);
 				const trace = this.traces.listTraces(scope).findLast((item) => item.sessionId === sessionId && item.idempotencyKey === request.idempotencyKey && item.status === "completed");
-				if (!trace) throw new RuntimeFailure("context_failure", "Completed dialogue is missing execution evidence; review required", false);
-				if (trace.outputContractDigest !== outputContractDigest) throw new RuntimeFailure("session_conflict", "Turn output contract changed; start a new execution", false);
-				validateContext(); validateOutput(priorReply.content);
-				return { adapter: "blackx-agent", status: "completed", sessionId, executionId: trace.executionId, finalResponse: priorReply.content, events: trace.events, usage: trace.usage, contextSnapshotId: trace.contextSnapshotId };
+				if (trace) {
+					if (trace.actorId !== request.actorId || trace.stageId !== request.stageId || trace.outputContractDigest !== outputContractDigest) throw new RuntimeFailure("session_conflict", "Turn identity or output contract changed; start a new execution", false);
+					validateContext(); validateOutput(priorReply.content);
+					return { adapter: "blackx-agent", status: "completed", sessionId, executionId: trace.executionId, finalResponse: priorReply.content, events: trace.events, usage: trace.usage, contextSnapshotId: trace.contextSnapshotId };
+				}
 			}
 			const hydrate = async (attachment: AgentImageAttachment): Promise<AgentImageAttachment> => {
 				if (!this.options.resolveImageAttachment) {
@@ -252,6 +256,17 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 				context: { ...scope, actorId: request.actorId, executionId, stageId: request.stageId, toolCallId: "restore", idempotencyKey: request.idempotencyKey, signal: combinedSignal },
 				binding: taskContext?.binding, historyBinding: taskContext?.historyBinding,
 			}, messages, visited);
+			const completion = readCompletion(this.snapshots, scope, { ...request, taskContext }, outputContractDigest);
+			if (completion) {
+				completionPending = true;
+				await validateSources(completion.messages);
+				validateContext();
+				const recovered = commitCompletion(this.sessions, this.traces, scope, completion);
+				this.providerStatus = "last_request_succeeded";
+				this.options.onActivity?.(scope, { executionId: recovered.executionId, phase: "completed", updatedAt: this.now() });
+				return recovered;
+			}
+			if (priorReply) throw new RuntimeFailure("context_failure", "Completed dialogue is missing execution evidence; review required", false);
 			const observationEvents: RuntimeTurnResult["events"] = [];
 			const rebuild = taskContext?.historyBinding !== undefined && session.historyBinding !== taskContext.historyBinding;
 			// ConversationApi persists the current user input before resume. Keep only
@@ -383,13 +398,13 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 					usage: { ...event.response.usage },
 				});
 			});
+			const workingMessages = (messages: readonly AgentMessage[], paused: boolean) => messages
+				.filter((message) => message.kind !== "task_context" && !(message.role === "system" && message.pinned))
+				.map((message) => ({ ...withoutImageData(message), pinned: message.durable === true || (paused && message.pinned === true) }));
 			const saveWorking = (messages: readonly AgentMessage[], paused: boolean) => {
 				validateContext();
-				const saved = this.sessions.save(scope, sessionRevision, messages
-					.filter((message) => message.kind !== "task_context" && !(message.role === "system" && message.pinned))
-					.map((message) => ({ ...withoutImageData(message), pinned: message.durable === true || (paused && message.pinned === true) })),
-					this.now(), paused ? { turnKey: request.idempotencyKey, ...(taskContext ? { contextBinding: taskContext.binding } : {}) } : null, taskContext?.historyBinding);
-				sessionRevision = saved.revision;
+				sessionRevision = this.sessions.save(scope, sessionRevision, workingMessages(messages, paused),
+					this.now(), paused ? { turnKey: request.idempotencyKey, ...(taskContext ? { contextBinding: taskContext.binding } : {}) } : null, taskContext?.historyBinding).revision;
 			};
 			hooks.on("loop.checkpoint", (event) => saveWorking(event.messages, true));
 			const archive = (snapshotId: string, messages: readonly AgentMessage[], purpose: "archive" | "summary" = "archive") => {
@@ -504,7 +519,6 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 			if (request.policy.sandboxMode === "read-only") await validateSources(result.messages);
 			assertWithinDeadline(); validateContext();
 			if (result.stopReason === "completed") validateOutput(result.finalText);
-			saveWorking(result.messages, result.stopReason === "slice_limit");
 			const response: RuntimeTurnResult = {
 				executionId,
 				adapter: "blackx-agent",
@@ -546,7 +560,7 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 				usage: result.usage,
 			};
 			traceEvents = response.events;
-			this.traces.putTrace({
+			const completedTrace: RuntimeTraceRecord = {
 				schemaVersion: "runtime-trace.v1",
 				tenantId: request.tenantId,
 				workspaceId: request.workspaceId,
@@ -567,7 +581,15 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 					: event),
 				usage: response.usage,
 				loopGuard: guard.state,
-			});
+			};
+			if (response.status === "completed") {
+				completionPending = true;
+				const intent = prepareCompletion(this.snapshots, this.sessions, scope, { ...request, taskContext }, completedTrace, workingMessages(result.messages, false), sessionRevision);
+				commitCompletion(this.sessions, this.traces, scope, intent);
+			} else {
+				saveWorking(result.messages, true);
+				this.traces.putTrace(completedTrace);
+			}
 			this.providerStatus = "last_request_succeeded";
 			progress(response.status);
 			return response;
@@ -578,7 +600,7 @@ export class BlackxAgentRuntime implements AgentRuntimePort {
 			const reportingFailures: unknown[] = [];
 			try { progress("failed"); } catch (reportingError) { reportingFailures.push(reportingError); }
 			traceEvents = [...traceEvents, { type: "turn.failed", message: failure.message }];
-			try { this.traces.putTrace({
+			if (!completionPending) try { this.traces.putTrace({
 				schemaVersion: "runtime-trace.v1",
 				tenantId: request.tenantId,
 				workspaceId: request.workspaceId,

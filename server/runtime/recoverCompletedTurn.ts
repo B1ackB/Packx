@@ -3,7 +3,8 @@ import { PlanError, type PlanScope } from "../../src/enterprise/agentPlan";
 import type { RuntimeTurnResult } from "../../src/runtime/contracts";
 import type { FileAgentStateStore } from "./fileAgentStateStore";
 
-export function recoverCompletedTurn(store: Pick<FileAgentStateStore, "getSession" | "listTraces">, scope: PlanScope, sessionId: string, key: string): RuntimeTurnResult | undefined {
+export function recoverCompletedTurn(store: Pick<FileAgentStateStore, "getSession" | "listTraces">, scope: PlanScope, sessionId: string, key: string, repair?: () => RuntimeTurnResult | undefined): RuntimeTurnResult | undefined {
+	if (!store.listTraces(scope).some(trace => trace.idempotencyKey === key && trace.sessionId === sessionId && trace.status === "completed")) repair?.();
 	const session = store.getSession({ ...scope, sessionId });
 	const last = session?.messages.at(-1);
 	if (!last || last.role !== "assistant" || last.toolCalls?.length || last.durable || !last.content.trim()) return undefined;

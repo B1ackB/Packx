@@ -1,3 +1,5 @@
+import { CronScheduleError, type CronScheduleStore } from "../../src/enterprise/cronSchedule";
+import { automationScheduleView } from "../runtime/automationTools";
 import { timingSafeEqual } from "node:crypto";
 import { EnterpriseKernelError } from "../../src/enterprise/contracts";
 import { StageJobQueueError } from "../../src/enterprise/stageJobQueue";
@@ -66,6 +68,7 @@ export class ProposalWorkerApiController {
 		private readonly outbox: StageJobOutbox,
 		private readonly workerToken?: string,
 		private readonly operatorToken?: string,
+		private readonly schedules?: CronScheduleStore,
 	) {
 		if (workerToken && Buffer.byteLength(workerToken) < 32) {
 			throw new Error("Proposal Worker API token must contain at least 32 bytes");
@@ -213,6 +216,30 @@ export class ProposalWorkerApiController {
 		});
 	}
 
+	outboxStatus(context: ProposalApiContext): ProposalApiResponse {
+		return this.operatorResponse(context, () => ({ status: 200, body: { messages: this.outbox.list({ tenantId: requiredId(context.tenantId, "tenantId"), workspaceId: requiredId(context.workspaceId, "workspaceId") }) } }));
+	}
+	outboxRedrive(context: ProposalApiContext, messageId: unknown, payload: unknown): ProposalApiResponse {
+		return this.operatorResponse(context, () => ({ status: 200, body: { message: this.outbox.redrive(requiredId(messageId, "messageId"), this.recoveryRequest(context, payload)) } }));
+	}
+	cronStatus(context: ProposalApiContext): ProposalApiResponse {
+		return this.operatorResponse(context, () => {
+			if (!this.schedules) return { status: 503, body: { code: "cron_operator_unavailable" } };
+			return { status: 200, body: { schedules: this.schedules.list({ tenantId: requiredId(context.tenantId, "tenantId"), workspaceId: requiredId(context.workspaceId, "workspaceId") }).map(automationScheduleView) } };
+		});
+	}
+	cronRecover(context: ProposalApiContext, scheduleId: unknown, payload: unknown): ProposalApiResponse {
+		return this.operatorResponse(context, () => {
+			if (!this.schedules) return { status: 503, body: { code: "cron_operator_unavailable" } };
+			return { status: 200, body: { schedule: automationScheduleView(this.schedules.recover(requiredId(scheduleId, "scheduleId"), this.recoveryRequest(context, payload))) } };
+		});
+	}
+	private recoveryRequest(context: ProposalApiContext, payload: unknown) {
+		if (!isRecord(payload)) throw new ProposalWorkerApiValidationError("Recovery request must be an object");
+		return { tenantId: requiredId(context.tenantId, "tenantId"), workspaceId: requiredId(context.workspaceId, "workspaceId"), actorId: requiredId(context.actorId, "actorId"),
+			requestId: requiredId(payload.requestId, "requestId"), expectedUpdatedAt: requiredTimestamp(payload.expectedUpdatedAt, "expectedUpdatedAt"), reason: requiredReason(payload.reason) };
+	}
+
 	private operatorResponse(
 		context: ProposalApiContext,
 		operation: () => ProposalApiResponse,
@@ -235,6 +262,8 @@ export class ProposalWorkerApiController {
 					body: { code: error.code, message: error.message },
 				};
 			}
+			if (error instanceof EnterpriseKernelError) return { status: error.code === "concurrency_conflict" ? 409 : error.code === "aggregate_access_denied" ? 404 : 503, body: { code: error.code, message: error.message } };
+			if (error instanceof CronScheduleError) return { status: error.code === "schedule_conflict" ? 409 : error.code === "schedule_not_found" ? 404 : error.code === "invalid_schedule" ? 400 : 503, body: { code: error.code, message: error.message } };
 			return { status: 500, body: { code: "operator_execution_failed" } };
 		}
 	}

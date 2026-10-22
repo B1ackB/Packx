@@ -583,3 +583,5 @@ export class FileAgentStateStore implements AgentSessionStore, ContextSnapshotSt
 		}
 	}
 }
+
+export { messages as isStoredAgentMessages, runtimeTrace as isStoredRuntimeTrace };

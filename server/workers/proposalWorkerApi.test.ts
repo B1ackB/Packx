@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { InMemoryEnterpriseEventStore } from "../../src/enterprise/inMemoryEventStore";
 import { ProposalRunEngine } from "../../src/enterprise/proposalRunEngine";
 import { InMemoryStageJobQueue } from "../../src/enterprise/stageJobQueue";
+import { InMemoryCronScheduleStore } from "../../src/enterprise/cronSchedule";
 import { FileArtifactContentStore } from "../artifacts/fileArtifactStore";
 import type { ProposalApiContext } from "../enterprise/proposalApi";
 import { FakeAgentRuntime } from "../runtime/fakeAgentRuntime";
@@ -16,11 +17,11 @@ import { StageJobScheduler } from "./stageJobScheduler";
 const token = "worker-api-test-token-with-sufficient-entropy";
 const operatorToken = "operator-api-test-token-with-sufficient-entropy";
 const temporaryDirectories: string[] = [];
-const context: ProposalApiContext = {
+const context = {
 	tenantId: "tenant-api",
 	workspaceId: "workspace-api",
 	authorization: `Bearer ${token}`,
-};
+} satisfies ProposalApiContext;
 
 function harness(
 	configuredToken: string | null = token,
@@ -49,13 +50,15 @@ function harness(
 		workerId: "worker-api",
 		handlers: { proposal: (lease, signal, guard) => worker.executeLease(lease, signal, guard) },
 	});
+	const schedules = new InMemoryCronScheduleStore();
 	const controller = new ProposalWorkerApiController(
 		scheduler,
 		new StageJobOutbox(engine, store, queue),
 		configuredToken ?? undefined,
 		configuredOperatorToken ?? undefined,
+		schedules,
 	);
-	return { engine, controller, queue, scheduler };
+	return { engine, controller, queue, scheduler, store, schedules };
 }
 
 afterEach(() => {
@@ -65,6 +68,38 @@ afterEach(() => {
 });
 
 describe("ProposalWorkerApiController", () => {
+	it("restricts Outbox and Cron recovery to scoped operators with an observed version and immutable request ID", () => {
+		const { controller, store, engine, queue, schedules } = harness();
+		const operator = { ...context, actorId: "operator-api", authorization: `Bearer ${operatorToken}` };
+		const outbox = new StageJobOutbox(engine, store, queue);
+		const message = outbox.requestProposal({ ...context, runId: "run-api", commandId: "dispatch", correlationId: "trace-api", expectedVersion: 2 });
+		const dead = store.markOutboxFailed(message.messageId, { code: "job_conflict", message: "Review", delayMs: 0, retryable: false });
+		const schedule = schedules.create({ ...context, runId: "run-api", actorId: "user-api", scheduleId: "schedule-api", name: "Review", expression: "*/5 * * * *", timezone: "UTC", prompt: "Review", maxRuns: 1, nextRunAt: new Date().toISOString() });
+		for (let i = 0; i < 5; i++) schedules.defer(schedule.scheduleId, schedule.nextRunAt, "queue_unavailable");
+		for (const read of [controller.outboxStatus.bind(controller), controller.cronStatus.bind(controller)]) {
+			expect(read(context).status).toBe(401);
+			expect(read(operator).status).toBe(200);
+		}
+		expect(controller.outboxStatus({ ...operator, tenantId: "other" })).toMatchObject({ body: { messages: [] } });
+		expect(controller.cronStatus({ ...operator, workspaceId: "other" })).toMatchObject({ body: { schedules: [] } });
+		for (const [id, updatedAt, recover] of [
+			[message.messageId, dead.updatedAt, controller.outboxRedrive.bind(controller)],
+			[schedule.scheduleId, schedules.get(schedule.scheduleId)!.updatedAt, controller.cronRecover.bind(controller)],
+		] as const) {
+			const body = { requestId: `recover-${id}`, expectedUpdatedAt: updatedAt, reason: "Reviewed storage failure" };
+			expect(recover(context, id, body).status).toBe(401);
+			expect(recover({ ...operator, tenantId: "other" }, id, body).status).toBe(404);
+			expect(recover(operator, id, { ...body, expectedUpdatedAt: "2020-01-01T00:00:00Z" }).status).toBe(409);
+			expect(recover(operator, id, { ...body, requestId: undefined }).status).toBe(400);
+			expect(recover({ ...operator, actorId: undefined }, id, body).status).toBe(400);
+			expect(recover(operator, id, body).status).toBe(200);
+			expect(recover(operator, id, body).status).toBe(200);
+			expect(recover(operator, id, { ...body, reason: "Changed" }).status).toBe(409);
+		}
+		const disabled = harness(token, null).controller;
+		expect(disabled.outboxStatus(operator).status).toBe(503);
+		expect(disabled.cronRecover(operator, "schedule-api", {}).status).toBe(503);
+	});
 	it("queues the server-owned Worker with Worker credentials", async () => {
 		const { controller, engine, scheduler } = harness();
 		const response = await controller.execute(context, "run-api", {

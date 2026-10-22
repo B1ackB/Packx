@@ -1,3 +1,5 @@
+import { failOutboxDelivery, redriveOutboxDelivery } from "./outboxDelivery";
+import type { OutboxRedriveRequest } from "./contracts";
 import type {
 	AggregateScope,
 	AppendRequest,
@@ -101,6 +103,13 @@ export class InMemoryEnterpriseEventStore implements EnterpriseEventStore {
 		return { events: [...events], outbox: structuredClone(outbox), duplicate: false };
 	}
 
+	readOutbox(scope: { tenantId: string; workspaceId: string }): OutboxMessage[] {
+		return structuredClone([...this.outbox.values()].filter(message => message.payload.tenantId === scope.tenantId && message.payload.workspaceId === scope.workspaceId));
+	}
+	redriveOutbox(messageId: string, request: OutboxRedriveRequest): OutboxMessage {
+		const updated = redriveOutboxDelivery(this.requireOutbox(messageId), request, this.now().toISOString());
+		this.outbox.set(messageId, updated); return structuredClone(updated);
+	}
 	readPendingOutbox(limit: number): OutboxMessage[] {
 		if (!Number.isInteger(limit) || limit < 1) {
 			throw new EnterpriseKernelError("event_store_unavailable", "Outbox read limit is invalid");
@@ -115,6 +124,7 @@ export class InMemoryEnterpriseEventStore implements EnterpriseEventStore {
 	markOutboxPublished(messageId: string): OutboxMessage {
 		const message = this.requireOutbox(messageId);
 		if (message.status === "published") return structuredClone(message);
+		if (message.status !== "pending") throw new EnterpriseKernelError("illegal_transition", "Outbox message requires operator redrive");
 		const now = this.now().toISOString();
 		const updated: OutboxMessage = {
 			...message,
@@ -129,21 +139,13 @@ export class InMemoryEnterpriseEventStore implements EnterpriseEventStore {
 
 	markOutboxFailed(
 		messageId: string,
-		failure: { code: string; message: string; delayMs: number },
+		failure: { code: string; message: string; delayMs: number; retryable?: boolean },
 	): OutboxMessage {
 		if (!Number.isInteger(failure.delayMs) || failure.delayMs < 0) {
 			throw new EnterpriseKernelError("event_store_unavailable", "Outbox failure is invalid");
 		}
 		const message = this.requireOutbox(messageId);
-		if (message.status === "published") return structuredClone(message);
-		const now = this.now();
-		const updated: OutboxMessage = {
-			...message,
-			deliveryCount: message.deliveryCount + 1,
-			availableAt: new Date(now.getTime() + failure.delayMs).toISOString(),
-			updatedAt: now.toISOString(),
-			lastFailure: { code: failure.code, message: failure.message, at: now.toISOString() },
-		};
+		const updated = failOutboxDelivery(message, failure, this.now().toISOString());
 		this.outbox.set(messageId, updated);
 		return structuredClone(updated);
 	}

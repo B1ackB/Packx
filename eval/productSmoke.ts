@@ -208,11 +208,12 @@ const reservation = createServer(); reservation.listen(0, "127.0.0.1"); await on
 const port = serve ? 5178 : (reservation.address() as { port: number }).port;
 await new Promise<void>((resolve) => reservation.close(() => resolve()));
 const baseUrl = `http://127.0.0.1:${port}`;
+const operatorToken = "offline-operator-fixture-token-for-product-smoke";
 const startHost = (leaseMs = 135_000) => {
 	const child = spawn(process.execPath, ["--import", "tsx", "server/index.ts"], { env: {
 	...process.env, PACKX_SETTINGS_PATH: settingsPath, BLACKX_DATA_ROOT: dataDirectory, BLACKX_PORT: String(port), BLACKX_RUNTIME_MODE: "anthropic", ANTHROPIC_API_KEY: "offline-fixture-only", ANTHROPIC_BASE_URL: `http://127.0.0.1:${providerPort}`, ANTHROPIC_MODEL: "local-fixture",
 	BLACKX_WORKER_LEASE_MS: String(leaseMs),
-	BLACKX_FILE_STORE_PATH: join(dataDirectory, "files"), BLACKX_AGENT_STATE_PATH: join(dataDirectory, "sessions"), BLACKX_EVENT_STORE_PATH: join(dataDirectory, "events.json"), BLACKX_STAGE_JOB_QUEUE_DRIVER: "file", BLACKX_STAGE_JOB_QUEUE_PATH: join(dataDirectory, "queue.json"), BLACKX_CRON_SCHEDULE_PATH: join(dataDirectory, "cron.json"), BLACKX_ATTACHMENT_STORE_PATH: join(dataDirectory, "attachments"), BLACKX_ARTIFACT_STORE_PATH: join(dataDirectory, "artifacts"), BLACKX_INSPECTION_CACHE_PATH: join(dataDirectory, "inspections"), BLACKX_WORKSPACE_ROOT: directory, BLACKX_ENABLE_RUNTIME_EVAL: "0", BLACKX_COMMAND_API_TOKEN: "", BLACKX_WORKER_API_TOKEN: "", BLACKX_OPERATOR_API_TOKEN: "",
+	BLACKX_FILE_STORE_PATH: join(dataDirectory, "files"), BLACKX_AGENT_STATE_PATH: join(dataDirectory, "sessions"), BLACKX_EVENT_STORE_PATH: join(dataDirectory, "events.json"), BLACKX_STAGE_JOB_QUEUE_DRIVER: "file", BLACKX_STAGE_JOB_QUEUE_PATH: join(dataDirectory, "queue.json"), BLACKX_CRON_SCHEDULE_PATH: join(dataDirectory, "cron.json"), BLACKX_ATTACHMENT_STORE_PATH: join(dataDirectory, "attachments"), BLACKX_ARTIFACT_STORE_PATH: join(dataDirectory, "artifacts"), BLACKX_INSPECTION_CACHE_PATH: join(dataDirectory, "inspections"), BLACKX_WORKSPACE_ROOT: directory, BLACKX_ENABLE_RUNTIME_EVAL: "0", BLACKX_COMMAND_API_TOKEN: "", BLACKX_WORKER_API_TOKEN: "", BLACKX_OPERATOR_API_TOKEN: operatorToken,
 }, stdio: ["ignore", "pipe", "pipe"] });
 	child.stdout.on("data", (chunk) => { output += String(chunk); }); child.stderr.on("data", (chunk) => { output += String(chunk); });
 	return child;
@@ -241,6 +242,14 @@ try {
 	const session = await fetch(`${baseUrl}/api/local-session`, { headers: { "sec-fetch-site": "same-origin", "sec-fetch-mode": "cors" } }).then((response) => response.json()) as { token: string };
 	assert(session.token);
 	const headers = { "x-blackx-session-token": session.token };
+	for (const kind of ["outbox", "cron"]) {
+		const path = `/api/stage-jobs/${kind}`;
+		assert.equal((await fetch(`${baseUrl}${path}`, { headers })).status, 401);
+		const authorized = { ...headers, authorization: `Bearer ${operatorToken}` };
+		assert.equal((await fetch(`${baseUrl}${path}`, { headers: authorized })).status, 200);
+		assert.equal((await fetch(`${baseUrl}${path}`, { headers: { ...authorized, "x-blackx-tenant-id": "other" } })).status, 403);
+		assert.equal((await fetch(`${baseUrl}${path}/missing/redrive`, { method: "POST", headers: { ...authorized, "content-type": "application/json" }, body: "{}" })).status, 400);
+	}
 	for (const extra of [{ origin: "https://evil.test" }, { "x-blackx-tenant-id": "other" }]) assert.equal((await fetch(`${baseUrl}/api/conversations`, { headers: { ...headers, ...extra } })).status, 403);
 	assert.equal((await fetch(`${baseUrl}/api/runtime/turn`, { method: "POST", headers })).status, 403);
 	async function api<T = { conversation: ConversationView; requirementBrief: RequirementBriefWorkspaceView; delivery: RequirementDelivery; activity?: RuntimeActivity }>(path: string, body?: unknown) {

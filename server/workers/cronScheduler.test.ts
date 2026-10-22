@@ -12,7 +12,7 @@ describe("CronDispatcher", () => {
 	});
 
 	it("replays the same occurrence after a crash between enqueue and schedule ACK", () => {
-		const now = new Date("2026-09-03T00:05:00.000Z");
+		let now = new Date("2026-09-03T00:05:00.000Z");
 		const store = new InMemoryCronScheduleStore(() => now);
 		store.create({
 			tenantId: "tenant-cron-dispatch",
@@ -43,10 +43,14 @@ describe("CronDispatcher", () => {
 		});
 		const dispatcher = new CronDispatcher(crashOnce, queue, () => now);
 
-		expect(() => dispatcher.dispatchDue()).toThrow("injected_crash_after_enqueue");
+		expect(() => dispatcher.dispatchDue()).toThrow("Cron dispatch failed");
 		expect(queue.list()).toHaveLength(1);
+		now = new Date(now.getTime() + 1_000);
 		expect(dispatcher.dispatchDue()).toBe(1);
 		expect(queue.list()).toHaveLength(1);
+		expect(store.get("schedule-cron-dispatch")).toMatchObject({ status: "active", runCount: 1, pendingJobId: queue.list()[0].jobId });
+		queue.ack(queue.claim("worker", 10_000)!);
+		expect(dispatcher.dispatchDue()).toBe(0);
 		expect(store.get("schedule-cron-dispatch")).toMatchObject({ status: "completed", runCount: 1 });
 	});
 });

@@ -84,11 +84,15 @@ export interface CronScheduleView {
 	name: string;
 	expression: string;
 	timezone: string;
-	status: "active" | "paused" | "completed";
+	status: "active" | "paused" | "completed" | "failed";
 	runCount: number;
 	maxRuns: number;
 	nextRunAt: string;
 	lastRunAt?: string;
+	updatedAt?: string;
+	pendingJobId?: string;
+	failure?: { code: string; at: string; jobId?: string };
+	dispatchFailure?: { count: number; code: string; at: string; retryAt: string };
 }
 
 export interface ProposalWorkspaceView {

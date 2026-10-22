@@ -19,6 +19,7 @@ const nativeFiles = ["macOsSeatbeltSandboxedToolExecutor.test.ts", "assetInspect
 const windowsFiles = [
 	"server/privateFileAccess.test.ts", "server/windowsModelSettings.test.ts",
 	"server/localDataBoundary.test.ts", "server/localBackup.test.ts", "server/localDataMigration.test.ts", "server/fileWriteLock.test.ts", "server/syncDirectory.test.ts",
+	"server/runtime/mutationRecovery.test.ts", "server/runtime/turnCompletion.test.ts", "server/workers/outboxDelivery.test.ts", "server/workers/cronRecovery.test.ts",
 	"server/enterprise/fileEventStoreRecovery.test.ts", "server/enterprise/fileStageJobQueue.test.ts", "server/enterprise/fileCronScheduleStore.test.ts",
 	"src/agent/sandboxPaths.test.ts",
 	"eval/windowsIsolationProbe.test.ts",
@@ -241,7 +242,7 @@ function testSuite(native: boolean) {
 	const report = resolve(`temp/ci-${native ? "native" : "core"}.json`);
 	mkdirSync(dirname(report), { recursive: true }); rmSync(report, { force: true });
 	const output = npm(["run", native ? "test:native" : "test", "--", "--reporter=default", "--reporter=json", `--outputFile=${report}`]);
-	const required = native ? nativeFiles : ["runtime/runtime.contract.test.ts", "runtime/executionRecovery.test.ts", "runtime/fileContextPermissions.test.ts", "eval/packagingLifecycle.test.ts", "enterprise/enterpriseEventStore.contract.test.ts", "enterprise/personalMemory.test.ts", "src/enterprise/agentPlan.test.ts", "server/enterprise/agentPlanWorkflow.test.ts", "server/enterprise/parallelPlanWorkflow.test.ts", "server/enterprise/completedPlanSources.test.ts", "server/enterprise/sourceReportWorkflow.test.ts", "server/runtime/restrictedWebSource.test.ts"];
+	const required = native ? nativeFiles : ["runtime/runtime.contract.test.ts", "runtime/executionRecovery.test.ts", "runtime/mutationRecovery.test.ts", "runtime/turnCompletion.test.ts", "runtime/durableRecovery.process.test.ts", "workers/outboxDelivery.test.ts", "workers/cronRecovery.test.ts", "runtime/fileContextPermissions.test.ts", "eval/packagingLifecycle.test.ts", "enterprise/enterpriseEventStore.contract.test.ts", "enterprise/personalMemory.test.ts", "src/enterprise/agentPlan.test.ts", "server/enterprise/agentPlanWorkflow.test.ts", "server/enterprise/parallelPlanWorkflow.test.ts", "server/enterprise/completedPlanSources.test.ts", "server/enterprise/sourceReportWorkflow.test.ts", "server/runtime/restrictedWebSource.test.ts"];
 	const parsed = JSON.parse(readFileSync(report, "utf8"));
 	validateTestReport(parsed, required, native);
 	console.log(output.slice(-3000));

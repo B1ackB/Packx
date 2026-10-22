@@ -193,9 +193,20 @@ export interface OutboxDraft {
 	payload: StageJobDispatch;
 }
 
+export interface OutboxRedriveRequest {
+	tenantId: string;
+	workspaceId: string;
+	actorId: string;
+	requestId: string;
+	reason: string;
+	expectedUpdatedAt: string;
+}
+
 export interface OutboxMessage extends OutboxDraft {
+	failureCount?: number;
+	redrives?: Array<Pick<OutboxRedriveRequest, "actorId" | "requestId" | "reason" | "expectedUpdatedAt"> & { at: string }>;
 	schemaVersion: "enterprise-outbox.v1";
-	status: "pending" | "published";
+	status: "pending" | "published" | "dead_letter";
 	deliveryCount: number;
 	availableAt: string;
 	createdAt: string;
@@ -228,10 +239,12 @@ export interface EnterpriseEventStore {
 	readCommand(scope: AggregateScope, commandId: string): EnterpriseEvent[];
 	append(request: AppendRequest): AppendResult;
 	readPendingOutbox(limit: number): OutboxMessage[];
+	readOutbox(scope: { tenantId: string; workspaceId: string }): OutboxMessage[];
+	redriveOutbox(messageId: string, request: OutboxRedriveRequest): OutboxMessage;
 	markOutboxPublished(messageId: string): OutboxMessage;
 	markOutboxFailed(
 		messageId: string,
-		failure: { code: string; message: string; delayMs: number },
+		failure: { code: string; message: string; delayMs: number; retryable?: boolean },
 	): OutboxMessage;
 }
 

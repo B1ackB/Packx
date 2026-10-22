@@ -1,7 +1,8 @@
+import { mutationBinding, mutationResult } from "./mutationRecovery";
 import { createHash } from "node:crypto";
-import type { AgentTool } from "../../src/agent/contracts";
+import type { AgentHostTool } from "../../src/agent/contracts";
 import type { CronSchedule, CronScheduleStore } from "../../src/enterprise/cronSchedule";
-import type { StageJobQueue } from "../../src/enterprise/stageJobQueue";
+import type { StageJob, StageJobQueue } from "../../src/enterprise/stageJobQueue";
 import { backgroundTaskView, enqueueBackgroundConversationTask } from "../workers/backgroundTaskApi";
 import { nextCronRun, validateCronFrequency } from "../workers/cronScheduler";
 
@@ -48,6 +49,10 @@ export function automationScheduleView(schedule: CronSchedule) {
 		maxRuns: schedule.maxRuns,
 		nextRunAt: schedule.nextRunAt,
 		lastRunAt: schedule.lastRunAt,
+		updatedAt: schedule.updatedAt,
+		pendingJobId: schedule.pendingJobId,
+		failure: schedule.failure,
+		dispatchFailure: schedule.dispatchFailure,
 	};
 }
 
@@ -68,7 +73,7 @@ export function createAutomationTools(
 	queue: StageJobQueue,
 	schedules: CronScheduleStore,
 	now: () => Date = () => new Date(),
-): AgentTool[] {
+): AgentHostTool[] {
 	return [
 		{
 			name: "background_task_create",
@@ -89,19 +94,13 @@ export function createAutomationTools(
 			execute: async (input, context) => {
 				const objective = String((input as { objective: string }).objective).trim();
 				const messageId = `agent-task-${digest(context.idempotencyKey)}`;
-				return {
-					ok: true,
-					task: backgroundTaskView(enqueueBackgroundConversationTask(queue, {
-						tenantId: context.tenantId,
-						workspaceId: context.workspaceId,
-						conversationId: context.runId,
-						messageId,
-						content: `[Agent 后台任务]\n${objective}`,
-						actorId: `agent:${context.actorId}`,
-						requestedBy: "agent",
-						availableAt: new Date(now().getTime() + 5_000).toISOString(),
-					})),
-				};
+				const binding = mutationBinding("background_task_create", input, context);
+				const job = enqueueBackgroundConversationTask(queue, {
+					tenantId: context.tenantId, workspaceId: context.workspaceId, conversationId: context.runId,
+					messageId, content: `[Agent 后台任务]\n${objective}`, actorId: `agent:${context.actorId}`,
+					requestedBy: "agent", availableAt: new Date(now().getTime() + 5_000).toISOString(),
+				}, { binding, result: (value: StageJob) => ({ ok: true, task: backgroundTaskView(value) }) });
+				return mutationResult(job.mutationReceipts, binding);
 			},
 		},
 		{
@@ -143,10 +142,12 @@ export function createAutomationTools(
 			maxResultChars: 2_000,
 			validate: (input) => stringField(input, "taskId", 128),
 			createIdempotencyKey: (input, turnKey) => `${turnKey}:background_task_cancel:${String((input as { taskId: string }).taskId)}`,
-			execute: async (input, context) => ({
-				ok: true,
-				task: backgroundTaskView(queue.cancel(String((input as { taskId: string }).taskId), context)),
-			}),
+			execute: async (input, context) => {
+				const binding = mutationBinding("background_task_cancel", input, context);
+				const job = queue.cancel(String((input as { taskId: string }).taskId), context,
+					{ binding, result: value => ({ ok: true, task: backgroundTaskView(value) }) });
+				return mutationResult(job.mutationReceipts, binding);
+			},
 		},
 		{
 			name: "cron_create",
@@ -178,24 +179,15 @@ export function createAutomationTools(
 			createIdempotencyKey: (_input, turnKey) => `${turnKey}:cron_create`,
 			execute: async (input, context) => {
 				const request = input as { name: string; expression: string; timezone: string; prompt: string; maxRuns: number };
-				try {
-					const schedule = schedules.create({
-						tenantId: context.tenantId,
-						workspaceId: context.workspaceId,
-						runId: context.runId,
-						scheduleId: `schedule-${digest(context.idempotencyKey)}`,
-						name: request.name.trim(),
-						expression: request.expression.trim(),
-						timezone: request.timezone.trim(),
-						prompt: request.prompt.trim(),
-						actorId: `agent:${context.actorId}`,
-						maxRuns: request.maxRuns,
-						nextRunAt: validateCronFrequency(request.expression, request.timezone, now()).toISOString(),
-					});
-					return { ok: true, schedule: automationScheduleView(schedule) };
-				} catch (error) {
-					return { ok: false, code: error instanceof Error ? error.message : "invalid_cron_schedule" };
-				}
+				const binding = mutationBinding("cron_create", input, context);
+				const schedule = schedules.create({
+					tenantId: context.tenantId, workspaceId: context.workspaceId, runId: context.runId,
+					scheduleId: `schedule-${digest(context.idempotencyKey)}`, name: request.name.trim(),
+					expression: request.expression.trim(), timezone: request.timezone.trim(), prompt: request.prompt.trim(),
+					actorId: `agent:${context.actorId}`, maxRuns: request.maxRuns,
+					nextRunAt: validateCronFrequency(request.expression, request.timezone, now()).toISOString(),
+				}, { binding, result: value => ({ ok: true, schedule: automationScheduleView(value) }) });
+				return mutationResult(schedule.mutationReceipts, binding);
 			},
 		},
 		{
@@ -215,7 +207,7 @@ export function createAutomationTools(
 					.map(automationScheduleView),
 			}),
 		},
-		...(["pause", "resume"] as const).map((action): AgentTool => ({
+		...(["pause", "resume"] as const).map((action): AgentHostTool => ({
 			name: `cron_${action}`,
 			description: `${action === "pause" ? "Pause" : "Resume"} a Cron schedule in the current conversation.`,
 			inputSchema: {
@@ -235,6 +227,7 @@ export function createAutomationTools(
 				const scheduleId = String((input as { scheduleId: string }).scheduleId);
 				const existing = scopedSchedule(schedules, scheduleId, context);
 				if (!existing) return { ok: false, code: "cron_schedule_not_found" };
+				const binding = mutationBinding(`cron_${action}`, input, context);
 				const updated = schedules.setStatus(
 					scheduleId,
 					context,
@@ -242,8 +235,9 @@ export function createAutomationTools(
 					action === "resume"
 						? nextCronRun(existing.expression, existing.timezone, now()).toISOString()
 						: undefined,
+					{ binding, result: value => ({ ok: true, schedule: automationScheduleView(value) }) },
 				);
-				return { ok: true, schedule: automationScheduleView(updated) };
+				return mutationResult(updated.mutationReceipts, binding);
 			},
 		})),
 	];

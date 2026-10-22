@@ -1,4 +1,5 @@
 import { buildTaskContext } from "../enterprise/taskContext";
+import { repairStoredCompletion } from "./turnCompletion";
 import type { TaskNames } from "./taskNames";
 import { PlanError } from "../../src/enterprise/agentPlan";
 import type { AgentMessage } from "../../src/agent/contracts";
@@ -292,7 +293,10 @@ export class ConversationApiController {
 				const nextUser = dialogue.findIndex((message, index) => index > userIndex && message.role === "user");
 				const replies = dialogue.slice(userIndex + 1, nextUser < 0 ? undefined : nextUser);
 				const completed = replies.some((message) => message.role === "assistant" && (!message.inReplyTo || message.inReplyTo === messageId) && !message.durable && !message.toolCalls?.length && message.content.trim().length > 0);
-				if (completed) return { status: 200, body: { conversation: this.view(existing), duplicate: true } };
+				if (completed) {
+					if (!this.sessions.listTraces(target).some(trace => trace.sessionId === target.sessionId && trace.idempotencyKey === messageId && trace.status === "completed")) repairStoredCompletion(this.sessions, target, messageId, actorId);
+					return { status: 200, body: { conversation: this.view(this.sessions.getSession(target)!), duplicate: true } };
+				}
 				if (nextUser >= 0) return { status: 409, body: { code: "turn_incomplete" } };
 				if (!options.retryIncomplete) return { status: 409, body: { code: "turn_incomplete" } };
 			}

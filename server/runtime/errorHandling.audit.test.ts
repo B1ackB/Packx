@@ -134,19 +134,21 @@ describe("error handling fault-injection audit", () => {
 		} finally { rmSync(directory, { recursive: true, force: true }); }
 	});
 
-	it("fails closed when a completed response cannot persist its trace and blocks model replay", async () => {
+	it("retains a completion intent when trace storage fails and repairs it without model replay", async () => {
 		const state = new InMemoryAgentStateStore();
 		const persistTrace = state.putTrace.bind(state);
-		vi.spyOn(state, "putTrace").mockImplementation((trace) => {
+		const fault = vi.spyOn(state, "putTrace").mockImplementation((trace) => {
 			if (trace.status === "completed") throw new Error("trace_storage_unavailable");
 			return persistTrace(trace);
 		});
 		const generate = vi.fn(async () => final);
 		const runtime = new BlackxAgentRuntime({ provider: { generate }, skills: new SkillRegistry(), sessions: state, traces: state });
 		await expect(runtime.executeTurn(request)).rejects.toBeInstanceOf(RuntimeFailure);
-		expect(state.listTraces(request)).toMatchObject([{ status: "failed" }]);
+		expect(state.listTraces(request)).toEqual([]);
 		expect(state.load(scope).transcript).toContainEqual(expect.objectContaining({ role: "assistant", content: "done" }));
-		await expect(runtime.executeTurn(request)).rejects.toMatchObject({ code: "context_failure", retryable: false });
+		fault.mockRestore();
+		await expect(runtime.executeTurn(request)).resolves.toMatchObject({ status: "completed", finalResponse: "done" });
+		expect(state.listTraces(request)).toMatchObject([{ status: "completed" }]);
 		expect(generate).toHaveBeenCalledOnce();
 	});
 

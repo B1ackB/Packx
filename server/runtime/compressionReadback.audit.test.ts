@@ -229,7 +229,7 @@ it("bounds cyclic snapshot validation without skipping a revoked source in the s
 	const generate = vi.fn(async () => ({ text: "must not run", toolCalls: [], usage }));
 	await expect(runtime(state, { generate }, { tools: [source] }).executeTurn(request)).rejects.toMatchObject({ code: "context_failure" });
 	expect(validateContextResult).toHaveBeenCalledTimes(1);
-	expect(reads).toHaveBeenCalledTimes(2);
+	expect(reads.mock.calls.filter(([, ref]) => !ref.startsWith("completion-"))).toHaveLength(2);
 	expect(generate).not.toHaveBeenCalled();
 });
 
@@ -242,7 +242,7 @@ it("fails closed at the shared 128 snapshot dependency limit before calling the 
 	const reads = vi.spyOn(state, "read");
 	const generate = vi.fn(async () => ({ text: "must not run", toolCalls: [], usage }));
 	await expect(runtime(state, { generate }).executeTurn(request)).rejects.toMatchObject({ code: "context_failure" });
-	expect(reads).toHaveBeenCalledTimes(128);
+	expect(reads.mock.calls.filter(([, ref]) => !ref.startsWith("completion-"))).toHaveLength(128);
 	expect(generate).not.toHaveBeenCalled();
 });
 
