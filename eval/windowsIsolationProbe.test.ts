@@ -5,7 +5,7 @@ import { assessRegistryReadCandidate, assessWindowsIsolationReport, selectWindow
 describe("reviewed Windows toolchain selection", () => {
 	const policy = JSON.parse(readFileSync(".github/windows-isolation-toolchain.json", "utf8"));
 	const installed = (version: string) => ({ installationVersion: version, installationPath: "C:\\Program Files\\Microsoft Visual Studio\\18\\Enterprise", isComplete: true, isLaunchable: true, isPrerelease: false });
-	it.each(["18.10.12224.181", "18.11.12306.390"])("accepts the exact reviewed build %s during the hosted image rollout", (version) => {
+	it.each(["18.10.12224.181", "18.11.12306.390", "18.11.12315.225"])("accepts the exact reviewed build %s during the hosted image rollout", (version) => {
 		expect(selectWindowsToolchain([installed(version)], policy.visualStudioVersions)).toEqual({ installation: installed(version).installationPath, version });
 	});
 	it("uses reviewed preference order, regardless of discovery order or a newer unreviewed build", () => {
