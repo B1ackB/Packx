@@ -109,6 +109,42 @@ export function execute(file: string, args: string[], extraEnv: NodeJS.ProcessEn
 	if (result.error || result.status !== 0) throw new Error(`Command failed: ${basename(file)} ${args.slice(0, 3).join(" ")} (status ${result.status ?? "unavailable"}${errorCode ? `, error ${errorCode}` : ""})\n${`${result.stdout ?? ""}${result.stderr ?? ""}`.slice(-12_000)}`, { cause: result.error });
 	return result.stdout;
 }
+export function installBrowser(run = execute, platform: NodeJS.Platform = process.platform) {
+	const cli = "node_modules/@playwright/test/cli.js";
+	if (platform !== "linux" || process.env.GITHUB_ACTIONS !== "true" || process.env.RUNNER_ENVIRONMENT !== "github-hosted") {
+		console.log(run(process.execPath, [cli, "install", "chromium", "--only-shell", "--with-deps"]));
+		return;
+	}
+	ensure(process.env.ImageOS === "ubuntu24", "Browser dependency sources require the reviewed ubuntu24 hosted image");
+	const directory = mkdtempSync(join(tmpdir(), "packx-ci-apt-"));
+	let phase = "system dependencies";
+	try {
+		const configuration = join(directory, "apt.conf");
+		const sources = join(directory, "ubuntu.sources");
+		// APT does not support escaped quotes in configuration values.
+		ensure(!/["\r\n]/.test(sources), "Unsupported APT configuration path");
+		writeFileSync(sources, [
+			"Types: deb", "URIs: https://archive.ubuntu.com/ubuntu", "Suites: noble noble-updates noble-backports",
+			"Components: main restricted universe multiverse", "Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg", "",
+			"Types: deb", "URIs: https://security.ubuntu.com/ubuntu", "Suites: noble-security",
+			"Components: main restricted universe multiverse", "Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg", "",
+		].join("\n"));
+		writeFileSync(configuration, [
+			`Dir::Etc::sourcelist "${sources.replaceAll("\\", "/")}";`,
+			'Dir::Etc::sourceparts "-";', 'Dir::Etc::parts "-";', 'Dir::Etc::main "-";',
+			'Acquire::http::Timeout "30";', 'Acquire::https::Timeout "30";', 'Acquire::Retries "2";',
+			'APT::Update::Error-Mode "any";', "",
+		].join("\n"));
+		console.log("Browser setup: system dependencies via signed Ubuntu HTTPS sources (30s network timeout, 2 retries, 5m phase limit)");
+		// Set APT_CONFIG after sudo so Playwright's root installer retains it.
+		console.log(run("sudo", ["-n", "env", `APT_CONFIG=${configuration}`, process.execPath, cli, "install-deps", "chromium"], {}, 5 * 60_000));
+		phase = "Chromium download";
+		console.log("Browser setup: locked Chromium headless shell (5m phase limit)");
+		console.log(run(process.execPath, [cli, "install", "chromium", "--only-shell"], {}, 5 * 60_000));
+	} catch (error) {
+		throw new Error(`Browser setup failed during ${phase}: ${error instanceof Error ? error.message : String(error)}`, { cause: error });
+	} finally { rmSync(directory, { recursive: true, force: true }); }
+}
 function npm(args: string[], env: NodeJS.ProcessEnv = {}) {
 	return process.platform === "win32"
 		? execute(process.execPath, [join(dirname(process.execPath), "node_modules/npm/bin/npm-cli.js"), ...args], env)
@@ -290,7 +326,7 @@ async function main(task: string) {
 			}));
 			break;
 		}
-		case "browser-install": console.log(execute(process.execPath, ["node_modules/@playwright/test/cli.js", "install", "chromium", "--only-shell", "--with-deps"])); break;
+		case "browser-install": installBrowser(); break;
 		case "browser": {
 			const report = resolve("temp/ci-browser.json"); mkdirSync(dirname(report), { recursive: true }); rmSync(report, { force: true });
 			console.log(npm(["run", "test:browser", "--", "--reporter=list,json"], { PLAYWRIGHT_JSON_OUTPUT_FILE: report }));

@@ -4,6 +4,18 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "nod
 import { join, resolve } from "node:path";
 import { runWindowsBuildJob } from "./windowsBuildJob";
 
+export function selectWindowsToolchain(value: unknown, versions: string[]) {
+	if (!Array.isArray(versions) || versions.length === 0 || !versions.every((version) => typeof version === "string" && /^\d+\.\d+\.\d+\.\d+$/.test(version))) throw new Error("Expected exact reviewed Visual Studio versions");
+	if (!Array.isArray(value) || !value.every((item) => item && typeof item === "object" && typeof item.installationVersion === "string" && typeof item.installationPath === "string")) throw new Error("Invalid Visual Studio installation report");
+	for (const version of versions) {
+		const selected = value.find((item) => item.installationVersion === version && item.isComplete === true && item.isLaunchable === true && item.isPrerelease === false);
+		if (!selected) continue;
+		if (!/^[A-Za-z]:\\[A-Za-z0-9_.\\ ()-]+$/.test(selected.installationPath)) throw new Error("Unsupported Visual Studio installation path");
+		return { installation: selected.installationPath as string, version };
+	}
+	throw new Error(`Pinned MSVC installations ${versions.join(", ")} are unavailable; installed C++ toolchain versions: ${value.map((item) => item.installationVersion).join(", ") || "none"}; refusing to skip`);
+}
+
 function experimentReport(value: unknown) {
 	const reject = (message: string): never => { throw new Error(`Invalid Windows isolation experiment: ${message}`); };
 	if (!value || typeof value !== "object" || Array.isArray(value)) reject("missing report");
@@ -65,13 +77,9 @@ export async function runWindowsIsolationProbe(environment: NodeJS.ProcessEnv, v
 	};
 	const help = discover("version", ["-?"]).split(/\r?\n/)[0];
 	if (!help.startsWith(`Visual Studio Locator version ${policy.vswhereVersion}+`)) throw new Error("Pinned vswhere is unavailable; refusing to skip");
-	const select = ["-products", "*", "-version", policy.visualStudioRange, "-requires", "Microsoft.VisualStudio.Component.VC.Tools.x86.x64"];
-	const installation = discover("installation_path", [...select, "-property", "installationPath"]).trim();
-	const version = discover("installation_version", [...select, "-property", "installationVersion"]).trim();
-	if (!installation || version !== policy.visualStudioVersion) {
-		const installed = discover("available_versions", ["-products", "*", "-requires", "Microsoft.VisualStudio.Component.VC.Tools.x86.x64", "-property", "installationVersion"]).trim();
-		throw new Error(`Pinned MSVC installation ${policy.visualStudioVersion} is unavailable; installed C++ toolchain versions: ${installed || "none"}; refusing to skip`);
-	}
+	const installed = discover("installations", ["-products", "*", "-requires", "Microsoft.VisualStudio.Component.VC.Tools.x86.x64", "-format", "json", "-utf8"]);
+	const { installation, version } = selectWindowsToolchain(JSON.parse(installed), policy.visualStudioVersions);
+	console.error(`windows_toolchain:selected; visual_studio=${version}; windows_sdk=${policy.windowsSdkVersion}`);
 	mkdirSync("temp", { recursive: true });
 	const scratch = mkdtempSync(resolve("temp/windows-isolation-"));
 	const build = join(scratch, "build"), attempt = join(scratch, "attempt");

@@ -1,10 +1,13 @@
 {
 	"purpose": "diagnostic_only",
 	"productionAdapterEnabled": false,
-	"visualStudioVersion": "18.10.12224.181",
-	"visualStudioRange": "[18.10.12224.181,18.10.12224.182)",
+	"visualStudioVersions": ["18.11.12315.225", "18.11.12306.390", "18.10.12224.181"],
 	"windowsSdkVersion": "10.0.26100.0",
 	"vswhereVersion": "3.1.7",
-	"source": "https://github.com/actions/runner-images/blob/win25-vs2026/20261007.264/images/windows/Windows2025-VS2026-Readme.md",
+	"visualStudioSources": {
+		"18.11.12315.225": "https://github.com/actions/runner-images/blob/win25-vs2026/20261021.278/images/windows/Windows2025-VS2026-Readme.md",
+		"18.11.12306.390": "https://learn.microsoft.com/en-us/visualstudio/releases/2026/release-history",
+		"18.10.12224.181": "https://github.com/actions/runner-images/blob/win25-vs2026/20261007.264/images/windows/Windows2025-VS2026-Readme.md"
+	},
 	"usage": "Preinstalled hosted CI toolchain only; no SDK or runtime redistribution"
 }
