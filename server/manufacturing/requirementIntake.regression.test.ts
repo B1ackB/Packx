@@ -329,6 +329,63 @@ it("retains a verified value and blocks approval when a different value is propo
 	expect(h.engine.load(h.scope).approval).toBeUndefined();
 });
 
+it.each([false, true])("retains an unresolved confirmed-field change when a new generation omits it (echo=%s)", async echo => {
+	const h = harness(false);
+	for (const value of requirementBriefFixtures[0].artifact.facts) h.record(value);
+	await h.run([fact("quantity", 6200, "pcs")]);
+	const original = h.read();
+	expect(h.evaluation().approvalEligible).toBe(false);
+	h.engine.restartProposal(h.command());
+	await h.run(echo ? [fact("quantity", 10000, "pcs")] : []);
+	expect(h.read().pendingChanges).toEqual(original.pendingChanges);
+	expect(h.read().facts.find(value => value.key === "quantity")).toMatchObject({ value: 10000, version: 1, status: "verified" });
+	expect(h.evaluation().approvalEligible).toBe(false);
+	expect(h.engine.load(h.scope).stageStatus).toBe("needs_input");
+	expect(h.engine.load(h.scope).approval).toBeUndefined();
+	expect(h.artifacts.readJson({ ...h.scope, artifactId: "requirement-brief", artifactVersion: 1 })).toEqual(original);
+});
+
+it("deduplicates retained proposals and releases them only after the authoritative Fact is reviewed", async () => {
+	const h = harness(false);
+	for (const value of requirementBriefFixtures[0].artifact.facts) h.record(value);
+	await h.run([fact("quantity", 6200, "pcs")]);
+	const original = h.read();
+	h.engine.restartProposal(h.command());
+	await h.run([fact("quantity", 6200, "pcs")]);
+	expect(h.read().pendingChanges).toEqual(original.pendingChanges);
+	expect(h.evaluation().approvalEligible).toBe(false);
+	h.record({ ...fact("quantity", 6200, "pcs"), sourceType: "user_input" });
+	h.engine.resolveFact({ ...h.command(), factKey: "quantity", decision: "verified", sourceRef: "human-reviewed-quantity-change" });
+	h.engine.restartProposal(h.command());
+	await h.run([]);
+	expect(h.read().pendingChanges).toBeUndefined();
+	expect(h.read().facts.find(value => value.key === "quantity")).toMatchObject({ value: 6200, status: "verified", sourceType: "human_confirmation" });
+	expect(h.evaluation().approvalEligible).toBe(true);
+	expect(h.artifacts.readJson({ ...h.scope, artifactId: "requirement-brief", artifactVersion: 1 })).toEqual(original);
+});
+
+it("blocks accumulated proposal overflow before publication and permits human resolution", async () => {
+	const h = harness(false);
+	for (const value of requirementBriefFixtures[0].artifact.facts) h.record(value);
+	for (let index = 0; index < 30; index++) {
+		if (index) h.engine.restartProposal(h.command());
+		await h.run([fact("quantity", 6200 + index, "pcs")]);
+	}
+	expect(h.read().pendingChanges).toHaveLength(30);
+	const published = h.engine.load(h.scope).currentProposal!.version;
+	h.engine.restartProposal(h.command());
+	await expect(h.run([fact("quantity", 7000, "pcs")])).rejects.toMatchObject({ code: "budget_exceeded", retryable: false });
+	expect(h.engine.load(h.scope).currentProposal!.version).toBe(published);
+	h.engine.cancelStage(h.command());
+	h.engine.restartProposal(h.command());
+	h.record({ ...fact("quantity", 6200, "pcs"), sourceType: "user_input" });
+	h.engine.resolveFact({ ...h.command(), factKey: "quantity", decision: "verified", sourceRef: "human-reviewed-quantity-change" });
+	h.engine.restartProposal(h.command());
+	await h.run([]);
+	expect(h.read().pendingChanges).toBeUndefined();
+	expect(h.evaluation().approvalEligible).toBe(true);
+});
+
 it("does not invent lineage for a source absent from this run", async () => {
 	const h = harness();
 	await h.run([{ ...fact("quantity", 300), sourceRef: "other-tenant-source" }]);

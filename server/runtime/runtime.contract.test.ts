@@ -5,7 +5,8 @@ import { AgentHooks } from "../../src/agent/hooks";
 import { SkillRegistry } from "../../src/agent/skills";
 import { InMemoryAgentStateStore } from "../../src/agent/state";
 import { RuntimeFailure } from "../../src/runtime/contracts";
-import { AnthropicCompatibilityError, AnthropicMessagesClient } from "../anthropic/client";
+import { AnthropicMessagesClient } from "../anthropic/client";
+import { ModelProviderError, type ModelProviderFailureCode } from "./modelFailure";
 import { BlackxAgentRuntime } from "./agentRuntime";
 import { AnthropicModelProvider } from "./anthropicModelProvider";
 import { FakeAgentRuntime } from "./fakeAgentRuntime";
@@ -34,9 +35,26 @@ const usage = {
 };
 
 describe("Packx Agent Runtime contract", () => {
+	it.each([
+		["authentication", "authentication", false], ["rate_limit", "rate_limit", true],
+		["output_limit", "output_limit", false], ["refusal", "invalid_output", false],
+		["pause_turn", "model_failure", true], ["invalid_response", "model_failure", true],
+		["context_window_exceeded", "budget_exceeded", false], ["model_failure", "model_failure", false],
+	] as const)("accepts a provider-neutral %s failure without repeating the request", async (code, runtimeCode, retryable) => {
+		const cause = new Error("private provider error");
+		const failure = new ModelProviderError(code satisfies ModelProviderFailureCode, "Safe provider failure", retryable, { cause });
+		const generate = vi.fn(async () => { throw failure; });
+		const state = new InMemoryAgentStateStore();
+		const runtime = new BlackxAgentRuntime({ skills: new SkillRegistry(), traces: state, provider: { generate } });
+		const result = await runtime.executeTurn(request).catch((error: unknown) => error);
+		expect(result).toMatchObject({ code: runtimeCode, message: "Safe provider failure", retryable, cause: { cause: failure } });
+		expect(generate).toHaveBeenCalledOnce();
+		expect(JSON.stringify(state.listTraces(request))).not.toContain("private provider error");
+	});
+
 	it("reports received output truncation distinctly without automatically retrying the same budget", async () => {
 		const state = new InMemoryAgentStateStore();
-		const generate = vi.fn(async () => { throw new AnthropicCompatibilityError("output_limit", "Model reached limit", { adapterStatus: 422 }); });
+		const generate = vi.fn(async () => { throw new ModelProviderError("output_limit", "Model reached limit", false); });
 		const runtime = new BlackxAgentRuntime({ skills: new SkillRegistry(), traces: state, provider: { generate } });
 		await expect(runtime.executeTurn(request)).rejects.toMatchObject({ code: "output_limit", retryable: false });
 		expect(generate).toHaveBeenCalledTimes(1);
@@ -598,7 +616,7 @@ describe("Packx Agent Runtime contract", () => {
 				countTokens: async (modelRequest) => Math.ceil(modelRequest.messages.reduce((total, message) => total + message.content.length, 0) / 4),
 				generate: async () => {
 					calls += 1;
-					if (calls === 1) throw Object.assign(new Error("too long"), { code: "context_window_exceeded" });
+					if (calls === 1) throw new ModelProviderError("context_window_exceeded", "Model context window was exceeded", false);
 					return { text: "recovered", toolCalls: [], usage };
 				},
 			},

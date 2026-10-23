@@ -53,4 +53,18 @@ describe("CronDispatcher", () => {
 		expect(dispatcher.dispatchDue()).toBe(0);
 		expect(store.get("schedule-cron-dispatch")).toMatchObject({ status: "completed", runCount: 1 });
 	});
+
+	it.each(["0,1,10 * * * *", "0,30 0,10 * * * *"])("rejects later short intervals in %s", expression => {
+		expect(() => validateCronFrequency(expression, "UTC", new Date("2026-10-23T10:02:00Z"), 3))
+			.toThrow("cron_frequency_below_five_minutes");
+	});
+
+	it("checks the authorized horizon and the prior occurrence when resuming", () => {
+		const now = new Date("2026-10-23T10:02:00Z");
+		expect(validateCronFrequency("*/5 * * * *", "UTC", now, 100)).toEqual(new Date("2026-10-23T10:05:00Z"));
+		expect(() => validateCronFrequency("* * * * *", "UTC", now, 1)).toThrow("cron_frequency_below_five_minutes");
+		for (const count of [0, 101, 1.5]) expect(() => validateCronFrequency("*/5 * * * *", "UTC", now, count)).toThrow("invalid_cron_run_limit");
+		expect(() => validateCronFrequency("*/5 * * * *", "UTC", now, 2, "2026-10-23T10:01:00Z")).toThrow("cron_frequency_below_five_minutes");
+		expect(() => validateCronFrequency("2026-10-24T00:00:00", "UTC", now, 2)).toThrow("cron_has_no_next_run");
+	});
 });

@@ -32,7 +32,7 @@ import type {
 	RuntimeTurnResult,
 } from "../../src/runtime/contracts";
 import { RuntimeFailure } from "../../src/runtime/contracts";
-import { AnthropicCompatibilityError } from "../anthropic/client";
+import { ModelProviderError } from "./modelFailure";
 import { defaultContextBudget } from "../../src/agent/tokenBudget";
 
 export interface BlackxAgentRuntimeOptions extends AgentLoopOptions {
@@ -68,24 +68,11 @@ function classifyFailure(error: unknown, timedOut: boolean, cancelled: boolean):
 	let cause: unknown = error;
 	for (let depth = 0; depth < 4 && cause instanceof Error; depth += 1) {
 		if (cause instanceof RuntimeFailure) return cause;
-		if (cause instanceof AnthropicCompatibilityError) {
-			if (cause.code === "context_window_exceeded") {
-				return new RuntimeFailure("budget_exceeded", "Model context window was exceeded", false, { cause: error });
-			}
-			if (cause.code === "output_limit") {
-				return new RuntimeFailure("output_limit", "Model output reached its token limit; a new bounded execution requires an explicit budget decision", false, { cause: error });
-			}
-			if (cause.code === "refusal") {
-				return new RuntimeFailure("invalid_output", "Model did not produce a complete usable response", false, { cause: error });
-			}
-			if (cause.providerStatus === 401 || cause.providerStatus === 403) {
-				return new RuntimeFailure("authentication", "Model provider authentication failed", false, { cause: error });
-			}
-			if (cause.providerStatus === 429) {
-				return new RuntimeFailure("rate_limit", "Model provider rate limited", true, { cause: error });
-			}
-			const status = cause.providerStatus ?? cause.adapterStatus;
-			return new RuntimeFailure("model_failure", "Model provider request failed", Boolean(status && status >= 500), { cause: error });
+		if (cause instanceof ModelProviderError) {
+			const code = cause.code === "context_window_exceeded" ? "budget_exceeded"
+				: cause.code === "refusal" ? "invalid_output"
+					: cause.code === "pause_turn" || cause.code === "invalid_response" ? "model_failure" : cause.code;
+			return new RuntimeFailure(code, cause.message, cause.retryable, { cause: error });
 		}
 		cause = cause.cause;
 	}

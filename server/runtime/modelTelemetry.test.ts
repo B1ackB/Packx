@@ -4,8 +4,7 @@ import { tmpdir } from "node:os";
 import { afterEach, describe, expect, it } from "vitest";
 import { ModelTelemetryStore, type ObservedModelResponse } from "./modelTelemetry";
 import { summarizeModelCalls } from "../../src/runtime/modelTelemetry";
-import { AnthropicCompatibilityError } from "../anthropic/client";
-import { AnthropicGenerationError } from "./anthropicModelProvider";
+import { ModelProviderError } from "./modelFailure";
 const roots: string[] = [];
 afterEach(() => { roots.splice(0).forEach((root) => rmSync(root, { recursive: true, force: true })); });
 const scope = { tenantId: "tenant", workspaceId: "workspace", runId: "conversation" };
@@ -29,8 +28,8 @@ describe("model call telemetry", () => {
 		const pending = store.wrap({ generate: () => new Promise((_resolve, reject) => { fail = reject; }) }, scope, "execution").generate(request);
 		expect(store.view(scope).calls[0].status).toBe("running");
 		expect(new ModelTelemetryStore(root, "configured-model").view(scope).calls[0].status).toBe("interrupted");
-		fail(new AnthropicCompatibilityError("secret-type", "secret-error", { providerStatus: 429 }));
-		await expect(pending).rejects.toThrow("secret-error");
+		fail(new ModelProviderError("rate_limit", "Model provider rate limited", true, { httpStatus: 429, cause: new Error("secret-error") }));
+		await expect(pending).rejects.toThrow("Model provider rate limited");
 		expect(store.view(scope).calls[0]).toMatchObject({ status: "failed", httpStatus: 429, failure: "rate_limited" });
 		expect(JSON.stringify(store.view(scope))).not.toContain("secret-");
 	});
@@ -63,7 +62,7 @@ describe("model call telemetry", () => {
 
 it("persists a received failure's usage across restart while keeping it failed and redacted", async () => {
 	const { root, store } = setup();
-	const error = new AnthropicGenerationError("output_limit", "secret error text", 422, result.usage, { ...result.telemetry!, stopReason: "max_tokens" });
+	const error = new ModelProviderError("output_limit", "Model output reached its token limit", false, { usage: result.usage, telemetry: { ...result.telemetry!, stopReason: "max_tokens" }, cause: new Error("secret error text") });
 	const provider = store.wrap({ generate: async () => { throw error; } }, scope, "execution");
 	await expect(provider.generate(request)).rejects.toBe(error);
 	const calls = new ModelTelemetryStore(root, "configured-model").view(scope).calls;
