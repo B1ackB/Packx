@@ -32,7 +32,7 @@ for (const format of ["docx", "xlsx"]) it(`imports an original ${format} templat
 	const result = restarted.download(scope, output.exportId, d), parts = readOfficeZip(result.data), original = readOfficeZip(bytes);
 	const xml = [...parts.values()].map((part) => part.toString()).join("\n");
 	expect(xml).toContain("7200"); expect(xml).toContain("DRAFT"); expect(xml).not.toContain("{{");
-	for (const [name, data] of original) if (!/document.xml|header\d|footer\d|worksheets\/|sharedStrings|workbook.xml$/.test(name)) expect(parts.get(name)).toEqual(data);
+	for (const [name, data] of original) if (!/document.xml|header\d|footer\d|worksheets\/|sharedStrings|workbook.xml$/.test(name)) expect(parts.get(name)?.equals(data), name).toBe(true);
 	expect(() => restarted.view({ ...scope, tenantId: "other" }, template.templateId)).toThrow();
 	expect(() => restarted.download(scope, output.exportId, { ...d, status: "stale" })).toThrow();
 	expect(() => restarted.download(scope, output.exportId, { ...d, status: "approved", approval: { approvalId: "new", artifactVersion: 1 } })).toThrow();
