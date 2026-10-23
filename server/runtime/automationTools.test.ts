@@ -8,6 +8,49 @@ import { BlackxAgentRuntime } from "./agentRuntime";
 import { automationToolNames, createAutomationTools } from "./automationTools";
 
 describe("Agent automation tools", () => {
+	it.each(["create", "resume"])("rejects an irregular Cron schedule through the %s tool", async action => {
+		const now = () => new Date("2026-10-23T10:02:00Z");
+		const queue = new InMemoryStageJobQueue({ now }), schedules = new InMemoryCronScheduleStore(now);
+		const scope = { tenantId: "tenant", workspaceId: "workspace", runId: "conversation", actorId: "user" };
+		const input = { name: "irregular", expression: "0,1,10 * * * *", timezone: "UTC", prompt: "Review", maxRuns: 3 };
+		if (action === "resume") {
+			schedules.create({ ...scope, ...input, scheduleId: "legacy", nextRunAt: "2026-10-23T10:10:00Z" });
+			schedules.setStatus("legacy", scope, "paused");
+		}
+		const tool = createAutomationTools(queue, schedules, now).find(tool => tool.name === `cron_${action}`)!;
+		await expect(tool.execute(action === "create" ? input : { scheduleId: "legacy" }, {
+			...scope, stageId: "conversation", executionId: "execution", toolCallId: "call", idempotencyKey: "request", approvalId: "bounded-policy", signal: new AbortController().signal,
+		})).rejects.toMatchObject({ code: "cron_frequency_below_five_minutes" });
+		expect(queue.list()).toHaveLength(0);
+		if (action === "create") expect(schedules.list(scope)).toHaveLength(0);
+		else expect(schedules.get("legacy")).toMatchObject({ status: "paused", runCount: 0 });
+	});
+
+	it("replays a completed schedule's resume receipt without changing state or bypassing its identity", async () => {
+		const now = () => new Date("2026-10-23T10:02:00Z");
+		const queue = new InMemoryStageJobQueue({ now }), schedules = new InMemoryCronScheduleStore(now);
+		const context = { tenantId: "tenant", workspaceId: "workspace", runId: "conversation", actorId: "user", stageId: "conversation", executionId: "execution", toolCallId: "call", idempotencyKey: "resume", approvalId: "bounded-policy", signal: new AbortController().signal };
+		const input = { scheduleId: "bounded" };
+		schedules.create({ ...context, ...input, name: "bounded", expression: "*/5 * * * *", timezone: "UTC", prompt: "Review", maxRuns: 1, nextRunAt: "2026-10-23T10:05:00Z" });
+		schedules.setStatus(input.scheduleId, context, "paused");
+		const tool = createAutomationTools(queue, schedules, now).find(tool => tool.name === "cron_resume")!;
+		const result = await tool.execute(input, context);
+		schedules.acknowledge(input.scheduleId, schedules.get(input.scheduleId)!.nextRunAt);
+		const completed = schedules.get(input.scheduleId);
+		expect(completed).toMatchObject({ status: "completed", runCount: 1 });
+		expect(await tool.execute(input, context)).toEqual(result);
+		for (const key of ["actorId", "approvalId", "executionId"] as const) {
+			await expect(tool.execute(input, { ...context, [key]: "different" })).rejects.toThrow("mutation_receipt_identity_conflict");
+		}
+		for (const key of ["tenantId", "workspaceId", "runId"] as const) {
+			expect(await tool.execute(input, { ...context, [key]: "other" })).toEqual({ ok: false, code: "cron_schedule_not_found" });
+		}
+		await expect(tool.execute(input, { ...context, approvalId: undefined })).rejects.toThrow("mutation_approval_required");
+		await expect(tool.execute(input, { ...context, signal: AbortSignal.abort() })).rejects.toThrow();
+		expect(schedules.get(input.scheduleId)).toEqual(completed);
+		expect(queue.list()).toHaveLength(0);
+	});
+
 	it("lets the model autonomously enqueue one background task through policy and audit", async () => {
 		const queue = new InMemoryStageJobQueue();
 		const schedules = new InMemoryCronScheduleStore();

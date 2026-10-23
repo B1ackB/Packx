@@ -1,39 +1,7 @@
 import { RuntimeFailure } from "../../src/runtime/contracts";
 import type { AgentHostTool } from "../../src/agent/contracts";
 import { ProposalRunEngine } from "../../src/enterprise/proposalRunEngine";
-import { requirementBriefFixtures } from "../../src/manufacturing/requirementBrief.fixtures";
 import { FileConversationAttachmentStore } from "./conversationAttachments";
-
-const sources = Object.fromEntries(requirementBriefFixtures.map((fixture) => [
-	fixture.fixtureId,
-	{ industry: fixture.industry, content: fixture.input },
-]));
-
-function validInput(value: unknown): value is { sourceId: string } {
-	return value !== null && typeof value === "object" && !Array.isArray(value) &&
-		"sourceId" in value && typeof value.sourceId === "string" && value.sourceId in sources;
-}
-
-export const projectSourceReadTool: AgentHostTool = {
-	name: "project_source_read",
-	description: "Read one customer Brief from the fixed M2 Requirement Brief evaluation corpus.",
-	inputSchema: {
-		type: "object",
-		properties: { sourceId: { enum: Object.keys(sources) } },
-		required: ["sourceId"],
-		additionalProperties: false,
-	},
-	execution: "host",
-	risk: "read",
-	idempotent: true,
-	timeoutMs: 1_000,
-	maxResultChars: 4_000,
-	validate: validInput,
-	execute: async (input) => {
-		const { sourceId } = input as { sourceId: string };
-		return { sourceId, ...sources[sourceId] };
-	},
-};
 
 export function createProjectSourceReadTool(
 	engine: ProposalRunEngine,

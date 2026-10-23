@@ -1,8 +1,35 @@
 import { describe, expect, it, vi } from "vitest";
-import { AnthropicMessagesClient } from "../anthropic/client";
+import { AnthropicCompatibilityError, AnthropicMessagesClient } from "../anthropic/client";
 import { AnthropicGenerationError, AnthropicModelProvider } from "./anthropicModelProvider";
+import { ModelProviderError } from "./modelFailure";
 
 describe("AnthropicModelProvider", () => {
+	it.each(["generate", "countTokens"] as const)("normalizes HTTP failures at the %s adapter boundary", async method => {
+		for (const [status, code, retryable] of [[400, "model_failure", false], [401, "authentication", false], [403, "authentication", false], [429, "rate_limit", true], [503, "model_failure", true]] as const) {
+			const provider = new AnthropicModelProvider(new AnthropicMessagesClient({ baseUrl: "https://example.invalid", apiKey: "test-key",
+				fetch: async () => new Response(JSON.stringify({ error: { type: "private-provider-type", message: "private provider detail" } }), { status, headers: { "content-type": "application/json" } }),
+			}), "offline-model");
+			const failure = await provider[method]({ messages: [{ role: "user", content: "check" }], tools: [], fallbackOutput: "" }).catch((error: unknown) => error);
+			expect(failure).toBeInstanceOf(ModelProviderError);
+			expect(failure).toMatchObject({ code, retryable, httpStatus: status, cause: expect.any(AnthropicCompatibilityError) });
+			expect((failure as Error).cause).toMatchObject({ message: "private provider detail" });
+			expect(JSON.stringify(failure)).not.toContain("private");
+		}
+	});
+
+	it.each(["generate", "countTokens"] as const)("preserves unknown transport and cancellation errors from %s", async method => {
+		for (const failure of [new TypeError("private transport", { cause: Object.assign(new Error("socket"), { code: "UND_ERR_SOCKET" }) }), new DOMException("cancelled", "AbortError")]) {
+			const provider = new AnthropicModelProvider(new AnthropicMessagesClient({ baseUrl: "https://example.invalid", apiKey: "test-key", fetch: async () => { throw failure; } }), "offline-model");
+			await expect(provider[method]({ messages: [{ role: "user", content: "check" }], tools: [], fallbackOutput: "" })).rejects.toBe(failure);
+		}
+	});
+
+	it("preserves callback failures instead of classifying them as provider failures", async () => {
+		const failure = new Error("source validation failed");
+		const provider = new AnthropicModelProvider(new AnthropicMessagesClient({ baseUrl: "https://example.invalid", apiKey: "test-key", fetch: async () => new Response(JSON.stringify({ content: [{ type: "text", text: "partial" }], usage: { input_tokens: 1, output_tokens: 1 } }), { headers: { "content-type": "application/json" } }) }), "offline-model");
+		await expect(provider.generate({ messages: [{ role: "user", content: "check" }], tools: [], fallbackOutput: "", onText: () => { throw failure; } })).rejects.toBe(failure);
+	});
+
 	it("maps generic Agent messages, tools, schema, response and usage", async () => {
 		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({
 			id: "msg-1",
@@ -184,6 +211,8 @@ it.each(["max_tokens", "refusal", "pause_turn", "model_context_window_exceeded"]
 	}), "configured-model");
 	const error = await provider.generate({ messages: [{ role: "user", content: "check" }], tools: [], fallbackOutput: "" }).catch((error: unknown) => error);
 	expect(error).toBeInstanceOf(AnthropicGenerationError);
+	expect((error as Error).cause).toBeInstanceOf(AnthropicCompatibilityError);
+	expect((error as Error).cause).toMatchObject({ code: (error as AnthropicGenerationError).code, adapterStatus: stopReason === "pause_turn" ? 503 : 422 });
 	expect(error).toMatchObject({ usage: { inputTokens: 100, cachedInputTokens: 20, outputTokens: 8192, reasoningOutputTokens: 8000 }, telemetry: { model: "configured-model", stopReason } });
 	expect(JSON.stringify(error)).not.toMatch(/secret|issues|publish|partial/);
 });

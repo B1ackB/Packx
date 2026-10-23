@@ -1,24 +1,35 @@
 import { createHash } from "node:crypto";
 import { Cron } from "croner";
-import type { CronSchedule, CronScheduleStore } from "../../src/enterprise/cronSchedule";
+import { CronScheduleError, type CronSchedule, type CronScheduleStore } from "../../src/enterprise/cronSchedule";
 import { StageJobQueueError, type StageJobQueue } from "../../src/enterprise/stageJobQueue";
 import { enqueueBackgroundConversationTask } from "./backgroundTaskApi";
 
-export function nextCronRun(expression: string, timezone: string, after: Date): Date {
+function parseCron(expression: string, timezone: string, after: Date): Cron {
 	if (!expression.trim() || expression.length > 120 || !timezone.trim() || timezone.length > 80) {
-		throw new Error("invalid_cron_schedule");
+		throw new CronScheduleError("invalid_schedule", "invalid_cron_schedule");
 	}
 	new Intl.DateTimeFormat("en", { timeZone: timezone }).format(after);
-	const next = new Cron(expression, { timezone, paused: true }).nextRun(after);
-	if (!next) throw new Error("cron_has_no_next_run");
+	return new Cron(expression, { timezone, paused: true });
+}
+
+export function nextCronRun(expression: string, timezone: string, after: Date): Date {
+	const next = parseCron(expression, timezone, after).nextRun(after);
+	if (!next) throw new CronScheduleError("cron_has_no_next_run", "cron_has_no_next_run");
 	return next;
 }
 
-export function validateCronFrequency(expression: string, timezone: string, after: Date): Date {
-	const first = nextCronRun(expression, timezone, after);
-	const second = nextCronRun(expression, timezone, first);
-	if (second.getTime() - first.getTime() < 300_000) throw new Error("cron_frequency_below_five_minutes");
-	return first;
+function assertInterval(previous: Date, next: Date): void {
+	if (next.getTime() - previous.getTime() < 300_000) throw new CronScheduleError("cron_frequency_below_five_minutes", "cron_frequency_below_five_minutes");
+}
+
+export function validateCronFrequency(expression: string, timezone: string, after: Date, remainingRuns = 100, lastRunAt?: string): Date {
+	if (!Number.isInteger(remainingRuns) || remainingRuns < 1 || remainingRuns > 100) throw new CronScheduleError("invalid_schedule", "invalid_cron_run_limit");
+	// Preserve the two-occurrence minimum while checking every authorized future occurrence.
+	const count = Math.max(2, remainingRuns), runs = parseCron(expression, timezone, after).nextRuns(count, after);
+	if (runs.length !== count) throw new CronScheduleError("cron_has_no_next_run", "cron_has_no_next_run");
+	if (lastRunAt) assertInterval(new Date(lastRunAt), runs[0]);
+	for (let index = 1; index < runs.length; index++) assertInterval(runs[index - 1], runs[index]);
+	return runs[0];
 }
 
 function occurrenceId(schedule: CronSchedule): string {
@@ -48,6 +59,11 @@ export class CronDispatcher {
 		let dispatched = 0;
 		for (const schedule of due) {
 			try {
+				const current = new Date(schedule.nextRunAt);
+				if (schedule.lastRunAt) assertInterval(new Date(schedule.lastRunAt), current);
+				// Validate before enqueue: invalid legacy schedules must not create unacknowledged jobs.
+				const next = schedule.runCount + 1 >= schedule.maxRuns ? undefined : nextCronRun(schedule.expression, schedule.timezone, current);
+				if (next) assertInterval(current, next);
 				const occurrence = occurrenceId(schedule);
 				const job = enqueueBackgroundConversationTask(this.queue, {
 					tenantId: schedule.tenantId,
@@ -58,14 +74,11 @@ export class CronDispatcher {
 					actorId: `cron:${schedule.scheduleId}`,
 					requestedBy: "cron",
 				});
-				const next = schedule.runCount + 1 >= schedule.maxRuns
-					? undefined
-					: nextCronRun(schedule.expression, schedule.timezone, new Date(schedule.nextRunAt)).toISOString();
-				this.schedules.acknowledge(schedule.scheduleId, schedule.nextRunAt, next, job.jobId);
+				this.schedules.acknowledge(schedule.scheduleId, schedule.nextRunAt, next?.toISOString(), job.jobId);
 				dispatched++;
 			} catch (error) {
 				failures.push(error);
-				try { this.schedules.defer(schedule.scheduleId, schedule.nextRunAt, error instanceof StageJobQueueError ? error.code : "cron_dispatch_failed"); }
+				try { this.schedules.defer(schedule.scheduleId, schedule.nextRunAt, error instanceof StageJobQueueError || error instanceof CronScheduleError ? error.code : "cron_dispatch_failed"); }
 				catch (storageError) { failures.push(storageError); }
 			}
 		}

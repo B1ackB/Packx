@@ -6,7 +6,7 @@ import type { AgentHostTool, AgentImageAttachment, AgentModelResponse } from "..
 import { SkillRegistry } from "../../src/agent/skills";
 import { InMemoryAgentStateStore } from "../../src/agent/state";
 import { RuntimeFailure, type RuntimeTurnRequest } from "../../src/runtime/contracts";
-import { AnthropicCompatibilityError } from "../anthropic/client";
+import { ModelProviderError } from "./modelFailure";
 import { BlackxAgentRuntime } from "./agentRuntime";
 import { ModelTelemetryStore } from "./modelTelemetry";
 import { AnthropicModelProvider } from "./anthropicModelProvider";
@@ -67,7 +67,7 @@ describe("error handling fault-injection audit", () => {
 
 	it.each(["trace", "activity"] as const)("preserves authentication failure when %s reporting also fails", async (reporter) => {
 		const state = new InMemoryAgentStateStore();
-		const providerError = new AnthropicCompatibilityError("authentication_error", "private provider detail", { providerStatus: 401 });
+		const providerError = new ModelProviderError("authentication", "Model provider authentication failed", false, { httpStatus: 401, cause: new Error("private provider detail") });
 		const reportingError = new Error(`${reporter}_unavailable`);
 		if (reporter === "trace") vi.spyOn(state, "putTrace").mockImplementation(() => { throw reportingError; });
 		const runtime = new BlackxAgentRuntime({
@@ -100,7 +100,7 @@ describe("error handling fault-injection audit", () => {
 		const directory = mkdtempSync(join(tmpdir(), "packx-error-audit-"));
 		try {
 			const telemetry = new ModelTelemetryStore(directory, "fake-model");
-			const providerError = new AnthropicCompatibilityError("authentication_error", "private provider detail", { providerStatus: 401 });
+			const providerError = new ModelProviderError("authentication", "Model provider authentication failed", false, { httpStatus: 401, cause: new Error("private provider detail") });
 			const runtime = new BlackxAgentRuntime({
 				provider: { generate: async () => {
 					writeFileSync(join(directory, readdirSync(directory)[0]), "invalid-json");

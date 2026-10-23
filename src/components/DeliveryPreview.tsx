@@ -2,14 +2,13 @@ import { RequirementTemplate } from "./RequirementTemplate";
 import { documentWarningText, errorText } from "../i18n";
 import { useEffect, useState } from "react";
 import { ConversationClient } from "../runtime/conversationClient";
-import type { AssetInspectionRecord } from "../runtime/assetInspection";
 import { compareRequirementVersions, factStatusLabels, inspectionStatusLabels, requirementFieldLabels, type RequirementDelivery } from "../manufacturing/requirementDelivery";
 import { labelFor, statusFor, type Language } from "../i18n";
 
 const client = new ConversationClient();
 
-export function DeliveryPreview({ conversationId, versions, currentVersion, revision, onSources, language }: {
-	conversationId: string; versions: number[]; currentVersion: number; revision: number; onSources: (sources: AssetInspectionRecord[]) => void; language: Language;
+export function DeliveryPreview({ conversationId, versions, currentVersion, revision, language }: {
+	conversationId: string; versions: number[]; currentVersion: number; revision: number; language: Language;
 }) {
 	const en = language === "en";
 	const field = (key: string) => labelFor(language, key, requirementFieldLabels[key] ?? key);
@@ -26,7 +25,7 @@ export function DeliveryPreview({ conversationId, versions, currentVersion, revi
 		setDelivery(undefined); setPrevious(undefined); setError("");
 		const before = versions.filter((value) => value < version).sort((a, b) => b - a)[0];
 		void Promise.all([client.delivery(conversationId, version), before ? client.delivery(conversationId, before).catch(() => undefined) : undefined])
-			.then(([now, prior]) => { if (!cancelled) { setDelivery(now); setPrevious(prior); if (version === currentVersion) onSources(now.sources); } })
+			.then(([now, prior]) => { if (!cancelled) { setDelivery(now); setPrevious(prior); } })
 			.catch((reason) => { if (!cancelled) setError(errorText(reason, language)); });
 		return () => { cancelled = true; };
 	}, [conversationId, version, revision]);

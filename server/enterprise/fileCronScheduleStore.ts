@@ -3,11 +3,8 @@ import { syncDirectory } from "../syncDirectory";
 import { randomUUID } from "node:crypto";
 import {
 	chmodSync,
-	closeSync,
 	existsSync,
-	fsyncSync,
 	mkdirSync,
-	openSync,
 	readFileSync,
 	renameSync,
 	unlinkSync,
@@ -72,13 +69,8 @@ class FileCronScheduleStorage implements CronScheduleStorage {
 				encoding: "utf8",
 				mode: 0o600,
 				flag: "wx",
+				flush: true,
 			});
-			const handle = openSync(temporaryPath, "r+");
-			try {
-				fsyncSync(handle);
-			} finally {
-				closeSync(handle);
-			}
 			renameSync(temporaryPath, this.filePath);
 			chmodSync(this.filePath, 0o600);
 			syncDirectory(dirname(this.filePath));

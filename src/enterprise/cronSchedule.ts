@@ -54,7 +54,7 @@ export interface CronScheduleStorage {
 
 export class CronScheduleError extends Error {
 	constructor(
-		readonly code: "invalid_schedule" | "schedule_conflict" | "schedule_not_found" | "schedule_store_corrupt" | "schedule_store_unavailable",
+		readonly code: "invalid_schedule" | "schedule_conflict" | "schedule_not_found" | "schedule_store_corrupt" | "schedule_store_unavailable" | "cron_frequency_below_five_minutes" | "cron_has_no_next_run",
 		message: string,
 		options?: ErrorOptions,
 	) {

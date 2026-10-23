@@ -1,10 +1,11 @@
 import { mutationBinding, mutationResult } from "./mutationRecovery";
+import { findMutationReceipt } from "../../src/enterprise/mutationReceipt";
 import { createHash } from "node:crypto";
 import type { AgentHostTool } from "../../src/agent/contracts";
 import type { CronSchedule, CronScheduleStore } from "../../src/enterprise/cronSchedule";
 import type { StageJob, StageJobQueue } from "../../src/enterprise/stageJobQueue";
 import { backgroundTaskView, enqueueBackgroundConversationTask } from "../workers/backgroundTaskApi";
-import { nextCronRun, validateCronFrequency } from "../workers/cronScheduler";
+import { validateCronFrequency } from "../workers/cronScheduler";
 
 export const automationToolNames = [
 	"background_task_create",
@@ -185,7 +186,7 @@ export function createAutomationTools(
 					scheduleId: `schedule-${digest(context.idempotencyKey)}`, name: request.name.trim(),
 					expression: request.expression.trim(), timezone: request.timezone.trim(), prompt: request.prompt.trim(),
 					actorId: `agent:${context.actorId}`, maxRuns: request.maxRuns,
-					nextRunAt: validateCronFrequency(request.expression, request.timezone, now()).toISOString(),
+					nextRunAt: validateCronFrequency(request.expression, request.timezone, now(), request.maxRuns).toISOString(),
 				}, { binding, result: value => ({ ok: true, schedule: automationScheduleView(value) }) });
 				return mutationResult(schedule.mutationReceipts, binding);
 			},
@@ -228,12 +229,14 @@ export function createAutomationTools(
 				const existing = scopedSchedule(schedules, scheduleId, context);
 				if (!existing) return { ok: false, code: "cron_schedule_not_found" };
 				const binding = mutationBinding(`cron_${action}`, input, context);
+				const receipt = findMutationReceipt(existing.mutationReceipts, binding);
+				if (receipt) return JSON.parse(receipt.result);
 				const updated = schedules.setStatus(
 					scheduleId,
 					context,
 					action === "pause" ? "paused" : "active",
 					action === "resume"
-						? nextCronRun(existing.expression, existing.timezone, now()).toISOString()
+						? validateCronFrequency(existing.expression, existing.timezone, now(), existing.maxRuns - existing.runCount, existing.lastRunAt).toISOString()
 						: undefined,
 					{ binding, result: value => ({ ok: true, schedule: automationScheduleView(value) }) },
 				);

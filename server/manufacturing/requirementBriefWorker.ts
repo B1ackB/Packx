@@ -3,6 +3,7 @@ import type { ConversationApiController } from "../runtime/conversationApi";
 import type { ConversationView } from "../../src/runtime/conversationContracts";
 import { reconcileRequirementAttachments, reconcileRequirementMessages, requirementMessagesChanged, requirementAttachmentSnapshotChanged } from "./requirementSourceLifecycle";
 import { createHash } from "node:crypto";
+import { isDeepStrictEqual } from "node:util";
 import { correctExtractedQuantity } from "./requirementCorrections";
 import { candidateConflictHistory, candidateConflictId, messageEvidence, previousCandidateSource, parseRequirementCandidate, candidateFacts } from "./requirementCandidateConflicts";
 import { buildTaskContext } from "../enterprise/taskContext";
@@ -351,6 +352,7 @@ export class RequirementBriefWorker {
 		const unresolved = new Set<string>();
 		if (candidate) {
 			const history = candidateConflictHistory(this.artifacts, state, this.engine.readEvents(command), artifactVersion);
+			pendingChanges.push(...history.pendingChanges);
 			let facts = candidateFacts(industry, candidate).filter((fact) => {
 				if (!fact.sourceRef.startsWith("kb-")) return true;
 				const parameter = ({ material_structure: "structure", material_thickness: "thickness" } as Record<string, string>)[fact.key];
@@ -457,7 +459,8 @@ export class RequirementBriefWorker {
 
 				if (current?.status === "verified") {
 					if (!confirmedValueMatches(current, fact)) {
-						pendingChanges.push({ key: fact.key, currentFactVersion: current.version, value: fact.value, ...(fact.unit ? { unit: fact.unit } : {}), sourceRef });
+						const change = { key: fact.key, currentFactVersion: current.version, value: fact.value, ...(fact.unit ? { unit: fact.unit } : {}), sourceRef };
+						if (!pendingChanges.some(previous => isDeepStrictEqual(previous, change))) pendingChanges.push(change);
 						intakeIssues.push({ code: "pending_fact_change", message: `${fact.key} 有新的待确认提议；旧交付物不能继续作为当前完整交接依据。` });
 					}
 					continue;
@@ -477,6 +480,7 @@ export class RequirementBriefWorker {
 			}
 		}
 
+		if (pendingChanges.length > 30) throw new RuntimeFailure("budget_exceeded", "Unresolved Fact proposals exceed the brief limit; review existing proposals before generating another version", false);
 		state = this.engine.load(command);
 		if (!this.engine.hasCommand(command, runtimeCommandId)) {
 			assertActive();

@@ -75,3 +75,19 @@ it("rejects stale dispatch recovery when repeated failures share the same clock 
 	expect(store.get(schedule.scheduleId)!.updatedAt).not.toBe(failed.updatedAt);
 	expect(() => store.recover(schedule.scheduleId, { ...request, requestId: "stale-cycle-two" })).toThrow();
 });
+
+it("rejects a persisted irregular schedule before enqueue and keeps its failure bounded across restart", () => {
+	const { store, queue, open, now, advance } = fixture();
+	store.create({ ...scope, scheduleId: "legacy-irregular", name: "legacy", expression: "0,1,10 * * * *", timezone: "UTC", prompt: "Review", maxRuns: 3, nextRunAt: now().toISOString() });
+	const reopened = open(), errors: unknown[] = [];
+	const dispatcher = new CronDispatcher(reopened.store, reopened.queue, now, error => errors.push(error));
+	for (let attempt = 0; attempt < 5; attempt++) {
+		expect(dispatcher.dispatchDue()).toBe(0);
+		advance();
+	}
+	expect(queue.list()).toHaveLength(0);
+	expect(errors).toHaveLength(5);
+	expect(open().store.get("legacy-irregular")).toMatchObject({ status: "failed", runCount: 0, failure: { code: "cron_frequency_below_five_minutes" } });
+	expect(dispatcher.dispatchDue()).toBe(0);
+	expect(errors).toHaveLength(5);
+});

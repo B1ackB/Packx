@@ -7,12 +7,32 @@ import type {
 } from "../anthropic/types";
 
 import type { ModelCallRecord } from "../../src/runtime/modelTelemetry";
+import { ModelProviderError } from "./modelFailure";
+
+function failureDetails(code: string, providerStatus?: number, adapterStatus?: number): Pick<ModelProviderError, "code" | "message" | "retryable"> {
+	if (code === "context_window_exceeded") return { code, message: "Model context window was exceeded", retryable: false };
+	if (code === "output_limit") return { code, message: "Model output reached its token limit; a new bounded execution requires an explicit budget decision", retryable: false };
+	if (code === "refusal") return { code, message: "Model did not produce a complete usable response", retryable: false };
+	if (providerStatus === 401 || providerStatus === 403) return { code: "authentication", message: "Model provider authentication failed", retryable: false };
+	if (providerStatus === 429) return { code: "rate_limit", message: "Model provider rate limited", retryable: true };
+	const status = providerStatus ?? adapterStatus;
+	return { code: code === "pause_turn" || code === "invalid_response" ? code : "model_failure", message: "Model provider request failed", retryable: Boolean(status && status >= 500) };
+}
+
+function normalizedFailure(error: unknown): unknown {
+	if (!(error instanceof AnthropicCompatibilityError)) return error;
+	const details = failureDetails(error.code, error.providerStatus, error.adapterStatus);
+	return new ModelProviderError(details.code, details.message, details.retryable, { httpStatus: error.providerStatus, cause: error });
+}
 
 /** A received but unusable response: numeric accounting survives, partial content does not. */
-export class AnthropicGenerationError extends AnthropicCompatibilityError {
+export class AnthropicGenerationError extends ModelProviderError {
+	declare readonly usage: AgentUsage;
+	declare readonly telemetry: NonNullable<ModelCallRecord["response"]>;
 	constructor(code: string, message: string, adapterStatus: number,
-		readonly usage: AgentUsage, readonly telemetry: NonNullable<ModelCallRecord["response"]>) {
-		super(code, message, { adapterStatus });
+		usage: AgentUsage, telemetry: NonNullable<ModelCallRecord["response"]>) {
+		const details = failureDetails(code, undefined, adapterStatus);
+		super(details.code, message, details.retryable, { usage, telemetry, cause: new AnthropicCompatibilityError(code, message, { adapterStatus }) });
 	}
 }
 
@@ -177,46 +197,50 @@ export class AnthropicModelProvider implements AgentModelProvider {
 	) {}
 
 	async generate(request: AgentModelRequest, signal?: AbortSignal) {
-		const upstream = await this.client.createMessage(toAnthropicRequest(request, this.model, this.maxTokens), signal, request.onText);
-		validateResponse(upstream);
-		const usage: AgentUsage = {
-			inputTokens: upstream.usage.input_tokens,
-			cachedInputTokens: upstream.usage.cache_read_input_tokens ?? 0,
-			outputTokens: upstream.usage.output_tokens,
-			reasoningOutputTokens: upstream.usage.output_tokens_details?.thinking_tokens ?? 0,
-		};
-		const telemetry: NonNullable<ModelCallRecord["response"]> = {
-			model: typeof upstream.model === "string" && /^[A-Za-z0-9._:/-]{1,128}$/.test(upstream.model) ? upstream.model : this.model,
-			stopReason: ["end_turn", "tool_use", "stop_sequence", "max_tokens", "refusal", "pause_turn", "model_context_window_exceeded"].includes(upstream.stop_reason ?? "") ? upstream.stop_reason! : "unknown",
-			inputTokens: usage.inputTokens, outputTokens: usage.outputTokens,
-			cacheReadTokens: upstream.usage.cache_read_input_tokens ?? null,
-			cacheWriteTokens: upstream.usage.cache_creation_input_tokens ?? null,
-		};
-		if (upstream.stop_reason === "model_context_window_exceeded") throw new AnthropicGenerationError("context_window_exceeded", "Model context window exceeded", 422, usage, telemetry);
-		if (upstream.stop_reason === "max_tokens") throw new AnthropicGenerationError("output_limit", "Model output token limit reached", 422, usage, telemetry);
-		if (upstream.stop_reason === "refusal") throw new AnthropicGenerationError("refusal", "Model refused the request", 422, usage, telemetry);
-		if (upstream.stop_reason === "pause_turn") throw new AnthropicGenerationError("pause_turn", "Model paused the turn", 503, usage, telemetry);
-		return { telemetry, usage,
-			text: upstream.content
-				.filter((block) => block.type === "text")
-				.map((block) => block.text)
-				.join(""),
-			toolCalls: upstream.content
-				.filter((block) => block.type === "tool_use")
-				.map((block) => ({ id: block.id, name: block.name, input: block.input })),
-			providerState: upstream.content.some((block) => (
-				block.type === "thinking" || block.type === "redacted_thinking"
-			))
-				? {
-					type: anthropicProviderStateType,
-					model: this.model,
-					content: structuredClone(upstream.content),
-				}
-				: undefined,
-		};
+		try {
+			const upstream = await this.client.createMessage(toAnthropicRequest(request, this.model, this.maxTokens), signal, request.onText);
+			validateResponse(upstream);
+			const usage: AgentUsage = {
+				inputTokens: upstream.usage.input_tokens,
+				cachedInputTokens: upstream.usage.cache_read_input_tokens ?? 0,
+				outputTokens: upstream.usage.output_tokens,
+				reasoningOutputTokens: upstream.usage.output_tokens_details?.thinking_tokens ?? 0,
+			};
+			const telemetry: NonNullable<ModelCallRecord["response"]> = {
+				model: typeof upstream.model === "string" && /^[A-Za-z0-9._:/-]{1,128}$/.test(upstream.model) ? upstream.model : this.model,
+				stopReason: ["end_turn", "tool_use", "stop_sequence", "max_tokens", "refusal", "pause_turn", "model_context_window_exceeded"].includes(upstream.stop_reason ?? "") ? upstream.stop_reason! : "unknown",
+				inputTokens: usage.inputTokens, outputTokens: usage.outputTokens,
+				cacheReadTokens: upstream.usage.cache_read_input_tokens ?? null,
+				cacheWriteTokens: upstream.usage.cache_creation_input_tokens ?? null,
+			};
+			if (upstream.stop_reason === "model_context_window_exceeded") throw new AnthropicGenerationError("context_window_exceeded", "Model context window was exceeded", 422, usage, telemetry);
+			if (upstream.stop_reason === "max_tokens") throw new AnthropicGenerationError("output_limit", "Model output reached its token limit; a new bounded execution requires an explicit budget decision", 422, usage, telemetry);
+			if (upstream.stop_reason === "refusal") throw new AnthropicGenerationError("refusal", "Model did not produce a complete usable response", 422, usage, telemetry);
+			if (upstream.stop_reason === "pause_turn") throw new AnthropicGenerationError("pause_turn", "Model provider request failed", 503, usage, telemetry);
+			return { telemetry, usage,
+				text: upstream.content
+					.filter((block) => block.type === "text")
+					.map((block) => block.text)
+					.join(""),
+				toolCalls: upstream.content
+					.filter((block) => block.type === "tool_use")
+					.map((block) => ({ id: block.id, name: block.name, input: block.input })),
+				providerState: upstream.content.some((block) => (
+					block.type === "thinking" || block.type === "redacted_thinking"
+				))
+					? {
+						type: anthropicProviderStateType,
+						model: this.model,
+						content: structuredClone(upstream.content),
+					}
+					: undefined,
+			};
+		} catch (error) { throw normalizedFailure(error); }
 	}
 
 	async countTokens(request: AgentModelRequest, signal?: AbortSignal): Promise<number> {
-		return (await this.client.countMessageTokens(toAnthropicRequest(request, this.model, this.maxTokens), signal)).input_tokens;
+		try {
+			return (await this.client.countMessageTokens(toAnthropicRequest(request, this.model, this.maxTokens), signal)).input_tokens;
+		} catch (error) { throw normalizedFailure(error); }
 	}
 }

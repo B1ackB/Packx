@@ -18,7 +18,6 @@ import { WorkspaceTutorial, tutorialSteps } from "./components/WorkspaceTutorial
 import { DeliveryPreview } from "./components/DeliveryPreview";
 import { requirementFieldLabels, factStatusLabels } from "./manufacturing/requirementDelivery";
 import { languageNames, labelFor, statusFor, type Language } from "./i18n";
-import type { AssetInspectionRecord } from "./runtime/assetInspection";
 import { packagingFactKeys } from "./manufacturing/requirementBrief";
 import type { RuntimeActivity } from "./runtime/conversationContracts";
 import type { HostRuntimeHealth as RuntimeHealth } from "./runtime/hostCapabilities";
@@ -169,7 +168,6 @@ function App() {
 	const planRunning = !!planState && ["planning", "queued", "running"].includes(planState.versions.at(-1)?.status ?? "");
 	const [draft, setDraft] = useState("");
 	const [attachments, setAttachments] = useState<ConversationAttachment[]>([]);
-	const [, setParsedSources] = useState<AssetInspectionRecord[]>([]);
 	const [attachmentPreviews, setAttachmentPreviews] = useState<Record<string, string>>({});
 	const [selectedAttachmentIds, setSelectedAttachmentIds] = useState<string[]>([]);
 	const [uploading, setUploading] = useState(false);
@@ -269,7 +267,6 @@ function App() {
 	useEffect(() => {
 		setAttachments([]);
 		setUploading(false);
-		setParsedSources([]);
 		setSelectedAttachmentIds([]);
 		if (!active) return;
 		let cancelled = false;
@@ -490,7 +487,7 @@ function App() {
 				activate(undefined);
 				setDraft(""); setSending(false); setRequirement(undefined);
 				setActivity(undefined); setRequirementActivity(undefined);
-				setAttachments([]); setUploading(false); setSelectedAttachmentIds([]); setParsedSources([]); setAttachmentPreviews({});
+				setAttachments([]); setUploading(false); setSelectedAttachmentIds([]); setAttachmentPreviews({});
 				setCronSchedules([]); setFactKey(""); setFactValue(""); setFactUnit("");
 				const index = conversations.findIndex((item) => item.conversationId === conversationId);
 				const next = remaining[Math.min(index, remaining.length - 1)];
@@ -1143,7 +1140,7 @@ function App() {
 
 							</section>
 
-							{content && active && requirement.state.currentProposal && <DeliveryPreview conversationId={active.conversationId} versions={requirement.state.proposalVersions.map((item) => item.version)} currentVersion={requirement.state.currentProposal.version} revision={requirement.state.aggregateVersion} onSources={setParsedSources} language={language} />}
+							{content && active && requirement.state.currentProposal && <DeliveryPreview conversationId={active.conversationId} versions={requirement.state.proposalVersions.map((item) => item.version)} currentVersion={requirement.state.currentProposal.version} revision={requirement.state.aggregateVersion} language={language} />}
 
 							<details className="proposal-section diagnostics"><summary>{en ? "Task details" : "本次处理详情"}</summary>
 								<dl className="run-metadata">

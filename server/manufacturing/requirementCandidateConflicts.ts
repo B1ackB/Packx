@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { isDeepStrictEqual } from "node:util";
 import { ArtifactStoreError, type ArtifactContentStore } from "../../src/enterprise/artifactStore";
 import type { EnterpriseEvent, FactVersionState, ProposalRunState } from "../../src/enterprise/contracts";
-import { normalizeRequirementFactKey, validCandidateConflicts, type ManufacturingIndustry, type RequirementBriefV1, type RequirementFactV1, type RequirementCandidateConflict, type RequirementCandidateSource } from "../../src/manufacturing/requirementBrief";
+import { evaluateRequirementBrief, normalizeRequirementFactKey, validCandidateConflicts, type ManufacturingIndustry, type RequirementBriefV1, type RequirementFactV1, type RequirementFactChange, type RequirementCandidateConflict, type RequirementCandidateSource } from "../../src/manufacturing/requirementBrief";
 import { replayProposalRun } from "../../src/enterprise/proposalRunEngine";
 import { compareRequirementField } from "../../src/manufacturing/requirementField";
 import { RuntimeFailure } from "../../src/runtime/contracts";
@@ -31,6 +31,7 @@ export function readCandidateConfirmation(artifacts: ArtifactContentStore, state
 /** A review intent alone is not a resolution: the matching human Fact event must exist. */
 export function candidateConflictHistory(artifacts: ArtifactContentStore, state: ProposalRunState, events: EnterpriseEvent[], activeVersion?: number) {
 	const found = new Map<string, RequirementCandidateConflict>();
+	const pendingChanges: RequirementFactChange[] = [];
 	const collect = (conflicts: unknown) => {
 		if (conflicts === undefined) return;
 		if (!validCandidateConflicts(conflicts)) throw new RuntimeFailure("context_failure", "Stored candidate conflicts are invalid", false);
@@ -41,8 +42,17 @@ export function candidateConflictHistory(artifacts: ArtifactContentStore, state:
 		}
 	};
 	for (const version of state.proposalVersions.filter(v => v.artifactId === "requirement-brief")) {
-		const content = artifacts.readJson({ ...state, artifactId: version.artifactId, artifactVersion: version.version }) as { candidateConflicts?: unknown };
+		const content = artifacts.readJson({ ...state, artifactId: version.artifactId, artifactVersion: version.version }) as RequirementBriefV1;
 		collect(content?.candidateConflicts);
+		if (content?.pendingChanges !== undefined) {
+			if (!evaluateRequirementBrief(content).passed) throw new RuntimeFailure("context_failure", "Stored pending Fact changes are invalid", false);
+			for (const change of content.pendingChanges) {
+				const current = state.facts[change.key];
+				// A new model response cannot resolve a proposal against this confirmed version.
+				// A human edit/decision or source invalidation advances the authoritative Fact.
+				if (current?.status === "verified" && current.version === change.currentFactVersion && !pendingChanges.some(previous => isDeepStrictEqual(previous, change))) pendingChanges.push(change);
+			}
+		}
 	}
 	const read = (artifactId: string, artifactVersion: number) => {
 		try { return artifacts.readJson({ ...state, artifactId, artifactVersion }); }
@@ -80,7 +90,7 @@ export function candidateConflictHistory(artifacts: ArtifactContentStore, state:
 		if (resolution) resolved.push({ conflict, factVersion: resolution.factVersion });
 		else open.push(conflict);
 	}
-	return { open, resolved };
+	return { open, resolved, pendingChanges };
 }
 
 /** Compare saved output against its original event snapshot; never replay a model or write Facts. */
